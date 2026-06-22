@@ -69,7 +69,10 @@ permissions:
   actions: read
   security-events: read
   vulnerability-alerts: read
-  copilot-requests: write
+
+engine:
+  id: codex
+  model: gpt-5.4
 
 timeout-minutes: 15
 max-ai-credits: 800
