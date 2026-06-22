@@ -46,9 +46,7 @@ permissions:
   pull-requests: read
   security-events: read
   vulnerability-alerts: read
-
-engine:
-  id: codex
+  copilot-requests: write
 
 timeout-minutes: 60
 max-ai-credits: 1800
