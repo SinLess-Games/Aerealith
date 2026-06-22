@@ -1,5 +1,5 @@
-# gh-aw-metadata: {"schema_version":"v4","frontmatter_hash":"d575f155d4c8feffd3a13e3bf3d64ad8f34103b129703364f7c3d9344d96fa6b","body_hash":"0406fba733a7541f302a549358a77e0590c35c4835ca52fc5adebb5909e85ad3","compiler_version":"v0.79.8","strict":true,"agent_id":"gemini","agent_model":"gemini-3.1-flash-lite","engine_versions":{"gemini":"0.39.1"}}
-# gh-aw-manifest: {"version":1,"secrets":["GEMINI_API_KEY","GH_AW_AGENT_TOKEN","GH_AW_GITHUB_MCP_SERVER_TOKEN","GH_AW_GITHUB_TOKEN","GH_AW_READ_PROJECT_TOKEN","GH_AW_WRITE_PROJECT_TOKEN","GITHUB_TOKEN"],"actions":[{"repo":"actions/checkout","sha":"df4cb1c069e1874edd31b4311f1884172cec0e10","version":"v6.0.3"},{"repo":"actions/download-artifact","sha":"3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c","version":"v8.0.1"},{"repo":"actions/github-script","sha":"3a2844b7e9c422d3c10d287c895573f7108da1b3","version":"v9.0.0"},{"repo":"actions/setup-node","sha":"48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e","version":"v6.4.0"},{"repo":"actions/upload-artifact","sha":"043fb46d1a93c77aae656e7c1c64a875d1fc6a0a","version":"v7.0.1"},{"repo":"github/gh-aw-actions/setup","sha":"c0338fef4749d08c21f8f975fb0e37efa17dda47","version":"v0.79.8"}],"containers":[{"image":"ghcr.io/github/gh-aw-firewall/agent:0.27.2","digest":"sha256:f88e5b17b6b7a600117bc121114d6ce2155c88c983c0c939c5df884f730fa1d6","pinned_image":"ghcr.io/github/gh-aw-firewall/agent:0.27.2@sha256:f88e5b17b6b7a600117bc121114d6ce2155c88c983c0c939c5df884f730fa1d6"},{"image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.27.2","digest":"sha256:ee39841d980878ebbb87592903b06d31a1af500c71525c9616f7e8e2a27041a4","pinned_image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.27.2@sha256:ee39841d980878ebbb87592903b06d31a1af500c71525c9616f7e8e2a27041a4"},{"image":"ghcr.io/github/gh-aw-firewall/squid:0.27.2","digest":"sha256:2e3a717e5f19a654cd9a2263beb52012b56bcb68562ec5ae2e42f9d156b49591","pinned_image":"ghcr.io/github/gh-aw-firewall/squid:0.27.2@sha256:2e3a717e5f19a654cd9a2263beb52012b56bcb68562ec5ae2e42f9d156b49591"},{"image":"ghcr.io/github/gh-aw-mcpg:v0.3.25","digest":"sha256:c10331ad17668ef89f38f5e356678788a40b0cd5fef96e8f92e1d9c1de47cbaa","pinned_image":"ghcr.io/github/gh-aw-mcpg:v0.3.25@sha256:c10331ad17668ef89f38f5e356678788a40b0cd5fef96e8f92e1d9c1de47cbaa"},{"image":"ghcr.io/github/github-mcp-server:v1.1.2","digest":"sha256:30197479d8036c7811892bc07e06f9a05c9ef3cdd79bc59f256d50647f95788c","pinned_image":"ghcr.io/github/github-mcp-server:v1.1.2@sha256:30197479d8036c7811892bc07e06f9a05c9ef3cdd79bc59f256d50647f95788c"}]}
+# gh-aw-metadata: {"schema_version":"v4","frontmatter_hash":"459e21e0e8b28eb62fd50435b2634458887a8dd9aa41c394b475f1be9af7a7c9","body_hash":"dcb85578583a95a41995c8ab688cbfe6e05689e0213433a859b061f89f2acb33","compiler_version":"v0.79.8","strict":true,"agent_id":"gemini","agent_model":"gemini-3.1-flash-lite","engine_versions":{"gemini":"0.39.1"}}
+# gh-aw-manifest: {"version":1,"secrets":["GEMINI_API_KEY","GH_AW_AGENT_TOKEN","GH_AW_GITHUB_TOKEN","GH_AW_READ_PROJECT_TOKEN","GH_AW_WRITE_PROJECT_TOKEN","GITHUB_TOKEN"],"actions":[{"repo":"actions/checkout","sha":"df4cb1c069e1874edd31b4311f1884172cec0e10","version":"v6.0.3"},{"repo":"actions/download-artifact","sha":"3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c","version":"v8.0.1"},{"repo":"actions/github-script","sha":"3a2844b7e9c422d3c10d287c895573f7108da1b3","version":"v9.0.0"},{"repo":"actions/setup-node","sha":"48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e","version":"v6.4.0"},{"repo":"actions/upload-artifact","sha":"043fb46d1a93c77aae656e7c1c64a875d1fc6a0a","version":"v7.0.1"},{"repo":"github/gh-aw-actions/setup","sha":"c0338fef4749d08c21f8f975fb0e37efa17dda47","version":"v0.79.8"}],"containers":[{"image":"ghcr.io/github/gh-aw-firewall/agent:0.27.2","digest":"sha256:f88e5b17b6b7a600117bc121114d6ce2155c88c983c0c939c5df884f730fa1d6","pinned_image":"ghcr.io/github/gh-aw-firewall/agent:0.27.2@sha256:f88e5b17b6b7a600117bc121114d6ce2155c88c983c0c939c5df884f730fa1d6"},{"image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.27.2","digest":"sha256:ee39841d980878ebbb87592903b06d31a1af500c71525c9616f7e8e2a27041a4","pinned_image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.27.2@sha256:ee39841d980878ebbb87592903b06d31a1af500c71525c9616f7e8e2a27041a4"},{"image":"ghcr.io/github/gh-aw-firewall/squid:0.27.2","digest":"sha256:2e3a717e5f19a654cd9a2263beb52012b56bcb68562ec5ae2e42f9d156b49591","pinned_image":"ghcr.io/github/gh-aw-firewall/squid:0.27.2@sha256:2e3a717e5f19a654cd9a2263beb52012b56bcb68562ec5ae2e42f9d156b49591"},{"image":"ghcr.io/github/gh-aw-mcpg:v0.3.25","digest":"sha256:c10331ad17668ef89f38f5e356678788a40b0cd5fef96e8f92e1d9c1de47cbaa","pinned_image":"ghcr.io/github/gh-aw-mcpg:v0.3.25@sha256:c10331ad17668ef89f38f5e356678788a40b0cd5fef96e8f92e1d9c1de47cbaa"},{"image":"ghcr.io/github/github-mcp-server:v1.1.2","digest":"sha256:30197479d8036c7811892bc07e06f9a05c9ef3cdd79bc59f256d50647f95788c","pinned_image":"ghcr.io/github/github-mcp-server:v1.1.2@sha256:30197479d8036c7811892bc07e06f9a05c9ef3cdd79bc59f256d50647f95788c"}]}
 # This file was automatically generated by gh-aw (v0.79.8). DO NOT EDIT. To debug this workflow, load the skill at https://github.com/github/gh-aw/blob/main/debug.md
 #
 #    ___                   _   _
@@ -23,15 +23,16 @@
 #
 # For more information: https://github.github.com/gh-aw/introduction/overview/
 #
-# Aerealith Issue, Pull Request, Project, reviewer, worker, and dependency orchestrator.
+# Creates and synchronizes Aerealith repository governance, then triages Issues, Pull Requests, milestones, reviewers, workers, labels, and Project items.
 #
 # Frontmatter env variables:
+#   - AEREALITH_PROJECT_NAME: (main workflow)
+#   - AEREALITH_PROJECT_OWNER: (main workflow)
 #   - AEREALITH_PROJECT_URL: (main workflow)
 #
 # Secrets used:
 #   - GEMINI_API_KEY
 #   - GH_AW_AGENT_TOKEN
-#   - GH_AW_GITHUB_MCP_SERVER_TOKEN
 #   - GH_AW_GITHUB_TOKEN
 #   - GH_AW_READ_PROJECT_TOKEN
 #   - GH_AW_WRITE_PROJECT_TOKEN
@@ -39,6 +40,7 @@
 #
 # Custom actions used:
 #   - actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+#   - actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (source v6)
 #   - actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
 #   - actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
 #   - actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
@@ -87,11 +89,6 @@ on:
         description: "Agent caller context (used internally by Agentic Workflows)."
         required: false
         type: string
-      apply:
-        default: false
-        description: Keep false until staged output previews are approved.
-        required: true
-        type: boolean
       mode:
         default: reconcile
         description: Orchestrator mode to run.
@@ -117,6 +114,8 @@ concurrency:
 run-name: "Aerealith Project Orchestrator"
 
 env:
+  AEREALITH_PROJECT_NAME: Aerealith Delivery
+  AEREALITH_PROJECT_OWNER: SinLess-Games
   AEREALITH_PROJECT_URL: https://github.com/orgs/SinLess-Games/projects/3
 
 jobs:
@@ -173,7 +172,7 @@ jobs:
           GH_AW_INFO_WORKFLOW_NAME: "Aerealith Project Orchestrator"
           GH_AW_INFO_EXPERIMENTAL: "false"
           GH_AW_INFO_SUPPORTS_TOOLS_ALLOWLIST: "true"
-          GH_AW_INFO_STAGED: "true"
+          GH_AW_INFO_STAGED: "false"
           GH_AW_INFO_ALLOWED_DOMAINS: '["defaults"]'
           GH_AW_INFO_FIREWALL_ENABLED: "false"
           GH_AW_INFO_AWF_VERSION: ""
@@ -284,20 +283,20 @@ jobs:
         run: |
           bash "${RUNNER_TEMP}/gh-aw/actions/create_prompt_first.sh"
           {
-          cat << 'GH_AW_PROMPT_c3c7bbf133c4d814_EOF'
+          cat << 'GH_AW_PROMPT_0d037434067a525f_EOF'
           <system>
-          GH_AW_PROMPT_c3c7bbf133c4d814_EOF
+          GH_AW_PROMPT_0d037434067a525f_EOF
           cat "${RUNNER_TEMP}/gh-aw/prompts/xpia.md"
           cat "${RUNNER_TEMP}/gh-aw/prompts/temp_folder_prompt.md"
           cat "${RUNNER_TEMP}/gh-aw/prompts/markdown.md"
           cat "${RUNNER_TEMP}/gh-aw/prompts/safe_outputs_prompt.md"
-          cat << 'GH_AW_PROMPT_c3c7bbf133c4d814_EOF'
+          cat << 'GH_AW_PROMPT_0d037434067a525f_EOF'
           <safe-output-tools>
-          Tools: add_comment, add_labels(max:3), add_reviewer, assign_milestone, assign_to_agent, assign_to_user, update_project(max:10), missing_tool, missing_data
+          Tools: add_comment(max:5), add_labels(max:25), add_reviewer(max:5), assign_milestone(max:5), assign_to_agent(max:3), assign_to_user(max:5), update_project(max:25), create_project, create_project_status_update, missing_tool, missing_data, noop, sync_repository_governance
           </safe-output-tools>
-          GH_AW_PROMPT_c3c7bbf133c4d814_EOF
+          GH_AW_PROMPT_0d037434067a525f_EOF
           cat "${RUNNER_TEMP}/gh-aw/prompts/mcp_cli_tools_prompt.md"
-          cat << 'GH_AW_PROMPT_c3c7bbf133c4d814_EOF'
+          cat << 'GH_AW_PROMPT_0d037434067a525f_EOF'
           <github-context>
           The following GitHub context information is available for this workflow:
           {{#if github.actor}}
@@ -326,12 +325,12 @@ jobs:
           {{/if}}
           </github-context>
 
-          GH_AW_PROMPT_c3c7bbf133c4d814_EOF
+          GH_AW_PROMPT_0d037434067a525f_EOF
           cat "${RUNNER_TEMP}/gh-aw/prompts/github_mcp_tools_with_safeoutputs_prompt.md"
-          cat << 'GH_AW_PROMPT_c3c7bbf133c4d814_EOF'
+          cat << 'GH_AW_PROMPT_0d037434067a525f_EOF'
           </system>
           {{#runtime-import .github/workflows/aerealith-project-orchestrator.md}}
-          GH_AW_PROMPT_c3c7bbf133c4d814_EOF
+          GH_AW_PROMPT_0d037434067a525f_EOF
           } > "$GH_AW_PROMPT"
       - name: Interpolate variables and render templates
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -498,9 +497,9 @@ jobs:
           github.event.pull_request || github.event.issue.pull_request || github.event_name == 'workflow_dispatch' && fromJSON(github.event.inputs.aw_context || '{}').item_type == 'pull_request'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
         with:
-          github-token: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
           script: |
             const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
             setupGlobals(core, github, context, exec, io, getOctokit);
@@ -551,23 +550,42 @@ jobs:
           mkdir -p "${RUNNER_TEMP}/gh-aw/safeoutputs"
           mkdir -p /tmp/gh-aw/safeoutputs
           mkdir -p /tmp/gh-aw/mcp-logs/safeoutputs
-          cat > "${RUNNER_TEMP}/gh-aw/safeoutputs/config.json" << 'GH_AW_SAFE_OUTPUTS_CONFIG_3ceb2ea29154bdcc_EOF'
-          {"add_comment":{"max":1,"target":"*"},"add_labels":{"allowed":["type: *","area: *","status: *","priority: *","risk: *","agent: *","automation: *","planning: *"],"blocked":["~*","*[bot]"],"max":3,"target":"*"},"add_reviewer":{"allowed":["Sinless777"],"max":1,"target":"*"},"assign_milestone":{"allowed":["MVP Foundation","MVP Identity and User Platform","MVP API and Platform Services","MVP Frontend and Developer Experience","MVP Discord Management Platform","MVP Operations and Observability","v0.1.0 Private Alpha","v0.2.0 Public Alpha","v1.0.0 Initial Release"],"max":1,"target":"*"},"assign_to_agent":{"allowed":["copilot"],"max":1,"target":"*"},"assign_to_user":{"allowed":["Sinless777"],"max":1,"target":"*"},"create_report_incomplete_issue":{},"missing_data":{},"missing_tool":{},"report_incomplete":{},"update_project":{"github-token":"${GH_AW_SECRET_GH_AW_WRITE_PROJECT_TOKEN}","max":10,"project":"https://github.com/orgs/SinLess-Games/projects/3","views":[{"name":"Intake","layout":"board","filter":"is:issue is:open label:\"status: triage\""},{"name":"Delivery Kanban","layout":"board","filter":"is:open -label:\"status: done\" -label:\"status: blocked\""},{"name":"Prioritized Backlog","layout":"table","filter":"is:issue is:open -label:\"status: done\""},{"name":"Current MVP","layout":"table","filter":"is:issue is:open milestone:\"MVP Foundation\""},{"name":"Release Roadmap","layout":"roadmap","filter":"is:issue is:open"},{"name":"Agent Queue","layout":"table","filter":"is:issue is:open label:\"agent: ready\""},{"name":"Dependency Updates","layout":"table","filter":"is:pr is:open label:\"type: dependency\""},{"name":"Security and Urgent Work","layout":"board","filter":"is:open label:\"type: security\""},{"name":"Blocked Work","layout":"board","filter":"is:open label:\"status: blocked\""},{"name":"Review Queue","layout":"table","filter":"is:pr is:open label:\"status: in-review\""}]}}
-          GH_AW_SAFE_OUTPUTS_CONFIG_3ceb2ea29154bdcc_EOF
+          cat > "${RUNNER_TEMP}/gh-aw/safeoutputs/config.json" << 'GH_AW_SAFE_OUTPUTS_CONFIG_b957fca5f076b43a_EOF'
+          {"add_comment":{"max":5,"target":"*"},"add_labels":{"allowed":["type: *","area: *","status: *","priority: *","risk: *","agent: *","automation: *","planning: *"],"blocked":["~*","*[bot]"],"max":25,"target":"*"},"add_reviewer":{"allowed":["Sinless777"],"max":5,"target":"*"},"assign_milestone":{"allowed":["MVP Foundation","MVP Identity and User Platform","MVP API and Platform Services","MVP Frontend and Developer Experience","MVP Discord Management Platform","MVP Operations and Observability","v0.1.0 Private Alpha","v0.2.0 Public Alpha","v1.0.0 Initial Release"],"max":5,"target":"*"},"assign_to_agent":{"allowed":["copilot"],"max":3,"target":"*"},"assign_to_user":{"allowed":["Sinless777"],"max":5,"target":"*"},"create_project":{"github-token":"${GH_AW_SECRET_GH_AW_WRITE_PROJECT_TOKEN}","max":1,"target_owner":"SinLess-Games","title_prefix":"Aerealith","views":[{"name":"Intake","layout":"board","filter":"is:issue is:open label:\"status: triage\""},{"name":"Delivery Kanban","layout":"board","filter":"is:open -label:\"status: done\" -label:\"status: blocked\""},{"name":"Prioritized Backlog","layout":"table","filter":"is:issue is:open -label:\"status: done\""},{"name":"Current MVP","layout":"table","filter":"is:issue is:open milestone:\"MVP Foundation\""},{"name":"Release Roadmap","layout":"roadmap","filter":"is:issue is:open"},{"name":"Agent Queue","layout":"table","filter":"is:issue is:open label:\"agent: ready\""},{"name":"Dependency Updates","layout":"table","filter":"is:pr is:open label:\"type: dependency\""},{"name":"Security and Urgent Work","layout":"board","filter":"is:open label:\"type: security\""},{"name":"Blocked Work","layout":"board","filter":"is:open label:\"status: blocked\""},{"name":"Review Queue","layout":"table","filter":"is:pr is:open label:\"status: in-review\""}]},"create_project_status_update":{"github-token":"${GH_AW_SECRET_GH_AW_WRITE_PROJECT_TOKEN}","max":1,"project":"https://github.com/orgs/SinLess-Games/projects/3"},"create_report_incomplete_issue":{},"missing_data":{},"missing_tool":{},"noop":{"max":1,"report-as-issue":"false"},"report_incomplete":{},"sync-repository-governance":{"description":"Create missing repository labels and milestones from .github/config/labels.yaml and .github/config/milestones.yaml. Never changes existing labels or milestones.","inputs":{"reason":{"default":null,"description":"Reason for the deterministic synchronization.","required":true,"type":"string"}},"output":"Repository governance catalog synchronized."},"update_project":{"github-token":"${GH_AW_SECRET_GH_AW_WRITE_PROJECT_TOKEN}","max":25,"project":"https://github.com/orgs/SinLess-Games/projects/3","views":[{"name":"Intake","layout":"board","filter":"is:issue is:open label:\"status: triage\""},{"name":"Delivery Kanban","layout":"board","filter":"is:open -label:\"status: done\" -label:\"status: blocked\""},{"name":"Prioritized Backlog","layout":"table","filter":"is:issue is:open -label:\"status: done\""},{"name":"Current MVP","layout":"table","filter":"is:issue is:open milestone:\"MVP Foundation\""},{"name":"Release Roadmap","layout":"roadmap","filter":"is:issue is:open"},{"name":"Agent Queue","layout":"table","filter":"is:issue is:open label:\"agent: ready\""},{"name":"Dependency Updates","layout":"table","filter":"is:pr is:open label:\"type: dependency\""},{"name":"Security and Urgent Work","layout":"board","filter":"is:open label:\"type: security\""},{"name":"Blocked Work","layout":"board","filter":"is:open label:\"status: blocked\""},{"name":"Review Queue","layout":"table","filter":"is:pr is:open label:\"status: in-review\""}]}}
+          GH_AW_SAFE_OUTPUTS_CONFIG_b957fca5f076b43a_EOF
       - name: Generate Safe Outputs Tools
         env:
           GH_AW_TOOLS_META_JSON: |
             {
               "description_suffixes": {
-                "add_comment": " CONSTRAINTS: Maximum 1 comment(s) can be added. Target: *. Supports reply_to_id for discussion threading.",
-                "add_labels": " CONSTRAINTS: Maximum 3 label(s) can be added. Only these labels are allowed: [\"type: *\" \"area: *\" \"status: *\" \"priority: *\" \"risk: *\" \"agent: *\" \"automation: *\" \"planning: *\"]. Target: *.",
-                "add_reviewer": " CONSTRAINTS: Maximum 1 reviewer(s) can be added.",
-                "assign_milestone": " CONSTRAINTS: Maximum 1 milestone assignment(s) can be made.",
-                "assign_to_agent": " CONSTRAINTS: Maximum 1 issue(s) can be assigned to agent.",
-                "update_project": " CONSTRAINTS: Maximum 10 project operation(s) can be performed. Default project URL: \"https://github.com/orgs/SinLess-Games/projects/3\"."
+                "add_comment": " CONSTRAINTS: Maximum 5 comment(s) can be added. Target: *. Supports reply_to_id for discussion threading.",
+                "add_labels": " CONSTRAINTS: Maximum 25 label(s) can be added. Only these labels are allowed: [\"type: *\" \"area: *\" \"status: *\" \"priority: *\" \"risk: *\" \"agent: *\" \"automation: *\" \"planning: *\"]. Target: *.",
+                "add_reviewer": " CONSTRAINTS: Maximum 5 reviewer(s) can be added.",
+                "assign_milestone": " CONSTRAINTS: Maximum 5 milestone assignment(s) can be made.",
+                "assign_to_agent": " CONSTRAINTS: Maximum 3 issue(s) can be assigned to agent.",
+                "create_project_status_update": " CONSTRAINTS: Maximum 1 status update(s) can be created. Default project URL: \"https://github.com/orgs/SinLess-Games/projects/3\".",
+                "update_project": " CONSTRAINTS: Maximum 25 project operation(s) can be performed. Default project URL: \"https://github.com/orgs/SinLess-Games/projects/3\"."
               },
               "repo_params": {},
-              "dynamic_tools": []
+              "dynamic_tools": [
+                {
+                  "description": "Create missing repository labels and milestones from .github/config/labels.yaml and .github/config/milestones.yaml. Never changes existing labels or milestones.",
+                  "inputSchema": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "reason": {
+                        "description": "Reason for the deterministic synchronization.",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "reason"
+                    ],
+                    "type": "object"
+                  },
+                  "name": "sync_repository_governance"
+                }
+              ]
             }
           GH_AW_VALIDATION_JSON: |
             {
@@ -705,6 +723,72 @@ jobs:
                   }
                 }
               },
+              "create_project": {
+                "defaultMax": 1,
+                "fields": {
+                  "item_url": {
+                    "type": "string",
+                    "sanitize": true,
+                    "maxLength": 512
+                  },
+                  "owner": {
+                    "type": "string",
+                    "sanitize": true,
+                    "maxLength": 128
+                  },
+                  "owner_type": {
+                    "type": "string",
+                    "enum": [
+                      "org",
+                      "user"
+                    ]
+                  },
+                  "title": {
+                    "type": "string",
+                    "sanitize": true,
+                    "maxLength": 256
+                  }
+                }
+              },
+              "create_project_status_update": {
+                "defaultMax": 10,
+                "fields": {
+                  "body": {
+                    "required": true,
+                    "type": "string",
+                    "sanitize": true,
+                    "maxLength": 65536
+                  },
+                  "project": {
+                    "required": true,
+                    "type": "string",
+                    "sanitize": true,
+                    "maxLength": 512,
+                    "pattern": "^https://[^/]+/(orgs|users)/[^/]+/projects/\\d+",
+                    "patternError": "must be a full GitHub project URL (e.g., https://github.com/orgs/myorg/projects/42)"
+                  },
+                  "start_date": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                    "patternError": "must be in YYYY-MM-DD format"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "INACTIVE",
+                      "ON_TRACK",
+                      "AT_RISK",
+                      "OFF_TRACK",
+                      "COMPLETE"
+                    ]
+                  },
+                  "target_date": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                    "patternError": "must be in YYYY-MM-DD format"
+                  }
+                }
+              },
               "missing_data": {
                 "defaultMax": 20,
                 "fields": {
@@ -748,6 +832,17 @@ jobs:
                     "type": "string",
                     "sanitize": true,
                     "maxLength": 128
+                  }
+                }
+              },
+              "noop": {
+                "defaultMax": 1,
+                "fields": {
+                  "message": {
+                    "required": true,
+                    "type": "string",
+                    "sanitize": true,
+                    "maxLength": 65000
                   }
                 }
               },
@@ -972,7 +1067,7 @@ jobs:
             echo "$BASE_CONFIG" > "$SETTINGS"
           fi
         env:
-          GH_AW_GEMINI_BASE_CONFIG: '{"context":{"includeDirectories":["/tmp/"]},"tools":{"core":["glob","grep_search","list_directory","read_file","read_many_files","replace","run_shell_command(cat)","run_shell_command(date)","run_shell_command(echo)","run_shell_command(grep)","run_shell_command(head)","run_shell_command(ls)","run_shell_command(printf)","run_shell_command(pwd)","run_shell_command(safeoutputs)","run_shell_command(safeoutputs:*)","run_shell_command(sort)","run_shell_command(tail)","run_shell_command(uniq)","run_shell_command(wc)","run_shell_command(yq)","write_file"]}}'
+          GH_AW_GEMINI_BASE_CONFIG: '{"context":{"includeDirectories":["/tmp/"]},"tools":{"core":["glob","grep_search","list_directory","read_file","read_many_files","replace","run_shell_command(awk)","run_shell_command(cat)","run_shell_command(date)","run_shell_command(echo)","run_shell_command(find)","run_shell_command(git diff)","run_shell_command(git diff)","run_shell_command(git log)","run_shell_command(git log)","run_shell_command(git ls-files)","run_shell_command(git ls-files)","run_shell_command(git rev-parse)","run_shell_command(git status)","run_shell_command(git status)","run_shell_command(grep)","run_shell_command(grep)","run_shell_command(head)","run_shell_command(jq)","run_shell_command(ls)","run_shell_command(ls)","run_shell_command(printf)","run_shell_command(pwd)","run_shell_command(rg)","run_shell_command(safeoutputs)","run_shell_command(safeoutputs:*)","run_shell_command(sed)","run_shell_command(sort)","run_shell_command(tail)","run_shell_command(uniq)","run_shell_command(wc)","run_shell_command(yq)","run_shell_command(yq)","write_file"]}}'
       - name: Execute Gemini CLI
         id: agentic_execution
         run: |
@@ -980,7 +1075,7 @@ jobs:
           printf '%s' "$(date +%s%3N)" > /tmp/gh-aw/agent_cli_start_ms.txt
           touch /tmp/gh-aw/agent-step-summary.md
           (umask 177 && touch /tmp/gh-aw/agent-stdio.log)
-          printf '%s\n' '{"$schema":"https://github.com/github/gh-aw-firewall/releases/download/v0.27.2/awf-config.schema.json","network":{"allowDomains":["*.googleapis.com","api.snapcraft.io","archive.ubuntu.com","azure.archive.ubuntu.com","crl.geotrust.com","crl.globalsign.com","crl.identrust.com","crl.sectigo.com","crl.thawte.com","crl.usertrust.com","crl.verisign.com","crl3.digicert.com","crl4.digicert.com","crls.ssl.com","generativelanguage.googleapis.com","github.com","host.docker.internal","json-schema.org","json.schemastore.org","keyserver.ubuntu.com","ocsp.digicert.com","ocsp.geotrust.com","ocsp.globalsign.com","ocsp.identrust.com","ocsp.sectigo.com","ocsp.ssl.com","ocsp.thawte.com","ocsp.usertrust.com","ocsp.verisign.com","packagecloud.io","packages.cloud.google.com","packages.microsoft.com","ppa.launchpad.net","raw.githubusercontent.com","registry.npmjs.org","s.symcb.com","s.symcd.com","security.ubuntu.com","ts-crl.ws.symantec.com","ts-ocsp.ws.symantec.com","www.googleapis.com"]},"apiProxy":{"enabled":true,"maxRuns":30,"targets":{"gemini":{"host":"generativelanguage.googleapis.com"}},"models":{"agent":["sonnet-6x","gpt-5.4","gpt-5.3","gemini-pro","any"],"antigravity":["copilot/antigravity*","google/antigravity*","gemini/antigravity*"],"any":["copilot/*","anthropic/*","openai/*","google/*","gemini/*"],"claude":["agent"],"codex":["agent"],"coding":["copilot/gpt-5*codex*","openai/gpt-5*codex*","gpt-5-codex"],"computer-use":["copilot/*computer-use*","google/*computer-use*","gemini/*computer-use*","openai/*computer-use*"],"copilot":["agent"],"deep-research":["copilot/deep-research*","copilot/o3-deep-research*","copilot/o4-mini-deep-research*","google/deep-research*","gemini/deep-research*","openai/o3-deep-research*","openai/o4-mini-deep-research*"],"gemini":["agent"],"gemini-3-flash":["copilot/gemini-3*flash*","google/gemini-3*flash*","gemini/gemini-3*flash*"],"gemini-3-pro":["copilot/gemini-3*pro*","google/gemini-3*pro*","google/nano-banana*","gemini/gemini-3*pro*"],"gemini-3.1-flash":["copilot/gemini-3.1*flash*","google/gemini-3.1*flash*","gemini/gemini-3.1*flash*"],"gemini-3.1-pro":["copilot/gemini-3.1*pro*","google/gemini-3.1*pro*","gemini/gemini-3.1*pro*"],"gemini-3.5-flash":["copilot/gemini-3.5*flash*","google/gemini-3.5*flash*","gemini/gemini-3.5*flash*"],"gemini-flash":["copilot/gemini-*flash*","google/gemini-*flash*","gemini/gemini-*flash*"],"gemini-flash-lite":["copilot/gemini-*flash*lite*","google/gemini-*flash*lite*","gemini/gemini-*flash*lite*"],"gemini-pro":["copilot/gemini-*pro*","google/gemini-*pro*","gemini/gemini-*pro*"],"gemma":["copilot/gemma*","google/gemma*","gemini/gemma*"],"gpt-5":["copilot/gpt-5*","openai/gpt-5*"],"gpt-5-codex":["copilot/gpt-5*codex*","openai/gpt-5*codex*"],"gpt-5-mini":["copilot/gpt-5*mini*","openai/gpt-5*mini*"],"gpt-5-nano":["copilot/gpt-5*nano*","openai/gpt-5*nano*"],"gpt-5-pro":["copilot/gpt-5*pro*","openai/gpt-5*pro*"],"gpt-5.2":["copilot/gpt-5.2*","openai/gpt-5.2*"],"gpt-5.3":["copilot/gpt-5.3*","openai/gpt-5.3*"],"gpt-5.4":["copilot/gpt-5.4*","openai/gpt-5.4*"],"gpt-5.5":["copilot/gpt-5.5*","openai/gpt-5.5*"],"haiku":["copilot/*haiku*","anthropic/*haiku*"],"large":["sonnet","gpt-5-pro","gpt-5","gemini-pro"],"mai-code":["copilot/MAI-Code*","copilot/mai-code*","openai/MAI-Code*"],"mini":["haiku","gpt-5-mini","gpt-5-nano","gemini-flash-lite"],"nano-banana":["copilot/nano-banana*","google/nano-banana*","gemini/nano-banana*"],"opus":["copilot/*opus*","anthropic/*opus*"],"opusplan":["opus?effort=high"],"reasoning":["copilot/o1*","copilot/o3*","copilot/o4*","openai/o1*","openai/o3*","openai/o4*"],"robotics":["copilot/*robotics*","google/*robotics*","gemini/*robotics*"],"small":["mini"],"small-agent":["haiku","gpt-5-mini","gemini-flash"],"sonnet":["copilot/*sonnet*","anthropic/*sonnet*"],"sonnet-6x":["copilot/*sonnet-4.5*","copilot/*sonnet-4.6*","copilot/*sonnet-4-5-*","anthropic/*sonnet-4-5-*","copilot/*sonnet-4-6*","anthropic/*sonnet-4-6*"],"summarization":["haiku","gpt-5-mini","gemini-flash-lite","mini"],"vision":["copilot/gemini-*image*","gemini/gemini-*image*","copilot/gemini-*flash*","gemini/gemini-*flash*"]}},"container":{"imageTag":"0.27.2,squid=sha256:2e3a717e5f19a654cd9a2263beb52012b56bcb68562ec5ae2e42f9d156b49591,agent=sha256:f88e5b17b6b7a600117bc121114d6ce2155c88c983c0c939c5df884f730fa1d6,api-proxy=sha256:ee39841d980878ebbb87592903b06d31a1af500c71525c9616f7e8e2a27041a4,cli-proxy=sha256:02f3ec08f32dc26c5427920c6a2e2f3036238fce44802f2f11ef49ed8621b5d0"}}' > "${RUNNER_TEMP}/gh-aw/awf-config.json"
+          printf '%s\n' '{"$schema":"https://github.com/github/gh-aw-firewall/releases/download/v0.27.2/awf-config.schema.json","network":{"allowDomains":["*.googleapis.com","api.snapcraft.io","archive.ubuntu.com","azure.archive.ubuntu.com","crl.geotrust.com","crl.globalsign.com","crl.identrust.com","crl.sectigo.com","crl.thawte.com","crl.usertrust.com","crl.verisign.com","crl3.digicert.com","crl4.digicert.com","crls.ssl.com","generativelanguage.googleapis.com","github.com","host.docker.internal","json-schema.org","json.schemastore.org","keyserver.ubuntu.com","ocsp.digicert.com","ocsp.geotrust.com","ocsp.globalsign.com","ocsp.identrust.com","ocsp.sectigo.com","ocsp.ssl.com","ocsp.thawte.com","ocsp.usertrust.com","ocsp.verisign.com","packagecloud.io","packages.cloud.google.com","packages.microsoft.com","ppa.launchpad.net","raw.githubusercontent.com","registry.npmjs.org","s.symcb.com","s.symcd.com","security.ubuntu.com","ts-crl.ws.symantec.com","ts-ocsp.ws.symantec.com","www.googleapis.com"]},"apiProxy":{"enabled":true,"maxRuns":40,"targets":{"gemini":{"host":"generativelanguage.googleapis.com"}},"models":{"agent":["sonnet-6x","gpt-5.4","gpt-5.3","gemini-pro","any"],"antigravity":["copilot/antigravity*","google/antigravity*","gemini/antigravity*"],"any":["copilot/*","anthropic/*","openai/*","google/*","gemini/*"],"claude":["agent"],"codex":["agent"],"coding":["copilot/gpt-5*codex*","openai/gpt-5*codex*","gpt-5-codex"],"computer-use":["copilot/*computer-use*","google/*computer-use*","gemini/*computer-use*","openai/*computer-use*"],"copilot":["agent"],"deep-research":["copilot/deep-research*","copilot/o3-deep-research*","copilot/o4-mini-deep-research*","google/deep-research*","gemini/deep-research*","openai/o3-deep-research*","openai/o4-mini-deep-research*"],"gemini":["agent"],"gemini-3-flash":["copilot/gemini-3*flash*","google/gemini-3*flash*","gemini/gemini-3*flash*"],"gemini-3-pro":["copilot/gemini-3*pro*","google/gemini-3*pro*","google/nano-banana*","gemini/gemini-3*pro*"],"gemini-3.1-flash":["copilot/gemini-3.1*flash*","google/gemini-3.1*flash*","gemini/gemini-3.1*flash*"],"gemini-3.1-pro":["copilot/gemini-3.1*pro*","google/gemini-3.1*pro*","gemini/gemini-3.1*pro*"],"gemini-3.5-flash":["copilot/gemini-3.5*flash*","google/gemini-3.5*flash*","gemini/gemini-3.5*flash*"],"gemini-flash":["copilot/gemini-*flash*","google/gemini-*flash*","gemini/gemini-*flash*"],"gemini-flash-lite":["copilot/gemini-*flash*lite*","google/gemini-*flash*lite*","gemini/gemini-*flash*lite*"],"gemini-pro":["copilot/gemini-*pro*","google/gemini-*pro*","gemini/gemini-*pro*"],"gemma":["copilot/gemma*","google/gemma*","gemini/gemma*"],"gpt-5":["copilot/gpt-5*","openai/gpt-5*"],"gpt-5-codex":["copilot/gpt-5*codex*","openai/gpt-5*codex*"],"gpt-5-mini":["copilot/gpt-5*mini*","openai/gpt-5*mini*"],"gpt-5-nano":["copilot/gpt-5*nano*","openai/gpt-5*nano*"],"gpt-5-pro":["copilot/gpt-5*pro*","openai/gpt-5*pro*"],"gpt-5.2":["copilot/gpt-5.2*","openai/gpt-5.2*"],"gpt-5.3":["copilot/gpt-5.3*","openai/gpt-5.3*"],"gpt-5.4":["copilot/gpt-5.4*","openai/gpt-5.4*"],"gpt-5.5":["copilot/gpt-5.5*","openai/gpt-5.5*"],"haiku":["copilot/*haiku*","anthropic/*haiku*"],"large":["sonnet","gpt-5-pro","gpt-5","gemini-pro"],"mai-code":["copilot/MAI-Code*","copilot/mai-code*","openai/MAI-Code*"],"mini":["haiku","gpt-5-mini","gpt-5-nano","gemini-flash-lite"],"nano-banana":["copilot/nano-banana*","google/nano-banana*","gemini/nano-banana*"],"opus":["copilot/*opus*","anthropic/*opus*"],"opusplan":["opus?effort=high"],"reasoning":["copilot/o1*","copilot/o3*","copilot/o4*","openai/o1*","openai/o3*","openai/o4*"],"robotics":["copilot/*robotics*","google/*robotics*","gemini/*robotics*"],"small":["mini"],"small-agent":["haiku","gpt-5-mini","gemini-flash"],"sonnet":["copilot/*sonnet*","anthropic/*sonnet*"],"sonnet-6x":["copilot/*sonnet-4.5*","copilot/*sonnet-4.6*","copilot/*sonnet-4-5-*","anthropic/*sonnet-4-5-*","copilot/*sonnet-4-6*","anthropic/*sonnet-4-6*"],"summarization":["haiku","gpt-5-mini","gemini-flash-lite","mini"],"vision":["copilot/gemini-*image*","gemini/gemini-*image*","copilot/gemini-*flash*","gemini/gemini-*flash*"]}},"container":{"imageTag":"0.27.2,squid=sha256:2e3a717e5f19a654cd9a2263beb52012b56bcb68562ec5ae2e42f9d156b49591,agent=sha256:f88e5b17b6b7a600117bc121114d6ce2155c88c983c0c939c5df884f730fa1d6,api-proxy=sha256:ee39841d980878ebbb87592903b06d31a1af500c71525c9616f7e8e2a27041a4,cli-proxy=sha256:02f3ec08f32dc26c5427920c6a2e2f3036238fce44802f2f11ef49ed8621b5d0"}}' > "${RUNNER_TEMP}/gh-aw/awf-config.json"
           cp "${RUNNER_TEMP}/gh-aw/awf-config.json" /tmp/gh-aw/awf-config.json
           export GH_AW_MODELS_JSON_PATH="/tmp/gh-aw/models.json"
           GH_AW_DOCKER_HOST_PATH_PREFIX_ARGS=""
@@ -1005,12 +1100,11 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_CLI_TRUST_WORKSPACE: true
           GEMINI_MODEL: gemini-3.1-flash-lite
-          GH_AW_MAX_TURNS: 30
+          GH_AW_MAX_TURNS: 40
           GH_AW_MCP_CONFIG: ${{ github.workspace }}/.gemini/settings.json
           GH_AW_PHASE: agent
           GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
           GH_AW_SAFE_OUTPUTS: ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
-          GH_AW_SAFE_OUTPUTS_STAGED: true
           GH_AW_VERSION: v0.79.8
           GITHUB_AW: true
           GITHUB_STEP_SUMMARY: /tmp/gh-aw/agent-step-summary.md
@@ -1055,13 +1149,10 @@ jobs:
             const { main } = require('${{ runner.temp }}/gh-aw/actions/redact_secrets.cjs');
             await main();
         env:
-          GH_AW_SECRET_NAMES: "GEMINI_API_KEY,GH_AW_GITHUB_MCP_SERVER_TOKEN,GH_AW_GITHUB_TOKEN,GH_AW_READ_PROJECT_TOKEN,GH_AW_WRITE_PROJECT_TOKEN,GITHUB_TOKEN"
+          GH_AW_SECRET_NAMES: "GEMINI_API_KEY,GH_AW_READ_PROJECT_TOKEN,GH_AW_WRITE_PROJECT_TOKEN"
           SECRET_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          SECRET_GH_AW_GITHUB_MCP_SERVER_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN }}
-          SECRET_GH_AW_GITHUB_TOKEN: ${{ secrets.GH_AW_GITHUB_TOKEN }}
           SECRET_GH_AW_READ_PROJECT_TOKEN: ${{ secrets.GH_AW_READ_PROJECT_TOKEN }}
           SECRET_GH_AW_WRITE_PROJECT_TOKEN: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
-          SECRET_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Append agent step summary
         if: always()
         run: bash "${RUNNER_TEMP}/gh-aw/actions/append_agent_step_summary.sh"
@@ -1079,6 +1170,7 @@ jobs:
         env:
           GH_AW_SAFE_OUTPUTS: ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
           GH_AW_ALLOWED_DOMAINS: "*.googleapis.com,api.snapcraft.io,archive.ubuntu.com,azure.archive.ubuntu.com,crl.geotrust.com,crl.globalsign.com,crl.identrust.com,crl.sectigo.com,crl.thawte.com,crl.usertrust.com,crl.verisign.com,crl3.digicert.com,crl4.digicert.com,crls.ssl.com,generativelanguage.googleapis.com,github.com,host.docker.internal,json-schema.org,json.schemastore.org,keyserver.ubuntu.com,ocsp.digicert.com,ocsp.geotrust.com,ocsp.globalsign.com,ocsp.identrust.com,ocsp.sectigo.com,ocsp.ssl.com,ocsp.thawte.com,ocsp.usertrust.com,ocsp.verisign.com,packagecloud.io,packages.cloud.google.com,packages.microsoft.com,ppa.launchpad.net,raw.githubusercontent.com,registry.npmjs.org,s.symcb.com,s.symcd.com,security.ubuntu.com,ts-crl.ws.symantec.com,ts-ocsp.ws.symantec.com,www.googleapis.com"
+          GH_AW_ALLOWED_GITHUB_REFS: "repo"
           GITHUB_SERVER_URL: ${{ github.server_url }}
           GITHUB_API_URL: ${{ github.api_url }}
         with:
@@ -1183,17 +1275,23 @@ jobs:
       - agent
       - detection
       - safe_outputs
+      - sync_repository_governance
     if: >
       always() && (needs.agent.result != 'skipped' || needs.activation.outputs.lockdown_check_failed == 'true' ||
       needs.activation.outputs.stale_lock_file_failed == 'true' || needs.activation.outputs.daily_ai_credits_exceeded == 'true')
     runs-on: ubuntu-slim
-    permissions: {}
+    permissions:
+      contents: read
+      discussions: write
+      issues: write
+      pull-requests: write
     concurrency:
       group: "gh-aw-conclusion-aerealith-project-orchestrator"
       cancel-in-progress: false
       queue: max
     outputs:
       incomplete_count: ${{ steps.report_incomplete.outputs.incomplete_count }}
+      noop_message: ${{ steps.noop.outputs.noop_message }}
       tools_reported: ${{ steps.missing_tool.outputs.tools_reported }}
       total_count: ${{ steps.missing_tool.outputs.total_count }}
     steps:
@@ -1257,6 +1355,28 @@ jobs:
             /tmp/gh-aw/usage/agent/token_usage.jsonl
             /tmp/gh-aw/usage/detection/token_usage.jsonl
           if-no-files-found: ignore
+      - name: Process no-op messages
+        id: noop
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          GH_AW_AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
+          GH_AW_NOOP_MAX: "1"
+          GH_AW_WORKFLOW_NAME: "Aerealith Project Orchestrator"
+          GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/aerealith-project-orchestrator.md"
+          GH_AW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GH_AW_AGENT_CONCLUSION: ${{ needs.agent.result }}
+          GH_AW_NOOP_REPORT_AS_ISSUE: "false"
+          GH_AW_AIC: ${{ needs.agent.outputs.aic }}
+          GH_AW_THREAT_DETECTION_AIC: ${{ needs.detection.outputs.aic }}
+          GH_AW_AMBIENT_CONTEXT: ${{ needs.agent.outputs.ambient_context }}
+          GH_AW_WORKFLOW_ID: "aerealith-project-orchestrator"
+        with:
+          github-token: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
+          script: |
+            const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
+            setupGlobals(core, github, context, exec, io, getOctokit);
+            const { main } = require('${{ runner.temp }}/gh-aw/actions/handle_noop_message.cjs');
+            await main();
       - name: Log detection run
         id: detection_runs
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -1268,7 +1388,7 @@ jobs:
           GH_AW_DETECTION_CONCLUSION: ${{ needs.detection.outputs.detection_conclusion }}
           GH_AW_DETECTION_REASON: ${{ needs.detection.outputs.detection_reason }}
         with:
-          github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
           script: |
             const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
             setupGlobals(core, github, context, exec, io, getOctokit);
@@ -1283,7 +1403,7 @@ jobs:
           GH_AW_WORKFLOW_NAME: "Aerealith Project Orchestrator"
           GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/aerealith-project-orchestrator.md"
         with:
-          github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
           script: |
             const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
             setupGlobals(core, github, context, exec, io, getOctokit);
@@ -1298,7 +1418,7 @@ jobs:
           GH_AW_WORKFLOW_NAME: "Aerealith Project Orchestrator"
           GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/aerealith-project-orchestrator.md"
         with:
-          github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
           script: |
             const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
             setupGlobals(core, github, context, exec, io, getOctokit);
@@ -1337,9 +1457,9 @@ jobs:
           GH_AW_FAILURE_REPORT_AS_ISSUE: "true"
           GH_AW_MISSING_TOOL_REPORT_AS_FAILURE: "true"
           GH_AW_MISSING_DATA_REPORT_AS_FAILURE: "true"
-          GH_AW_TIMEOUT_MINUTES: "15"
+          GH_AW_TIMEOUT_MINUTES: "20"
         with:
-          github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
           script: |
             const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
             setupGlobals(core, github, context, exec, io, getOctokit);
@@ -1442,7 +1562,7 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           WORKFLOW_NAME: "Aerealith Project Orchestrator"
-          WORKFLOW_DESCRIPTION: "Aerealith Issue, Pull Request, Project, reviewer, worker, and dependency orchestrator."
+          WORKFLOW_DESCRIPTION: "Creates and synchronizes Aerealith repository governance, then triages Issues, Pull Requests, milestones, reviewers, workers, labels, and Project items."
           HAS_PATCH: ${{ needs.agent.outputs.has_patch }}
         with:
           script: |
@@ -1619,7 +1739,14 @@ jobs:
       - detection
     if: (!cancelled()) && needs.agent.result != 'skipped' && needs.detection.result == 'success'
     runs-on: ubuntu-slim
-    permissions: {}
+    permissions:
+      contents: read
+      discussions: write
+      issues: write
+      pull-requests: write
+    concurrency:
+      group: "aerealith-project-safe-outputs-${{ github.repository }}"
+      cancel-in-progress: false
     timeout-minutes: 45
     env:
       GH_AW_AGENT_AIC: ${{ needs.agent.outputs.aic }}
@@ -1631,7 +1758,6 @@ jobs:
       GH_AW_EFFECTIVE_TOKENS: ${{ needs.agent.outputs.effective_tokens }}
       GH_AW_ENGINE_ID: "gemini"
       GH_AW_ENGINE_MODEL: "gemini-3.1-flash-lite"
-      GH_AW_SAFE_OUTPUTS_STAGED: "true"
       GH_AW_THREAT_DETECTION_AIC: ${{ needs.detection.outputs.aic }}
       GH_AW_WORKFLOW_EMOJI: "🤖"
       GH_AW_WORKFLOW_ID: "aerealith-project-orchestrator"
@@ -1698,8 +1824,8 @@ jobs:
           GH_AW_ALLOWED_DOMAINS: "*.googleapis.com,api.snapcraft.io,archive.ubuntu.com,azure.archive.ubuntu.com,crl.geotrust.com,crl.globalsign.com,crl.identrust.com,crl.sectigo.com,crl.thawte.com,crl.usertrust.com,crl.verisign.com,crl3.digicert.com,crl4.digicert.com,crls.ssl.com,generativelanguage.googleapis.com,github.com,host.docker.internal,json-schema.org,json.schemastore.org,keyserver.ubuntu.com,ocsp.digicert.com,ocsp.geotrust.com,ocsp.globalsign.com,ocsp.identrust.com,ocsp.sectigo.com,ocsp.ssl.com,ocsp.thawte.com,ocsp.usertrust.com,ocsp.verisign.com,packagecloud.io,packages.cloud.google.com,packages.microsoft.com,ppa.launchpad.net,raw.githubusercontent.com,registry.npmjs.org,s.symcb.com,s.symcd.com,security.ubuntu.com,ts-crl.ws.symantec.com,ts-ocsp.ws.symantec.com,www.googleapis.com"
           GITHUB_SERVER_URL: ${{ github.server_url }}
           GITHUB_API_URL: ${{ github.api_url }}
-          GH_AW_SAFE_OUTPUTS_HANDLER_CONFIG: "{\"add_comment\":{\"max\":1,\"target\":\"*\"},\"add_labels\":{\"allowed\":[\"type: *\",\"area: *\",\"status: *\",\"priority: *\",\"risk: *\",\"agent: *\",\"automation: *\",\"planning: *\"],\"blocked\":[\"~*\",\"*[bot]\"],\"max\":3,\"target\":\"*\"},\"add_reviewer\":{\"allowed\":[\"Sinless777\"],\"max\":1,\"target\":\"*\"},\"assign_milestone\":{\"allowed\":[\"MVP Foundation\",\"MVP Identity and User Platform\",\"MVP API and Platform Services\",\"MVP Frontend and Developer Experience\",\"MVP Discord Management Platform\",\"MVP Operations and Observability\",\"v0.1.0 Private Alpha\",\"v0.2.0 Public Alpha\",\"v1.0.0 Initial Release\"],\"max\":1,\"target\":\"*\"},\"assign_to_agent\":{\"allowed\":[\"copilot\"],\"max\":1,\"target\":\"*\"},\"assign_to_user\":{\"allowed\":[\"Sinless777\"],\"max\":1,\"target\":\"*\"},\"create_report_incomplete_issue\":{},\"missing_data\":{},\"missing_tool\":{},\"report_incomplete\":{},\"update_project\":{\"github-token\":\"${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}\",\"max\":10,\"project\":\"https://github.com/orgs/SinLess-Games/projects/3\",\"views\":[{\"name\":\"Intake\",\"layout\":\"board\",\"filter\":\"is:issue is:open label:\\\"status: triage\\\"\"},{\"name\":\"Delivery Kanban\",\"layout\":\"board\",\"filter\":\"is:open -label:\\\"status: done\\\" -label:\\\"status: blocked\\\"\"},{\"name\":\"Prioritized Backlog\",\"layout\":\"table\",\"filter\":\"is:issue is:open -label:\\\"status: done\\\"\"},{\"name\":\"Current MVP\",\"layout\":\"table\",\"filter\":\"is:issue is:open milestone:\\\"MVP Foundation\\\"\"},{\"name\":\"Release Roadmap\",\"layout\":\"roadmap\",\"filter\":\"is:issue is:open\"},{\"name\":\"Agent Queue\",\"layout\":\"table\",\"filter\":\"is:issue is:open label:\\\"agent: ready\\\"\"},{\"name\":\"Dependency Updates\",\"layout\":\"table\",\"filter\":\"is:pr is:open label:\\\"type: dependency\\\"\"},{\"name\":\"Security and Urgent Work\",\"layout\":\"board\",\"filter\":\"is:open label:\\\"type: security\\\"\"},{\"name\":\"Blocked Work\",\"layout\":\"board\",\"filter\":\"is:open label:\\\"status: blocked\\\"\"},{\"name\":\"Review Queue\",\"layout\":\"table\",\"filter\":\"is:pr is:open label:\\\"status: in-review\\\"\"}]}}"
-          GH_AW_SAFE_OUTPUTS_STAGED: "true"
+          GH_AW_SAFE_OUTPUT_JOBS: '{"sync_repository_governance":""}'
+          GH_AW_SAFE_OUTPUTS_HANDLER_CONFIG: "{\"add_comment\":{\"max\":5,\"target\":\"*\"},\"add_labels\":{\"allowed\":[\"type: *\",\"area: *\",\"status: *\",\"priority: *\",\"risk: *\",\"agent: *\",\"automation: *\",\"planning: *\"],\"blocked\":[\"~*\",\"*[bot]\"],\"max\":25,\"target\":\"*\"},\"add_reviewer\":{\"allowed\":[\"Sinless777\"],\"max\":5,\"target\":\"*\"},\"assign_milestone\":{\"allowed\":[\"MVP Foundation\",\"MVP Identity and User Platform\",\"MVP API and Platform Services\",\"MVP Frontend and Developer Experience\",\"MVP Discord Management Platform\",\"MVP Operations and Observability\",\"v0.1.0 Private Alpha\",\"v0.2.0 Public Alpha\",\"v1.0.0 Initial Release\"],\"max\":5,\"target\":\"*\"},\"assign_to_agent\":{\"allowed\":[\"copilot\"],\"max\":3,\"target\":\"*\"},\"assign_to_user\":{\"allowed\":[\"Sinless777\"],\"max\":5,\"target\":\"*\"},\"create_project\":{\"github-token\":\"${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}\",\"max\":1,\"target_owner\":\"SinLess-Games\",\"title_prefix\":\"Aerealith\",\"views\":[{\"name\":\"Intake\",\"layout\":\"board\",\"filter\":\"is:issue is:open label:\\\"status: triage\\\"\"},{\"name\":\"Delivery Kanban\",\"layout\":\"board\",\"filter\":\"is:open -label:\\\"status: done\\\" -label:\\\"status: blocked\\\"\"},{\"name\":\"Prioritized Backlog\",\"layout\":\"table\",\"filter\":\"is:issue is:open -label:\\\"status: done\\\"\"},{\"name\":\"Current MVP\",\"layout\":\"table\",\"filter\":\"is:issue is:open milestone:\\\"MVP Foundation\\\"\"},{\"name\":\"Release Roadmap\",\"layout\":\"roadmap\",\"filter\":\"is:issue is:open\"},{\"name\":\"Agent Queue\",\"layout\":\"table\",\"filter\":\"is:issue is:open label:\\\"agent: ready\\\"\"},{\"name\":\"Dependency Updates\",\"layout\":\"table\",\"filter\":\"is:pr is:open label:\\\"type: dependency\\\"\"},{\"name\":\"Security and Urgent Work\",\"layout\":\"board\",\"filter\":\"is:open label:\\\"type: security\\\"\"},{\"name\":\"Blocked Work\",\"layout\":\"board\",\"filter\":\"is:open label:\\\"status: blocked\\\"\"},{\"name\":\"Review Queue\",\"layout\":\"table\",\"filter\":\"is:pr is:open label:\\\"status: in-review\\\"\"}]},\"create_project_status_update\":{\"github-token\":\"${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}\",\"max\":1,\"project\":\"https://github.com/orgs/SinLess-Games/projects/3\"},\"create_report_incomplete_issue\":{},\"missing_data\":{},\"missing_tool\":{},\"noop\":{\"max\":1,\"report-as-issue\":\"false\"},\"report_incomplete\":{},\"update_project\":{\"github-token\":\"${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}\",\"max\":25,\"project\":\"https://github.com/orgs/SinLess-Games/projects/3\",\"views\":[{\"name\":\"Intake\",\"layout\":\"board\",\"filter\":\"is:issue is:open label:\\\"status: triage\\\"\"},{\"name\":\"Delivery Kanban\",\"layout\":\"board\",\"filter\":\"is:open -label:\\\"status: done\\\" -label:\\\"status: blocked\\\"\"},{\"name\":\"Prioritized Backlog\",\"layout\":\"table\",\"filter\":\"is:issue is:open -label:\\\"status: done\\\"\"},{\"name\":\"Current MVP\",\"layout\":\"table\",\"filter\":\"is:issue is:open milestone:\\\"MVP Foundation\\\"\"},{\"name\":\"Release Roadmap\",\"layout\":\"roadmap\",\"filter\":\"is:issue is:open\"},{\"name\":\"Agent Queue\",\"layout\":\"table\",\"filter\":\"is:issue is:open label:\\\"agent: ready\\\"\"},{\"name\":\"Dependency Updates\",\"layout\":\"table\",\"filter\":\"is:pr is:open label:\\\"type: dependency\\\"\"},{\"name\":\"Security and Urgent Work\",\"layout\":\"board\",\"filter\":\"is:open label:\\\"type: security\\\"\"},{\"name\":\"Blocked Work\",\"layout\":\"board\",\"filter\":\"is:open label:\\\"status: blocked\\\"\"},{\"name\":\"Review Queue\",\"layout\":\"table\",\"filter\":\"is:pr is:open label:\\\"status: in-review\\\"\"}]}}"
           GH_AW_PROJECT_URL: "https://github.com/orgs/SinLess-Games/projects/3"
           GH_AW_PROJECT_GITHUB_TOKEN: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
           GH_AW_ASSIGN_TO_AGENT_TOKEN: ${{ secrets.GH_AW_AGENT_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
@@ -1710,3 +1836,254 @@ jobs:
             setupGlobals(core, github, context, exec, io, getOctokit);
             const { main } = require('${{ runner.temp }}/gh-aw/actions/safe_output_handler_manager.cjs');
             await main();
+      - name: Upload Safe Outputs Items
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: safe-outputs-items
+          path: |
+            /tmp/gh-aw/safe-output-items.jsonl
+            /tmp/gh-aw/temporary-id-map.json
+          if-no-files-found: ignore
+
+  sync_repository_governance:
+    needs:
+      - agent
+      - detection
+    if: >
+      (!cancelled()) && needs.agent.result != 'skipped' && contains(needs.agent.outputs.output_types, 'sync_repository_governance')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Download agent output artifact
+        continue-on-error: true
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: agent
+          path: ${{ runner.temp }}/gh-aw/safe-jobs/
+      - name: Checkout repository policy files
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (source v6)
+        env:
+          GH_AW_AGENT_OUTPUT: ${{ runner.temp }}/gh-aw/safe-jobs/agent_output.json
+          GH_TOKEN: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
+        with:
+          fetch-depth: 1
+      - name: Synchronize missing labels and milestones
+        run: |
+          set -euo pipefail
+
+          if [[ "${GH_AW_SAFE_OUTPUTS_STAGED:-false}" == "true" ]]; then
+            echo "Staged mode is enabled. Governance synchronization is preview-only."
+            exit 0
+          fi
+
+          ruby <<'RUBY'
+          require 'yaml'
+          require 'json'
+          require 'net/http'
+          require 'uri'
+          require 'cgi'
+
+          repository = ENV.fetch('GITHUB_REPOSITORY')
+          token = ENV.fetch('GH_TOKEN')
+
+          def request(token, method, path, body = nil)
+            uri = URI("https://api.github.com#{path}")
+            request_class = {
+              'GET' => Net::HTTP::Get,
+              'POST' => Net::HTTP::Post,
+              'PATCH' => Net::HTTP::Patch
+            }.fetch(method)
+
+            request = request_class.new(uri)
+            request['Accept'] = 'application/vnd.github+json'
+            request['Authorization'] = "Bearer #{token}"
+            request['X-GitHub-Api-Version'] = '2022-11-28'
+            request['User-Agent'] = 'aerealith-project-orchestrator'
+
+            if body
+              request['Content-Type'] = 'application/json'
+              request.body = JSON.generate(body)
+            end
+
+            Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+              http.request(request)
+            end
+          end
+
+          def api_json(token, method, path, body = nil)
+            response = request(token, method, path, body)
+
+            unless response.code.to_i.between?(200, 299)
+              raise "GitHub API #{method} #{path} failed: #{response.code} #{response.body}"
+            end
+
+            response.body.nil? || response.body.empty? ? {} : JSON.parse(response.body)
+          end
+
+          def load_yaml(path)
+            raise "Required policy file is missing: #{path}" unless File.exist?(path)
+
+            YAML.safe_load(
+              File.read(path),
+              permitted_classes: [Date, Time],
+              aliases: true,
+            ) || {}
+          end
+
+          def collect_labels(node, labels = [], key = nil)
+            case node
+            when Array
+              node.each { |item| collect_labels(item, labels) }
+
+            when Hash
+              value = node.transform_keys(&:to_s)
+
+              if value['name'].is_a?(String) && value['color'].is_a?(String)
+                labels << {
+                  'name' => value['name'],
+                  'color' => value['color'],
+                  'description' => value['description'].to_s,
+                }
+              elsif key.is_a?(String) && value['color'].is_a?(String)
+                labels << {
+                  'name' => key,
+                  'color' => value['color'],
+                  'description' => value['description'].to_s,
+                }
+              else
+                value.each do |child_key, child_value|
+                  collect_labels(child_value, labels, child_key)
+                end
+              end
+            end
+
+            labels
+          end
+
+          def collect_milestones(node, milestones = [], key = nil)
+            case node
+            when Array
+              node.each { |item| collect_milestones(item, milestones) }
+
+            when Hash
+              value = node.transform_keys(&:to_s)
+
+              if value['title'].is_a?(String)
+                milestones << {
+                  'title' => value['title'],
+                  'description' => value['description'].to_s,
+                  'due_on' => value['due_on'] || value['due-date'] || value['due_date'],
+                }
+              elsif key.is_a?(String) && (
+                value.key?('description') ||
+                value.key?('due_on') ||
+                value.key?('due-date') ||
+                value.key?('due_date')
+              )
+                milestones << {
+                  'title' => key,
+                  'description' => value['description'].to_s,
+                  'due_on' => value['due_on'] || value['due-date'] || value['due_date'],
+                }
+              else
+                value.each do |child_key, child_value|
+                  collect_milestones(child_value, milestones, child_key)
+                end
+              end
+            end
+
+            milestones
+          end
+
+          labels_document = load_yaml('.github/config/labels.yaml')
+          milestones_document = load_yaml('.github/config/milestones.yaml')
+
+          labels = collect_labels(labels_document)
+            .uniq { |label| label['name'] }
+            .reject { |label| label['name'].strip.empty? }
+
+          milestones = collect_milestones(milestones_document)
+            .uniq { |milestone| milestone['title'] }
+            .reject { |milestone| milestone['title'].strip.empty? }
+
+          raise 'No labels were found in .github/config/labels.yaml.' if labels.empty?
+          raise 'No milestones were found in .github/config/milestones.yaml.' if milestones.empty?
+
+          existing_labels = api_json(
+            token,
+            'GET',
+            "/repos/#{repository}/labels?per_page=100",
+          ).map { |label| label['name'] }.to_h { |name| [name, true] }
+
+          created_labels = 0
+
+          labels.each do |label|
+            next if existing_labels[label['name']]
+
+            color = label['color'].to_s.delete_prefix('#')
+
+            unless color.match?(/\A[0-9a-fA-F]{6}\z/)
+              raise "Invalid label color for #{label['name']}: #{label['color']}"
+            end
+
+            api_json(
+              token,
+              'POST',
+              "/repos/#{repository}/labels",
+              {
+                name: label['name'],
+                color: color.downcase,
+                description: label['description'],
+              },
+            )
+
+            created_labels += 1
+            puts "Created label: #{label['name']}"
+          end
+
+          existing_milestones = api_json(
+            token,
+            'GET',
+            "/repos/#{repository}/milestones?state=all&per_page=100",
+          ).map { |milestone| milestone['title'] }.to_h { |title| [title, true] }
+
+          created_milestones = 0
+
+          milestones.each do |milestone|
+            next if existing_milestones[milestone['title']]
+
+            payload = {
+              title: milestone['title'],
+              description: milestone['description'],
+            }
+
+            due_on = milestone['due_on']
+
+            if due_on && !due_on.to_s.strip.empty?
+              due_on = due_on.to_s
+              due_on = "#{due_on}T00:00:00Z" if due_on.match?(/\A\d{4}-\d{2}-\d{2}\z/)
+              payload[:due_on] = due_on
+            end
+
+            api_json(
+              token,
+              'POST',
+              "/repos/#{repository}/milestones",
+              payload,
+            )
+
+            created_milestones += 1
+            puts "Created milestone: #{milestone['title']}"
+          end
+
+          puts "Governance synchronization complete."
+          puts "Created labels: #{created_labels}"
+          puts "Created milestones: #{created_milestones}"
+          RUBY
+        env:
+          GH_AW_AGENT_OUTPUT: ${{ runner.temp }}/gh-aw/safe-jobs/agent_output.json
+          GH_TOKEN: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
+        shell: bash
