@@ -49,7 +49,6 @@ permissions:
 
 engine:
   id: codex
-  model: gpt-4o
 
 timeout-minutes: 60
 max-ai-credits: 1800
