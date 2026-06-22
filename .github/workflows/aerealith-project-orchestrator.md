@@ -70,13 +70,12 @@ permissions:
   security-events: read
   vulnerability-alerts: read
 
+max-ai-credits: -1
 engine:
   id: gemini
   model: gemini-3.1-flash-lite
 
 timeout-minutes: 15
-max-ai-credits: 800
-max-daily-ai-credits: 4000
 
 concurrency:
   group: aerealith-project-orchestrator-${{ github.repository }}

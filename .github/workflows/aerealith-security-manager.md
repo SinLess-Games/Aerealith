@@ -47,13 +47,12 @@ permissions:
   security-events: read
   vulnerability-alerts: read
 
+max-ai-credits: -1
 engine:
   id: gemini
   model: gemini-3.1-flash-lite
 
 timeout-minutes: 60
-max-ai-credits: 1800
-max-daily-ai-credits: 3600
 
 concurrency:
   group: aerealith-security-manager-${{ github.repository }}-${{ github.ref }}
