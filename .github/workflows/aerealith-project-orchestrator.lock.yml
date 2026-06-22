@@ -1,5 +1,5 @@
-# gh-aw-metadata: {"schema_version":"v4","frontmatter_hash":"ad1d70e83d82c96f5f212721bc8b79d94c18b666437ecae3b401f8d0f8c97d50","body_hash":"22deadfeef7ac4253c510f5140acf6462c77d81ffcc029f6f3f7a07330164d2f","compiler_version":"v0.79.8","strict":true,"agent_id":"gemini","agent_model":"gemini-3.1-flash-lite","engine_versions":{"gemini":"0.39.1"}}
-# gh-aw-manifest: {"version":1,"secrets":["GEMINI_API_KEY","GH_AW_AGENT_TOKEN","GH_AW_GITHUB_TOKEN","GH_AW_READ_PROJECT_TOKEN","GH_AW_WRITE_PROJECT_TOKEN","GITHUB_TOKEN"],"actions":[{"repo":"actions/checkout","sha":"df4cb1c069e1874edd31b4311f1884172cec0e10","version":"v6.0.3"},{"repo":"actions/download-artifact","sha":"3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c","version":"v8.0.1"},{"repo":"actions/github-script","sha":"3a2844b7e9c422d3c10d287c895573f7108da1b3","version":"v9.0.0"},{"repo":"actions/setup-node","sha":"48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e","version":"v6.4.0"},{"repo":"actions/upload-artifact","sha":"043fb46d1a93c77aae656e7c1c64a875d1fc6a0a","version":"v7.0.1"},{"repo":"github/gh-aw-actions/setup","sha":"c0338fef4749d08c21f8f975fb0e37efa17dda47","version":"v0.79.8"}],"containers":[{"image":"ghcr.io/github/gh-aw-firewall/agent:0.27.2","digest":"sha256:f88e5b17b6b7a600117bc121114d6ce2155c88c983c0c939c5df884f730fa1d6","pinned_image":"ghcr.io/github/gh-aw-firewall/agent:0.27.2@sha256:f88e5b17b6b7a600117bc121114d6ce2155c88c983c0c939c5df884f730fa1d6"},{"image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.27.2","digest":"sha256:ee39841d980878ebbb87592903b06d31a1af500c71525c9616f7e8e2a27041a4","pinned_image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.27.2@sha256:ee39841d980878ebbb87592903b06d31a1af500c71525c9616f7e8e2a27041a4"},{"image":"ghcr.io/github/gh-aw-firewall/squid:0.27.2","digest":"sha256:2e3a717e5f19a654cd9a2263beb52012b56bcb68562ec5ae2e42f9d156b49591","pinned_image":"ghcr.io/github/gh-aw-firewall/squid:0.27.2@sha256:2e3a717e5f19a654cd9a2263beb52012b56bcb68562ec5ae2e42f9d156b49591"},{"image":"ghcr.io/github/gh-aw-mcpg:v0.3.25","digest":"sha256:c10331ad17668ef89f38f5e356678788a40b0cd5fef96e8f92e1d9c1de47cbaa","pinned_image":"ghcr.io/github/gh-aw-mcpg:v0.3.25@sha256:c10331ad17668ef89f38f5e356678788a40b0cd5fef96e8f92e1d9c1de47cbaa"},{"image":"ghcr.io/github/github-mcp-server:v1.1.2","digest":"sha256:30197479d8036c7811892bc07e06f9a05c9ef3cdd79bc59f256d50647f95788c","pinned_image":"ghcr.io/github/github-mcp-server:v1.1.2@sha256:30197479d8036c7811892bc07e06f9a05c9ef3cdd79bc59f256d50647f95788c"}]}
+# gh-aw-metadata: {"schema_version":"v4","frontmatter_hash":"1b72bd25e287c28ad9ca9745b28ea5e85aead0ce27f8bcf0d9e26a40daea3fc8","body_hash":"b22d1073dc04f7f37cb6295ad2eb1e3d93256fc22c4b697278d064f6befa1478","compiler_version":"v0.79.8","strict":true,"agent_id":"gemini","agent_model":"gemini-3.1-flash-lite","engine_versions":{"gemini":"0.39.1"}}
+# gh-aw-manifest: {"version":1,"secrets":["GEMINI_API_KEY","GH_AW_AGENT_TOKEN","GH_AW_GITHUB_MCP_SERVER_TOKEN","GH_AW_GITHUB_TOKEN","GITHUB_TOKEN"],"actions":[{"repo":"actions/checkout","sha":"df4cb1c069e1874edd31b4311f1884172cec0e10","version":"v6.0.3"},{"repo":"actions/download-artifact","sha":"3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c","version":"v8.0.1"},{"repo":"actions/github-script","sha":"3a2844b7e9c422d3c10d287c895573f7108da1b3","version":"v9.0.0"},{"repo":"actions/setup-node","sha":"48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e","version":"v6.4.0"},{"repo":"actions/upload-artifact","sha":"043fb46d1a93c77aae656e7c1c64a875d1fc6a0a","version":"v7.0.1"},{"repo":"github/gh-aw-actions/setup","sha":"c0338fef4749d08c21f8f975fb0e37efa17dda47","version":"v0.79.8"}],"containers":[{"image":"ghcr.io/github/gh-aw-firewall/agent:0.27.2","digest":"sha256:f88e5b17b6b7a600117bc121114d6ce2155c88c983c0c939c5df884f730fa1d6","pinned_image":"ghcr.io/github/gh-aw-firewall/agent:0.27.2@sha256:f88e5b17b6b7a600117bc121114d6ce2155c88c983c0c939c5df884f730fa1d6"},{"image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.27.2","digest":"sha256:ee39841d980878ebbb87592903b06d31a1af500c71525c9616f7e8e2a27041a4","pinned_image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.27.2@sha256:ee39841d980878ebbb87592903b06d31a1af500c71525c9616f7e8e2a27041a4"},{"image":"ghcr.io/github/gh-aw-firewall/squid:0.27.2","digest":"sha256:2e3a717e5f19a654cd9a2263beb52012b56bcb68562ec5ae2e42f9d156b49591","pinned_image":"ghcr.io/github/gh-aw-firewall/squid:0.27.2@sha256:2e3a717e5f19a654cd9a2263beb52012b56bcb68562ec5ae2e42f9d156b49591"},{"image":"ghcr.io/github/gh-aw-mcpg:v0.3.25","digest":"sha256:c10331ad17668ef89f38f5e356678788a40b0cd5fef96e8f92e1d9c1de47cbaa","pinned_image":"ghcr.io/github/gh-aw-mcpg:v0.3.25@sha256:c10331ad17668ef89f38f5e356678788a40b0cd5fef96e8f92e1d9c1de47cbaa"},{"image":"ghcr.io/github/github-mcp-server:v1.1.2","digest":"sha256:30197479d8036c7811892bc07e06f9a05c9ef3cdd79bc59f256d50647f95788c","pinned_image":"ghcr.io/github/github-mcp-server:v1.1.2@sha256:30197479d8036c7811892bc07e06f9a05c9ef3cdd79bc59f256d50647f95788c"}]}
 # This file was automatically generated by gh-aw (v0.79.8). DO NOT EDIT. To debug this workflow, load the skill at https://github.com/github/gh-aw/blob/main/debug.md
 #
 #    ___                   _   _
@@ -23,7 +23,7 @@
 #
 # For more information: https://github.github.com/gh-aw/introduction/overview/
 #
-# Creates and synchronizes Aerealith repository governance, then triages Issues, Pull Requests, milestones, reviewers, workers, labels, and Project items.
+# Synchronizes Aerealith governance labels and milestones, then routes Issues and Pull Requests through safe outputs.
 #
 # Frontmatter env variables:
 #   - AEREALITH_PROJECT_NAME: (main workflow)
@@ -33,9 +33,8 @@
 # Secrets used:
 #   - GEMINI_API_KEY
 #   - GH_AW_AGENT_TOKEN
+#   - GH_AW_GITHUB_MCP_SERVER_TOKEN
 #   - GH_AW_GITHUB_TOKEN
-#   - GH_AW_READ_PROJECT_TOKEN
-#   - GH_AW_WRITE_PROJECT_TOKEN
 #   - GITHUB_TOKEN
 #
 # Custom actions used:
@@ -43,6 +42,7 @@
 #   - actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3 (source v6)
 #   - actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
 #   - actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+#   - actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0 (source v9)
 #   - actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
 #   - actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
 #   - github/gh-aw-actions/setup@c0338fef4749d08c21f8f975fb0e37efa17dda47 # v0.79.8
@@ -274,8 +274,6 @@ jobs:
           GH_AW_EXPR_802A9F6A: ${{ github.event.issue.number || (fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').item_type == 'issue' && fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').item_number) }}
           GH_AW_EXPR_FF1D34CE: ${{ github.event.comment.id || fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').comment_id }}
           GH_AW_GITHUB_ACTOR: ${{ github.actor }}
-          GH_AW_GITHUB_EVENT_INPUTS_MODE: ${{ github.event.inputs.mode }}
-          GH_AW_GITHUB_EVENT_INPUTS_TARGET_NUMBER: ${{ github.event.inputs.target_number }}
           GH_AW_GITHUB_REPOSITORY: ${{ github.repository }}
           GH_AW_GITHUB_RUN_ID: ${{ github.run_id }}
           GH_AW_GITHUB_WORKSPACE: ${{ github.workspace }}
@@ -283,20 +281,20 @@ jobs:
         run: |
           bash "${RUNNER_TEMP}/gh-aw/actions/create_prompt_first.sh"
           {
-          cat << 'GH_AW_PROMPT_0d037434067a525f_EOF'
+          cat << 'GH_AW_PROMPT_829d57c26df20d90_EOF'
           <system>
-          GH_AW_PROMPT_0d037434067a525f_EOF
+          GH_AW_PROMPT_829d57c26df20d90_EOF
           cat "${RUNNER_TEMP}/gh-aw/prompts/xpia.md"
           cat "${RUNNER_TEMP}/gh-aw/prompts/temp_folder_prompt.md"
           cat "${RUNNER_TEMP}/gh-aw/prompts/markdown.md"
           cat "${RUNNER_TEMP}/gh-aw/prompts/safe_outputs_prompt.md"
-          cat << 'GH_AW_PROMPT_0d037434067a525f_EOF'
+          cat << 'GH_AW_PROMPT_829d57c26df20d90_EOF'
           <safe-output-tools>
-          Tools: add_comment(max:5), add_labels(max:25), add_reviewer(max:5), assign_milestone(max:5), assign_to_agent(max:3), assign_to_user(max:5), update_project(max:25), create_project, create_project_status_update, missing_tool, missing_data, noop, sync_repository_governance
+          Tools: add_comment(max:5), add_labels(max:25), add_reviewer(max:5), assign_milestone(max:5), assign_to_agent(max:3), assign_to_user(max:5), missing_tool, missing_data, noop, sync_repository_governance
           </safe-output-tools>
-          GH_AW_PROMPT_0d037434067a525f_EOF
+          GH_AW_PROMPT_829d57c26df20d90_EOF
           cat "${RUNNER_TEMP}/gh-aw/prompts/mcp_cli_tools_prompt.md"
-          cat << 'GH_AW_PROMPT_0d037434067a525f_EOF'
+          cat << 'GH_AW_PROMPT_829d57c26df20d90_EOF'
           <github-context>
           The following GitHub context information is available for this workflow:
           {{#if github.actor}}
@@ -325,20 +323,18 @@ jobs:
           {{/if}}
           </github-context>
 
-          GH_AW_PROMPT_0d037434067a525f_EOF
+          GH_AW_PROMPT_829d57c26df20d90_EOF
           cat "${RUNNER_TEMP}/gh-aw/prompts/github_mcp_tools_with_safeoutputs_prompt.md"
-          cat << 'GH_AW_PROMPT_0d037434067a525f_EOF'
+          cat << 'GH_AW_PROMPT_829d57c26df20d90_EOF'
           </system>
           {{#runtime-import .github/workflows/aerealith-project-orchestrator.md}}
-          GH_AW_PROMPT_0d037434067a525f_EOF
+          GH_AW_PROMPT_829d57c26df20d90_EOF
           } > "$GH_AW_PROMPT"
       - name: Interpolate variables and render templates
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
           GH_AW_ENGINE_ID: "gemini"
-          GH_AW_GITHUB_EVENT_INPUTS_MODE: ${{ github.event.inputs.mode }}
-          GH_AW_GITHUB_EVENT_INPUTS_TARGET_NUMBER: ${{ github.event.inputs.target_number }}
         with:
           script: |
             const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
@@ -354,8 +350,6 @@ jobs:
           GH_AW_EXPR_802A9F6A: ${{ github.event.issue.number || (fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').item_type == 'issue' && fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').item_number) }}
           GH_AW_EXPR_FF1D34CE: ${{ github.event.comment.id || fromJSON(github.event.inputs.aw_context || github.event.client_payload.aw_context || '{}').comment_id }}
           GH_AW_GITHUB_ACTOR: ${{ github.actor }}
-          GH_AW_GITHUB_EVENT_INPUTS_MODE: ${{ github.event.inputs.mode }}
-          GH_AW_GITHUB_EVENT_INPUTS_TARGET_NUMBER: ${{ github.event.inputs.target_number }}
           GH_AW_GITHUB_REPOSITORY: ${{ github.repository }}
           GH_AW_GITHUB_RUN_ID: ${{ github.run_id }}
           GH_AW_GITHUB_WORKSPACE: ${{ github.workspace }}
@@ -377,8 +371,6 @@ jobs:
                 GH_AW_EXPR_802A9F6A: process.env.GH_AW_EXPR_802A9F6A,
                 GH_AW_EXPR_FF1D34CE: process.env.GH_AW_EXPR_FF1D34CE,
                 GH_AW_GITHUB_ACTOR: process.env.GH_AW_GITHUB_ACTOR,
-                GH_AW_GITHUB_EVENT_INPUTS_MODE: process.env.GH_AW_GITHUB_EVENT_INPUTS_MODE,
-                GH_AW_GITHUB_EVENT_INPUTS_TARGET_NUMBER: process.env.GH_AW_GITHUB_EVENT_INPUTS_TARGET_NUMBER,
                 GH_AW_GITHUB_REPOSITORY: process.env.GH_AW_GITHUB_REPOSITORY,
                 GH_AW_GITHUB_RUN_ID: process.env.GH_AW_GITHUB_RUN_ID,
                 GH_AW_GITHUB_WORKSPACE: process.env.GH_AW_GITHUB_WORKSPACE,
@@ -497,9 +489,9 @@ jobs:
           github.event.pull_request || github.event.issue.pull_request || github.event_name == 'workflow_dispatch' && fromJSON(github.event.inputs.aw_context || '{}').item_type == 'pull_request'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GH_TOKEN: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
         with:
-          github-token: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
+          github-token: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
             const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
             setupGlobals(core, github, context, exec, io, getOctokit);
@@ -544,15 +536,13 @@ jobs:
       - name: Download container images
         run: bash "${RUNNER_TEMP}/gh-aw/actions/download_docker_images.sh" ghcr.io/github/gh-aw-firewall/agent:0.27.2@sha256:f88e5b17b6b7a600117bc121114d6ce2155c88c983c0c939c5df884f730fa1d6 ghcr.io/github/gh-aw-firewall/api-proxy:0.27.2@sha256:ee39841d980878ebbb87592903b06d31a1af500c71525c9616f7e8e2a27041a4 ghcr.io/github/gh-aw-firewall/squid:0.27.2@sha256:2e3a717e5f19a654cd9a2263beb52012b56bcb68562ec5ae2e42f9d156b49591 ghcr.io/github/gh-aw-mcpg:v0.3.25@sha256:c10331ad17668ef89f38f5e356678788a40b0cd5fef96e8f92e1d9c1de47cbaa ghcr.io/github/github-mcp-server:v1.1.2@sha256:30197479d8036c7811892bc07e06f9a05c9ef3cdd79bc59f256d50647f95788c
       - name: Generate Safe Outputs Config
-        env:
-          GH_AW_SECRET_GH_AW_WRITE_PROJECT_TOKEN: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
         run: |
           mkdir -p "${RUNNER_TEMP}/gh-aw/safeoutputs"
           mkdir -p /tmp/gh-aw/safeoutputs
           mkdir -p /tmp/gh-aw/mcp-logs/safeoutputs
-          cat > "${RUNNER_TEMP}/gh-aw/safeoutputs/config.json" << 'GH_AW_SAFE_OUTPUTS_CONFIG_5bbd155b261b3991_EOF'
-          {"add_comment":{"max":5,"target":"*"},"add_labels":{"allowed":["type: *","area: *","status: *","priority: *","risk: *","agent: *","automation: *","planning: *"],"blocked":["~*","*[bot]"],"max":25,"target":"*"},"add_reviewer":{"allowed":["Sinless777"],"max":5,"target":"*"},"assign_milestone":{"allowed":["MVP Foundation","MVP Identity and User Platform","MVP API and Platform Services","MVP Frontend and Developer Experience","MVP Discord Management Platform","MVP Operations and Observability","v0.1.0 Private Alpha","v0.2.0 Public Alpha","v1.0.0 Initial Release"],"max":5,"target":"*"},"assign_to_agent":{"allowed":["copilot"],"max":3,"target":"*"},"assign_to_user":{"allowed":["Sinless777"],"max":5,"target":"*"},"create_project":{"github-token":"${GH_AW_SECRET_GH_AW_WRITE_PROJECT_TOKEN}","max":1,"target_owner":"SinLess-Games","views":[{"name":"Intake","layout":"board","filter":"is:issue is:open label:\"status: triage\""},{"name":"Delivery Kanban","layout":"board","filter":"is:open -label:\"status: done\" -label:\"status: blocked\""},{"name":"Prioritized Backlog","layout":"table","filter":"is:issue is:open -label:\"status: done\""},{"name":"Current MVP","layout":"table","filter":"is:issue is:open milestone:\"MVP Foundation\""},{"name":"Release Roadmap","layout":"roadmap","filter":"is:issue is:open"},{"name":"Agent Queue","layout":"table","filter":"is:issue is:open label:\"agent: ready\""},{"name":"Dependency Updates","layout":"table","filter":"is:pr is:open label:\"type: dependency\""},{"name":"Security and Urgent Work","layout":"board","filter":"is:open label:\"type: security\""},{"name":"Blocked Work","layout":"board","filter":"is:open label:\"status: blocked\""},{"name":"Review Queue","layout":"table","filter":"is:pr is:open label:\"status: in-review\""}]},"create_project_status_update":{"github-token":"${GH_AW_SECRET_GH_AW_WRITE_PROJECT_TOKEN}","max":1,"project":"https://github.com/orgs/SinLess-Games/projects/3"},"create_report_incomplete_issue":{},"missing_data":{},"missing_tool":{},"noop":{"max":1,"report-as-issue":"false"},"report_incomplete":{},"sync-repository-governance":{"description":"Bootstrap-only governance catalog synchronization. Creates and updates approved labels, deletes labels absent from labels.yaml, and creates missing milestones from milestones.yaml.","inputs":{"mode":{"default":null,"description":"Must be bootstrap. This destructive catalog replacement operation is not allowed in triage, pull-request, dependency, or reconcile mode.","options":["bootstrap"],"required":true,"type":"choice"},"reason":{"default":null,"description":"Short reason for the bootstrap synchronization.","required":true,"type":"string"}},"output":"Aerealith repository governance catalog synchronized."},"update_project":{"github-token":"${GH_AW_SECRET_GH_AW_WRITE_PROJECT_TOKEN}","max":25,"project":"https://github.com/orgs/SinLess-Games/projects/3","views":[{"name":"Intake","layout":"board","filter":"is:issue is:open label:\"status: triage\""},{"name":"Delivery Kanban","layout":"board","filter":"is:open -label:\"status: done\" -label:\"status: blocked\""},{"name":"Prioritized Backlog","layout":"table","filter":"is:issue is:open -label:\"status: done\""},{"name":"Current MVP","layout":"table","filter":"is:issue is:open milestone:\"MVP Foundation\""},{"name":"Release Roadmap","layout":"roadmap","filter":"is:issue is:open"},{"name":"Agent Queue","layout":"table","filter":"is:issue is:open label:\"agent: ready\""},{"name":"Dependency Updates","layout":"table","filter":"is:pr is:open label:\"type: dependency\""},{"name":"Security and Urgent Work","layout":"board","filter":"is:open label:\"type: security\""},{"name":"Blocked Work","layout":"board","filter":"is:open label:\"status: blocked\""},{"name":"Review Queue","layout":"table","filter":"is:pr is:open label:\"status: in-review\""}]}}
-          GH_AW_SAFE_OUTPUTS_CONFIG_5bbd155b261b3991_EOF
+          cat > "${RUNNER_TEMP}/gh-aw/safeoutputs/config.json" << 'GH_AW_SAFE_OUTPUTS_CONFIG_82455c2ef4d8a70b_EOF'
+          {"add_comment":{"footer":false,"max":5,"target":"*"},"add_labels":{"allowed":["type: *","area: *","status: *","priority: *","risk: *","agent: *","automation: *","planning: *"],"max":25,"target":"*"},"add_reviewer":{"allowed":["Sinless777"],"max":5,"target":"*"},"assign_milestone":{"allowed":["MVP Foundation","MVP Identity and User Platform","MVP API and Platform Services","MVP Frontend and Developer Experience","MVP Discord Management Platform","MVP Operations and Observability","v0.1.0 Private Alpha","v0.2.0 Public Alpha","v1.0.0 Initial Release"],"max":5,"target":"*"},"assign_to_agent":{"allowed":["copilot"],"max":3,"target":"*"},"assign_to_user":{"allowed":["Sinless777"],"max":5,"target":"*"},"create_report_incomplete_issue":{},"missing_data":{},"missing_tool":{},"noop":{"max":1,"report-as-issue":"false"},"report_incomplete":{},"sync-repository-governance":{"description":"Bootstrap-only governance synchronization. Creates and updates approved labels, deletes labels not in the approved catalog, and creates missing milestones.","inputs":{"reason":{"default":null,"description":"Short reason for the bootstrap governance synchronization.","required":true,"type":"string"}},"output":"Aerealith repository governance catalog synchronized."}}
+          GH_AW_SAFE_OUTPUTS_CONFIG_82455c2ef4d8a70b_EOF
       - name: Generate Safe Outputs Tools
         env:
           GH_AW_TOOLS_META_JSON: |
@@ -562,31 +552,21 @@ jobs:
                 "add_labels": " CONSTRAINTS: Maximum 25 label(s) can be added. Only these labels are allowed: [\"type: *\" \"area: *\" \"status: *\" \"priority: *\" \"risk: *\" \"agent: *\" \"automation: *\" \"planning: *\"]. Target: *.",
                 "add_reviewer": " CONSTRAINTS: Maximum 5 reviewer(s) can be added.",
                 "assign_milestone": " CONSTRAINTS: Maximum 5 milestone assignment(s) can be made.",
-                "assign_to_agent": " CONSTRAINTS: Maximum 3 issue(s) can be assigned to agent.",
-                "create_project_status_update": " CONSTRAINTS: Maximum 1 status update(s) can be created. Default project URL: \"https://github.com/orgs/SinLess-Games/projects/3\".",
-                "update_project": " CONSTRAINTS: Maximum 25 project operation(s) can be performed. Default project URL: \"https://github.com/orgs/SinLess-Games/projects/3\"."
+                "assign_to_agent": " CONSTRAINTS: Maximum 3 issue(s) can be assigned to agent."
               },
               "repo_params": {},
               "dynamic_tools": [
                 {
-                  "description": "Bootstrap-only governance catalog synchronization. Creates and updates approved labels, deletes labels absent from labels.yaml, and creates missing milestones from milestones.yaml.",
+                  "description": "Bootstrap-only governance synchronization. Creates and updates approved labels, deletes labels not in the approved catalog, and creates missing milestones.",
                   "inputSchema": {
                     "additionalProperties": false,
                     "properties": {
-                      "mode": {
-                        "description": "Must be bootstrap. This destructive catalog replacement operation is not allowed in triage, pull-request, dependency, or reconcile mode.",
-                        "enum": [
-                          "bootstrap"
-                        ],
-                        "type": "string"
-                      },
                       "reason": {
-                        "description": "Short reason for the bootstrap synchronization.",
+                        "description": "Short reason for the bootstrap governance synchronization.",
                         "type": "string"
                       }
                     },
                     "required": [
-                      "mode",
                       "reason"
                     ],
                     "type": "object"
@@ -731,72 +711,6 @@ jobs:
                   }
                 }
               },
-              "create_project": {
-                "defaultMax": 1,
-                "fields": {
-                  "item_url": {
-                    "type": "string",
-                    "sanitize": true,
-                    "maxLength": 512
-                  },
-                  "owner": {
-                    "type": "string",
-                    "sanitize": true,
-                    "maxLength": 128
-                  },
-                  "owner_type": {
-                    "type": "string",
-                    "enum": [
-                      "org",
-                      "user"
-                    ]
-                  },
-                  "title": {
-                    "type": "string",
-                    "sanitize": true,
-                    "maxLength": 256
-                  }
-                }
-              },
-              "create_project_status_update": {
-                "defaultMax": 10,
-                "fields": {
-                  "body": {
-                    "required": true,
-                    "type": "string",
-                    "sanitize": true,
-                    "maxLength": 65536
-                  },
-                  "project": {
-                    "required": true,
-                    "type": "string",
-                    "sanitize": true,
-                    "maxLength": 512,
-                    "pattern": "^https://[^/]+/(orgs|users)/[^/]+/projects/\\d+",
-                    "patternError": "must be a full GitHub project URL (e.g., https://github.com/orgs/myorg/projects/42)"
-                  },
-                  "start_date": {
-                    "type": "string",
-                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-                    "patternError": "must be in YYYY-MM-DD format"
-                  },
-                  "status": {
-                    "type": "string",
-                    "enum": [
-                      "INACTIVE",
-                      "ON_TRACK",
-                      "AT_RISK",
-                      "OFF_TRACK",
-                      "COMPLETE"
-                    ]
-                  },
-                  "target_date": {
-                    "type": "string",
-                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-                    "patternError": "must be in YYYY-MM-DD format"
-                  }
-                }
-              },
               "missing_data": {
                 "defaultMax": 20,
                 "fields": {
@@ -869,49 +783,6 @@ jobs:
                     "maxLength": 1024
                   }
                 }
-              },
-              "update_project": {
-                "defaultMax": 10,
-                "fields": {
-                  "content_number": {
-                    "issueNumberOrTemporaryId": true
-                  },
-                  "content_type": {
-                    "type": "string",
-                    "enum": [
-                      "issue",
-                      "pull_request",
-                      "draft_issue"
-                    ]
-                  },
-                  "draft_body": {
-                    "type": "string",
-                    "sanitize": true,
-                    "maxLength": 65000
-                  },
-                  "draft_title": {
-                    "type": "string",
-                    "sanitize": true,
-                    "maxLength": 256
-                  },
-                  "fields": {
-                    "type": "object"
-                  },
-                  "issue": {
-                    "optionalPositiveInteger": true
-                  },
-                  "project": {
-                    "required": true,
-                    "type": "string",
-                    "sanitize": true,
-                    "maxLength": 512,
-                    "pattern": "^https://[^/]+/(orgs|users)/[^/]+/projects/\\d+",
-                    "patternError": "must be a full GitHub project URL (e.g., https://github.com/orgs/myorg/projects/42)"
-                  },
-                  "pull_request": {
-                    "optionalPositiveInteger": true
-                  }
-                }
               }
             }
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -949,7 +820,6 @@ jobs:
           GH_AW_SAFE_OUTPUTS_TOOLS_PATH: ${{ runner.temp }}/gh-aw/safeoutputs/tools.json
           GH_AW_SAFE_OUTPUTS_CONFIG_PATH: ${{ runner.temp }}/gh-aw/safeoutputs/config.json
           GH_AW_MCP_LOG_DIR: /tmp/gh-aw/mcp-logs/safeoutputs
-          GH_AW_SECRET_GH_AW_WRITE_PROJECT_TOKEN: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
         run: |
           # Environment variables are set above to prevent template injection
           export DEBUG
@@ -959,7 +829,6 @@ jobs:
           export GH_AW_SAFE_OUTPUTS_TOOLS_PATH
           export GH_AW_SAFE_OUTPUTS_CONFIG_PATH
           export GH_AW_MCP_LOG_DIR
-          export GH_AW_SECRET_GH_AW_WRITE_PROJECT_TOKEN
 
           bash "${RUNNER_TEMP}/gh-aw/actions/start_safe_outputs_server.sh"
 
@@ -969,7 +838,7 @@ jobs:
           GH_AW_SAFE_OUTPUTS: ${{ steps.set-runtime-paths.outputs.GH_AW_SAFE_OUTPUTS }}
           GH_AW_SAFE_OUTPUTS_API_KEY: ${{ steps.safe-outputs-start.outputs.api_key }}
           GH_AW_SAFE_OUTPUTS_PORT: ${{ steps.safe-outputs-start.outputs.port }}
-          GITHUB_MCP_SERVER_TOKEN: ${{ secrets.GH_AW_READ_PROJECT_TOKEN }}
+          GITHUB_MCP_SERVER_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           set -eo pipefail
           mkdir -p "${RUNNER_TEMP}/gh-aw/mcp-config"
@@ -998,7 +867,7 @@ jobs:
           export MCP_GATEWAY_DOCKER_COMMAND='docker run -i --rm --network host --add-host host.docker.internal:127.0.0.1 --user '"${MCP_GATEWAY_UID}"':'"${MCP_GATEWAY_GID}"' --group-add '"${DOCKER_SOCK_GID}"' -v '"${DOCKER_SOCK_PATH}"':/var/run/docker.sock -e MCP_GATEWAY_PORT -e MCP_GATEWAY_DOMAIN -e MCP_GATEWAY_API_KEY -e MCP_GATEWAY_PAYLOAD_DIR -e MCP_GATEWAY_PAYLOAD_SIZE_THRESHOLD -e DOCKER_HOST=unix:///var/run/docker.sock -e DEBUG -e MCP_GATEWAY_LOG_DIR -e GH_AW_MCP_LOG_DIR -e GH_AW_SAFE_OUTPUTS -e GH_AW_SAFE_OUTPUTS_CONFIG_PATH -e GH_AW_SAFE_OUTPUTS_TOOLS_PATH -e GH_AW_ASSETS_BRANCH -e GH_AW_ASSETS_MAX_SIZE_KB -e GH_AW_ASSETS_ALLOWED_EXTS -e DEFAULT_BRANCH -e GITHUB_MCP_SERVER_TOKEN -e GITHUB_MCP_GUARD_MIN_INTEGRITY -e GITHUB_MCP_GUARD_REPOS -e GITHUB_REPOSITORY -e GITHUB_SERVER_URL -e GITHUB_SHA -e GITHUB_WORKSPACE -e GITHUB_TOKEN -e GITHUB_RUN_ID -e GITHUB_RUN_NUMBER -e GITHUB_RUN_ATTEMPT -e GITHUB_JOB -e GITHUB_ACTION -e GITHUB_EVENT_NAME -e GITHUB_EVENT_PATH -e GITHUB_ACTOR -e GITHUB_ACTOR_ID -e GITHUB_TRIGGERING_ACTOR -e GITHUB_WORKFLOW -e GITHUB_WORKFLOW_REF -e GITHUB_WORKFLOW_SHA -e GITHUB_REF -e GITHUB_REF_NAME -e GITHUB_REF_TYPE -e GITHUB_HEAD_REF -e GITHUB_BASE_REF -e GH_AW_SAFE_OUTPUTS_PORT -e GH_AW_SAFE_OUTPUTS_API_KEY -v /tmp/gh-aw/mcp-payloads:/tmp/gh-aw/mcp-payloads:rw -v /opt:/opt:ro -v /tmp:/tmp:rw -v '"${GITHUB_WORKSPACE}"':'"${GITHUB_WORKSPACE}"':rw ghcr.io/github/gh-aw-mcpg:v0.3.25'
 
           GH_AW_NODE=$(which node 2>/dev/null || command -v node 2>/dev/null || echo node)
-          cat << GH_AW_MCP_CONFIG_fd5ff4db41779b27_EOF | "$GH_AW_NODE" "${RUNNER_TEMP}/gh-aw/actions/start_mcp_gateway.cjs"
+          cat << GH_AW_MCP_CONFIG_39a54202495bb63b_EOF | "$GH_AW_NODE" "${RUNNER_TEMP}/gh-aw/actions/start_mcp_gateway.cjs"
           {
             "mcpServers": {
               "github": {
@@ -1007,14 +876,16 @@ jobs:
                   "GITHUB_HOST": "$GITHUB_SERVER_URL",
                   "GITHUB_PERSONAL_ACCESS_TOKEN": "$GITHUB_MCP_SERVER_TOKEN",
                   "GITHUB_READ_ONLY": "1",
-                  "GITHUB_TOOLSETS": "repos,issues,pull_requests,labels,users,projects,actions,dependabot,code_security,search"
+                  "GITHUB_TOOLSETS": "repos,issues,pull_requests,labels,users,actions,dependabot,code_security,search"
                 },
                 "guard-policies": {
                   "allow-only": {
                     "approval-labels": ${{ steps.parse-guard-vars.outputs.approval_labels }},
                     "blocked-users": ${{ steps.parse-guard-vars.outputs.blocked_users }},
                     "min-integrity": "approved",
-                    "repos": "all",
+                    "repos": [
+                      "sinless-games/aerealith"
+                    ],
                     "trusted-users": ${{ steps.parse-guard-vars.outputs.trusted_users }}
                   }
                 }
@@ -1028,7 +899,7 @@ jobs:
                 "guard-policies": {
                   "write-sink": {
                     "accept": [
-                      "*"
+                      "private:sinless-games/aerealith"
                     ]
                   }
                 }
@@ -1041,7 +912,7 @@ jobs:
               "payloadDir": "${MCP_GATEWAY_PAYLOAD_DIR}"
             }
           }
-          GH_AW_MCP_CONFIG_fd5ff4db41779b27_EOF
+          GH_AW_MCP_CONFIG_39a54202495bb63b_EOF
       - name: Mount MCP servers as CLIs
         id: mount-mcp-clis
         continue-on-error: true
@@ -1083,7 +954,7 @@ jobs:
           printf '%s' "$(date +%s%3N)" > /tmp/gh-aw/agent_cli_start_ms.txt
           touch /tmp/gh-aw/agent-step-summary.md
           (umask 177 && touch /tmp/gh-aw/agent-stdio.log)
-          printf '%s\n' '{"$schema":"https://github.com/github/gh-aw-firewall/releases/download/v0.27.2/awf-config.schema.json","network":{"allowDomains":["*.googleapis.com","api.snapcraft.io","archive.ubuntu.com","azure.archive.ubuntu.com","crl.geotrust.com","crl.globalsign.com","crl.identrust.com","crl.sectigo.com","crl.thawte.com","crl.usertrust.com","crl.verisign.com","crl3.digicert.com","crl4.digicert.com","crls.ssl.com","generativelanguage.googleapis.com","github.com","host.docker.internal","json-schema.org","json.schemastore.org","keyserver.ubuntu.com","ocsp.digicert.com","ocsp.geotrust.com","ocsp.globalsign.com","ocsp.identrust.com","ocsp.sectigo.com","ocsp.ssl.com","ocsp.thawte.com","ocsp.usertrust.com","ocsp.verisign.com","packagecloud.io","packages.cloud.google.com","packages.microsoft.com","ppa.launchpad.net","raw.githubusercontent.com","registry.npmjs.org","s.symcb.com","s.symcd.com","security.ubuntu.com","ts-crl.ws.symantec.com","ts-ocsp.ws.symantec.com","www.googleapis.com"]},"apiProxy":{"enabled":true,"maxRuns":40,"targets":{"gemini":{"host":"generativelanguage.googleapis.com"}},"models":{"agent":["sonnet-6x","gpt-5.4","gpt-5.3","gemini-pro","any"],"antigravity":["copilot/antigravity*","google/antigravity*","gemini/antigravity*"],"any":["copilot/*","anthropic/*","openai/*","google/*","gemini/*"],"claude":["agent"],"codex":["agent"],"coding":["copilot/gpt-5*codex*","openai/gpt-5*codex*","gpt-5-codex"],"computer-use":["copilot/*computer-use*","google/*computer-use*","gemini/*computer-use*","openai/*computer-use*"],"copilot":["agent"],"deep-research":["copilot/deep-research*","copilot/o3-deep-research*","copilot/o4-mini-deep-research*","google/deep-research*","gemini/deep-research*","openai/o3-deep-research*","openai/o4-mini-deep-research*"],"gemini":["agent"],"gemini-3-flash":["copilot/gemini-3*flash*","google/gemini-3*flash*","gemini/gemini-3*flash*"],"gemini-3-pro":["copilot/gemini-3*pro*","google/gemini-3*pro*","google/nano-banana*","gemini/gemini-3*pro*"],"gemini-3.1-flash":["copilot/gemini-3.1*flash*","google/gemini-3.1*flash*","gemini/gemini-3.1*flash*"],"gemini-3.1-pro":["copilot/gemini-3.1*pro*","google/gemini-3.1*pro*","gemini/gemini-3.1*pro*"],"gemini-3.5-flash":["copilot/gemini-3.5*flash*","google/gemini-3.5*flash*","gemini/gemini-3.5*flash*"],"gemini-flash":["copilot/gemini-*flash*","google/gemini-*flash*","gemini/gemini-*flash*"],"gemini-flash-lite":["copilot/gemini-*flash*lite*","google/gemini-*flash*lite*","gemini/gemini-*flash*lite*"],"gemini-pro":["copilot/gemini-*pro*","google/gemini-*pro*","gemini/gemini-*pro*"],"gemma":["copilot/gemma*","google/gemma*","gemini/gemma*"],"gpt-5":["copilot/gpt-5*","openai/gpt-5*"],"gpt-5-codex":["copilot/gpt-5*codex*","openai/gpt-5*codex*"],"gpt-5-mini":["copilot/gpt-5*mini*","openai/gpt-5*mini*"],"gpt-5-nano":["copilot/gpt-5*nano*","openai/gpt-5*nano*"],"gpt-5-pro":["copilot/gpt-5*pro*","openai/gpt-5*pro*"],"gpt-5.2":["copilot/gpt-5.2*","openai/gpt-5.2*"],"gpt-5.3":["copilot/gpt-5.3*","openai/gpt-5.3*"],"gpt-5.4":["copilot/gpt-5.4*","openai/gpt-5.4*"],"gpt-5.5":["copilot/gpt-5.5*","openai/gpt-5.5*"],"haiku":["copilot/*haiku*","anthropic/*haiku*"],"large":["sonnet","gpt-5-pro","gpt-5","gemini-pro"],"mai-code":["copilot/MAI-Code*","copilot/mai-code*","openai/MAI-Code*"],"mini":["haiku","gpt-5-mini","gpt-5-nano","gemini-flash-lite"],"nano-banana":["copilot/nano-banana*","google/nano-banana*","gemini/nano-banana*"],"opus":["copilot/*opus*","anthropic/*opus*"],"opusplan":["opus?effort=high"],"reasoning":["copilot/o1*","copilot/o3*","copilot/o4*","openai/o1*","openai/o3*","openai/o4*"],"robotics":["copilot/*robotics*","google/*robotics*","gemini/*robotics*"],"small":["mini"],"small-agent":["haiku","gpt-5-mini","gemini-flash"],"sonnet":["copilot/*sonnet*","anthropic/*sonnet*"],"sonnet-6x":["copilot/*sonnet-4.5*","copilot/*sonnet-4.6*","copilot/*sonnet-4-5-*","anthropic/*sonnet-4-5-*","copilot/*sonnet-4-6*","anthropic/*sonnet-4-6*"],"summarization":["haiku","gpt-5-mini","gemini-flash-lite","mini"],"vision":["copilot/gemini-*image*","gemini/gemini-*image*","copilot/gemini-*flash*","gemini/gemini-*flash*"]}},"container":{"imageTag":"0.27.2,squid=sha256:2e3a717e5f19a654cd9a2263beb52012b56bcb68562ec5ae2e42f9d156b49591,agent=sha256:f88e5b17b6b7a600117bc121114d6ce2155c88c983c0c939c5df884f730fa1d6,api-proxy=sha256:ee39841d980878ebbb87592903b06d31a1af500c71525c9616f7e8e2a27041a4,cli-proxy=sha256:02f3ec08f32dc26c5427920c6a2e2f3036238fce44802f2f11ef49ed8621b5d0"}}' > "${RUNNER_TEMP}/gh-aw/awf-config.json"
+          printf '%s\n' '{"$schema":"https://github.com/github/gh-aw-firewall/releases/download/v0.27.2/awf-config.schema.json","network":{"allowDomains":["*.googleapis.com","api.snapcraft.io","archive.ubuntu.com","azure.archive.ubuntu.com","crl.geotrust.com","crl.globalsign.com","crl.identrust.com","crl.sectigo.com","crl.thawte.com","crl.usertrust.com","crl.verisign.com","crl3.digicert.com","crl4.digicert.com","crls.ssl.com","generativelanguage.googleapis.com","github.com","host.docker.internal","json-schema.org","json.schemastore.org","keyserver.ubuntu.com","ocsp.digicert.com","ocsp.geotrust.com","ocsp.globalsign.com","ocsp.identrust.com","ocsp.sectigo.com","ocsp.ssl.com","ocsp.thawte.com","ocsp.usertrust.com","ocsp.verisign.com","packagecloud.io","packages.cloud.google.com","packages.microsoft.com","ppa.launchpad.net","raw.githubusercontent.com","registry.npmjs.org","s.symcb.com","s.symcd.com","security.ubuntu.com","ts-crl.ws.symantec.com","ts-ocsp.ws.symantec.com","www.googleapis.com"]},"apiProxy":{"enabled":true,"maxRuns":35,"targets":{"gemini":{"host":"generativelanguage.googleapis.com"}},"models":{"agent":["sonnet-6x","gpt-5.4","gpt-5.3","gemini-pro","any"],"antigravity":["copilot/antigravity*","google/antigravity*","gemini/antigravity*"],"any":["copilot/*","anthropic/*","openai/*","google/*","gemini/*"],"claude":["agent"],"codex":["agent"],"coding":["copilot/gpt-5*codex*","openai/gpt-5*codex*","gpt-5-codex"],"computer-use":["copilot/*computer-use*","google/*computer-use*","gemini/*computer-use*","openai/*computer-use*"],"copilot":["agent"],"deep-research":["copilot/deep-research*","copilot/o3-deep-research*","copilot/o4-mini-deep-research*","google/deep-research*","gemini/deep-research*","openai/o3-deep-research*","openai/o4-mini-deep-research*"],"gemini":["agent"],"gemini-3-flash":["copilot/gemini-3*flash*","google/gemini-3*flash*","gemini/gemini-3*flash*"],"gemini-3-pro":["copilot/gemini-3*pro*","google/gemini-3*pro*","google/nano-banana*","gemini/gemini-3*pro*"],"gemini-3.1-flash":["copilot/gemini-3.1*flash*","google/gemini-3.1*flash*","gemini/gemini-3.1*flash*"],"gemini-3.1-pro":["copilot/gemini-3.1*pro*","google/gemini-3.1*pro*","gemini/gemini-3.1*pro*"],"gemini-3.5-flash":["copilot/gemini-3.5*flash*","google/gemini-3.5*flash*","gemini/gemini-3.5*flash*"],"gemini-flash":["copilot/gemini-*flash*","google/gemini-*flash*","gemini/gemini-*flash*"],"gemini-flash-lite":["copilot/gemini-*flash*lite*","google/gemini-*flash*lite*","gemini/gemini-*flash*lite*"],"gemini-pro":["copilot/gemini-*pro*","google/gemini-*pro*","gemini/gemini-*pro*"],"gemma":["copilot/gemma*","google/gemma*","gemini/gemma*"],"gpt-5":["copilot/gpt-5*","openai/gpt-5*"],"gpt-5-codex":["copilot/gpt-5*codex*","openai/gpt-5*codex*"],"gpt-5-mini":["copilot/gpt-5*mini*","openai/gpt-5*mini*"],"gpt-5-nano":["copilot/gpt-5*nano*","openai/gpt-5*nano*"],"gpt-5-pro":["copilot/gpt-5*pro*","openai/gpt-5*pro*"],"gpt-5.2":["copilot/gpt-5.2*","openai/gpt-5.2*"],"gpt-5.3":["copilot/gpt-5.3*","openai/gpt-5.3*"],"gpt-5.4":["copilot/gpt-5.4*","openai/gpt-5.4*"],"gpt-5.5":["copilot/gpt-5.5*","openai/gpt-5.5*"],"haiku":["copilot/*haiku*","anthropic/*haiku*"],"large":["sonnet","gpt-5-pro","gpt-5","gemini-pro"],"mai-code":["copilot/MAI-Code*","copilot/mai-code*","openai/MAI-Code*"],"mini":["haiku","gpt-5-mini","gpt-5-nano","gemini-flash-lite"],"nano-banana":["copilot/nano-banana*","google/nano-banana*","gemini/nano-banana*"],"opus":["copilot/*opus*","anthropic/*opus*"],"opusplan":["opus?effort=high"],"reasoning":["copilot/o1*","copilot/o3*","copilot/o4*","openai/o1*","openai/o3*","openai/o4*"],"robotics":["copilot/*robotics*","google/*robotics*","gemini/*robotics*"],"small":["mini"],"small-agent":["haiku","gpt-5-mini","gemini-flash"],"sonnet":["copilot/*sonnet*","anthropic/*sonnet*"],"sonnet-6x":["copilot/*sonnet-4.5*","copilot/*sonnet-4.6*","copilot/*sonnet-4-5-*","anthropic/*sonnet-4-5-*","copilot/*sonnet-4-6*","anthropic/*sonnet-4-6*"],"summarization":["haiku","gpt-5-mini","gemini-flash-lite","mini"],"vision":["copilot/gemini-*image*","gemini/gemini-*image*","copilot/gemini-*flash*","gemini/gemini-*flash*"]}},"container":{"imageTag":"0.27.2,squid=sha256:2e3a717e5f19a654cd9a2263beb52012b56bcb68562ec5ae2e42f9d156b49591,agent=sha256:f88e5b17b6b7a600117bc121114d6ce2155c88c983c0c939c5df884f730fa1d6,api-proxy=sha256:ee39841d980878ebbb87592903b06d31a1af500c71525c9616f7e8e2a27041a4,cli-proxy=sha256:02f3ec08f32dc26c5427920c6a2e2f3036238fce44802f2f11ef49ed8621b5d0"}}' > "${RUNNER_TEMP}/gh-aw/awf-config.json"
           cp "${RUNNER_TEMP}/gh-aw/awf-config.json" /tmp/gh-aw/awf-config.json
           export GH_AW_MODELS_JSON_PATH="/tmp/gh-aw/models.json"
           GH_AW_DOCKER_HOST_PATH_PREFIX_ARGS=""
@@ -1108,7 +979,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_CLI_TRUST_WORKSPACE: true
           GEMINI_MODEL: gemini-3.1-flash-lite
-          GH_AW_MAX_TURNS: 40
+          GH_AW_MAX_TURNS: 35
           GH_AW_MCP_CONFIG: ${{ github.workspace }}/.gemini/settings.json
           GH_AW_PHASE: agent
           GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
@@ -1157,10 +1028,11 @@ jobs:
             const { main } = require('${{ runner.temp }}/gh-aw/actions/redact_secrets.cjs');
             await main();
         env:
-          GH_AW_SECRET_NAMES: "GEMINI_API_KEY,GH_AW_READ_PROJECT_TOKEN,GH_AW_WRITE_PROJECT_TOKEN"
+          GH_AW_SECRET_NAMES: "GEMINI_API_KEY,GH_AW_GITHUB_MCP_SERVER_TOKEN,GH_AW_GITHUB_TOKEN,GITHUB_TOKEN"
           SECRET_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          SECRET_GH_AW_READ_PROJECT_TOKEN: ${{ secrets.GH_AW_READ_PROJECT_TOKEN }}
-          SECRET_GH_AW_WRITE_PROJECT_TOKEN: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
+          SECRET_GH_AW_GITHUB_MCP_SERVER_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN }}
+          SECRET_GH_AW_GITHUB_TOKEN: ${{ secrets.GH_AW_GITHUB_TOKEN }}
+          SECRET_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Append agent step summary
         if: always()
         run: bash "${RUNNER_TEMP}/gh-aw/actions/append_agent_step_summary.sh"
@@ -1379,7 +1251,7 @@ jobs:
           GH_AW_AMBIENT_CONTEXT: ${{ needs.agent.outputs.ambient_context }}
           GH_AW_WORKFLOW_ID: "aerealith-project-orchestrator"
         with:
-          github-token: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
+          github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
             const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
             setupGlobals(core, github, context, exec, io, getOctokit);
@@ -1396,7 +1268,7 @@ jobs:
           GH_AW_DETECTION_CONCLUSION: ${{ needs.detection.outputs.detection_conclusion }}
           GH_AW_DETECTION_REASON: ${{ needs.detection.outputs.detection_reason }}
         with:
-          github-token: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
+          github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
             const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
             setupGlobals(core, github, context, exec, io, getOctokit);
@@ -1411,7 +1283,7 @@ jobs:
           GH_AW_WORKFLOW_NAME: "Aerealith Project Orchestrator"
           GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/aerealith-project-orchestrator.md"
         with:
-          github-token: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
+          github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
             const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
             setupGlobals(core, github, context, exec, io, getOctokit);
@@ -1426,7 +1298,7 @@ jobs:
           GH_AW_WORKFLOW_NAME: "Aerealith Project Orchestrator"
           GH_AW_WORKFLOW_SOURCE_URL: "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/aerealith-project-orchestrator.md"
         with:
-          github-token: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
+          github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
             const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
             setupGlobals(core, github, context, exec, io, getOctokit);
@@ -1467,7 +1339,7 @@ jobs:
           GH_AW_MISSING_DATA_REPORT_AS_FAILURE: "true"
           GH_AW_TIMEOUT_MINUTES: "20"
         with:
-          github-token: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
+          github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
             const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
             setupGlobals(core, github, context, exec, io, getOctokit);
@@ -1570,7 +1442,7 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           WORKFLOW_NAME: "Aerealith Project Orchestrator"
-          WORKFLOW_DESCRIPTION: "Creates and synchronizes Aerealith repository governance, then triages Issues, Pull Requests, milestones, reviewers, workers, labels, and Project items."
+          WORKFLOW_DESCRIPTION: "Synchronizes Aerealith governance labels and milestones, then routes Issues and Pull Requests through safe outputs."
           HAS_PATCH: ${{ needs.agent.outputs.has_patch }}
         with:
           script: |
@@ -1833,12 +1705,10 @@ jobs:
           GITHUB_SERVER_URL: ${{ github.server_url }}
           GITHUB_API_URL: ${{ github.api_url }}
           GH_AW_SAFE_OUTPUT_JOBS: '{"sync_repository_governance":""}'
-          GH_AW_SAFE_OUTPUTS_HANDLER_CONFIG: "{\"add_comment\":{\"max\":5,\"target\":\"*\"},\"add_labels\":{\"allowed\":[\"type: *\",\"area: *\",\"status: *\",\"priority: *\",\"risk: *\",\"agent: *\",\"automation: *\",\"planning: *\"],\"blocked\":[\"~*\",\"*[bot]\"],\"max\":25,\"target\":\"*\"},\"add_reviewer\":{\"allowed\":[\"Sinless777\"],\"max\":5,\"target\":\"*\"},\"assign_milestone\":{\"allowed\":[\"MVP Foundation\",\"MVP Identity and User Platform\",\"MVP API and Platform Services\",\"MVP Frontend and Developer Experience\",\"MVP Discord Management Platform\",\"MVP Operations and Observability\",\"v0.1.0 Private Alpha\",\"v0.2.0 Public Alpha\",\"v1.0.0 Initial Release\"],\"max\":5,\"target\":\"*\"},\"assign_to_agent\":{\"allowed\":[\"copilot\"],\"max\":3,\"target\":\"*\"},\"assign_to_user\":{\"allowed\":[\"Sinless777\"],\"max\":5,\"target\":\"*\"},\"create_project\":{\"github-token\":\"${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}\",\"max\":1,\"target_owner\":\"SinLess-Games\",\"views\":[{\"name\":\"Intake\",\"layout\":\"board\",\"filter\":\"is:issue is:open label:\\\"status: triage\\\"\"},{\"name\":\"Delivery Kanban\",\"layout\":\"board\",\"filter\":\"is:open -label:\\\"status: done\\\" -label:\\\"status: blocked\\\"\"},{\"name\":\"Prioritized Backlog\",\"layout\":\"table\",\"filter\":\"is:issue is:open -label:\\\"status: done\\\"\"},{\"name\":\"Current MVP\",\"layout\":\"table\",\"filter\":\"is:issue is:open milestone:\\\"MVP Foundation\\\"\"},{\"name\":\"Release Roadmap\",\"layout\":\"roadmap\",\"filter\":\"is:issue is:open\"},{\"name\":\"Agent Queue\",\"layout\":\"table\",\"filter\":\"is:issue is:open label:\\\"agent: ready\\\"\"},{\"name\":\"Dependency Updates\",\"layout\":\"table\",\"filter\":\"is:pr is:open label:\\\"type: dependency\\\"\"},{\"name\":\"Security and Urgent Work\",\"layout\":\"board\",\"filter\":\"is:open label:\\\"type: security\\\"\"},{\"name\":\"Blocked Work\",\"layout\":\"board\",\"filter\":\"is:open label:\\\"status: blocked\\\"\"},{\"name\":\"Review Queue\",\"layout\":\"table\",\"filter\":\"is:pr is:open label:\\\"status: in-review\\\"\"}]},\"create_project_status_update\":{\"github-token\":\"${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}\",\"max\":1,\"project\":\"https://github.com/orgs/SinLess-Games/projects/3\"},\"create_report_incomplete_issue\":{},\"missing_data\":{},\"missing_tool\":{},\"noop\":{\"max\":1,\"report-as-issue\":\"false\"},\"report_incomplete\":{},\"update_project\":{\"github-token\":\"${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}\",\"max\":25,\"project\":\"https://github.com/orgs/SinLess-Games/projects/3\",\"views\":[{\"name\":\"Intake\",\"layout\":\"board\",\"filter\":\"is:issue is:open label:\\\"status: triage\\\"\"},{\"name\":\"Delivery Kanban\",\"layout\":\"board\",\"filter\":\"is:open -label:\\\"status: done\\\" -label:\\\"status: blocked\\\"\"},{\"name\":\"Prioritized Backlog\",\"layout\":\"table\",\"filter\":\"is:issue is:open -label:\\\"status: done\\\"\"},{\"name\":\"Current MVP\",\"layout\":\"table\",\"filter\":\"is:issue is:open milestone:\\\"MVP Foundation\\\"\"},{\"name\":\"Release Roadmap\",\"layout\":\"roadmap\",\"filter\":\"is:issue is:open\"},{\"name\":\"Agent Queue\",\"layout\":\"table\",\"filter\":\"is:issue is:open label:\\\"agent: ready\\\"\"},{\"name\":\"Dependency Updates\",\"layout\":\"table\",\"filter\":\"is:pr is:open label:\\\"type: dependency\\\"\"},{\"name\":\"Security and Urgent Work\",\"layout\":\"board\",\"filter\":\"is:open label:\\\"type: security\\\"\"},{\"name\":\"Blocked Work\",\"layout\":\"board\",\"filter\":\"is:open label:\\\"status: blocked\\\"\"},{\"name\":\"Review Queue\",\"layout\":\"table\",\"filter\":\"is:pr is:open label:\\\"status: in-review\\\"\"}]}}"
-          GH_AW_PROJECT_URL: "https://github.com/orgs/SinLess-Games/projects/3"
-          GH_AW_PROJECT_GITHUB_TOKEN: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
+          GH_AW_SAFE_OUTPUTS_HANDLER_CONFIG: '{"add_comment":{"footer":false,"max":5,"target":"*"},"add_labels":{"allowed":["type: *","area: *","status: *","priority: *","risk: *","agent: *","automation: *","planning: *"],"max":25,"target":"*"},"add_reviewer":{"allowed":["Sinless777"],"max":5,"target":"*"},"assign_milestone":{"allowed":["MVP Foundation","MVP Identity and User Platform","MVP API and Platform Services","MVP Frontend and Developer Experience","MVP Discord Management Platform","MVP Operations and Observability","v0.1.0 Private Alpha","v0.2.0 Public Alpha","v1.0.0 Initial Release"],"max":5,"target":"*"},"assign_to_agent":{"allowed":["copilot"],"max":3,"target":"*"},"assign_to_user":{"allowed":["Sinless777"],"max":5,"target":"*"},"create_report_incomplete_issue":{},"missing_data":{},"missing_tool":{},"noop":{"max":1,"report-as-issue":"false"},"report_incomplete":{}}'
           GH_AW_ASSIGN_TO_AGENT_TOKEN: ${{ secrets.GH_AW_AGENT_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
         with:
-          github-token: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
+          github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
             const { setupGlobals } = require('${{ runner.temp }}/gh-aw/actions/setup_globals.cjs');
             setupGlobals(core, github, context, exec, io, getOctokit);
@@ -1864,6 +1734,7 @@ jobs:
     permissions:
       contents: read
       issues: write
+      pull-requests: write
     steps:
       - name: Download agent output artifact
         continue-on-error: true
@@ -1878,468 +1749,760 @@ jobs:
         with:
           fetch-depth: 1
           persist-credentials: false
-      - name: Synchronize bootstrap governance catalog
-        run: |
-          set -euo pipefail
-
-          if [[ "${GH_AW_SAFE_OUTPUTS_STAGED:-false}" == "true" ]]; then
-            echo "Staged mode is enabled. Governance synchronization is preview-only."
-            exit 0
-          fi
-
-          ruby <<'RUBY'
-          require 'cgi'
-          require 'date'
-          require 'json'
-          require 'net/http'
-          require 'time'
-          require 'uri'
-          require 'yaml'
-
-          repository = ENV.fetch('GITHUB_REPOSITORY')
-          token = ENV.fetch('GH_TOKEN')
-          event_name = ENV.fetch('GITHUB_EVENT_NAME')
-          event_path = ENV.fetch('GITHUB_EVENT_PATH')
-          agent_output_path = ENV.fetch('GH_AW_AGENT_OUTPUT')
-
-          event = JSON.parse(File.read(event_path))
-
-          unless event_name == 'workflow_dispatch' &&
-                 event.dig('inputs', 'mode') == 'bootstrap'
-            abort(
-              'Repository label replacement is allowed only during a manual ' \
-              'workflow_dispatch run with mode=bootstrap.'
-            )
-          end
-
-          unless File.file?(agent_output_path)
-            abort(
-              'Missing GH_AW_AGENT_OUTPUT. The bootstrap safe-output request ' \
-              'cannot be verified.'
-            )
-          end
-
-          agent_output = JSON.parse(File.read(agent_output_path))
-          items = agent_output.fetch('items', [])
-
-          requests = items.select do |item|
-            item['type'] == 'sync_repository_governance'
-          end
-
-          unless requests.length == 1
-            abort(
-              'Expected exactly one sync_repository_governance safe-output ' \
-              "request; received #{requests.length}."
-            )
-          end
-
-          unless requests.first['mode'] == 'bootstrap'
-            abort(
-              'The sync_repository_governance safe-output request must use ' \
-              'mode=bootstrap.'
-            )
-          end
-
-          def request(token, method, path, body = nil)
-            uri = URI("https://api.github.com#{path}")
-
-            request_class = {
-              'GET' => Net::HTTP::Get,
-              'POST' => Net::HTTP::Post,
-              'PATCH' => Net::HTTP::Patch,
-              'DELETE' => Net::HTTP::Delete,
-            }.fetch(method)
-
-            request = request_class.new(uri)
-            request['Accept'] = 'application/vnd.github+json'
-            request['Authorization'] = "Bearer #{token}"
-            request['X-GitHub-Api-Version'] = '2022-11-28'
-            request['User-Agent'] = 'aerealith-project-orchestrator'
-
-            if body
-              request['Content-Type'] = 'application/json'
-              request.body = JSON.generate(body)
-            end
-
-            Net::HTTP.start(
-              uri.host,
-              uri.port,
-              use_ssl: uri.scheme == 'https',
-            ) do |http|
-              http.request(request)
-            end
-          end
-
-          def raise_api_error(response, method, path)
-            accepted_permissions =
-              response['x-accepted-github-permissions'] ||
-              'not provided by GitHub'
-
-            permission_hint =
-              if response.code.to_i == 404 &&
-                 %w[POST PATCH DELETE].include?(method)
-                [
-                  'GitHub returned 404 for a write request.',
-                  'GH_AW_WRITE_PROJECT_TOKEN can read this repository but cannot',
-                  'perform this write operation.',
-                  'Replace the secret with a token owned or approved for',
-                  'SinLess-Games, scoped to the Aerealith repository, with',
-                  'Repository Issues: Read and write.',
-                  "GitHub accepted permissions: #{accepted_permissions}",
-                ].join(' ')
-              else
-                "GitHub accepted permissions: #{accepted_permissions}"
-              end
-
-            raise(
-              "GitHub API #{method} #{path} failed: #{response.code} " \
-              "#{response.body}\n#{permission_hint}"
-            )
-          end
-
-          def api_json(token, method, path, body = nil)
-            response = request(token, method, path, body)
-
-            unless response.code.to_i.between?(200, 299)
-              raise_api_error(response, method, path)
-            end
-
-            return {} if response.body.nil? || response.body.empty?
-
-            JSON.parse(response.body)
-          end
-
-          def paginated_json(token, path)
-            results = []
-            page = 1
-
-            loop do
-              separator = path.include?('?') ? '&' : '?'
-
-              response = request(
-                token,
-                'GET',
-                "#{path}#{separator}per_page=100&page=#{page}",
-              )
-
-              unless response.code.to_i.between?(200, 299)
-                raise_api_error(response, 'GET', path)
-              end
-
-              batch = JSON.parse(response.body)
-
-              unless batch.is_a?(Array)
-                raise(
-                  "Expected a paginated array from #{path}, received " \
-                  "#{batch.class}."
-                )
-              end
-
-              results.concat(batch)
-              break if batch.length < 100
-
-              page += 1
-            end
-
-            results
-          end
-
-          def load_yaml(path)
-            raise "Required policy file is missing: #{path}" unless File.file?(path)
-
-            YAML.safe_load(
-              File.read(path),
-              permitted_classes: [Date, Time],
-              aliases: true,
-            ) || {}
-          end
-
-          def path_segment(value)
-            URI.encode_www_form_component(value.to_s).gsub('+', '%20')
-          end
-
-          def collect_labels(node, labels = [], key = nil)
-            case node
-            when Array
-              node.each do |item|
-                collect_labels(item, labels)
-              end
-
-            when Hash
-              value = node.transform_keys(&:to_s)
-
-              if value['name'].is_a?(String) && value['color'].is_a?(String)
-                labels << {
-                  'name' => value['name'],
-                  'color' => value['color'],
-                  'description' => value['description'].to_s,
-                }
-              elsif key.is_a?(String) && value['color'].is_a?(String)
-                labels << {
-                  'name' => key,
-                  'color' => value['color'],
-                  'description' => value['description'].to_s,
-                }
-              else
-                value.each do |child_key, child_value|
-                  collect_labels(child_value, labels, child_key)
-                end
-              end
-            end
-
-            labels
-          end
-
-          def collect_milestones(node, milestones = [], key = nil)
-            case node
-            when Array
-              node.each do |item|
-                collect_milestones(item, milestones)
-              end
-
-            when Hash
-              value = node.transform_keys(&:to_s)
-
-              if value['title'].is_a?(String)
-                milestones << {
-                  'title' => value['title'],
-                  'description' => value['description'].to_s,
-                  'due_on' => value['due_on'] ||
-                    value['due-date'] ||
-                    value['due_date'],
-                }
-              elsif key.is_a?(String) && (
-                value.key?('description') ||
-                value.key?('due_on') ||
-                value.key?('due-date') ||
-                value.key?('due_date')
-              )
-                milestones << {
-                  'title' => key,
-                  'description' => value['description'].to_s,
-                  'due_on' => value['due_on'] ||
-                    value['due-date'] ||
-                    value['due_date'],
-                }
-              else
-                value.each do |child_key, child_value|
-                  collect_milestones(child_value, milestones, child_key)
-                end
-              end
-            end
-
-            milestones
-          end
-
-          def normalize_label(label)
-            name = label.fetch('name').to_s.strip
-            color = label.fetch('color').to_s.delete_prefix('#').downcase
-            description = label.fetch('description', '').to_s.strip
-
-            raise 'A label name cannot be empty.' if name.empty?
-
-            unless color.match?(/\A[0-9a-f]{6}\z/)
-              raise "Invalid label color for #{name}: #{label['color']}"
-            end
-
-            if description.length > 100
-              raise(
-                "Label description for #{name} exceeds GitHub's " \
-                '100-character limit.'
-              )
-            end
-
-            {
-              'name' => name,
-              'color' => color,
-              'description' => description,
-            }
-          end
-
-          def normalize_due_on(value)
-            return nil if value.nil? || value.to_s.strip.empty?
-
-            if value.is_a?(Date)
-              return "#{value.iso8601}T00:00:00Z"
-            end
-
-            due_on = value.to_s.strip
-
-            if due_on.match?(/\A\d{4}-\d{2}-\d{2}\z/)
-              return "#{due_on}T00:00:00Z"
-            end
-
-            Time.parse(due_on).utc.iso8601
-          end
-
-          labels_document = load_yaml('.github/config/labels.yaml')
-          milestones_document = load_yaml('.github/config/milestones.yaml')
-
-          desired_labels = collect_labels(labels_document).map do |label|
-            normalize_label(label)
-          end
-
-          raise(
-            'No labels were found in .github/config/labels.yaml.'
-          ) if desired_labels.empty?
-
-          desired_labels_by_name = {}
-
-          desired_labels.each do |label|
-            name = label['name']
-
-            if desired_labels_by_name.key?(name)
-              raise "Duplicate label in labels.yaml: #{name}"
-            end
-
-            desired_labels_by_name[name] = label
-          end
-
-          desired_milestones = collect_milestones(milestones_document).map do |milestone|
-            title = milestone.fetch('title').to_s.strip
-
-            raise 'A milestone title cannot be empty.' if title.empty?
-
-            {
-              'title' => title,
-              'description' => milestone.fetch('description', '').to_s.strip,
-              'due_on' => normalize_due_on(milestone['due_on']),
-            }
-          end
-
-          raise(
-            'No milestones were found in .github/config/milestones.yaml.'
-          ) if desired_milestones.empty?
-
-          desired_milestones_by_title = {}
-
-          desired_milestones.each do |milestone|
-            title = milestone['title']
-
-            if desired_milestones_by_title.key?(title)
-              raise "Duplicate milestone in milestones.yaml: #{title}"
-            end
-
-            desired_milestones_by_title[title] = milestone
-          end
-
-          existing_labels = paginated_json(
-            token,
-            "/repos/#{repository}/labels",
-          )
-
-          existing_labels_by_name = existing_labels.to_h do |label|
-            [label.fetch('name'), label]
-          end
-
-          # First create or update the complete approved label catalog.
-          #
-          # This order is intentional: a failed create or update must never
-          # delete existing labels.
-          created_labels = 0
-          updated_labels = 0
-
-          desired_labels_by_name.each_value do |label|
-            existing = existing_labels_by_name[label['name']]
-
-            if existing.nil?
-              api_json(
-                token,
-                'POST',
-                "/repos/#{repository}/labels",
-                {
-                  name: label['name'],
-                  color: label['color'],
-                  description: label['description'],
-                },
-              )
-
-              created_labels += 1
-              puts "Created label: #{label['name']}"
-              next
-            end
-
-            existing_color = existing.fetch('color', '').downcase
-            existing_description = existing.fetch(
-              'description',
-              '',
-            ).to_s.strip
-
-            next if existing_color == label['color'] &&
-                    existing_description == label['description']
-
-            api_json(
-              token,
-              'PATCH',
-              "/repos/#{repository}/labels/#{path_segment(label['name'])}",
-              {
-                color: label['color'],
-                description: label['description'],
-              },
-            )
-
-            updated_labels += 1
-            puts "Updated label: #{label['name']}"
-          end
-
-          # Only after the desired catalog is successfully synchronized,
-          # remove every repository label absent from labels.yaml.
-          obsolete_labels = existing_labels_by_name.keys
-            .reject { |name| desired_labels_by_name.key?(name) }
-            .sort
-
-          deleted_labels = 0
-
-          obsolete_labels.each do |name|
-            api_json(
-              token,
-              'DELETE',
-              "/repos/#{repository}/labels/#{path_segment(name)}",
-            )
-
-            deleted_labels += 1
-            puts "Deleted obsolete label: #{name}"
-          end
-
-          existing_milestones = paginated_json(
-            token,
-            "/repos/#{repository}/milestones?state=all",
-          )
-
-          existing_milestones_by_title = existing_milestones.to_h do |milestone|
-            [milestone.fetch('title'), milestone]
-          end
-
-          created_milestones = 0
-
-          desired_milestones_by_title.each_value do |milestone|
-            next if existing_milestones_by_title.key?(milestone['title'])
-
-            payload = {
-              title: milestone['title'],
-              description: milestone['description'],
-            }
-
-            payload[:due_on] = milestone['due_on'] if milestone['due_on']
-
-            api_json(
-              token,
-              'POST',
-              "/repos/#{repository}/milestones",
-              payload,
-            )
-
-            created_milestones += 1
-            puts "Created milestone: #{milestone['title']}"
-          end
-
-          puts 'Bootstrap governance catalog synchronization complete.'
-          puts "Created labels: #{created_labels}"
-          puts "Updated labels: #{updated_labels}"
-          puts "Deleted obsolete labels: #{deleted_labels}"
-          puts "Created milestones: #{created_milestones}"
-          RUBY
+      - name: Synchronize labels and milestones
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0 (source v9)
         env:
           GH_AW_AGENT_OUTPUT: ${{ runner.temp }}/gh-aw/safe-jobs/agent_output.json
-          GH_TOKEN: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
-        shell: bash
+        with:
+          retries: 2
+          script: |
+            const fs = require('fs');
+            const { execFileSync } = require('child_process');
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const eventName = context.eventName;
+            const workflowMode = context.payload.inputs?.mode;
+            const agentOutputPath = process.env.GH_AW_AGENT_OUTPUT;
+
+            if (eventName !== 'workflow_dispatch' || workflowMode !== 'bootstrap') {
+              core.setFailed(
+                'Governance synchronization is allowed only from a manual ' +
+                  'workflow_dispatch run with mode=bootstrap.',
+              );
+              return;
+            }
+
+            if (!agentOutputPath || !fs.existsSync(agentOutputPath)) {
+              core.setFailed(
+                'Missing GH_AW_AGENT_OUTPUT. The custom safe-output request ' +
+                  'cannot be verified.',
+              );
+              return;
+            }
+
+            const agentOutput = JSON.parse(
+              fs.readFileSync(agentOutputPath, 'utf8'),
+            );
+
+            const syncRequests = (agentOutput.items || []).filter(
+              (item) => item.type === 'sync_repository_governance',
+            );
+
+            if (syncRequests.length !== 1) {
+              core.setFailed(
+                'Expected exactly one sync_repository_governance request; ' +
+                  `received ${syncRequests.length}.`,
+              );
+              return;
+            }
+
+            const reason = String(syncRequests[0].reason || '').trim();
+
+            if (!reason) {
+              core.setFailed(
+                'sync_repository_governance requires a non-empty reason.',
+              );
+              return;
+            }
+
+            const fallbackLabels = [
+              {
+                name: 'type: bug',
+                color: 'd73a4a',
+                description: 'A defect or incorrect behavior.',
+              },
+              {
+                name: 'type: feature',
+                color: 'a2eeef',
+                description: 'A planned product capability.',
+              },
+              {
+                name: 'type: documentation',
+                color: '0075ca',
+                description: 'Documentation work.',
+              },
+              {
+                name: 'type: refactor',
+                color: 'c2e0c6',
+                description: 'Code structure improvement.',
+              },
+              {
+                name: 'type: test',
+                color: 'bfdadc',
+                description: 'Testing or test coverage work.',
+              },
+              {
+                name: 'type: maintenance',
+                color: 'd4c5f9',
+                description: 'Routine maintenance work.',
+              },
+              {
+                name: 'type: performance',
+                color: 'f9d0c4',
+                description: 'Performance-related work.',
+              },
+              {
+                name: 'type: infrastructure',
+                color: '5319e7',
+                description: 'Platform or infrastructure work.',
+              },
+              {
+                name: 'type: dependency',
+                color: '0366d6',
+                description: 'Dependency update or dependency work.',
+              },
+              {
+                name: 'type: security',
+                color: 'b60205',
+                description: 'Security-sensitive work.',
+              },
+              {
+                name: 'type: release',
+                color: '0e8a16',
+                description: 'Release planning or release work.',
+              },
+              {
+                name: 'area: core',
+                color: '5319e7',
+                description: 'Aerealith core library.',
+              },
+              {
+                name: 'area: api',
+                color: '1d76db',
+                description: 'API platform work.',
+              },
+              {
+                name: 'area: auth',
+                color: 'b60205',
+                description: 'Authentication work.',
+              },
+              {
+                name: 'area: user',
+                color: '0052cc',
+                description: 'User service work.',
+              },
+              {
+                name: 'area: db',
+                color: '006b75',
+                description: 'Database work.',
+              },
+              {
+                name: 'area: frontend',
+                color: 'fbca04',
+                description: 'Frontend application work.',
+              },
+              {
+                name: 'area: ui',
+                color: 'd4c5f9',
+                description: 'Shared UI work.',
+              },
+              {
+                name: 'area: docs',
+                color: '0075ca',
+                description: 'Documentation site or content.',
+              },
+              {
+                name: 'area: devportal',
+                color: '0e8a16',
+                description: 'Developer portal work.',
+              },
+              {
+                name: 'area: discord',
+                color: '5865f2',
+                description: 'Discord integration work.',
+              },
+              {
+                name: 'area: infra',
+                color: '5319e7',
+                description: 'Infrastructure work.',
+              },
+              {
+                name: 'area: cloudflare',
+                color: 'f48120',
+                description: 'Cloudflare platform work.',
+              },
+              {
+                name: 'area: docker',
+                color: '1d63ed',
+                description: 'Docker or container work.',
+              },
+              {
+                name: 'area: ci',
+                color: '2088ff',
+                description: 'Continuous integration work.',
+              },
+              {
+                name: 'area: nx-cloud',
+                color: '143055',
+                description: 'Nx Cloud work.',
+              },
+              {
+                name: 'area: config',
+                color: 'c5def5',
+                description: 'Configuration work.',
+              },
+              {
+                name: 'area: flags',
+                color: 'fbca04',
+                description: 'Feature flag work.',
+              },
+              {
+                name: 'area: utils',
+                color: 'bfd4f2',
+                description: 'Shared utilities work.',
+              },
+              {
+                name: 'area: repo',
+                color: 'ededed',
+                description: 'Repository maintenance work.',
+              },
+              {
+                name: 'area: tooling',
+                color: 'd4c5f9',
+                description: 'Developer tooling work.',
+              },
+              {
+                name: 'status: triage',
+                color: 'fbca04',
+                description: 'Needs classification and routing.',
+              },
+              {
+                name: 'status: ready',
+                color: '0e8a16',
+                description: 'Ready for implementation.',
+              },
+              {
+                name: 'status: in-progress',
+                color: '1d76db',
+                description: 'Implementation is in progress.',
+              },
+              {
+                name: 'status: in-review',
+                color: '5319e7',
+                description: 'Awaiting review.',
+              },
+              {
+                name: 'status: blocked',
+                color: 'b60205',
+                description: 'Blocked by a dependency or decision.',
+              },
+              {
+                name: 'status: needs-info',
+                color: 'd876e3',
+                description: 'Needs additional information.',
+              },
+              {
+                name: 'status: needs-human-triage',
+                color: 'e99695',
+                description: 'Needs maintainer triage.',
+              },
+              {
+                name: 'status: done',
+                color: '0e8a16',
+                description: 'Completed work.',
+              },
+              {
+                name: 'priority: p0',
+                color: 'b60205',
+                description: 'Critical immediate priority.',
+              },
+              {
+                name: 'priority: p1',
+                color: 'd93f0b',
+                description: 'High priority.',
+              },
+              {
+                name: 'priority: p2',
+                color: 'fbca04',
+                description: 'Normal priority.',
+              },
+              {
+                name: 'priority: p3',
+                color: 'c2e0c6',
+                description: 'Lower priority.',
+              },
+              {
+                name: 'risk: low',
+                color: 'c2e0c6',
+                description: 'Low implementation risk.',
+              },
+              {
+                name: 'risk: medium',
+                color: 'fbca04',
+                description: 'Moderate implementation risk.',
+              },
+              {
+                name: 'risk: high',
+                color: 'd93f0b',
+                description: 'High implementation risk.',
+              },
+              {
+                name: 'risk: security-sensitive',
+                color: 'b60205',
+                description: 'Security-sensitive work.',
+              },
+              {
+                name: 'agent: ready',
+                color: '0e8a16',
+                description: 'Eligible for approved coding automation.',
+              },
+              {
+                name: 'agent: human-only',
+                color: 'b60205',
+                description: 'Requires human ownership.',
+              },
+              {
+                name: 'agent: copilot',
+                color: '8250df',
+                description: 'Work currently handled by Copilot.',
+              },
+              {
+                name: 'automation: needs-review',
+                color: 'fbca04',
+                description: 'Automation requires human review.',
+              },
+              {
+                name: 'automation: no-auto-merge',
+                color: 'b60205',
+                description: 'Never auto-merge this item.',
+              },
+              {
+                name: 'automation: dependabot',
+                color: '0366d6',
+                description: 'Created by Dependabot.',
+              },
+              {
+                name: 'automation: mend-renovate',
+                color: '0366d6',
+                description: 'Created by Mend or Renovate.',
+              },
+              {
+                name: 'automation: mend-remediate',
+                color: 'b60205',
+                description: 'Mend remediation work.',
+              },
+              {
+                name: 'automation: duplicate',
+                color: 'd4c5f9',
+                description: 'Potential duplicate work.',
+              },
+              {
+                name: 'planning: breaking-change',
+                color: 'b60205',
+                description: 'Potential breaking change.',
+              },
+            ];
+
+            const fallbackMilestones = [
+              {
+                title: 'MVP Foundation',
+                description: 'Core platform, repository, database, and shared tooling.',
+              },
+              {
+                title: 'MVP Identity and User Platform',
+                description: 'Authentication, identity, user profile, and user preferences.',
+              },
+              {
+                title: 'MVP API and Platform Services',
+                description: 'API platform, service routing, contracts, and platform services.',
+              },
+              {
+                title: 'MVP Frontend and Developer Experience',
+                description: 'Website, web app, documentation, UI, and developer portal.',
+              },
+              {
+                title: 'MVP Discord Management Platform',
+                description: 'Discord bot, Discord integrations, and server-management modules.',
+              },
+              {
+                title: 'MVP Operations and Observability',
+                description: 'Cloudflare, Docker, CI, deployment, logging, and observability.',
+              },
+              {
+                title: 'v0.1.0 Private Alpha',
+                description: 'Private alpha preparation and delivery.',
+              },
+              {
+                title: 'v0.2.0 Public Alpha',
+                description: 'Public alpha preparation and delivery.',
+              },
+              {
+                title: 'v1.0.0 Initial Release',
+                description: 'Initial production release preparation and delivery.',
+              },
+            ];
+
+            const rubyParser = `
+              require 'date'
+              require 'json'
+              require 'time'
+              require 'yaml'
+
+              path = ARGV.fetch(0)
+
+              document = YAML.safe_load(
+                File.read(path),
+                permitted_classes: [::Date, ::Time],
+                aliases: true,
+              ) || {}
+
+              puts JSON.generate(document)
+            `;
+
+            function loadYaml(filePath) {
+              if (!fs.existsSync(filePath)) {
+                return null;
+              }
+
+              const json = execFileSync(
+                'ruby',
+                ['-e', rubyParser, filePath],
+                {
+                  encoding: 'utf8',
+                  stdio: ['ignore', 'pipe', 'pipe'],
+                },
+              );
+
+              return JSON.parse(json);
+            }
+
+            function collectLabels(node, labels = [], key = null) {
+              if (Array.isArray(node)) {
+                for (const item of node) {
+                  collectLabels(item, labels);
+                }
+
+                return labels;
+              }
+
+              if (!node || typeof node !== 'object') {
+                return labels;
+              }
+
+              if (
+                typeof node.name === 'string' &&
+                typeof node.color === 'string'
+              ) {
+                labels.push({
+                  name: node.name,
+                  color: node.color,
+                  description: String(node.description || ''),
+                });
+
+                return labels;
+              }
+
+              if (
+                typeof key === 'string' &&
+                typeof node.color === 'string'
+              ) {
+                labels.push({
+                  name: key,
+                  color: node.color,
+                  description: String(node.description || ''),
+                });
+
+                return labels;
+              }
+
+              for (const [childKey, childValue] of Object.entries(node)) {
+                collectLabels(childValue, labels, childKey);
+              }
+
+              return labels;
+            }
+
+            function collectMilestones(node, milestones = [], key = null) {
+              if (Array.isArray(node)) {
+                for (const item of node) {
+                  collectMilestones(item, milestones);
+                }
+
+                return milestones;
+              }
+
+              if (!node || typeof node !== 'object') {
+                return milestones;
+              }
+
+              if (typeof node.title === 'string') {
+                milestones.push({
+                  title: node.title,
+                  description: String(node.description || ''),
+                  dueOn:
+                    node.due_on ||
+                    node.due_date ||
+                    node['due-date'] ||
+                    null,
+                });
+
+                return milestones;
+              }
+
+              if (
+                typeof key === 'string' &&
+                (
+                  Object.prototype.hasOwnProperty.call(node, 'description') ||
+                  Object.prototype.hasOwnProperty.call(node, 'due_on') ||
+                  Object.prototype.hasOwnProperty.call(node, 'due_date') ||
+                  Object.prototype.hasOwnProperty.call(node, 'due-date')
+                )
+              ) {
+                milestones.push({
+                  title: key,
+                  description: String(node.description || ''),
+                  dueOn:
+                    node.due_on ||
+                    node.due_date ||
+                    node['due-date'] ||
+                    null,
+                });
+
+                return milestones;
+              }
+
+              for (const [childKey, childValue] of Object.entries(node)) {
+                collectMilestones(childValue, milestones, childKey);
+              }
+
+              return milestones;
+            }
+
+            function normalizeLabel(label) {
+              const name = String(label.name || '').trim();
+              const color = String(label.color || '')
+                .replace(/^#/, '')
+                .trim()
+                .toLowerCase();
+              const description = String(label.description || '').trim();
+
+              if (!name) {
+                throw new Error('A label name cannot be empty.');
+              }
+
+              if (!/^[0-9a-f]{6}$/.test(color)) {
+                throw new Error(
+                  `Invalid label color for "${name}": "${label.color}".`,
+                );
+              }
+
+              if (description.length > 100) {
+                throw new Error(
+                  `Label description for "${name}" exceeds GitHub's 100-character limit.`,
+                );
+              }
+
+              return { name, color, description };
+            }
+
+            function normalizeDueOn(value) {
+              if (value === null || value === undefined || value === '') {
+                return null;
+              }
+
+              const source = String(value).trim();
+
+              if (/^\\d{4}-\\d{2}-\\d{2}$/.test(source)) {
+                return `${source}T00:00:00Z`;
+              }
+
+              const date = new Date(source);
+
+              if (Number.isNaN(date.getTime())) {
+                throw new Error(`Invalid milestone due date: "${source}".`);
+              }
+
+              return date.toISOString();
+            }
+
+            const labelsPath = '.github/config/labels.yaml';
+            const milestonesPath = '.github/config/milestones.yaml';
+
+            const labelsDocument = loadYaml(labelsPath);
+            const milestonesDocument = loadYaml(milestonesPath);
+
+            const configuredLabels = labelsDocument
+              ? collectLabels(labelsDocument).map(normalizeLabel)
+              : [];
+
+            const configuredMilestones = milestonesDocument
+              ? collectMilestones(milestonesDocument).map((milestone) => ({
+                  title: String(milestone.title || '').trim(),
+                  description: String(milestone.description || '').trim(),
+                  dueOn: normalizeDueOn(milestone.dueOn),
+                }))
+              : [];
+
+            const desiredLabels = (
+              configuredLabels.length > 0
+                ? configuredLabels
+                : fallbackLabels.map(normalizeLabel)
+            );
+
+            const desiredMilestones = (
+              configuredMilestones.length > 0
+                ? configuredMilestones
+                : fallbackMilestones.map((milestone) => ({
+                    ...milestone,
+                    dueOn: null,
+                  }))
+            );
+
+            const desiredLabelsByName = new Map();
+
+            for (const label of desiredLabels) {
+              if (desiredLabelsByName.has(label.name)) {
+                throw new Error(
+                  `Duplicate label in governance catalog: "${label.name}".`,
+                );
+              }
+
+              desiredLabelsByName.set(label.name, label);
+            }
+
+            const desiredMilestonesByTitle = new Map();
+
+            for (const milestone of desiredMilestones) {
+              if (!milestone.title) {
+                throw new Error('A milestone title cannot be empty.');
+              }
+
+              if (desiredMilestonesByTitle.has(milestone.title)) {
+                throw new Error(
+                  `Duplicate milestone in governance catalog: "${milestone.title}".`,
+                );
+              }
+
+              desiredMilestonesByTitle.set(milestone.title, milestone);
+            }
+
+            const existingLabels = await github.paginate(
+              github.rest.issues.listLabelsForRepo,
+              {
+                owner,
+                repo,
+                per_page: 100,
+              },
+            );
+
+            const existingLabelsByName = new Map(
+              existingLabels.map((label) => [label.name, label]),
+            );
+
+            let createdLabels = 0;
+            let updatedLabels = 0;
+            let deletedLabels = 0;
+            let createdMilestones = 0;
+
+            // Create or update the approved catalog before deleting anything.
+            for (const label of desiredLabelsByName.values()) {
+              const existing = existingLabelsByName.get(label.name);
+
+              if (!existing) {
+                await github.rest.issues.createLabel({
+                  owner,
+                  repo,
+                  name: label.name,
+                  color: label.color,
+                  description: label.description,
+                });
+
+                createdLabels += 1;
+                core.info(`Created label: ${label.name}`);
+                continue;
+              }
+
+              const existingColor = String(existing.color || '').toLowerCase();
+              const existingDescription = String(
+                existing.description || '',
+              ).trim();
+
+              if (
+                existingColor === label.color &&
+                existingDescription === label.description
+              ) {
+                continue;
+              }
+
+              await github.rest.issues.updateLabel({
+                owner,
+                repo,
+                name: label.name,
+                new_name: label.name,
+                color: label.color,
+                description: label.description,
+              });
+
+              updatedLabels += 1;
+              core.info(`Updated label: ${label.name}`);
+            }
+
+            // Delete only after the desired catalog is complete.
+            for (const label of existingLabels) {
+              if (desiredLabelsByName.has(label.name)) {
+                continue;
+              }
+
+              await github.rest.issues.deleteLabel({
+                owner,
+                repo,
+                name: label.name,
+              });
+
+              deletedLabels += 1;
+              core.info(`Deleted legacy label: ${label.name}`);
+            }
+
+            const existingMilestones = await github.paginate(
+              github.rest.issues.listMilestones,
+              {
+                owner,
+                repo,
+                state: 'all',
+                per_page: 100,
+              },
+            );
+
+            const existingMilestonesByTitle = new Map(
+              existingMilestones.map((milestone) => [milestone.title, milestone]),
+            );
+
+            for (const milestone of desiredMilestonesByTitle.values()) {
+              if (existingMilestonesByTitle.has(milestone.title)) {
+                continue;
+              }
+
+              const payload = {
+                owner,
+                repo,
+                title: milestone.title,
+                description: milestone.description,
+              };
+
+              if (milestone.dueOn) {
+                payload.due_on = milestone.dueOn;
+              }
+
+              await github.rest.issues.createMilestone(payload);
+
+              createdMilestones += 1;
+              core.info(`Created milestone: ${milestone.title}`);
+            }
+
+            core.summary
+              .addHeading('Aerealith Governance Synchronization')
+              .addRaw(`Reason: ${reason}`)
+              .addBreak()
+              .addTable([
+                [
+                  { data: 'Operation', header: true },
+                  { data: 'Count', header: true },
+                ],
+                ['Created labels', String(createdLabels)],
+                ['Updated labels', String(updatedLabels)],
+                ['Deleted legacy labels', String(deletedLabels)],
+                ['Created milestones', String(createdMilestones)],
+              ]);
+
+            await core.summary.write();
