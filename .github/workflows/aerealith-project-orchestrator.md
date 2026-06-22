@@ -88,29 +88,15 @@ sandbox:
   agent: awf
 
 tools:
-  # This workflow never modifies repository files.
+  # This workflow never edits repository files.
   edit: false
 
-  bash:
-    - 'git status'
-    - 'git status *'
-    - 'git diff'
-    - 'git diff *'
-    - 'git log'
-    - 'git log *'
-    - 'git ls-files'
-    - 'git ls-files *'
-    - 'git rev-parse *'
-    - 'find *'
-    - 'grep *'
-    - 'rg *'
-    - 'sed *'
-    - 'awk *'
-    - 'jq *'
-    - 'yq *'
-    - 'ls *'
-    - 'pwd'
-    - 'safeoutputs *'
+  # Do not allow shell access.
+  #
+  # The agent must use GitHub MCP tools for reads and Safe Outputs MCP tools
+  # for writes. This prevents it from wasting turns on denied `gh`, `ls`,
+  # `safeoutputs`, or commented shell commands.
+  bash: []
 
   github:
     toolsets:
@@ -119,6 +105,7 @@ tools:
       - pull_requests
       - labels
       - users
+      - projects
       - actions
       - dependabot
       - code_security
@@ -1013,6 +1000,44 @@ Your actions must be:
 
 When routing is unclear, preserve the current state and request human review rather than guessing.
 
+## Mandatory Tool Execution Protocol
+
+You must use GitHub MCP tools for every GitHub read.
+
+You must use Safe Outputs MCP tools for every GitHub write.
+
+Bash is intentionally disabled.
+
+Never attempt to use:
+
+- `gh`
+- `git`
+- `ls`
+- `cat`
+- `sed`
+- `grep`
+- `safeoutputs`
+- shell comments
+- shell wrappers
+- shell pipelines
+
+Do not attempt to read repository policy files through Bash.
+
+Use GitHub MCP repository-content tools to read:
+
+```text
+.github/config/labels.yaml
+.github/config/milestones.yaml
+.github/config/project.yaml
+.github/config/reviewers.yaml
+.github/config/routing.yaml
+.github/config/workers.yaml
+.github/config/dependency-policy.yaml
+.github/instructions/agent-instructions.md
+.github/instructions/aerealith.instructions.md
+.github/copilot-instructions.md
+```
+
 ## Trusted Policy Sources
 
 Read these files before making classification or routing decisions:
@@ -1127,30 +1152,53 @@ Bootstrap Mode creates missing milestones.
 
 Bootstrap Mode does not delete milestones.
 
-## Pull Request Routing
+## Pull Request Mode
 
 For every `pull_request` event:
 
-1. Do not call `sync_repository_governance`.
-2. Read the Pull Request, author, draft state, current labels, requested reviewers, linked Issues, and relevant policy files.
-3. Apply every missing safe label with `add_labels`.
-4. For non-draft Pull Requests, request `Sinless777` with `add_reviewer` when:
+1. Read the triggering Pull Request with GitHub MCP.
+2. Read the Pull Request author, draft state, labels, requested reviewers,
+   changed metadata, explicit linked Issues, and approved policy files.
+3. Do not use Bash.
+4. Do not call `sync_repository_governance`.
+5. Do not skip work merely because the trigger action is `labeled` or
+   `unlabeled`.
 
-   - `Sinless777` is not the Pull Request author;
-   - `Sinless777` is not already requested;
-   - no high-risk policy rule blocks the reviewer request.
+When policy supports classification:
 
-5. Never request `Sinless777` to review a Pull Request authored by `Sinless777`.
-6. Never assign a milestone directly to a Pull Request.
-7. Do not call `noop` after `add_labels` or `add_reviewer`.
+1. Call `add_labels` for all missing approved labels.
+2. Call `update_project` to add the Pull Request to Aerealith Delivery.
+3. Set Project Status to `In Review` only when defined in `project.yaml`.
+4. Set Project Automation State to `Applied` only after safe routing succeeds.
 
-For explicit linked Issues, only these Pull Request body references are authoritative:
+Request `Sinless777` with `add_reviewer` only when all conditions are true:
 
-```text
-Closes #123
-Fixes #123
-Resolves #123
-```
+1. The Pull Request is not a draft.
+2. `Sinless777` is not the Pull Request author.
+3. `Sinless777` is not already requested as a reviewer.
+4. No policy conflict or high-risk rule blocks review routing.
+
+For explicitly linked Issues:
+
+1. Treat only these Pull Request body references as authoritative:
+
+   ```text
+
+   Closes #123
+   Fixes #123
+   Resolves #123
+   ```
+
+````
+
+2. Apply missing approved labels to the linked Issue.
+3. Call `assign_milestone` only for the linked Issue.
+4. Never assign a milestone directly to the Pull Request.
+
+When no action is valid:
+
+1. Call `noop` exactly once.
+2. Include the specific reason that no output was safe to request.
 
 For an explicitly linked Issue:
 
@@ -1169,9 +1217,9 @@ For every `issues` event:
 4. Assign an approved milestone with `assign_milestone` when the Issue is eligible.
 5. Assign `Sinless777` with `assign_to_user` when:
 
-   - the Issue has no human assignee;
-   - no coding-agent assignment is allowed;
-   - the Issue is not already assigned to another human.
+ - the Issue has no human assignee;
+ - no coding-agent assignment is allowed;
+ - the Issue is not already assigned to another human.
 
 6. Assign Copilot only when every worker-policy requirement is satisfied.
 7. Add one concise comment only when routing requires human action or a policy conflict exists.
@@ -1207,7 +1255,7 @@ risk: low + risk: high
 agent: ready + agent: human-only
 status: ready + status: blocked
 automation: auto-merge + automation: no-auto-merge
-```
+````
 
 When a conflict exists:
 
