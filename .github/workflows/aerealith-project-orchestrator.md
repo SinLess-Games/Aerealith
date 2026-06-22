@@ -100,7 +100,7 @@ tools:
       - code_security
       - search
 
-    allowed-repos: '${{ github.repository }}'
+    allowed-repos: 'all'
     min-integrity: approved
 
 safe-outputs:
