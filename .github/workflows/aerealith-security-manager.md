@@ -120,7 +120,7 @@ tools:
       - dependabot
       - search
 
-    allowed-repos: '${{ github.repository }}'
+    allowed-repos: 'all'
     min-integrity: approved
 
 safe-outputs:
