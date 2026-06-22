@@ -1,0 +1,371 @@
+# .github/config/labels.yaml
+#
+# Source of truth for Aerealith repository labels.
+#
+# The Project Orchestrator may create or update only labels defined here.
+# Colors use GitHub's required six-character hexadecimal format without "#".
+
+version: 1
+
+metadata:
+  owner: SinLess-Games
+  managedBy: aerealith-project-orchestrator
+  description: Aerealith issue, pull request, dependency, and workflow labels.
+
+labels:
+  # ---------------------------------------------------------------------------
+  # Type
+  # ---------------------------------------------------------------------------
+
+  - name: "type: feature"
+    color: "A2EEEF"
+    description: New user-facing functionality or platform capability.
+    category: type
+
+  - name: "type: bug"
+    color: "D73A4A"
+    description: Incorrect, broken, or unexpected behavior.
+    category: type
+
+  - name: "type: security"
+    color: "B60205"
+    description: Security hardening, remediation, or security-sensitive work.
+    category: type
+
+  - name: "type: documentation"
+    color: "0075CA"
+    description: Documentation, guides, references, comments, or developer portal content.
+    category: type
+
+  - name: "type: dependency"
+    color: "0366D6"
+    description: Dependency, package manager, lockfile, or supply-chain update.
+    category: type
+
+  - name: "type: refactor"
+    color: "5319E7"
+    description: Internal restructuring with no intended user-facing behavior change.
+    category: type
+
+  - name: "type: infrastructure"
+    color: "1D76DB"
+    description: CI/CD, deployment, Cloudflare, Docker, observability, or platform work.
+    category: type
+
+  - name: "type: test"
+    color: "7057FF"
+    description: Test coverage, test tooling, fixtures, mocks, or validation changes.
+    category: type
+
+  - name: "type: performance"
+    color: "FBCA04"
+    description: Performance, caching, query efficiency, or runtime optimization work.
+    category: type
+
+  - name: "type: maintenance"
+    color: "C5DEF5"
+    description: Routine maintenance, cleanup, tooling upkeep, or repository hygiene.
+    category: type
+
+  - name: "type: release"
+    color: "0E8A16"
+    description: Release preparation, versioning, changelog, or production release work.
+    category: type
+
+  # ---------------------------------------------------------------------------
+  # Area
+  # ---------------------------------------------------------------------------
+
+  - name: "area: frontend"
+    color: "E99695"
+    description: Frontend application, routes, pages, client behavior, or frontend assets.
+    category: area
+
+  - name: "area: docs"
+    color: "0075CA"
+    description: Documentation, guides, reference material, or written project content.
+    category: area
+
+  - name: "area: devportal"
+    color: "1D76DB"
+    description: Developer portal, API reference, integration documentation, or developer experience.
+    category: area
+
+  - name: "area: core"
+    color: "5319E7"
+    description: Shared Aerealith domain contracts, entities, schemas, errors, types, or utilities.
+    category: area
+
+  - name: "area: db"
+    color: "006B75"
+    description: Database schema, Drizzle ORM, repositories, migrations, persistence, or queries.
+    category: area
+
+  - name: "area: api"
+    color: "0052CC"
+    description: API routes, transport contracts, route metadata, GraphQL, tRPC, or WebSocket behavior.
+    category: area
+
+  - name: "area: ui"
+    color: "D876E3"
+    description: Shared UI components, styling, accessibility, design system, or visual behavior.
+    category: area
+
+  - name: "area: utils"
+    color: "C2E0C6"
+    description: Reusable utility functions, helpers, shared tooling, or common support code.
+    category: area
+
+  - name: "area: config"
+    color: "BFDADC"
+    description: Environment configuration, runtime settings, shared config, or configuration validation.
+    category: area
+
+  - name: "area: flags"
+    color: "FEF2C0"
+    description: Feature flags, OpenFeature integration, targeting, or flag evaluation behavior.
+    category: area
+
+  - name: "area: auth"
+    color: "B60205"
+    description: Authentication, authorization, tokens, sessions, login, verification, or account security.
+    category: area
+
+  - name: "area: user"
+    color: "FBCA04"
+    description: User profiles, preferences, consent, settings, accounts, or user lifecycle behavior.
+    category: area
+
+  - name: "area: discord"
+    color: "5865F2"
+    description: Discord bot commands, server modules, moderation, tickets, or Discord integrations.
+    category: area
+
+  - name: "area: infra"
+    color: "1D76DB"
+    description: Infrastructure, deployment, networking, platform operations, or runtime environments.
+    category: area
+
+  - name: "area: cloudflare"
+    color: "F38020"
+    description: Cloudflare Workers, Pages, DNS, bindings, tunnels, or Cloudflare deployment configuration.
+    category: area
+
+  - name: "area: nx-cloud"
+    color: "143055"
+    description: Nx Cloud, remote caching, distributed task execution, or Nx workspace automation.
+    category: area
+
+  - name: "area: docker"
+    color: "2496ED"
+    description: Dockerfiles, images, containers, Compose, container health checks, or container runtime behavior.
+    category: area
+
+  - name: "area: ci"
+    color: "2088FF"
+    description: GitHub Actions, CI validation, automated checks, release workflows, or repository automation.
+    category: area
+
+  - name: "area: repo"
+    color: "6F42C1"
+    description: Repository-wide configuration, workspace structure, Git conventions, or contribution tooling.
+    category: area
+
+  - name: "area: deps"
+    color: "0366D6"
+    description: Dependencies, pnpm, package manifests, lockfiles, or dependency tooling.
+    category: area
+
+  - name: "area: tooling"
+    color: "BFD4F2"
+    description: Developer tooling, linting, formatting, testing, editors, scripts, or local workflow improvements.
+    category: area
+
+  # ---------------------------------------------------------------------------
+  # Status
+  # ---------------------------------------------------------------------------
+
+  - name: "status: triage"
+    color: "FBCA04"
+    description: New work awaiting classification, scope review, or prioritization.
+    category: status
+
+  - name: "status: needs-info"
+    color: "D876E3"
+    description: More information is required before work can be planned or started.
+    category: status
+
+  - name: "status: needs-human-triage"
+    color: "B60205"
+    description: Requires human review because automation could not safely classify or route the work.
+    category: status
+
+  - name: "status: ready"
+    color: "0E8A16"
+    description: Scoped, prioritized, and ready for implementation.
+    category: status
+
+  - name: "status: in-progress"
+    color: "1D76DB"
+    description: Actively being implemented by a human or approved coding agent.
+    category: status
+
+  - name: "status: in-review"
+    color: "5319E7"
+    description: Pull request is open and awaiting review, validation, or approval.
+    category: status
+
+  - name: "status: blocked"
+    color: "B60205"
+    description: Cannot proceed because of a dependency, decision, access issue, or external blocker.
+    category: status
+
+  - name: "status: done"
+    color: "C2E0C6"
+    description: Completed, merged, released, or otherwise resolved work.
+    category: status
+
+  # ---------------------------------------------------------------------------
+  # Priority
+  # ---------------------------------------------------------------------------
+
+  - name: "priority: p0"
+    color: "B60205"
+    description: Critical outage, severe security issue, data loss risk, or immediate production incident.
+    category: priority
+
+  - name: "priority: p1"
+    color: "D93F0B"
+    description: Urgent work affecting critical user flows, serious defects, or high-severity security concerns.
+    category: priority
+
+  - name: "priority: p2"
+    color: "FBCA04"
+    description: Important planned work with meaningful user, platform, or delivery impact.
+    category: priority
+
+  - name: "priority: p3"
+    color: "0E8A16"
+    description: Normal planned backlog work, improvements, and non-urgent maintenance.
+    category: priority
+
+  - name: "priority: p4"
+    color: "C2E0C6"
+    description: Nice-to-have, future consideration, exploratory idea, or low-impact work.
+    category: priority
+
+  # ---------------------------------------------------------------------------
+  # Risk
+  # ---------------------------------------------------------------------------
+
+  - name: "risk: low"
+    color: "C2E0C6"
+    description: Low-risk change with limited blast radius and straightforward rollback.
+    category: risk
+
+  - name: "risk: medium"
+    color: "FBCA04"
+    description: Moderate-risk change requiring normal review and validation.
+    category: risk
+
+  - name: "risk: high"
+    color: "D93F0B"
+    description: High-risk change affecting critical paths, dependencies, architecture, or production behavior.
+    category: risk
+
+  - name: "risk: security-sensitive"
+    color: "B60205"
+    description: Security-sensitive work requiring careful review and no automated merge.
+    category: risk
+
+  # ---------------------------------------------------------------------------
+  # Agent and Worker Routing
+  # ---------------------------------------------------------------------------
+
+  - name: "agent: ready"
+    color: "0E8A16"
+    description: Safe, clearly scoped work that is eligible for approved coding-agent assignment.
+    category: agent
+
+  - name: "agent: human-only"
+    color: "6F42C1"
+    description: Work that requires a human owner because of risk, architecture, security, or operational impact.
+    category: agent
+
+  - name: "agent: copilot"
+    color: "8250DF"
+    description: Assigned or recommended for GitHub Copilot coding-agent work.
+    category: agent
+
+  - name: "agent: codex"
+    color: "0969DA"
+    description: Assigned or recommended for OpenAI Codex coding-agent work.
+    category: agent
+
+  - name: "agent: blocked"
+    color: "B60205"
+    description: Coding-agent work is paused pending clarification, approval, access, or human intervention.
+    category: agent
+
+  # ---------------------------------------------------------------------------
+  # Dependency Automation
+  # ---------------------------------------------------------------------------
+
+  - name: "automation: mend-renovate"
+    color: "0F766E"
+    description: Created or managed by Mend Renovate dependency automation.
+    category: automation
+
+  - name: "automation: mend-remediate"
+    color: "B60205"
+    description: Created or managed by Mend security remediation automation.
+    category: automation
+
+  - name: "automation: dependabot"
+    color: "0366D6"
+    description: Created or managed by Dependabot dependency automation.
+    category: automation
+
+  - name: "automation: auto-merge"
+    color: "0E8A16"
+    description: Eligible for GitHub auto-merge after all required checks and protections pass.
+    category: automation
+
+  - name: "automation: no-auto-merge"
+    color: "B60205"
+    description: Explicitly blocked from automatic merge and requires human approval.
+    category: automation
+
+  - name: "automation: needs-review"
+    color: "FBCA04"
+    description: Requires maintainer review before it can proceed or merge.
+    category: automation
+
+  - name: "automation: duplicate"
+    color: "D876E3"
+    description: Possible duplicate issue, pull request, or dependency update requiring human triage.
+    category: automation
+
+  # ---------------------------------------------------------------------------
+  # Planning and Delivery
+  # ---------------------------------------------------------------------------
+
+  - name: "planning: breaking-change"
+    color: "D93F0B"
+    description: Includes a breaking API, contract, configuration, behavior, or deployment change.
+    category: planning
+
+  - name: "planning: needs-design"
+    color: "7057FF"
+    description: Requires design, architecture, product, or implementation planning before work begins.
+    category: planning
+
+  - name: "planning: good-first-issue"
+    color: "7057FF"
+    description: Well-scoped contribution suitable for a new project contributor.
+    category: planning
+
+  - name: "planning: help-wanted"
+    color: "008672"
+    description: Community or contributor assistance would be useful for this work.
+    category: planning

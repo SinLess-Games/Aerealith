@@ -1,0 +1,140 @@
+name: Feature Request
+description: Propose a new capability, improvement, or product change for Aerealith.
+title: "[Feature]: "
+labels:
+  - "type: feature"
+  - "status: triage"
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing an improvement to Aerealith.
+
+        Strong requests explain the problem first, then describe the
+        proposed solution and how we will know it is complete.
+
+  - type: dropdown
+    id: affected-area
+    attributes:
+      label: Primary area
+      description: Select every area this feature would affect.
+      multiple: true
+      options:
+        - frontend
+        - docs
+        - devportal
+        - core
+        - db
+        - api
+        - ui
+        - utils
+        - config
+        - flags
+        - auth
+        - user
+        - discord
+        - infra
+        - cloudflare
+        - nx-cloud
+        - docker
+        - ci
+        - repo
+        - deps
+        - tooling
+        - new area
+    validations:
+      required: true
+
+  - type: dropdown
+    id: request-type
+    attributes:
+      label: Request type
+      description: What kind of work is this?
+      options:
+        - new feature
+        - enhancement
+        - developer experience
+        - infrastructure improvement
+        - documentation improvement
+        - security improvement
+        - performance improvement
+        - technical debt reduction
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or opportunity
+      description: What problem does this solve, and who experiences it?
+      placeholder: Explain the current limitation, frustration, risk, or opportunity.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed solution
+      description: Describe what should be built or changed.
+      placeholder: Explain the desired behavior, workflow, or capability.
+    validations:
+      required: true
+
+  - type: textarea
+    id: user-value
+    attributes:
+      label: Expected value
+      description: What value does this create for users, contributors, or the platform?
+      placeholder: Explain the expected benefit and why it matters.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: List the observable conditions required for this request to be considered complete.
+      placeholder: |
+        - [ ] Users can...
+        - [ ] The system prevents...
+        - [ ] Tests cover...
+        - [ ] Documentation explains...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other approaches, workarounds, or existing tools were considered?
+      placeholder: Explain why the proposed solution is preferred.
+    validations:
+      required: false
+
+  - type: textarea
+    id: implementation-notes
+    attributes:
+      label: Implementation notes
+      description: Include relevant architecture, packages, APIs, data models, dependencies, or technical constraints.
+      placeholder: Include anything helpful for planning or implementation.
+    validations:
+      required: false
+
+  - type: textarea
+    id: mockups
+    attributes:
+      label: Mockups, diagrams, or references
+      description: Attach screenshots, sketches, links, or technical references when useful.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched existing issues and did not find an equivalent request.
+          required: true
+        - label: This request describes a real problem or opportunity, not only a preferred implementation.
+          required: true

@@ -1,0 +1,142 @@
+name: Bug Report
+description: Report something that is broken, incorrect, or behaving unexpectedly.
+title: "[Bug]: "
+labels:
+  - "type: bug"
+  - "status: triage"
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem.
+
+        Please provide enough detail for someone else to understand,
+        reproduce, and investigate the issue.
+
+  - type: dropdown
+    id: affected-area
+    attributes:
+      label: Affected area
+      description: Select every area affected by this issue.
+      multiple: true
+      options:
+        - frontend
+        - docs
+        - devportal
+        - core
+        - db
+        - api
+        - ui
+        - utils
+        - config
+        - flags
+        - auth
+        - user
+        - discord
+        - infra
+        - cloudflare
+        - nx-cloud
+        - docker
+        - ci
+        - repo
+        - deps
+        - tooling
+        - other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      description: Where did you encounter this issue?
+      options:
+        - local development
+        - preview
+        - staging
+        - production
+        - ci
+        - unknown
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Clearly describe what is broken.
+      placeholder: Describe the bug and its impact.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Give the smallest reliable set of steps that reproduces the problem.
+      placeholder: |
+        1. Start with...
+        2. Run or open...
+        3. Configure...
+        4. Observe...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: What should have happened instead?
+      placeholder: Describe the correct or intended behavior.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual behavior
+      description: What happened instead?
+      placeholder: Describe the observed behavior, error, or incorrect result.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs, screenshots, or stack traces
+      description: Paste relevant logs, errors, screenshots, or recordings. Remove secrets first.
+      placeholder: |
+        ```text
+        Paste logs or stack traces here.
+        ```
+      render: shell
+    validations:
+      required: false
+
+  - type: input
+    id: commit
+    attributes:
+      label: Commit, branch, release, or deployment version
+      description: Include a commit SHA, branch name, package version, or deployment identifier when known.
+      placeholder: main, abc1234, v1.0.0, preview deployment URL
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Add anything else that may help investigate this issue.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched existing issues and did not find an equivalent report.
+          required: true
+        - label: I removed passwords, tokens, API keys, and other sensitive information.
+          required: true

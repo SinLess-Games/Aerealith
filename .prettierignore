@@ -1,5 +1,94 @@
-# Add files here to ignore them from prettier formatting
-/dist
-/coverage
-/.nx/cache
-/.nx/workspace-data
+# .prettierignore
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Package-manager and workspace caches
+.pnpm-store/
+**/.pnpm-store/
+.nx/
+**/.nx/
+.turbo/
+**/.turbo/
+.cache/
+**/.cache/
+
+# Build output
+dist/
+**/dist/
+build/
+**/build/
+out/
+**/out/
+.next/
+**/.next/
+.open-next/
+**/.open-next/
+.wrangler/
+**/.wrangler/
+
+# Test and coverage output
+coverage/
+**/coverage/
+test-results/
+**/test-results/
+playwright-report/
+**/playwright-report/
+blob-report/
+**/blob-report/
+artifacts/
+**/artifacts/
+
+# Generated files
+generated/
+**/generated/
+**/*.generated.*
+**/*.gen.*
+**/*.map
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Git and editor metadata
+.git/
+.github/.cache/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+**/logs/
+*.log
+pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Infrastructure state and local tooling output
+.terraform/
+**/.terraform/
+*.tfstate
+*.tfstate.*
+pulumi-debug.log
+cdk.out/
+
+# Local Docker and container artifacts
+docker-data/
+**/docker-data/
+
+# Documentation and generated site output
+docs/.vitepress/dist/
+docs/.docusaurus/
+storybook-static/
+**/storybook-static/

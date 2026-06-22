@@ -1,0 +1,807 @@
+# .github/config/milestones.yaml
+#
+# Source of truth for Aerealith GitHub milestones.
+#
+# The Aerealith Project Orchestrator may:
+# - Create missing milestones.
+# - Update descriptions and due dates for managed milestones.
+# - Assign issues and pull requests to matching milestones.
+# - Add matching work to the configured GitHub Project.
+#
+# A manually assigned milestone always wins over automation.
+
+version: 1
+
+metadata:
+  owner: SinLess-Games
+  repository: Aerealith
+  managedBy: aerealith-project-orchestrator
+  defaultBranch: master
+
+policy:
+  createMissingMilestones: true
+  updateManagedMilestones: true
+  closeCompletedMilestonesAutomatically: false
+  archiveCompletedProjectItemsAutomatically: false
+
+  manualMilestoneWins: true
+
+  automaticAssignment:
+    enabled: true
+    minimumConfidence: 0.85
+
+    blockedLabels:
+      - "status: needs-human-triage"
+      - "status: needs-info"
+      - "status: blocked"
+      - "risk: high"
+      - "risk: security-sensitive"
+      - "agent: human-only"
+
+    requireHumanReviewFor:
+      - "type: security"
+      - "priority: p0"
+      - "priority: p1"
+      - "planning: breaking-change"
+
+  defaultProjectValues:
+    status: Triage
+    worker: Human Review
+    risk: Medium
+
+  milestoneSelectionOrder:
+    - explicit-manual-assignment
+    - linked-parent-issue
+    - release-label
+    - area-and-type-routing
+    - ai-classification
+    - human-triage
+
+milestones:
+  - id: mvp-foundation
+    title: MVP Foundation
+    state: open
+    dueDate: null
+    priorityDefault: "priority: p1"
+
+    description: |
+      Establish the shared technical foundation required for Aerealith
+      applications, services, automation, and future platform features.
+
+      Includes:
+      - Nx workspace structure and pnpm package management.
+      - Shared core contracts, entities, schemas, errors, types, and utilities.
+      - Drizzle database configuration, repositories, migrations, and queries.
+      - Shared configuration, feature flags, UI foundations, and validation.
+      - Repository standards for linting, formatting, testing, and commits.
+      - Baseline CI validation and development environment consistency.
+
+      Exit criteria:
+      - Core is stable and independently consumable.
+      - Database foundations support the Aerealith domain model.
+      - Shared validation, contracts, and error handling are documented.
+      - Lint, typecheck, test, and build workflows are reliable.
+      - Repository automation can safely classify and route future work.
+
+    project:
+      status: In Progress
+      worker: Human Review
+      risk: High
+
+    areas:
+      - "area: core"
+      - "area: db"
+      - "area: api"
+      - "area: ui"
+      - "area: utils"
+      - "area: config"
+      - "area: flags"
+      - "area: repo"
+      - "area: tooling"
+      - "area: ci"
+      - "area: nx-cloud"
+
+    types:
+      - "type: feature"
+      - "type: refactor"
+      - "type: test"
+      - "type: maintenance"
+      - "type: infrastructure"
+      - "type: documentation"
+
+    agentPolicy:
+      default: human-review
+
+      eligibleWork:
+        - tests
+        - documentation
+        - repetitive-scaffolding
+        - low-risk-refactors
+
+      blockedWork:
+        - database-migration-design
+        - shared-contract-breaking-changes
+        - architecture-decisions
+
+  - id: mvp-identity-and-user-platform
+    title: MVP Identity and User Platform
+    state: open
+    dueDate: null
+    priorityDefault: "priority: p1"
+
+    description: |
+      Deliver the secure identity, authentication, authorization, account,
+      profile, preference, consent, session, and user-settings foundations
+      required by the Aerealith platform.
+
+      Includes:
+      - Sign-up, login, logout, refresh, verification, and password flows.
+      - Session lifecycle, token rotation, revocation, and audit behavior.
+      - User profiles, preferences, consent, privacy, and settings management.
+      - Typed API contracts, schemas, error codes, and service boundaries.
+      - Secure frontend account and authentication experiences.
+      - Privacy-aware data handling and operational observability.
+
+      Exit criteria:
+      - Users can create and manage accounts safely.
+      - Authentication and session flows are fully validated.
+      - User consent and privacy preferences persist correctly.
+      - Authorization boundaries are documented and tested.
+      - Core account workflows are usable through the frontend.
+
+    project:
+      status: Planned
+      worker: Human Review
+      risk: High
+
+    areas:
+      - "area: auth"
+      - "area: user"
+      - "area: core"
+      - "area: db"
+      - "area: api"
+      - "area: frontend"
+      - "area: ui"
+
+    types:
+      - "type: feature"
+      - "type: bug"
+      - "type: security"
+      - "type: test"
+      - "type: documentation"
+      - "type: refactor"
+
+    agentPolicy:
+      default: human-review
+
+      eligibleWork:
+        - documentation
+        - test-fixtures
+        - low-risk-ui-work
+        - non-security-refactors
+
+      blockedWork:
+        - token-design
+        - authentication-logic
+        - authorization-logic
+        - privacy-policy-behavior
+        - session-security
+        - credential-handling
+
+  - id: mvp-api-and-platform-services
+    title: MVP API and Platform Services
+    state: open
+    dueDate: null
+    priorityDefault: "priority: p2"
+
+    description: |
+      Establish the service architecture and shared API capabilities that let
+      Aerealith applications, integrations, and future products communicate
+      through stable, typed, observable interfaces.
+
+      Includes:
+      - API route conventions and service routing.
+      - REST, tRPC, GraphQL, and WebSocket transport foundations.
+      - Service discovery, health checks, error normalization, and contracts.
+      - Shared configuration, feature flags, validation, and route metadata.
+      - Developer-facing API references and integration guidance.
+      - Service-level observability, logging, and diagnostics.
+
+      Exit criteria:
+      - Services expose documented and consistent interfaces.
+      - Route metadata and error handling follow one shared standard.
+      - Health, readiness, and operational diagnostics are available.
+      - API contracts are versioned and test-covered.
+      - Developers can discover and use supported integrations.
+
+    project:
+      status: Planned
+      worker: Human Review
+      risk: Medium
+
+    areas:
+      - "area: api"
+      - "area: core"
+      - "area: config"
+      - "area: flags"
+      - "area: utils"
+      - "area: db"
+      - "area: devportal"
+      - "area: docs"
+
+    types:
+      - "type: feature"
+      - "type: refactor"
+      - "type: test"
+      - "type: documentation"
+      - "type: infrastructure"
+      - "type: performance"
+
+    agentPolicy:
+      default: agent-assisted
+
+      eligibleWork:
+        - api-documentation
+        - contract-tests
+        - low-risk-endpoint-scaffolding
+        - developer-portal-content
+
+      blockedWork:
+        - breaking-api-contracts
+        - service-authentication
+        - production-routing-decisions
+
+  - id: mvp-frontend-and-developer-experience
+    title: MVP Frontend and Developer Experience
+    state: open
+    dueDate: null
+    priorityDefault: "priority: p2"
+
+    description: |
+      Build the Aerealith website, web application, documentation experience,
+      and developer portal around a consistent design system and accessible
+      user experience.
+
+      Includes:
+      - Public website and product-facing pages.
+      - Authenticated web application and account-management flows.
+      - Shared UI component library and design-system foundations.
+      - Developer portal and API reference experience.
+      - Documentation structure, contributor guides, and onboarding.
+      - Accessibility, responsive behavior, visual consistency, and testing.
+
+      Exit criteria:
+      - Public and authenticated experiences are usable and cohesive.
+      - Shared UI components support consistent visual behavior.
+      - Core user journeys are responsive and accessible.
+      - Developer documentation and onboarding are discoverable.
+      - Frontend quality checks and end-to-end tests are reliable.
+
+    project:
+      status: Planned
+      worker: Human Review
+      risk: Medium
+
+    areas:
+      - "area: frontend"
+      - "area: ui"
+      - "area: docs"
+      - "area: devportal"
+      - "area: core"
+      - "area: api"
+
+    types:
+      - "type: feature"
+      - "type: bug"
+      - "type: documentation"
+      - "type: test"
+      - "type: refactor"
+      - "type: performance"
+
+    agentPolicy:
+      default: agent-assisted
+
+      eligibleWork:
+        - documentation
+        - component-scaffolding
+        - visual-regression-tests
+        - low-risk-layout-work
+        - accessibility-audits
+
+      blockedWork:
+        - design-system-governance
+        - account-security-ui
+        - production-user-data-flows
+
+  - id: mvp-discord-platform
+    title: MVP Discord Management Platform
+    state: open
+    dueDate: null
+    priorityDefault: "priority: p2"
+
+    description: |
+      Deliver the modular Aerealith Discord bot and dashboard capabilities for
+      server administration, moderation, automation, tickets, role systems,
+      and community management.
+
+      Includes:
+      - Modular Discord bot architecture with per-server enablement.
+      - Moderation, logging, anti-abuse, and configurable automation modules.
+      - Ticket workflows, transcripts, and support-management capabilities.
+      - Role, permissions, and server-configuration management.
+      - Dashboard integration with the Aerealith frontend and APIs.
+      - Secure Discord permissions, audit logging, and operational visibility.
+
+      Exit criteria:
+      - Server owners can enable and configure supported modules.
+      - Core moderation and ticket workflows operate reliably.
+      - Discord permissions and sensitive actions are protected.
+      - Dashboard configuration reflects bot state accurately.
+      - Bot failures, retries, and audit events are observable.
+
+    project:
+      status: Planned
+      worker: Human Review
+      risk: High
+
+    areas:
+      - "area: discord"
+      - "area: api"
+      - "area: db"
+      - "area: frontend"
+      - "area: ui"
+      - "area: auth"
+      - "area: user"
+      - "area: infra"
+
+    types:
+      - "type: feature"
+      - "type: bug"
+      - "type: security"
+      - "type: test"
+      - "type: documentation"
+      - "type: infrastructure"
+
+    agentPolicy:
+      default: human-review
+
+      eligibleWork:
+        - documentation
+        - test-fixtures
+        - command-scaffolding
+        - dashboard-components
+
+      blockedWork:
+        - discord-permission-models
+        - moderation-enforcement
+        - ticket-access-controls
+        - anti-abuse-logic
+
+  - id: mvp-operations-and-observability
+    title: MVP Operations and Observability
+    state: open
+    dueDate: null
+    priorityDefault: "priority: p1"
+
+    description: |
+      Establish safe, repeatable delivery, deployment, monitoring, logging,
+      security, dependency-management, and operational-response capabilities.
+
+      Includes:
+      - Cloudflare deployment workflows and environment configuration.
+      - Docker support for future self-hosting and service packaging.
+      - CI/CD validation, branch protections, release checks, and automation.
+      - Logging, tracing, metrics, dashboards, and alerting foundations.
+      - Dependency automation with Mend Renovate, Mend, and Dependabot.
+      - Security review, rollback planning, and release-readiness procedures.
+
+      Exit criteria:
+      - Preview and production deployment paths are documented and repeatable.
+      - Required CI checks are stable and meaningful.
+      - Core services have useful logs, metrics, and traces.
+      - Dependency updates are classified and safely governed.
+      - Rollback and incident-response expectations are documented.
+
+    project:
+      status: Planned
+      worker: Human Review
+      risk: High
+
+    areas:
+      - "area: infra"
+      - "area: cloudflare"
+      - "area: docker"
+      - "area: ci"
+      - "area: nx-cloud"
+      - "area: tooling"
+      - "area: deps"
+      - "area: repo"
+      - "area: config"
+
+    types:
+      - "type: infrastructure"
+      - "type: security"
+      - "type: dependency"
+      - "type: maintenance"
+      - "type: performance"
+      - "type: documentation"
+      - "type: release"
+
+    agentPolicy:
+      default: human-review
+
+      eligibleWork:
+        - low-risk-dependency-updates
+        - documentation
+        - dashboard-scaffolding
+        - test-automation
+
+      blockedWork:
+        - production-secrets
+        - deployment-permissions
+        - branch-protection-changes
+        - critical-infrastructure
+        - high-risk-dependency-updates
+
+  - id: v0-1-0-private-alpha
+    title: v0.1.0 Private Alpha
+    state: open
+    dueDate: null
+    priorityDefault: "priority: p1"
+
+    description: |
+      Prepare the first controlled Aerealith release for trusted internal and
+      private-alpha users.
+
+      Scope:
+      - Stable identity and user workflows.
+      - Foundational frontend and service capabilities.
+      - Core operational monitoring and deployment readiness.
+      - Documented known limitations and feedback channels.
+      - Safe rollback and issue-triage processes.
+
+      Exit criteria:
+      - Required MVP foundation work is complete or intentionally deferred.
+      - Critical user workflows pass end-to-end validation.
+      - Production deployment and rollback procedures are tested.
+      - Known issues are documented and triaged.
+      - Private-alpha release notes are prepared.
+
+    project:
+      status: Planned
+      worker: Human Review
+      risk: High
+
+    requiresMilestones:
+      - mvp-foundation
+      - mvp-identity-and-user-platform
+      - mvp-api-and-platform-services
+      - mvp-frontend-and-developer-experience
+      - mvp-operations-and-observability
+
+    areas:
+      - "area: frontend"
+      - "area: core"
+      - "area: db"
+      - "area: api"
+      - "area: auth"
+      - "area: user"
+      - "area: infra"
+      - "area: cloudflare"
+      - "area: ci"
+      - "area: docs"
+
+    types:
+      - "type: release"
+      - "type: bug"
+      - "type: security"
+      - "type: documentation"
+      - "type: infrastructure"
+
+    agentPolicy:
+      default: human-only
+
+      eligibleWork:
+        - release-notes-drafting
+        - documentation-cleanup
+        - low-risk-test-coverage
+
+      blockedWork:
+        - release-approval
+        - production-deployment
+        - rollback-decisions
+        - security-exceptions
+
+  - id: v0-2-0-public-alpha
+    title: v0.2.0 Public Alpha
+    state: open
+    dueDate: null
+    priorityDefault: "priority: p1"
+
+    description: |
+      Expand Aerealith from controlled private-alpha access to a broader public
+      alpha with improved onboarding, reliability, feedback systems, and
+      platform stability.
+
+      Scope:
+      - Improved onboarding and account experience.
+      - Broader dashboard and Discord-platform availability.
+      - Stronger observability, abuse prevention, and support workflows.
+      - Public documentation and feedback channels.
+      - Refined release, incident, and operational procedures.
+
+      Exit criteria:
+      - Public onboarding is understandable and reliable.
+      - Critical platform behavior is monitored and supportable.
+      - Security, privacy, and abuse safeguards are reviewed.
+      - Public-facing documentation is current.
+      - Release and rollback plans are verified.
+
+    project:
+      status: Planned
+      worker: Human Review
+      risk: High
+
+    requiresMilestones:
+      - v0-1-0-private-alpha
+      - mvp-discord-platform
+
+    areas:
+      - "area: frontend"
+      - "area: discord"
+      - "area: auth"
+      - "area: user"
+      - "area: api"
+      - "area: docs"
+      - "area: infra"
+      - "area: cloudflare"
+      - "area: ci"
+
+    types:
+      - "type: release"
+      - "type: feature"
+      - "type: bug"
+      - "type: security"
+      - "type: documentation"
+      - "type: infrastructure"
+
+    agentPolicy:
+      default: human-only
+
+      eligibleWork:
+        - documentation
+        - test-coverage
+        - low-risk-ui-polish
+
+      blockedWork:
+        - public-release-approval
+        - production-access-controls
+        - security-exceptions
+        - incident-response-decisions
+
+  - id: v1-0-0-initial-release
+    title: v1.0.0 Initial Release
+    state: open
+    dueDate: null
+    priorityDefault: "priority: p0"
+
+    description: |
+      Deliver the first stable Aerealith release with mature core platform
+      capabilities, dependable operations, clear documentation, and a
+      sustainable development and support process.
+
+      Scope:
+      - Production-ready identity, user, frontend, API, and Discord workflows.
+      - Stable contracts, migrations, deployment, and observability.
+      - Documented support, incident, rollback, and release procedures.
+      - Security and privacy review for supported public capabilities.
+      - Clear versioning, changelog, and compatibility expectations.
+
+      Exit criteria:
+      - Supported user-facing workflows meet release quality standards.
+      - Required documentation, operational procedures, and release notes exist.
+      - Critical security and privacy concerns are resolved or formally accepted.
+      - Production monitoring and rollback plans are tested.
+      - No unresolved P0 or P1 issues remain open.
+
+    project:
+      status: Planned
+      worker: Human Review
+      risk: High
+
+    requiresMilestones:
+      - v0-2-0-public-alpha
+      - mvp-foundation
+      - mvp-identity-and-user-platform
+      - mvp-api-and-platform-services
+      - mvp-frontend-and-developer-experience
+      - mvp-discord-platform
+      - mvp-operations-and-observability
+
+    areas:
+      - "area: frontend"
+      - "area: docs"
+      - "area: devportal"
+      - "area: core"
+      - "area: db"
+      - "area: api"
+      - "area: ui"
+      - "area: utils"
+      - "area: config"
+      - "area: flags"
+      - "area: auth"
+      - "area: user"
+      - "area: discord"
+      - "area: infra"
+      - "area: cloudflare"
+      - "area: docker"
+      - "area: ci"
+      - "area: repo"
+
+    types:
+      - "type: release"
+      - "type: feature"
+      - "type: bug"
+      - "type: security"
+      - "type: documentation"
+      - "type: infrastructure"
+      - "type: dependency"
+
+    agentPolicy:
+      default: human-only
+
+      eligibleWork:
+        - release-note-drafting
+        - documentation-review
+        - test-coverage-analysis
+
+      blockedWork:
+        - release-approval
+        - production-deployment
+        - security-risk-acceptance
+        - breaking-change-approval
+
+routing:
+  defaults:
+    fallbackMilestone: mvp-foundation
+    fallbackStatus: Triage
+    fallbackPriority: "priority: p3"
+    fallbackWorker: Human Review
+
+  rules:
+    - id: security-human-triage
+      priority: 100
+
+      match:
+        anyLabels:
+          - "type: security"
+          - "risk: security-sensitive"
+          - "priority: p0"
+          - "priority: p1"
+
+      action:
+        assignMilestone: null
+        projectStatus: Triage
+        worker: Human Review
+
+        addLabels:
+          - "status: needs-human-triage"
+          - "agent: human-only"
+
+    - id: release-work
+      priority: 90
+
+      match:
+        anyLabels:
+          - "type: release"
+
+      action:
+        assignMilestoneFrom:
+          - v1-0-0-initial-release
+          - v0-2-0-public-alpha
+          - v0-1-0-private-alpha
+
+        requireHumanReview: true
+
+    - id: discord-platform
+      priority: 80
+
+      match:
+        anyLabels:
+          - "area: discord"
+
+      action:
+        assignMilestone: mvp-discord-platform
+        projectStatus: Triage
+        worker: Human Review
+
+    - id: identity-and-user-platform
+      priority: 70
+
+      match:
+        anyLabels:
+          - "area: auth"
+          - "area: user"
+
+      action:
+        assignMilestone: mvp-identity-and-user-platform
+        projectStatus: Triage
+        worker: Human Review
+
+    - id: operations-and-observability
+      priority: 60
+
+      match:
+        anyLabels:
+          - "area: infra"
+          - "area: cloudflare"
+          - "area: docker"
+          - "area: ci"
+          - "area: nx-cloud"
+          - "area: deps"
+          - "type: dependency"
+          - "type: infrastructure"
+
+      action:
+        assignMilestone: mvp-operations-and-observability
+        projectStatus: Triage
+        worker: Human Review
+
+    - id: frontend-and-developer-experience
+      priority: 50
+
+      match:
+        anyLabels:
+          - "area: frontend"
+          - "area: ui"
+          - "area: docs"
+          - "area: devportal"
+
+      action:
+        assignMilestone: mvp-frontend-and-developer-experience
+        projectStatus: Triage
+        worker: Human Review
+
+    - id: api-and-platform-services
+      priority: 40
+
+      match:
+        anyLabels:
+          - "area: api"
+          - "area: config"
+          - "area: flags"
+
+      action:
+        assignMilestone: mvp-api-and-platform-services
+        projectStatus: Triage
+        worker: Human Review
+
+    - id: foundation
+      priority: 30
+
+      match:
+        anyLabels:
+          - "area: core"
+          - "area: db"
+          - "area: utils"
+          - "area: repo"
+          - "area: tooling"
+
+      action:
+        assignMilestone: mvp-foundation
+        projectStatus: Triage
+        worker: Human Review
+
+reconciliation:
+  enabled: true
+  schedule: "0 14 * * *"
+
+  actions:
+    - create-missing-milestones
+    - update-managed-milestone-descriptions
+    - update-managed-milestone-due-dates
+    - identify-stale-triage-items
+    - identify-blocked-milestone-items
+    - summarize-milestone-progress
+    - report-unassigned-release-work
+    - report-open-p0-and-p1-issues

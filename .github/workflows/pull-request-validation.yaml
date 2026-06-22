@@ -1,0 +1,250 @@
+# .github/workflows/pull-request-validation.yaml
+
+name: Pull Request Validation
+
+on:
+  pull_request_target:
+    branches:
+      - master
+      - staging
+      - production
+    types:
+      - opened
+      - edited
+      - reopened
+      - synchronize
+      - ready_for_review
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  validate:
+    name: Validate pull request
+    runs-on: ubuntu-latest
+
+    # Draft pull requests can remain incomplete until they are marked ready.
+    # Automated pull requests are ignored by the policy you selected.
+    if: >-
+      ${{
+        !github.event.pull_request.draft &&
+        !endsWith(github.actor, '[bot]')
+      }}
+
+    steps:
+      - name: Validate pull request policy
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const pullRequest = context.payload.pull_request;
+
+            const title = pullRequest.title?.trim() ?? '';
+            const body = pullRequest.body ?? '';
+            const baseBranch = pullRequest.base.ref;
+            const pullNumber = pullRequest.number;
+
+            const allowedTypes = new Set([
+              'feat',
+              'fix',
+              'refactor',
+              'test',
+              'docs',
+              'build',
+              'ci',
+              'chore',
+              'perf',
+              'style',
+              'revert',
+              'security',
+              'deps',
+              'release',
+              'wip',
+              'hotfix',
+            ]);
+
+            const allowedScopes = new Set([
+              'frontend',
+              'docs',
+              'devportal',
+
+              'core',
+              'db',
+              'api',
+              'ui',
+              'utils',
+              'config',
+              'flags',
+
+              'auth',
+              'user',
+              'discord',
+
+              'infra',
+              'cloudflare',
+              'nx-cloud',
+              'docker',
+              'ci',
+
+              'repo',
+              'deps',
+              'tooling',
+            ]);
+
+            const issueLinkExemptTypes = new Set([
+              'deps',
+              'docs',
+              'release',
+            ]);
+
+            const requiredChecklistItems = [
+              'I added or updated tests, or documented why tests are not applicable.',
+              'I ran the relevant typecheck, lint, and test commands.',
+              'I updated documentation, or confirmed no documentation changes are needed.',
+              'I did not add secrets, credentials, tokens, or private data.',
+            ];
+
+            const screenshotChecklistItem =
+              'I attached screenshots or a recording for frontend or UI changes.';
+
+            const errors = [];
+
+            function escapeRegularExpression(value) {
+              return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            }
+
+            function hasCheckedChecklistItem(label) {
+              const pattern = new RegExp(
+                `^\\s*[-*]\\s+\\[[xX]\\]\\s+${escapeRegularExpression(label)}\\s*$`,
+                'mi',
+              );
+
+              return pattern.test(body);
+            }
+
+            function hasLinkedIssueOrTicket() {
+              const githubIssuePattern =
+                /(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+(?:https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/issues\/)?#\d+\b/i;
+
+              const aerealithTicketPattern = /\bAER-\d+\b/i;
+
+              return (
+                githubIssuePattern.test(body) ||
+                aerealithTicketPattern.test(body)
+              );
+            }
+
+            const titlePattern =
+              /^([a-z]+)(?:\(([a-z0-9-]+)\))?(!)?:\s+(.+)$/;
+
+            const titleMatch = title.match(titlePattern);
+
+            if (title.length === 0) {
+              errors.push('Pull request title is required.');
+            }
+
+            if (title.length > 100) {
+              errors.push(
+                `Pull request title must be 100 characters or fewer. Current length: ${title.length}.`,
+              );
+            }
+
+            if (!titleMatch) {
+              errors.push(
+                'Pull request title must use Conventional Commit format: type(scope): subject.',
+              );
+            }
+
+            const type = titleMatch?.[1];
+            const scope = titleMatch?.[2];
+            const subject = titleMatch?.[4]?.trim();
+
+            if (type && !allowedTypes.has(type)) {
+              errors.push(
+                `Unsupported pull request type "${type}". Allowed types: ${[
+                  ...allowedTypes,
+                ].join(', ')}.`,
+              );
+            }
+
+            if (scope && !allowedScopes.has(scope)) {
+              errors.push(
+                `Unsupported pull request scope "${scope}". Allowed scopes: ${[
+                  ...allowedScopes,
+                ].join(', ')}.`,
+              );
+            }
+
+            if (!subject) {
+              errors.push('Pull request title subject cannot be empty.');
+            }
+
+            if (subject?.endsWith('.')) {
+              errors.push(
+                'Pull request title subject cannot end with a period.',
+              );
+            }
+
+            if (
+              type &&
+              !issueLinkExemptTypes.has(type) &&
+              !hasLinkedIssueOrTicket()
+            ) {
+              errors.push(
+                'This pull request must include either "Closes #123", "Fixes #123", "Resolves #123", or an Aerealith ticket such as "AER-123".',
+              );
+            }
+
+            if (type === 'release' && baseBranch !== 'master') {
+              errors.push(
+                'Release pull requests must target the master branch.',
+              );
+            }
+
+            for (const checklistItem of requiredChecklistItems) {
+              if (!hasCheckedChecklistItem(checklistItem)) {
+                errors.push(
+                  `Missing completed checklist item: "${checklistItem}"`,
+                );
+              }
+            }
+
+            const changedFiles = await github.paginate(
+              github.rest.pulls.listFiles,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pullNumber,
+                per_page: 100,
+              },
+            );
+
+            const changesFrontendOrUi = changedFiles.some((file) => {
+              return (
+                file.filename.startsWith('apps/frontend/') ||
+                file.filename.startsWith('libs/ui/')
+              );
+            });
+
+            if (
+              changesFrontendOrUi &&
+              !hasCheckedChecklistItem(screenshotChecklistItem)
+            ) {
+              errors.push(
+                `Frontend or UI files changed. Complete this checklist item: "${screenshotChecklistItem}"`,
+              );
+            }
+
+            if (errors.length > 0) {
+              for (const error of errors) {
+                core.error(error);
+              }
+
+              core.setFailed(
+                `Pull request validation failed with ${errors.length} issue(s).`,
+              );
+
+              return;
+            }
+
+            core.notice('Pull request title, linked issue policy, and checklist requirements passed.');

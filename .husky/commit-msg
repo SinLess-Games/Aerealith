@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+
+set -eu
+
+message_file="$1"
+
+pnpm exec commitlint --edit "$message_file"
+
+branch="$(git branch --show-current 2>/dev/null || true)"
+
+case "$branch" in
+  master | staging | production)
+    if grep -Eiq '^wip(\([^)]*\))?!?:' "$message_file"; then
+      echo
+      echo "Commit rejected: wip commits are not allowed on $branch."
+      echo "Use feat, fix, refactor, chore, or another final commit type instead."
+      exit 1
+    fi
+    ;;
+esac

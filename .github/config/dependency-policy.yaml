@@ -1,0 +1,686 @@
+# .github/config/dependency-policy.yaml
+#
+# Aerealith dependency automation policy.
+#
+# This file is consumed by the Aerealith Project Orchestrator workflow.
+# It is NOT a direct Renovate, Mend, or Dependabot configuration file.
+#
+# Provider configuration still belongs in:
+# - renovate.json / renovate.json5
+# - .whitesource or Mend repository configuration
+# - .github/dependabot.yml
+#
+# Keep all policy decisions here so the workflow can consistently:
+# - classify dependency pull requests
+# - apply labels and priorities
+# - detect duplicate update pull requests
+# - request reviewers
+# - run validation
+# - safely enable GitHub auto-merge
+
+version: 1
+
+policy:
+  name: Aerealith Dependency Automation Policy
+  owner: SinLess-Games
+  mode: enforce
+
+repository:
+  defaultBranch: master
+
+  protectedBranches:
+    - master
+    - staging
+    - production
+
+  packageManagers:
+    - pnpm
+
+  runtime:
+    nodeVersion: 25.9.0
+    pnpmVersion: 11.5.2
+
+  lockfiles:
+    - pnpm-lock.yaml
+
+# -----------------------------------------------------------------------------
+# Provider Identity and Responsibilities
+# -----------------------------------------------------------------------------
+#
+# Only trusted dependency providers may receive automation labels, reviewer
+# routing, Project updates, or auto-merge consideration.
+#
+# IMPORTANT:
+# Mend GitHub actor names vary by installed integration and organization setup.
+# Leave Mend actor lists empty until you confirm the exact `github.actor` value
+# from a real Mend-generated pull request. The workflow will still recognize
+# Mend checks and labels, but will never auto-merge an unverified Mend author.
+# -----------------------------------------------------------------------------
+
+providers:
+  mend-renovate:
+    enabled: true
+    role: primary-version-updater
+
+    trustedActors:
+      - renovate[bot]
+
+    trustedCheckNames: []
+
+    pullRequestDetection:
+      titlePatterns:
+        - '^chore\(deps\):'
+        - "^deps:"
+        - '^deps\('
+        - "^Update dependency"
+        - "^Update "
+
+      branchPatterns:
+        - "^renovate/"
+
+    labels:
+      - type: dependency
+      - automation: mend-renovate
+
+    priority:
+      default: "priority: p3"
+      major: "priority: p2"
+      security: "priority: p1"
+
+  mend-remediate:
+    enabled: true
+    role: security-remediation
+
+    # Populate this only after observing the exact GitHub actor from a real
+    # Mend remediation pull request in this repository.
+    trustedActors: []
+
+    trustedCheckNames:
+      - Mend Security Check
+      - Mend License Check
+      - Mend Code Security Check
+      - Mend IaC Check
+
+    pullRequestDetection:
+      titlePatterns:
+        - "^Mend:"
+        - "^Mend remediation"
+        - "^Mend Security"
+
+      branchPatterns:
+        - "^mend/"
+        - "^whitesource/"
+
+    labels:
+      - type: dependency
+      - type: security
+      - automation: mend-remediate
+      - automation: needs-review
+
+    priority:
+      critical: "priority: p0"
+      high: "priority: p1"
+      medium: "priority: p2"
+      low: "priority: p3"
+
+  dependabot:
+    enabled: true
+    role: security-and-secondary-updater
+
+    trustedActors:
+      - dependabot[bot]
+
+    trustedCheckNames:
+      - dependency-review
+      - Dependabot
+
+    pullRequestDetection:
+      titlePatterns:
+        - "^Bump "
+        - "^Build(deps)"
+        - "^deps:"
+
+      branchPatterns:
+        - "^dependabot/"
+
+    labels:
+      - type: dependency
+      - automation: dependabot
+
+    priority:
+      default: "priority: p3"
+      major: "priority: p2"
+      security: "priority: p1"
+
+# -----------------------------------------------------------------------------
+# Provider Precedence and Duplicate Handling
+# -----------------------------------------------------------------------------
+#
+# Mend Renovate owns normal version updates.
+# Mend Remediate and Dependabot may both surface security work.
+#
+# Never auto-close a possible duplicate. The workflow labels the overlap,
+# blocks auto-merge, and asks a human to decide which pull request remains.
+# -----------------------------------------------------------------------------
+
+deduplication:
+  enabled: true
+
+  versionUpdateSourceOfTruth:
+    - mend-renovate
+
+  securityRemediationSourcePreference:
+    - mend-remediate
+    - dependabot
+    - mend-renovate
+
+  duplicateDetection:
+    compare:
+      - targetBranch
+      - packageName
+      - packageManager
+      - dependencyType
+      - targetVersion
+
+    action:
+      - apply-label: "automation: duplicate"
+      - apply-label: "automation: no-auto-merge"
+      - add-comment
+      - request-human-triage
+
+    comment: >-
+      🤖 Possible duplicate dependency update detected. This pull request has
+      been blocked from auto-merge until a maintainer confirms which update
+      should remain open.
+
+# -----------------------------------------------------------------------------
+# Labels and Project Routing
+# -----------------------------------------------------------------------------
+#
+# Every label here must exist in .github/config/labels.yaml.
+# The orchestrator may create missing labels from that source-of-truth file.
+# -----------------------------------------------------------------------------
+
+labels:
+  dependency: "type: dependency"
+  security: "type: security"
+
+  provider:
+    mendRenovate: "automation: mend-renovate"
+    mendRemediate: "automation: mend-remediate"
+    dependabot: "automation: dependabot"
+
+  automation:
+    eligible: "automation: auto-merge"
+    blocked: "automation: no-auto-merge"
+    reviewRequired: "automation: needs-review"
+    duplicate: "automation: duplicate"
+
+  risk:
+    low: "risk: low"
+    medium: "risk: medium"
+    high: "risk: high"
+    securitySensitive: "risk: security-sensitive"
+
+  status:
+    triage: "status: triage"
+    ready: "status: ready"
+    inReview: "status: in-review"
+    blocked: "status: blocked"
+
+  priority:
+    p0: "priority: p0"
+    p1: "priority: p1"
+    p2: "priority: p2"
+    p3: "priority: p3"
+    p4: "priority: p4"
+
+project:
+  enabled: true
+
+  fields:
+    status: Status
+    priority: Priority
+    type: Type
+    area: Area
+    worker: Worker
+    risk: Risk
+    linkedPullRequest: Linked PR
+
+  values:
+    status:
+      triage: Triage
+      ready: Ready
+      inReview: In Review
+      blocked: Blocked
+      done: Done
+
+    worker:
+      dependencyAutomation: Dependency Automation
+      humanReview: Human Review
+
+    risk:
+      low: Low
+      medium: Medium
+      high: High
+      securitySensitive: Security Sensitive
+
+# -----------------------------------------------------------------------------
+# Risk Classification
+# -----------------------------------------------------------------------------
+#
+# The orchestrator uses the strictest matching rule.
+# A package matching any high-risk rule never auto-merges.
+# -----------------------------------------------------------------------------
+
+riskClassification:
+  defaultRisk: medium
+
+  highRiskPackages:
+    exact:
+      - drizzle-orm
+      - drizzle-kit
+      - pg
+      - postgres
+      - zod
+      - hono
+      - graphql
+      - ws
+      - jose
+      - jsonwebtoken
+      - next-auth
+      - "@auth/core"
+      - "@auth/drizzle-adapter"
+      - wrangler
+      - cloudflare
+      - "@cloudflare/workers-types"
+      - "@opentelemetry/api"
+      - "@opentelemetry/sdk-node"
+      - "@grafana/faro-web-sdk"
+      - "@grafana/faro-web-tracing"
+      - nx
+      - typescript
+      - pnpm
+      - node
+      - docker
+      - docker-compose
+
+    patterns:
+      - "^@aerealith-ai/"
+      - "^@cloudflare/"
+      - "^@opentelemetry/"
+      - "^@trpc/"
+      - "^@auth/"
+      - "^@sentry/"
+      - "^@grafana/"
+      - "^@nx/"
+      - "^eslint$"
+      - "^vite$"
+      - "^vitest$"
+      - "^react$"
+      - "^react-dom$"
+
+  lowRiskPackagePatterns:
+    - "^@types/"
+    - "^@testing-library/"
+    - "^tslib$"
+    - "^dotenv$"
+
+  highRiskPaths:
+    - ".github/**"
+    - ".husky/**"
+    - ".whitesource"
+    - ".whitesource/**"
+    - "renovate.json"
+    - "renovate.json5"
+    - ".github/dependabot.yml"
+    - "Dockerfile"
+    - "**/Dockerfile"
+    - "docker-compose.yml"
+    - "docker-compose.yaml"
+    - "wrangler.toml"
+    - "wrangler.json"
+    - "wrangler.jsonc"
+    - "pnpm-workspace.yaml"
+    - "nx.json"
+    - "packageManager.json"
+
+  highRiskUpdateTypes:
+    - major
+
+  highRiskDependencyTypes:
+    - dependencies
+    - optionalDependencies
+    - peerDependencies
+
+# -----------------------------------------------------------------------------
+# Pull Request Shape Requirements
+# -----------------------------------------------------------------------------
+#
+# An auto-merge candidate must alter dependency manifests and lockfiles only.
+# Any source-code, workflow, runtime, or infrastructure change blocks auto-merge.
+# -----------------------------------------------------------------------------
+
+pullRequestShape:
+  maximumPackagesPerPullRequest: 5
+
+  allowedChangedFiles:
+    - "package.json"
+    - "pnpm-lock.yaml"
+    - "apps/**/package.json"
+    - "libs/**/package.json"
+    - "tools/**/package.json"
+
+  blockedChangedFiles:
+    - ".github/**"
+    - ".husky/**"
+    - ".whitesource"
+    - ".whitesource/**"
+    - "renovate.json"
+    - "renovate.json5"
+    - ".github/dependabot.yml"
+    - "Dockerfile"
+    - "**/Dockerfile"
+    - "docker-compose.yml"
+    - "docker-compose.yaml"
+    - "wrangler.toml"
+    - "wrangler.json"
+    - "wrangler.jsonc"
+    - "pnpm-workspace.yaml"
+    - "nx.json"
+    - "tsconfig.base.json"
+    - "eslint.config.mjs"
+    - "commitlint.config.ts"
+
+  requiredFiles:
+    - "pnpm-lock.yaml"
+
+# -----------------------------------------------------------------------------
+# Validation Gates
+# -----------------------------------------------------------------------------
+#
+# The orchestrator must only enable GitHub auto-merge. It must never merge
+# directly through the API.
+#
+# These status check names should match your CI workflow job names exactly.
+# Update this section if the job names change.
+# -----------------------------------------------------------------------------
+
+validation:
+  requireBranchProtection: true
+  requireUpToDateBranch: true
+  requireNoMergeConflicts: true
+  requireNoRequestedChanges: true
+  requireAllConversationsResolved: true
+
+  requiredChecks:
+    - Pull Request Validation
+    - Lint
+    - Typecheck
+    - Test
+    - Build
+    - dependency-review
+
+  requiredCommands:
+    - pnpm install --frozen-lockfile
+    - pnpm nx affected -t lint --base="$BASE_SHA" --head="$HEAD_SHA"
+    - pnpm nx affected -t typecheck --base="$BASE_SHA" --head="$HEAD_SHA"
+    - pnpm nx affected -t test --base="$BASE_SHA" --head="$HEAD_SHA"
+    - pnpm nx affected -t build --base="$BASE_SHA" --head="$HEAD_SHA"
+
+  dependencyReview:
+    enabled: true
+
+    blockOnSeverity:
+      - critical
+      - high
+
+    blockOnLicenseChanges: true
+    blockOnUnknownLicense: true
+
+  mendChecks:
+    requiredForSecurityRemediation: true
+
+    requiredChecks:
+      - Mend Security Check
+      - Mend License Check
+
+# -----------------------------------------------------------------------------
+# Auto-Merge Rules
+# -----------------------------------------------------------------------------
+#
+# Rule philosophy:
+#
+# - Never auto-merge major updates.
+# - Never auto-merge runtime, auth, database, framework, CI, Cloudflare,
+#   observability, or workspace-tooling updates.
+# - Never auto-merge security remediation automatically.
+# - Only auto-merge trusted low-risk patch updates.
+# - Permit a small low-risk minor-update set for types/testing packages.
+# - GitHub auto-merge waits for required branch-protection checks.
+# -----------------------------------------------------------------------------
+
+autoMerge:
+  enabled: true
+  method: squash
+  targetBranches:
+    - master
+
+  requireTrustedProvider: true
+  requireKnownBotAuthor: true
+  requireAllValidationGates: true
+  requireCleanPullRequestShape: true
+
+  allowedProviders:
+    - mend-renovate
+    - dependabot
+
+  blockedProviders:
+    - mend-remediate
+
+  allowedUpdateTypes:
+    - patch
+
+  allowedMinorUpdatePackagePatterns:
+    - "^@types/"
+    - "^@testing-library/"
+    - "^tslib$"
+
+  allowedDependencyTypes:
+    - devDependencies
+
+  blockedUpdateTypes:
+    - major
+    - digest
+    - pin
+    - replacement
+    - rollback
+
+  blockedDependencyTypes:
+    - dependencies
+    - optionalDependencies
+    - peerDependencies
+
+  blockedLabels:
+    - automation: no-auto-merge
+    - automation: duplicate
+    - automation: needs-review
+    - risk: high
+    - risk: security-sensitive
+    - status: blocked
+
+  requiredLabels:
+    - type: dependency
+    - automation: auto-merge
+    - risk: low
+
+  disallowSecurityRemediationAutoMerge: true
+  disallowMendRemediateAutoMerge: true
+  disallowHighRiskPackageAutoMerge: true
+  disallowHighRiskPathAutoMerge: true
+  disallowWorkspacePackageAutoMerge: true
+
+# -----------------------------------------------------------------------------
+# Human Review Rules
+# -----------------------------------------------------------------------------
+
+humanReview:
+  requiredFor:
+    - security-remediation
+    - major-update
+    - high-risk-package
+    - high-risk-path
+    - runtime-dependency
+    - database-dependency
+    - authentication-dependency
+    - infrastructure-dependency
+    - ci-tooling-dependency
+    - duplicate-update
+    - unknown-provider
+    - unknown-package-risk
+    - failed-validation
+    - changed-source-code
+
+  labels:
+    - automation: needs-review
+    - automation: no-auto-merge
+
+  projectStatus: Blocked
+  projectWorker: Human Review
+
+  comment: >-
+    🔎 This dependency update requires human review because it affects a
+    protected package, runtime dependency, security remediation, infrastructure
+    configuration, source code, or another high-risk area.
+
+# -----------------------------------------------------------------------------
+# Security Remediation Rules
+# -----------------------------------------------------------------------------
+#
+# Security updates should be fast, but not blindly merged. Mend remediation
+# and Dependabot security updates are routed to priority labels and review.
+# -----------------------------------------------------------------------------
+
+securityRemediation:
+  enabled: true
+
+  severityPriorityMapping:
+    critical: "priority: p0"
+    high: "priority: p1"
+    medium: "priority: p2"
+    low: "priority: p3"
+    unknown: "priority: p2"
+
+  labels:
+    - type: dependency
+    - type: security
+    - automation: needs-review
+    - automation: no-auto-merge
+
+  requireHumanReview: true
+  requireMendSecurityCheck: true
+  requireDependencyReview: true
+  requireReleaseNotesReview: true
+  requireRollbackPlan: true
+
+  issueBehavior:
+    createOrUpdateTrackingIssue: true
+    linkPullRequestToIssue: true
+    setProjectStatus: In Review
+
+# -----------------------------------------------------------------------------
+# Reviewer and Worker Routing
+# -----------------------------------------------------------------------------
+
+routing:
+  dependencyUpdates:
+    worker: Dependency Automation
+
+    reviewers:
+      default: []
+
+      highRisk:
+        - SinLess-Games/platform-maintainers
+
+      security:
+        - SinLess-Games/security-maintainers
+
+      database:
+        - SinLess-Games/database-maintainers
+
+      frontend:
+        - SinLess-Games/frontend-maintainers
+
+  assignment:
+    assignPullRequestAuthor: false
+    avoidSelfReview: true
+    maximumRequestedReviewers: 2
+
+# -----------------------------------------------------------------------------
+# Notification Policy
+# -----------------------------------------------------------------------------
+
+notifications:
+  commentOnClassification: true
+  commentOnAutoMergeEnabled: true
+  commentOnAutoMergeBlocked: true
+  commentOnDuplicateDetection: true
+  commentOnValidationFailure: true
+
+  templates:
+    autoMergeEnabled: >-
+      ✅ Dependency update classified as low risk. GitHub auto-merge is enabled
+      and will merge only after every required validation check passes.
+
+    autoMergeBlocked: >-
+      🛑 Dependency update is not eligible for auto-merge. A maintainer review
+      is required before this pull request can be merged.
+
+    securityReviewRequired: >-
+      🔐 Security remediation detected. This pull request has been prioritized
+      and routed for human review. Auto-merge is intentionally disabled.
+
+# -----------------------------------------------------------------------------
+# Manual Overrides
+# -----------------------------------------------------------------------------
+#
+# Maintainers can control any decision with labels.
+# A blocking label always wins over automatic classification.
+# -----------------------------------------------------------------------------
+
+manualOverrides:
+  allowAutoMergeLabel: "automation: auto-merge"
+  blockAutoMergeLabel: "automation: no-auto-merge"
+  requireReviewLabel: "automation: needs-review"
+  duplicateLabel: "automation: duplicate"
+  highRiskLabel: "risk: high"
+  securitySensitiveLabel: "risk: security-sensitive"
+
+  behavior:
+    manualPriorityWins: true
+    manualRiskWins: true
+    manualMilestoneWins: true
+    manualAssigneeWins: true
+    manualReviewerRequestWins: true
+    manualAutoMergeBlockWins: true
+
+# -----------------------------------------------------------------------------
+# Reconciliation
+# -----------------------------------------------------------------------------
+#
+# The orchestrator should run this daily and on dependency-policy changes.
+# -----------------------------------------------------------------------------
+
+reconciliation:
+  enabled: true
+  schedule: "0 15 * * *"
+
+  actions:
+    - detect-duplicate-dependency-pull-requests
+    - add-missing-provider-labels
+    - add-missing-risk-labels
+    - synchronize-project-status
+    - remove-auto-merge-from-failed-pull-requests
+    - remove-auto-merge-from-outdated-pull-requests
+    - request-review-for-high-risk-updates
+    - summarize-open-security-remediation-pull-requests

@@ -1,0 +1,683 @@
+# .github/config/security.yaml
+#
+# Source of truth for Aerealith security scanning policy.
+#
+# This file is consumed by dedicated security workflows.
+# It does not run scanners by itself.
+#
+# Never store tokens, passwords, API URLs containing credentials, or private
+# registry credentials in this file. Use GitHub Actions secrets and variables.
+
+version: 1
+
+metadata:
+  owner: SinLess-Games
+  repository: Aerealith
+  managedBy: aerealith-security-workflows
+  description: Security scanner, severity, reporting, and enforcement policy.
+
+repository:
+  defaultBranch: master
+
+  sourcePaths:
+    - apps
+    - libs
+    - tools
+    - scripts
+    - .github
+
+  ignoredPaths:
+    - .git
+    - .nx
+    - .next
+    - .turbo
+    - coverage
+    - dist
+    - node_modules
+    - tmp
+    - temp
+    - vendor
+
+  sensitivePaths:
+    - apps/services/auth/**
+    - apps/services/user/**
+    - apps/services/discord/**
+    - libs/core/src/errors/**
+    - libs/core/src/schemas/**
+    - libs/core/src/contracts/**
+    - libs/db/**
+    - .github/workflows/**
+    - .github/config/**
+    - Dockerfile
+    - "**/Dockerfile"
+    - docker-compose.yml
+    - docker-compose.yaml
+    - wrangler.toml
+    - "**/wrangler.toml"
+
+policy:
+  mode: enforce
+
+  # All third-party GitHub Actions must be pinned by commit SHA in actual
+  # workflow files. Do not use mutable tags such as @main or @v4.
+  pinActionsByCommitSha: true
+
+  # Security scanner jobs should use least-privilege permissions.
+  requireLeastPrivilegePermissions: true
+
+  # Never expose scanner tokens, API credentials, or private registry
+  # credentials in logs, artifacts, comments, or SARIF output.
+  redactSecrets: true
+
+  # Security findings should be reported consistently, but existing findings
+  # should not instantly block every pull request during initial rollout.
+  baseline:
+    enabled: true
+    mode: new-findings-only
+
+  enforcement:
+    pullRequest:
+      blockNewFindingsAtOrAbove: high
+      reportFindingsAtOrAbove: low
+      requireSuccessfulRequiredScanners: true
+
+    defaultBranch:
+      blockFindingsAtOrAbove: high
+      reportFindingsAtOrAbove: low
+
+    scheduled:
+      reportFindingsAtOrAbove: low
+      createSecurityIssueForFindingsAtOrAbove: high
+
+  exceptions:
+    requireIssueReference: true
+    requireExpirationDate: true
+    requireHumanApproval: true
+    allowInlineSuppressions: false
+
+    allowedLocations:
+      - .github/security-exceptions.yaml
+
+  labels:
+    security:
+      - "type: security"
+      - "risk: security-sensitive"
+      - "agent: human-only"
+      - "automation: needs-review"
+      - "automation: no-auto-merge"
+
+    highRisk:
+      - "risk: high"
+      - "agent: human-only"
+      - "automation: needs-review"
+      - "automation: no-auto-merge"
+
+reporting:
+  sarif:
+    enabled: true
+
+    # Every scanner must use a unique category. GitHub code scanning treats
+    # scanner/category combinations as distinct analysis uploads.
+    requireUniqueCategories: true
+
+    uploadOn:
+      - pull_request
+      - push
+      - schedule
+      - workflow_dispatch
+
+    artifactDirectory: artifacts/security
+
+  githubCodeScanning:
+    enabled: true
+
+  workflowSummary:
+    enabled: true
+
+  pullRequestComments:
+    enabled: false
+
+  securityIssueCreation:
+    enabled: true
+    minimumSeverity: high
+    assignee: Sinless777
+    labels:
+      - "type: security"
+      - "risk: security-sensitive"
+      - "agent: human-only"
+      - "automation: needs-review"
+      - "automation: no-auto-merge"
+
+triggers:
+  pullRequest:
+    enabled: true
+    branches:
+      - master
+
+  push:
+    enabled: true
+    branches:
+      - master
+
+  schedule:
+    enabled: true
+    frequency: weekly
+
+  workflowDispatch:
+    enabled: true
+
+scannerDefaults:
+  enabled: true
+
+  timeoutMinutes: 20
+
+  continueOnError: false
+
+  failOn:
+    pullRequest: high
+    defaultBranch: high
+    schedule: critical
+
+  sarif:
+    upload: true
+
+  checkout:
+    fetchDepth: 0
+
+  paths:
+    include:
+      - apps
+      - libs
+      - tools
+      - scripts
+      - .github
+
+    exclude:
+      - .git/**
+      - .nx/**
+      - .next/**
+      - coverage/**
+      - dist/**
+      - node_modules/**
+      - tmp/**
+      - temp/**
+      - vendor/**
+
+scanners:
+  codeql:
+    enabled: true
+    required: true
+    category: codeql
+
+    queries:
+      - security-extended
+      - security-and-quality
+
+    # CodeQL language matrix.
+    #
+    # Enable a language only after source code for that language exists in the
+    # repository and its build requirements are supported by the workflow.
+    matrix:
+      include:
+        - language: actions
+          enabled: true
+          buildMode: none
+          category: codeql-actions
+
+        - language: javascript-typescript
+          enabled: true
+          buildMode: none
+          category: codeql-javascript-typescript
+
+        - language: c-cpp
+          enabled: false
+          buildMode: manual
+          category: codeql-c-cpp
+
+        - language: csharp
+          enabled: false
+          buildMode: manual
+          category: codeql-csharp
+
+        - language: go
+          enabled: false
+          buildMode: manual
+          category: codeql-go
+
+        - language: java-kotlin
+          enabled: false
+          buildMode: manual
+          category: codeql-java-kotlin
+
+        - language: python
+          enabled: false
+          buildMode: none
+          category: codeql-python
+
+        - language: ruby
+          enabled: false
+          buildMode: none
+          category: codeql-ruby
+
+        - language: rust
+          enabled: false
+          buildMode: manual
+          category: codeql-rust
+
+        - language: swift
+          enabled: false
+          buildMode: manual
+          category: codeql-swift
+
+    failOn:
+      pullRequest: high
+      defaultBranch: high
+      schedule: high
+
+  sonar:
+    enabled: false
+    required: false
+    provider: sonarqube-cloud
+    category: sonar
+
+    # Fill these values after creating and binding the Aerealith project in
+    # SonarQube Cloud. Keep this scanner disabled until both are configured.
+    projectKey: ""
+    organization: ""
+
+    requiredSecrets:
+      - SONAR_TOKEN
+
+    requiredVariables:
+      - SONAR_PROJECT_KEY
+      - SONAR_ORGANIZATION
+
+    commandArguments:
+      - "-Dsonar.projectKey=${SONAR_PROJECT_KEY}"
+      - "-Dsonar.organization=${SONAR_ORGANIZATION}"
+      - "-Dsonar.token=${SONAR_TOKEN}"
+      - "-Dsonar.sources=apps,libs,tools,scripts"
+      - "-Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/.next/**"
+      - "-Dsonar.javascript.lcov.reportPaths=coverage/lcov.info"
+
+    runWhen:
+      all:
+        - sonarProjectConfigured
+        - secretAvailable: SONAR_TOKEN
+
+    failOn:
+      pullRequest: high
+      defaultBranch: high
+      schedule: high
+
+  apisec:
+    enabled: false
+    required: false
+    provider: apisec
+    category: apisec
+
+    # APIsec requires a registered project and credentials in the APIsec
+    # platform. Keep disabled until a non-production test or staging API is
+    # available for safe active scanning.
+    project: ""
+
+    requiredSecrets:
+      - APISEC_USERNAME
+      - APISEC_PASSWORD
+
+    requiredVariables:
+      - APISEC_PROJECT
+
+    apiSpecificationPatterns:
+      - "**/openapi.yaml"
+      - "**/openapi.yml"
+      - "**/openapi.json"
+      - "**/swagger.yaml"
+      - "**/swagger.yml"
+      - "**/swagger.json"
+
+    environment:
+      target: staging
+      allowProductionScanning: false
+
+    sarif:
+      output: artifacts/security/apisec.sarif
+      category: apisec
+
+    runWhen:
+      all:
+        - apiSecProjectConfigured
+        - secretAvailable: APISEC_USERNAME
+        - secretAvailable: APISEC_PASSWORD
+        - variableAvailable: APISEC_PROJECT
+
+    failOn:
+      pullRequest: high
+      defaultBranch: high
+      schedule: high
+
+  devskim:
+    enabled: true
+    required: true
+    provider: microsoft-devskim
+    category: devskim
+
+    directoryToScan: .
+
+    output:
+      format: sarif
+      path: artifacts/security/devskim.sarif
+
+    shouldScanArchives: false
+
+    ignoreGlobs:
+      - "**/.git/**"
+      - "**/.nx/**"
+      - "**/.next/**"
+      - "**/coverage/**"
+      - "**/dist/**"
+      - "**/node_modules/**"
+      - "**/pnpm-lock.yaml"
+
+    failOn:
+      pullRequest: high
+      defaultBranch: high
+      schedule: high
+
+  njsscan:
+    enabled: true
+    required: true
+    provider: njsscan
+    category: njsscan
+
+    paths:
+      include:
+        - apps
+        - libs
+        - tools
+        - scripts
+
+      exclude:
+        - "**/node_modules/**"
+        - "**/dist/**"
+        - "**/coverage/**"
+        - "**/.next/**"
+
+    output:
+      format: sarif
+      path: artifacts/security/njsscan.sarif
+
+    failOn:
+      pullRequest: high
+      defaultBranch: high
+      schedule: high
+
+  nowsecure:
+    enabled: false
+    required: false
+    provider: nowsecure
+    category: nowsecure
+
+    # NowSecure is for packaged Android and iOS application security analysis.
+    # Enable it when this repository produces an .apk, .aab, or .ipa artifact.
+    requiredSecrets:
+      - NOWSECURE_TOKEN
+
+    requiredVariables:
+      - NOWSECURE_GROUP_ID
+
+    artifactPatterns:
+      - "**/*.apk"
+      - "**/*.aab"
+      - "**/*.ipa"
+
+    output:
+      format: sarif
+      path: artifacts/security/nowsecure.sarif
+
+    runWhen:
+      all:
+        - mobileArtifactPresent
+        - secretAvailable: NOWSECURE_TOKEN
+        - variableAvailable: NOWSECURE_GROUP_ID
+
+    failOn:
+      pullRequest: high
+      defaultBranch: high
+      schedule: high
+
+  semgrep:
+    enabled: true
+    required: true
+    provider: semgrep
+    category: semgrep
+
+    mode: local
+
+    command:
+      - semgrep
+      - scan
+      - --config
+      - auto
+      - --sarif
+      - --output
+      - artifacts/security/semgrep.sarif
+      - apps
+      - libs
+      - tools
+      - scripts
+      - .github
+
+    # Optional Semgrep AppSec Platform integration.
+    cloud:
+      enabled: false
+      requiredSecret: SEMGREP_APP_TOKEN
+
+    failOn:
+      pullRequest: high
+      defaultBranch: high
+      schedule: high
+
+  snyk:
+    enabled: true
+    required: false
+    provider: snyk
+    category: snyk-open-source
+
+    requiredSecrets:
+      - SNYK_TOKEN
+
+    scans:
+      openSource:
+        enabled: true
+        command:
+          - snyk
+          - test
+          - --all-projects
+          - --severity-threshold=high
+          - --sarif-file-output=artifacts/security/snyk-open-source.sarif
+
+      code:
+        enabled: true
+        command:
+          - snyk
+          - code
+          - test
+          - --sarif-file-output=artifacts/security/snyk-code.sarif
+
+    runWhen:
+      all:
+        - secretAvailable: SNYK_TOKEN
+
+    failOn:
+      pullRequest: high
+      defaultBranch: high
+      schedule: high
+
+  snykContainer:
+    enabled: true
+    required: false
+    provider: snyk-container
+    category: snyk-container
+
+    requiredSecrets:
+      - SNYK_TOKEN
+
+    # Add a built image name for each deployable service once its Docker build
+    # workflow exists. Leave the list empty until then.
+    images: []
+
+    commandTemplate:
+      - snyk
+      - container
+      - test
+      - "${IMAGE}"
+      - --severity-threshold=high
+      - --sarif-file-output=artifacts/security/snyk-container-${IMAGE_NAME}.sarif
+
+    runWhen:
+      all:
+        - secretAvailable: SNYK_TOKEN
+        - containerImageConfigured
+
+    failOn:
+      pullRequest: high
+      defaultBranch: high
+      schedule: high
+
+  trivy:
+    enabled: true
+    required: true
+    provider: trivy
+
+    scans:
+      filesystem:
+        enabled: true
+        category: trivy-filesystem
+        scanType: fs
+        target: .
+        scanners:
+          - vuln
+          - secret
+          - misconfig
+        severity:
+          - HIGH
+          - CRITICAL
+        ignoreUnfixed: false
+        output:
+          format: sarif
+          path: artifacts/security/trivy-filesystem.sarif
+
+      repository:
+        enabled: false
+        category: trivy-repository
+        scanType: repo
+        target: .
+        scanners:
+          - vuln
+          - secret
+          - misconfig
+        severity:
+          - HIGH
+          - CRITICAL
+        output:
+          format: sarif
+          path: artifacts/security/trivy-repository.sarif
+
+      container:
+        enabled: true
+        category: trivy-container
+
+        # Populate this list when CI builds named Docker images.
+        images: []
+
+        scanners:
+          - vuln
+          - secret
+          - misconfig
+
+        severity:
+          - HIGH
+          - CRITICAL
+
+        ignoreUnfixed: false
+
+        outputTemplate: artifacts/security/trivy-container-${IMAGE_NAME}.sarif
+
+        runWhen:
+          all:
+            - containerImageConfigured
+
+    failOn:
+      pullRequest: high
+      defaultBranch: high
+      schedule: high
+
+workflowRequirements:
+  securityScan:
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
+  dependencyAndVulnerabilityAccess:
+    permissions:
+      security-events: read
+      vulnerability-alerts: read
+
+  containerBuild:
+    permissions:
+      packages: read
+
+  pullRequestFromFork:
+    secretsAvailable: false
+    allowedScanners:
+      - codeql
+      - devskim
+      - njsscan
+      - semgrep
+      - trivy
+
+    blockedScanners:
+      - sonar
+      - apisec
+      - nowsecure
+      - snyk
+      - snykContainer
+
+  artifactRetentionDays: 14
+
+rollout:
+  phase1:
+    description: Local and repository-only scanners.
+    requiredScanners:
+      - codeql
+      - devskim
+      - njsscan
+      - semgrep
+      - trivy
+
+  phase2:
+    description: Enable credential-backed source and dependency scanning.
+    requiredConfiguration:
+      - SNYK_TOKEN
+      - SONAR_TOKEN
+      - SONAR_PROJECT_KEY
+      - SONAR_ORGANIZATION
+
+  phase3:
+    description: Enable active API and mobile application security testing.
+    requiredConfiguration:
+      - APISEC_USERNAME
+      - APISEC_PASSWORD
+      - APISEC_PROJECT
+      - NOWSECURE_TOKEN
+      - NOWSECURE_GROUP_ID
+      - stagingApiEnvironment
+      - mobileBuildArtifacts
+
+  phase4:
+    description: Enable image scanning after each service has a Docker image mapping.
+    requiredConfiguration:
+      - serviceImageMappings
+      - containerRegistryAccessWhenRequired

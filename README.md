@@ -1,96 +1,471 @@
-# Aerealith
+<div align="center">
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+  <a href="https://aerealith.com">
+    <img
+      src="apps/frontend/public/images/brand/logos/aerealith-ai-primary-poster.png"
+      alt="Aerealith AI"
+      width="560"
+    />
+  </a>
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+  <h1>Aerealith AI</h1>
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+  <p>
+    <strong>A secure, modular platform for building connected digital experiences.</strong>
+  </p>
 
-## Run tasks
+  <p>
+    Website · Web Application · Documentation · Developer Portal · Platform Services · Discord Management
+  </p>
 
-To run tasks with Nx use:
+  <p>
+    <a href="https://github.com/SinLess-Games/Aerealith/actions/workflows/ci.yml">
+      <img src="https://github.com/SinLess-Games/Aerealith/actions/workflows/ci.yml/badge.svg?branch=master" alt="CI" />
+    </a>
+    <a href="https://sonarcloud.io/summary/new_code?id=SinLess-Games_Aerealith">
+      <img src="https://sonarcloud.io/images/project_badges/sonarcloud-dark.svg" alt="SonarQube Cloud" />
+    </a>
+    <a href="https://sonarcloud.io/summary/new_code?id=SinLess-Games_Aerealith">
+      <img src="https://sonarcloud.io/api/project_badges/quality_gate?project=SinLess-Games_Aerealith" alt="SonarQube Quality Gate" />
+    </a>
+    <a href="https://github.com/SinLess-Games/Aerealith/security">
+      <img src="https://img.shields.io/badge/security-managed%20scanning-0B8F61?logo=githubactions&logoColor=white" alt="Security Managed Scanning" />
+    </a>
+  </p>
 
-```sh
-npx nx <target> <project-name>
+  <p>
+    <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white" alt="TypeScript Strict" />
+    <img src="https://img.shields.io/badge/Node.js-24-339933?logo=nodedotjs&logoColor=white" alt="Node.js 24" />
+    <img src="https://img.shields.io/badge/pnpm-10.23.0-F69220?logo=pnpm&logoColor=white" alt="pnpm 10.23.0" />
+    <img src="https://img.shields.io/badge/Nx-monorepo-143055?logo=nx&logoColor=white" alt="Nx Monorepo" />
+  </p>
+
+  <p>
+    <a href="https://github.com/SinLess-Games/Aerealith/issues">Issues</a>
+    ·
+    <a href="https://github.com/SinLess-Games/Aerealith/pulls">Pull Requests</a>
+    ·
+    <a href="https://github.com/SinLess-Games/Aerealith/actions">Actions</a>
+    ·
+    <a href="https://github.com/orgs/SinLess-Games/projects/3">Project Board</a>
+    ·
+    <a href="https://github.com/SinLess-Games/Aerealith/security">Security</a>
+  </p>
+
+</div>
+
+---
+
+## ✨ What Is Aerealith?
+
+**Aerealith** is a modular platform built to unify the public website, authenticated web application, documentation, developer portal, backend services, automation, and community tooling into one coherent ecosystem.
+
+The project is designed around a simple idea:
+
+> Build shared foundations once. Reuse them everywhere. Keep every part understandable.
+
+Aerealith is being developed as a secure, type-safe, maintainable monorepo with clear boundaries between applications, services, shared libraries, infrastructure, and automation.
+
+---
+
+## 🧭 Platform Vision
+
+| Area                      | Purpose                                                                                                        |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **Public Experience**     | Website, product information, contact flows, and platform discovery.                                           |
+| **Web Application**       | Authenticated user experience, account management, platform settings, and future product modules.              |
+| **Documentation**         | Guides, technical documentation, onboarding, and platform knowledge.                                           |
+| **Developer Portal**      | Internal and external developer experience, service documentation, API discovery, and integrations.            |
+| **Platform Services**     | Authentication, user management, APIs, background processes, and future edge services.                         |
+| **Discord Platform**      | A modular Discord management system with independently configurable server modules.                            |
+| **Shared Foundation**     | Contracts, schemas, errors, validation, types, utilities, configuration, and UI primitives.                    |
+| **Security & Operations** | Automated validation, quality gates, code scanning, dependency review, observability, and controlled delivery. |
+
+---
+
+## 🏗️ Repository Architecture
+
+```text
+Aerealith/
+├── apps/
+│   ├── frontend/              # Website, web app, docs, and developer portal
+│   └── services/
+│       ├── auth/              # Authentication service
+│       ├── user/              # User and profile service
+│       └── discord/           # Future Discord platform service
+│
+├── libs/
+│   ├── core/                  # Shared domain types, contracts, schemas, errors, constants
+│   ├── db/                    # Database entities, persistence, migrations, and data access
+│   ├── api/                   # Shared API abstractions and transport support
+│   ├── ui/                    # Shared user-interface primitives and components
+│   ├── utils/                 # Shared reusable utilities
+│   ├── config/                # Centralized configuration support
+│   └── flags/                 # Feature-flag support
+│
+├── .github/
+│   ├── config/                # Repository automation and policy configuration
+│   ├── instructions/          # Coding-agent and repository instructions
+│   ├── workflows/             # CI, security, orchestration, and delivery workflows
+│   ├── ISSUE_TEMPLATE/        # Structured issue forms
+│   └── PULL_REQUEST_TEMPLATE/ # Pull request templates
+│
+└── docs/                      # Project documentation as the repository grows
 ```
 
-For example:
+### Dependency Direction
 
-```sh
-npx nx build myproject
+```text
+apps/* and services/* → libs/*
+libs/*                → libs/core
+libs/*                ✕ other libs by default
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+The default rule is intentionally strict:
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Add new projects
-
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-To install a new plugin you can use the `nx add` command. Here's an example of adding the React plugin:
-```sh
-npx nx add @nx/react
+```text
+Libraries may depend on libs/core.
+Libraries should avoid depending on each other unless there is a clear,
+intentional reason to do so.
 ```
 
-Use the plugin's generator to create new projects. For example, to create a new React app or library:
+This keeps the platform easier to test, reuse, migrate, and self-host later.
 
-```sh
-# Generate an app
-npx nx g @nx/react:app demo
+---
 
-# Generate a library
-npx nx g @nx/react:lib some-lib
+## 🧱 Core Principles
+
+<table>
+  <tr>
+    <td width="50%">
+      <h3>Keep It Simple</h3>
+      <p>Prefer the smallest complete solution over elaborate abstractions.</p>
+    </td>
+    <td width="50%">
+      <h3>Type Safety First</h3>
+      <p>Use strict TypeScript, runtime validation, explicit contracts, and predictable errors.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <h3>Security by Default</h3>
+      <p>Protect sensitive data, use least privilege, validate inputs, and require human review for high-risk work.</p>
+    </td>
+    <td width="50%">
+      <h3>Shared Foundations</h3>
+      <p>Place reusable platform concepts in shared libraries instead of duplicating them across services.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <h3>Modular by Design</h3>
+      <p>Features, services, and Discord modules should be independently understandable and configurable.</p>
+    </td>
+    <td width="50%">
+      <h3>Automation with Guardrails</h3>
+      <p>Automate repetitive work, but keep security-sensitive and high-impact decisions under human control.</p>
+    </td>
+  </tr>
+</table>
+
+---
+
+## 🚀 Getting Started
+
+### Requirements
+
+- **Node.js 24**
+- **pnpm 10.23.0**
+- **Git**
+- Optional: Docker for container-focused development and security scanning
+
+### Install
+
+```bash
+git clone https://github.com/SinLess-Games/Aerealith.git
+cd Aerealith
+
+pnpm install --frozen-lockfile
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+### Validate the Workspace
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Set up CI!
-
-### Step 1
-
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
+```bash
+pnpm exec nx run-many -t lint typecheck test build
 ```
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+### Explore the Project Graph
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Step 2
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
+```bash
+pnpm exec nx graph
 ```
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Run Focused Validation
 
-## Install Nx Console
+```bash
+pnpm exec nx lint <project-name>
+pnpm exec nx typecheck <project-name>
+pnpm exec nx test <project-name>
+pnpm exec nx build <project-name>
+```
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+---
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## 🛠️ Development Workflow
 
-## Useful links
+### 1. Create or Select an Issue
 
-Learn more:
+Every meaningful change should begin with a tracked Issue whenever practical.
 
-- [Learn more about this workspace setup](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Issues are used to capture:
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- Scope
+- Acceptance criteria
+- Priority
+- Risk
+- Milestone
+- Area ownership
+- Agent eligibility
+- Validation expectations
+
+### 2. Create a Focused Branch
+
+```bash
+git checkout -b feature/123-short-description
+```
+
+### 3. Make the Smallest Complete Change
+
+Keep changes focused.
+
+Avoid unrelated refactors, dependency churn, generated-file edits, or broad formatting changes unless they are part of the issue.
+
+### 4. Validate Before Opening a Pull Request
+
+```bash
+pnpm exec nx run-many -t lint typecheck test build
+```
+
+### 5. Open a Pull Request
+
+Use a Conventional Commit-style title:
+
+```text
+feat(frontend): add account settings page
+fix(auth): reject expired refresh tokens
+refactor(core): simplify error serialization
+docs(devportal): document API authentication
+ci(repo): add security validation workflow
+```
+
+Use the appropriate Pull Request template and link the related Issue when required.
+
+---
+
+## 🔐 Security
+
+Aerealith treats security as a product feature, not an afterthought.
+
+The repository security program is designed to include:
+
+- CodeQL language coverage
+- SonarQube Cloud quality gates
+- Semgrep static analysis
+- DevSkim secure-coding checks
+- njsscan JavaScript and TypeScript analysis
+- Snyk dependency and code analysis
+- Trivy filesystem, secret, misconfiguration, and container scanning
+- Dockerfile and Compose configuration review
+- Dependency automation with human approval gates
+- Controlled security remediation workflows
+- Human review for sensitive changes
+
+High-risk changes are never automatically merged.
+
+Examples of work that always requires human review:
+
+```text
+Authentication and authorization changes
+Session, token, credential, and consent handling
+Database migrations and schema changes
+Dependency and lockfile changes
+Dockerfiles, container images, and Compose files
+Cloudflare, infrastructure, CI, and GitHub Actions changes
+Security-sensitive findings
+Breaking API or contract changes
+```
+
+### Reporting a Vulnerability
+
+Please **do not post exploit details, credentials, sensitive logs, or proof-of-concept attack steps in a public Issue**.
+
+Use the repository’s **Security** tab and private vulnerability-reporting flow when available.
+
+---
+
+## ✅ Quality Gates
+
+Aerealith uses layered validation to keep changes reliable:
+
+| Gate                  | Purpose                                                                |
+| --------------------- | ---------------------------------------------------------------------- |
+| **Lint**              | Enforces code quality, consistency, and maintainable patterns.         |
+| **Typecheck**         | Verifies strict TypeScript correctness.                                |
+| **Test**              | Validates expected behavior and prevents regressions.                  |
+| **Build**             | Confirms projects can compile and package successfully.                |
+| **SonarQube Cloud**   | Tracks code quality, reliability, maintainability, and quality gates.  |
+| **Security Scanning** | Detects dependency, secret, code, infrastructure, and container risks. |
+| **Human Review**      | Protects high-impact changes and verifies automation decisions.        |
+
+---
+
+## 🛡️ Security Automation
+
+Repository security behavior is defined through policy files under:
+
+```text
+.github/config/
+```
+
+Important policy files include:
+
+```text
+security.yaml
+routing.yaml
+workers.yaml
+reviewers.yaml
+dependency-policy.yaml
+labels.yaml
+milestones.yaml
+project.yaml
+```
+
+These files define:
+
+- Which scanners can run
+- Required security thresholds
+- Issue and Pull Request routing
+- Human-only work boundaries
+- Coding-agent eligibility
+- Dependency update policy
+- Reviewer policy
+- Milestone routing
+- Project automation behavior
+
+---
+
+## 🗺️ Roadmap
+
+### Foundation
+
+- [x] Nx monorepo foundation
+- [x] Shared library boundaries
+- [x] TypeScript-first architecture
+- [x] Repository automation policy
+- [x] Security scanning policy
+- [ ] Complete baseline CI validation
+- [ ] Complete GitHub Project automation
+
+### Identity and User Platform
+
+- [ ] Sign-up and login flows
+- [ ] Refresh-token lifecycle
+- [ ] Email verification
+- [ ] User profiles
+- [ ] Preferences and settings
+- [ ] Consent management
+- [ ] Secure account recovery flows
+
+### Platform Services
+
+- [ ] Shared API standards
+- [ ] Typed service contracts
+- [ ] Database persistence and migrations
+- [ ] Observability and structured logging
+- [ ] Feature flags
+- [ ] Edge-service support
+
+### Frontend and Developer Experience
+
+- [ ] Public website
+- [ ] Authenticated web application
+- [ ] Documentation experience
+- [ ] Developer portal
+- [ ] Shared component system
+- [ ] Accessibility baseline
+
+### Discord Platform
+
+- [ ] Modular Discord bot architecture
+- [ ] Per-server module settings
+- [ ] Moderation tooling
+- [ ] Role and automation support
+- [ ] Ticket workflows
+- [ ] Audit and transcript controls
+- [ ] Dashboard integration
+
+### Operations and Security
+
+- [ ] CodeQL workflow coverage
+- [ ] SonarQube Cloud integration
+- [ ] Semgrep and Trivy reporting
+- [ ] Snyk dependency reporting
+- [ ] Container-image scanning
+- [ ] Controlled remediation workflows
+- [ ] Observability dashboards
+- [ ] Deployment automation
+
+---
+
+## 🤝 Contributing
+
+Contributions should be intentional, focused, and easy to review.
+
+Before opening a Pull Request:
+
+- [ ] Read the relevant repository instructions.
+- [ ] Keep the change scoped to the Issue.
+- [ ] Add or update tests where practical.
+- [ ] Run relevant lint, typecheck, test, and build commands.
+- [ ] Update documentation when behavior changes.
+- [ ] Avoid adding secrets, credentials, or private data.
+- [ ] Include screenshots or recordings for user-interface changes.
+- [ ] Link the related Issue when required.
+- [ ] Follow the configured Conventional Commit title format.
+
+---
+
+## 📁 Important Repository Links
+
+| Resource                     | Location                                                                         |
+| ---------------------------- | -------------------------------------------------------------------------------- |
+| Issue Templates              | [`.github/ISSUE_TEMPLATE`](.github/ISSUE_TEMPLATE)                               |
+| Pull Request Templates       | [`.github/PULL_REQUEST_TEMPLATE`](.github/PULL_REQUEST_TEMPLATE)                 |
+| Repository Automation Config | [`.github/config`](.github/config)                                               |
+| Agent Instructions           | [`.github/instructions`](.github/instructions)                                   |
+| GitHub Actions               | [`.github/workflows`](.github/workflows)                                         |
+| Security Policy Config       | [`.github/config/security.yaml`](.github/config/security.yaml)                   |
+| Dependency Policy            | [`.github/config/dependency-policy.yaml`](.github/config/dependency-policy.yaml) |
+| GitHub Project               | [Aerealith Delivery](https://github.com/orgs/SinLess-Games/projects/3)           |
+
+---
+
+<div align="center">
+
+  <p>
+    <strong>Built by SinLess Games.</strong>
+  </p>
+
+  <p>
+    Aerealith is being built carefully: secure by default, modular by design, and focused on foundations that last.
+  </p>
+
+  <p>
+    <a href="https://github.com/SinLess-Games/Aerealith/issues">Report an Issue</a>
+    ·
+    <a href="https://github.com/SinLess-Games/Aerealith/security">Security</a>
+    ·
+    <a href="https://github.com/orgs/SinLess-Games/projects/3">Project Board</a>
+  </p>
+
+</div>

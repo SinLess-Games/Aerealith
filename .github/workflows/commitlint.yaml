@@ -1,0 +1,93 @@
+name: Commitlint
+
+on:
+  pull_request:
+    branches:
+      - master
+      - staging
+      - production
+
+  push:
+    branches:
+      - master
+      - staging
+      - production
+
+permissions:
+  contents: read
+
+jobs:
+  commitlint:
+    name: Validate commit messages
+    runs-on: ubuntu-latest
+
+    # Ignore automated workflows triggered by GitHub bot accounts.
+    if: ${{ !endsWith(github.actor, '[bot]') }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 25.9.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Determine commit range
+        id: commits
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+          BASE_BRANCH: ${{ github.base_ref }}
+          CURRENT_BRANCH: ${{ github.ref_name }}
+        run: |
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            from="$BASE_SHA"
+            to="$HEAD_SHA"
+            branch="$BASE_BRANCH"
+          else
+            from="$BEFORE_SHA"
+            to="$CURRENT_SHA"
+            branch="$CURRENT_BRANCH"
+          fi
+
+          if [[ "$from" == "0000000000000000000000000000000000000000" ]]; then
+            from="$(git rev-list --max-parents=0 "$to" | head -n 1)"
+          fi
+
+          printf 'from=%s\n' "$from" >> "$GITHUB_OUTPUT"
+          printf 'to=%s\n' "$to" >> "$GITHUB_OUTPUT"
+          printf 'branch=%s\n' "$branch" >> "$GITHUB_OUTPUT"
+
+      - name: Validate commit messages
+        env:
+          FROM: ${{ steps.commits.outputs.from }}
+          TO: ${{ steps.commits.outputs.to }}
+        run: |
+          pnpm exec commitlint --from "$FROM" --to "$TO" --verbose
+
+      - name: Reject wip commits on protected branches
+        env:
+          FROM: ${{ steps.commits.outputs.from }}
+          TO: ${{ steps.commits.outputs.to }}
+          BRANCH: ${{ steps.commits.outputs.branch }}
+        run: |
+          if git log --format='%s' "$FROM..$TO" | grep -Eiq '^wip(\([^)]*\))?!?:'; then
+            echo "::error::wip commits are not allowed in pull requests or pushes targeting $BRANCH."
+            exit 1
+          fi

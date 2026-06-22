@@ -1,0 +1,126 @@
+# .github/ISSUE_TEMPLATE/security-report.yaml
+
+name: Security Report
+description: Report a non-sensitive security concern or request a security improvement.
+title: "[Security]: "
+labels:
+  - "type: security"
+  - "status: triage"
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Do not disclose vulnerabilities publicly
+
+        Do **not** include exploit details, proof-of-concept code, affected
+        endpoints, secrets, credentials, tokens, or sensitive system details
+        in this public issue form.
+
+        For a confirmed or potentially exploitable vulnerability, report it
+        privately through GitHub Security Advisories:
+
+        https://github.com/SinLess-Games/Aerealith/security/advisories/new
+
+        Use this form only for non-sensitive security concerns, hardening
+        requests, dependency-security improvements, policy proposals, or
+        general security questions.
+
+  - type: dropdown
+    id: report-type
+    attributes:
+      label: Report type
+      description: Select the category that best describes this report.
+      options:
+        - security hardening request
+        - dependency security concern
+        - configuration concern
+        - authentication or authorization improvement
+        - privacy improvement
+        - infrastructure security improvement
+        - documentation or policy improvement
+        - general security question
+    validations:
+      required: true
+
+  - type: dropdown
+    id: affected-area
+    attributes:
+      label: Affected area
+      description: Select every relevant Aerealith area.
+      multiple: true
+      options:
+        - frontend
+        - docs
+        - devportal
+        - core
+        - db
+        - api
+        - ui
+        - utils
+        - config
+        - flags
+        - auth
+        - user
+        - discord
+        - infra
+        - cloudflare
+        - nx-cloud
+        - docker
+        - ci
+        - repo
+        - deps
+        - tooling
+        - unknown
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Security summary
+      description: Describe the concern without including sensitive technical details.
+      placeholder: Explain the security risk, improvement opportunity, or policy concern.
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Potential impact
+      description: Describe the possible impact at a high level.
+      placeholder: Explain what could be affected without sharing exploit instructions.
+    validations:
+      required: true
+
+  - type: textarea
+    id: recommendation
+    attributes:
+      label: Recommended outcome
+      description: Describe the desired security improvement or resolution.
+      placeholder: Explain the security control, process, or behavior you would like to see.
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Add public advisories, CVEs, documentation, standards, or research links when relevant.
+      placeholder: |
+        - CVE-YYYY-NNNNN
+        - https://example.com/security-advisory
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      options:
+        - label: I understand this is a public issue and have not included sensitive vulnerability details.
+          required: true
+        - label: I will use GitHub Security Advisories for confirmed or potentially exploitable vulnerabilities.
+          required: true
+        - label: I searched existing issues and did not find an equivalent report.
+          required: true
