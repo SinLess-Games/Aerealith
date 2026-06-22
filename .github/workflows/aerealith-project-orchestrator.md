@@ -1,4 +1,5 @@
 ---
+name: 'Aerealith Project Orchestrator'
 description: 'Aerealith Issue, Pull Request, Project, reviewer, worker, and dependency orchestrator.'
 emoji: '🤖'
 
@@ -70,11 +71,16 @@ permissions:
   security-events: read
   vulnerability-alerts: read
 
-max-ai-credits: -1
 engine:
   id: gemini
   model: gemini-3.1-flash-lite
 
+# Disable gh-aw model/credit steering.
+# Google Gemini free-tier limits remain the effective provider limit.
+max-ai-credits: -1
+
+# Prevent free-tier runs from consuming excessive tool calls.
+max-turns: 30
 timeout-minutes: 15
 
 concurrency:
@@ -84,7 +90,18 @@ concurrency:
 env:
   AEREALITH_PROJECT_URL: 'https://github.com/orgs/SinLess-Games/projects/3'
 
+sandbox:
+  agent: awf
+
 tools:
+  # This workflow should not directly modify repository files.
+  edit: false
+
+  bash:
+    # Narrow fallback for submitting safe outputs if the Gemini MCP connection
+    # is temporarily unavailable.
+    - 'safeoutputs *'
+
   github:
     github-token: ${{ secrets.GH_AW_READ_PROJECT_TOKEN }}
 
@@ -100,13 +117,19 @@ tools:
       - code_security
       - search
 
+    # Keep repository access limited to this project.
     allowed-repos: 'all'
+
     min-integrity: approved
 
 safe-outputs:
-  # Keep staged mode enabled until the summaries consistently show the exact
-  # actions you expect. Change this to false only in a reviewed pull request.
+  # Keep previews enabled until the orchestrator's suggested actions have been
+  # reviewed and verified in repeated runs.
   staged: true
+
+  # Do not create failure Issues for temporary free-tier Gemini availability
+  # or provider-access failures. Preserve reports for real workflow failures.
+  report-failure-as-issue: true
 
   add-labels:
     target: '*'
@@ -212,6 +235,8 @@ safe-outputs:
         layout: table
         filter: 'is:pr is:open label:"status: in-review"'
 
+  # The workflow is allowed to complete without a safe output when it finds
+  # nothing that needs project, issue, PR, or reviewer orchestration.
   noop: false
 ---
 

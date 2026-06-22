@@ -47,11 +47,16 @@ permissions:
   security-events: read
   vulnerability-alerts: read
 
-max-ai-credits: -1
 engine:
   id: gemini
   model: gemini-3.1-flash-lite
 
+# Disable gh-aw credit-based model routing.
+# Gemini provider quota remains enforced by Google.
+max-ai-credits: -1
+
+# Keep free-tier runs bounded.
+max-turns: 30
 timeout-minutes: 60
 
 concurrency:
@@ -77,6 +82,7 @@ tools:
     - 'git ls-files'
     - 'git ls-files *'
     - 'git rev-parse *'
+
     - 'find *'
     - 'grep *'
     - 'rg *'
@@ -87,6 +93,7 @@ tools:
     - 'ls *'
     - 'pwd'
     - 'mkdir *'
+
     - 'node *'
     - 'pnpm *'
     - 'npx *'
@@ -101,6 +108,7 @@ tools:
     - './gradlew *'
     - 'bundle *'
     - 'ruby *'
+
     - 'semgrep *'
     - 'snyk *'
     - 'trivy *'
@@ -108,6 +116,9 @@ tools:
     - 'devskim *'
     - 'hadolint *'
     - 'docker *'
+
+    # Required fallback when the Safe Outputs MCP tool is unavailable.
+    - 'safeoutputs *'
 
   github:
     toolsets:
@@ -120,16 +131,16 @@ tools:
       - dependabot
       - search
 
+    # Least-privilege repository scope.
     allowed-repos: 'all'
+
     min-integrity: approved
 
 safe-outputs:
-  # Real security Issues and draft remediation PRs may be created.
-  #
-  # This workflow is constrained to one PR or one human-owned Issue per run.
+  # The agent stays read-only. A separate protected job processes requested
+  # issues, comments, or draft pull requests.
   staged: false
 
-  # Use the boolean form for compatibility with the installed gh-aw compiler.
   report-failure-as-issue: true
 
   allowed-github-references:
@@ -201,6 +212,7 @@ safe-outputs:
       - '.husky/**'
       - '.vscode/**'
       - '.devcontainer/**'
+
       - '**/Dockerfile'
       - '**/Dockerfile.*'
       - '**/Containerfile'
@@ -209,21 +221,25 @@ safe-outputs:
       - '**/docker-compose.yaml'
       - '**/compose.yml'
       - '**/compose.yaml'
+
       - '**/package.json'
       - '**/pnpm-lock.yaml'
       - '**/package-lock.json'
       - '**/yarn.lock'
       - '**/bun.lockb'
+
       - '**/requirements.txt'
       - '**/requirements-dev.txt'
       - '**/pyproject.toml'
       - '**/uv.lock'
       - '**/Pipfile'
       - '**/Pipfile.lock'
+
       - '**/go.mod'
       - '**/go.sum'
       - '**/Cargo.toml'
       - '**/Cargo.lock'
+
       - '**/*.csproj'
       - '**/*.fsproj'
       - '**/*.sln'
@@ -236,6 +252,7 @@ safe-outputs:
       - '**/Makefile'
       - '**/Taskfile.yml'
       - '**/Taskfile.yaml'
+
       - 'wrangler.toml'
       - '**/wrangler.toml'
 
