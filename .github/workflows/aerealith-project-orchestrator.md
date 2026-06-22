@@ -130,9 +130,7 @@ tools:
       - code_security
       - search
 
-    # Guard policies require static lowercase repository patterns.
     allowed-repos: 'all'
-
     min-integrity: approved
 
 safe-outputs:
@@ -313,7 +311,6 @@ safe-outputs:
     github-token: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
     max: 1
 
-  # Required whenever no other GitHub action is requested.
   noop:
     report-as-issue: false
 
@@ -356,21 +353,21 @@ safe-outputs:
             fi
 
             ruby <<'RUBY'
+            require 'date'
             require 'yaml'
             require 'json'
             require 'net/http'
             require 'uri'
-            require 'cgi'
 
             repository = ENV.fetch('GITHUB_REPOSITORY')
             token = ENV.fetch('GH_TOKEN')
 
             def request(token, method, path, body = nil)
               uri = URI("https://api.github.com#{path}")
+
               request_class = {
                 'GET' => Net::HTTP::Get,
                 'POST' => Net::HTTP::Post,
-                'PATCH' => Net::HTTP::Patch
               }.fetch(method)
 
               request = request_class.new(uri)
@@ -555,7 +552,7 @@ safe-outputs:
               puts "Created milestone: #{milestone['title']}"
             end
 
-            puts "Governance synchronization complete."
+            puts 'Governance synchronization complete.'
             puts "Created labels: #{created_labels}"
             puts "Created milestones: #{created_milestones}"
             RUBY
