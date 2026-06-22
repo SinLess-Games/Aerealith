@@ -71,8 +71,8 @@ permissions:
   vulnerability-alerts: read
 
 engine:
-  id: codex
-  model: gpt-5.4
+  id: gemini
+  model: gemini-3.1-flash-lite
 
 timeout-minutes: 15
 max-ai-credits: 800
