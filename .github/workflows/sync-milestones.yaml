@@ -1,18 +1,14 @@
-# .github/workflows/sync-milestones.yaml
+# .github/workflows/sync-labels.yaml
 #
-# Synchronizes GitHub repository milestones from .github/milestones.yaml.
+# Synchronizes repository labels from .github/labels.yaml.
 #
-# Source-of-truth behavior:
-# - Creates milestones defined in .github/milestones.yaml when missing.
-# - Updates title, description, state, and due date when they differ.
-# - Reports unmanaged milestones that exist on GitHub but are absent from the
-#   catalogue.
-# - Never deletes or silently closes unmanaged milestones.
+# The label catalogue is the source of truth. By default, labels not defined
+# in .github/labels.yaml are removed to prevent stale or duplicate labels.
 #
-# Manual runs support a dry-run mode that validates and reports planned changes
-# without modifying GitHub milestones.
+# Manual runs can preview changes with dry_run=true or preserve unmanaged labels
+# with delete_other_labels=false.
 
-name: Sync Milestones
+name: Sync Labels
 
 on:
   push:
@@ -21,15 +17,21 @@ on:
       - staging
       - production
     paths:
-      - ".github/milestones.yaml"
-      - ".github/workflows/sync-milestones.yaml"
+      - ".github/labels.yaml"
+      - ".github/workflows/sync-labels.yaml"
 
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Preview changes without creating or updating milestones."
+        description: "Preview label changes without modifying repository labels."
         required: false
         default: false
+        type: boolean
+
+      delete_other_labels:
+        description: "Delete repository labels not defined in .github/labels.yaml."
+        required: false
+        default: true
         type: boolean
 
 permissions:
@@ -37,7 +39,7 @@ permissions:
   issues: write
 
 concurrency:
-  group: sync-milestones-${{ github.repository }}
+  group: sync-labels-${{ github.repository }}
   cancel-in-progress: false
 
 defaults:
@@ -46,385 +48,69 @@ defaults:
 
 jobs:
   sync:
-    name: Synchronize repository milestones
+    name: Synchronize repository labels
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-    env:
-      GH_TOKEN: ${{ github.token }}
-      MILESTONES_FILE: .github/milestones.yaml
-      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && 'true' || 'false' }}
+    timeout-minutes: 5
 
     steps:
-      - name: Check out milestone catalogue
+      - name: Check out label catalogue
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
           sparse-checkout: |
-            .github/milestones.yaml
+            .github/labels.yaml
           sparse-checkout-cone-mode: false
           persist-credentials: false
 
-      - name: Validate required tools
+      - name: Validate label catalogue exists
         run: |
           set -euo pipefail
 
-          command -v gh >/dev/null
-          command -v ruby >/dev/null
+          labels_file='.github/labels.yaml'
 
-          gh --version
-          ruby --version
-
-      - name: Validate milestone catalogue
-        run: |
-          set -euo pipefail
-
-          if [[ ! -f "$MILESTONES_FILE" ]]; then
-            echo "::error::Required milestone catalogue was not found: $MILESTONES_FILE"
+          if [[ ! -f "$labels_file" ]]; then
+            echo "::error::Required label catalogue was not found: $labels_file"
             exit 1
           fi
 
-          if [[ ! -s "$MILESTONES_FILE" ]]; then
-            echo "::error::Milestone catalogue is empty: $MILESTONES_FILE"
+          if [[ ! -s "$labels_file" ]]; then
+            echo "::error::Label catalogue is empty: $labels_file"
             exit 1
           fi
 
-      - name: Download existing repository milestones
-        run: |
-          set -euo pipefail
+          label_count="$(grep -Ec "^- name:" "$labels_file" || true)"
 
-          existing_file="$RUNNER_TEMP/github-milestones.json"
-
-          gh api \
-            --method GET \
-            --header 'Accept: application/vnd.github+json' \
-            --header 'X-GitHub-Api-Version: 2022-11-28' \
-            "/repos/${GITHUB_REPOSITORY}/milestones?state=all&per_page=100" \
-            > "$existing_file"
-
-          if ! jq -e 'type == "array"' "$existing_file" >/dev/null; then
-            echo "::error::GitHub did not return a valid milestone list."
-            cat "$existing_file"
+          if [[ "$label_count" -eq 0 ]]; then
+            echo "::error::No labels were found in $labels_file."
             exit 1
           fi
 
-          echo "EXISTING_MILESTONES_FILE=$existing_file" >> "$GITHUB_ENV"
+          echo "Found $label_count labels in $labels_file."
 
-          echo "Existing repository milestones:"
-          jq -r '.[] | "- #\(.number): \(.title) [\(.state)]"' "$existing_file"
+      - name: Synchronize labels
+        uses: EndBug/label-sync@v2.3.3
+        with:
+          config-file: .github/labels.yaml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
+          delete-other-labels: ${{ github.event_name != 'workflow_dispatch' || inputs.delete_other_labels }}
 
-      - name: Synchronize milestones from catalogue
-        id: sync
-        env:
-          GITHUB_REPOSITORY_NAME: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-
-          ruby <<'RUBY'
-          require 'date'
-          require 'json'
-          require 'open3'
-          require 'yaml'
-
-          milestones_file = ENV.fetch('MILESTONES_FILE')
-          existing_milestones_file = ENV.fetch('EXISTING_MILESTONES_FILE')
-          repository = ENV.fetch('GITHUB_REPOSITORY_NAME')
-          dry_run = ENV.fetch('DRY_RUN', 'false').downcase == 'true'
-          github_output = ENV.fetch('GITHUB_OUTPUT')
-          github_step_summary = ENV.fetch('GITHUB_STEP_SUMMARY')
-
-          def fail!(message)
-            warn "::error::#{message}"
-            exit 1
-          end
-
-          def normalized_text(value)
-            value.to_s.gsub("\r\n", "\n").strip
-          end
-
-          def normalized_due_date(value)
-            return nil if value.nil? || value.to_s.strip.empty?
-
-            value.to_s[0, 10]
-          end
-
-          def api_request(method:, endpoint:, payload:)
-            command = [
-              'gh',
-              'api',
-              '--method',
-              method,
-              '--header',
-              'Accept: application/vnd.github+json',
-              '--header',
-              'X-GitHub-Api-Version: 2022-11-28',
-              endpoint,
-              '--input',
-              '-',
-            ]
-
-            stdout, stderr, status = Open3.capture3(
-              *command,
-              stdin_data: JSON.generate(payload),
-            )
-
-            return stdout if status.success?
-
-            warn stderr unless stderr.empty?
-            fail!("GitHub API request failed: #{method} #{endpoint}")
-          end
-
-          begin
-            catalogue = YAML.safe_load(
-              File.read(milestones_file),
-              permitted_classes: [Date, Time],
-              aliases: false,
-            )
-          rescue Psych::Exception => error
-            fail!("Unable to parse #{milestones_file}: #{error.message}")
-          end
-
-          unless catalogue.is_a?(Hash)
-            fail!("#{milestones_file} must contain a YAML object with a milestones list.")
-          end
-
-          desired_milestones = catalogue['milestones']
-
-          unless desired_milestones.is_a?(Array) && !desired_milestones.empty?
-            fail!("#{milestones_file} must define a non-empty milestones list.")
-          end
-
-          seen_titles = {}
-          normalized_milestones = desired_milestones.map.with_index do |milestone, index|
-            unless milestone.is_a?(Hash)
-              fail!("Milestone at index #{index} must be an object.")
-            end
-
-            title = normalized_text(milestone['title'])
-            description = normalized_text(milestone['description'])
-            state = normalized_text(milestone.fetch('state', 'open')).downcase
-            due_on = milestone['due_on']
-
-            fail!("Milestone at index #{index} is missing a title.") if title.empty?
-            fail!("Milestone title is duplicated: #{title}") if seen_titles[title]
-
-            unless %w[open closed].include?(state)
-              fail!(
-                "Milestone '#{title}' has invalid state '#{state}'. " \
-                'Allowed values: open, closed.',
-              )
-            end
-
-            due_date = nil
-
-            unless due_on.nil? || due_on.to_s.strip.empty?
-              due_date = due_on.to_s
-
-              unless due_date.match?(/\A\d{4}-\d{2}-\d{2}\z/)
-                fail!(
-                  "Milestone '#{title}' has invalid due_on '#{due_date}'. " \
-                  'Use YYYY-MM-DD or null.',
-                )
-              end
-
-              begin
-                Date.iso8601(due_date)
-              rescue Date::Error
-                fail!(
-                  "Milestone '#{title}' has an invalid calendar date '#{due_date}'.",
-                )
-              end
-            end
-
-            seen_titles[title] = true
-
-            {
-              'title' => title,
-              'description' => description,
-              'state' => state,
-              'due_on' => due_date.nil? ? nil : "#{due_date}T23:59:59Z",
-            }
-          end
-
-          begin
-            existing_milestones = JSON.parse(File.read(existing_milestones_file))
-          rescue JSON::ParserError => error
-            fail!("Unable to parse existing GitHub milestones: #{error.message}")
-          end
-
-          unless existing_milestones.is_a?(Array)
-            fail!('GitHub milestone response must be an array.')
-          end
-
-          existing_by_title = {}
-
-          existing_milestones.each do |milestone|
-            title = normalized_text(milestone['title'])
-
-            if existing_by_title.key?(title)
-              fail!(
-                "GitHub contains multiple milestones named '#{title}'. " \
-                'Rename one manually before synchronization.',
-              )
-            end
-
-            existing_by_title[title] = milestone
-          end
-
-          created = []
-          updated = []
-          unchanged = []
-          unmanaged = []
-
-          normalized_milestones.each do |desired|
-            existing = existing_by_title[desired['title']]
-
-            unless existing
-              if dry_run
-                puts "::notice::Would create milestone: #{desired['title']}"
-              else
-                api_request(
-                  method: 'POST',
-                  endpoint: "/repos/#{repository}/milestones",
-                  payload: desired,
-                )
-
-                puts "::notice::Created milestone: #{desired['title']}"
-              end
-
-              created << desired['title']
-              next
-            end
-
-            changes = []
-
-            if normalized_text(existing['description']) != desired['description']
-              changes << 'description'
-            end
-
-            if normalized_text(existing['state']).downcase != desired['state']
-              changes << 'state'
-            end
-
-            if normalized_due_date(existing['due_on']) != normalized_due_date(desired['due_on'])
-              changes << 'due_on'
-            end
-
-            if changes.empty?
-              unchanged << desired['title']
-              next
-            end
-
-            if dry_run
-              puts(
-                "::notice::Would update milestone: #{desired['title']} " \
-                "(#{changes.join(', ')})",
-              )
-            else
-              api_request(
-                method: 'PATCH',
-                endpoint: "/repos/#{repository}/milestones/#{existing['number']}",
-                payload: desired,
-              )
-
-              puts(
-                "::notice::Updated milestone: #{desired['title']} " \
-                "(#{changes.join(', ')})",
-              )
-            end
-
-            updated << {
-              title: desired['title'],
-              changes: changes,
-            }
-          end
-
-          desired_titles = normalized_milestones.map { |milestone| milestone['title'] }
-
-          existing_milestones.each do |milestone|
-            title = normalized_text(milestone['title'])
-            next if desired_titles.include?(title)
-
-            unmanaged << {
-              title: title,
-              number: milestone['number'],
-              state: milestone['state'],
-            }
-          end
-
-          summary = []
-          summary << '## Milestone Synchronization'
-          summary << ''
-          summary << '| Setting | Value |'
-          summary << '| --- | --- |'
-          summary << "| Repository | `#{repository}` |"
-          summary << "| Source catalogue | `#{milestones_file}` |"
-          summary << "| Dry run | `#{dry_run}` |"
-          summary << "| Desired milestones | #{normalized_milestones.length} |"
-          summary << "| Created#{dry_run ? ' (planned)' : ''} | #{created.length} |"
-          summary << "| Updated#{dry_run ? ' (planned)' : ''} | #{updated.length} |"
-          summary << "| Unchanged | #{unchanged.length} |"
-          summary << "| Unmanaged on GitHub | #{unmanaged.length} |"
-
-          unless created.empty?
-            summary << ''
-            summary << "### #{dry_run ? 'Planned' : 'Created'} Milestones"
-            summary << ''
-
-            created.each do |title|
-              summary << "- `#{title}`"
-            end
-          end
-
-          unless updated.empty?
-            summary << ''
-            summary << "### #{dry_run ? 'Planned' : 'Updated'} Milestones"
-            summary << ''
-
-            updated.each do |milestone|
-              summary << "- `#{milestone[:title]}` — #{milestone[:changes].join(', ')}"
-            end
-          end
-
-          unless unmanaged.empty?
-            summary << ''
-            summary << '### Unmanaged GitHub Milestones'
-            summary << ''
-            summary << (
-              'These milestones are not present in `.github/milestones.yaml`. ' \
-              'They were not modified, closed, or deleted.'
-            )
-            summary << ''
-            summary << '| Number | Milestone | State |'
-            summary << '| ---: | --- | --- |'
-
-            unmanaged.each do |milestone|
-              safe_title = milestone[:title].gsub('|', '\\|')
-              summary << "| #{milestone[:number]} | #{safe_title} | #{milestone[:state]} |"
-            end
-          end
-
-          File.open(github_step_summary, 'a') do |file|
-            file.puts(summary.join("\n"))
-            file.puts
-          end
-
-          File.open(github_output, 'a') do |file|
-            file.puts("created=#{created.length}")
-            file.puts("updated=#{updated.length}")
-            file.puts("unchanged=#{unchanged.length}")
-            file.puts("unmanaged=#{unmanaged.length}")
-            file.puts("dry_run=#{dry_run}")
-          end
-          RUBY
-
-      - name: Display synchronization result
+      - name: Write workflow summary
         if: always()
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
+          DELETE_OTHER_LABELS: ${{ github.event_name != 'workflow_dispatch' || inputs.delete_other_labels }}
         run: |
+          set -euo pipefail
+
           {
-            echo "Created: ${{ steps.sync.outputs.created || '0' }}"
-            echo "Updated: ${{ steps.sync.outputs.updated || '0' }}"
-            echo "Unchanged: ${{ steps.sync.outputs.unchanged || '0' }}"
-            echo "Unmanaged: ${{ steps.sync.outputs.unmanaged || '0' }}"
-            echo "Dry run: ${{ steps.sync.outputs.dry_run || 'false' }}"
+            echo '## Label Synchronization'
+            echo
+            echo "| Setting | Value |"
+            echo "| --- | --- |"
+            echo "| Trigger | \`$EVENT_NAME\` |"
+            echo "| Source | \`.github/labels.yaml\` |"
+            echo "| Dry run | \`$DRY_RUN\` |"
+            echo "| Delete unmanaged labels | \`$DELETE_OTHER_LABELS\` |"
           } >> "$GITHUB_STEP_SUMMARY"
