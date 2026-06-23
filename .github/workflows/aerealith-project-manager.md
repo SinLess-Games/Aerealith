@@ -19,6 +19,8 @@ on:
 permissions:
   contents: read
   actions: read
+  issues: read
+  pull-requests: read
 
 engine:
   id: gemini
@@ -50,6 +52,7 @@ tools:
     github-token: ${{ secrets.GH_AW_READ_PROJECT_TOKEN }}
 
     toolsets:
+      - default
       - projects
 
     allowed-repos: 'all'
@@ -59,6 +62,19 @@ tools:
 safe-outputs:
   staged: false
   report-failure-as-issue: false
+
+  update-project:
+    github-token: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
+    project: https://github.com/orgs/SinLess-Games/projects/3
+    max: 1
+
+  create-project-status-update:
+    github-token: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
+    project: https://github.com/orgs/SinLess-Games/projects/3
+    max: 1
+
+  add-comment:
+    max: 1
 
   allowed-github-references:
     - repo
