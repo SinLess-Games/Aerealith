@@ -1,0 +1,120 @@
+# .github/workflows/gitleaks.yaml
+#
+# Detects committed secrets, tokens, passwords, credentials, and private keys.
+#
+# Security design:
+# - Pull requests use pull_request_target so organization secrets are available
+#   for forked pull requests.
+# - The workflow never installs dependencies or executes repository code.
+# - The only repository content operation is a non-persistent checkout so
+#   Gitleaks can inspect Git history and changed files.
+# - Pull request comments are disabled to keep permissions read-only.
+#
+# Required repository or organization secret:
+# - GITLEAKS_LICENSE
+#
+# Optional configuration files:
+# - gitleaks.toml
+# - .gitleaksignore
+
+name: Gitleaks
+
+on:
+  pull_request_target:
+    branches:
+      - master
+      - staging
+      - production
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+
+  push:
+    branches:
+      - master
+      - staging
+      - production
+
+  schedule:
+    # Every Sunday at 03:15 UTC.
+    # A recurring scan helps catch secrets that may already exist in history.
+    - cron: "15 3 * * 0"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: >-
+    gitleaks-${{
+      github.event.pull_request.number ||
+      github.ref ||
+      github.run_id
+    }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  scan:
+    name: Scan for exposed secrets
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository history
+        uses: actions/checkout@v6
+        with:
+          # For pull_request_target, scan the exact untrusted PR commit without
+          # running any project code. For push, schedule, and manual runs,
+          # scan the triggering commit.
+          ref: >-
+            ${{
+              github.event_name == 'pull_request_target' &&
+              github.event.pull_request.head.sha ||
+              github.sha
+            }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Scan repository with Gitleaks
+        uses: gitleaks/gitleaks-action@v3.0.0
+        env:
+          # GitHub provides this token automatically. It is used by the action
+          # for GitHub API interactions required by its scanner integration.
+          GITHUB_TOKEN: ${{ github.token }}
+
+          # Required by Gitleaks Action for organization-owned repositories.
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+          # Keep this workflow read-only. Findings remain visible in the job log
+          # and Gitleaks job summary instead of creating PR comments.
+          GITLEAKS_ENABLE_COMMENTS: "false"
+
+          # Gitleaks produces its own useful job summary.
+          GITLEAKS_ENABLE_SUMMARY: "true"
+
+          # Do not upload a SARIF artifact containing secret-match metadata.
+          # A real detection should be handled by rotating the secret and
+          # removing it from the repository history where appropriate.
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
+
+      - name: Write security guidance
+        if: failure()
+        run: |
+          {
+            echo '## Gitleaks Detected a Potential Secret'
+            echo
+            echo 'Treat this as a credential-exposure incident until proven otherwise:'
+            echo
+            echo '1. Revoke or rotate the exposed credential immediately.'
+            echo '2. Remove the credential from current source files.'
+            echo '3. Remove it from Git history when practical and approved.'
+            echo '4. Replace it with an environment variable, GitHub Actions secret, or managed secret-store reference.'
+            echo '5. Add an allowlist entry only after confirming the value is not a real credential.'
+          } >> "$GITHUB_STEP_SUMMARY"
