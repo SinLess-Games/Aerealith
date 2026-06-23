@@ -22,7 +22,7 @@ export default defineConfig(() => ({
     nxCopyAssetsPlugin(['*.md']),
     codecovVitePlugin({
       enableBundleAnalysis: process.env.CODECOV_TOKEN !== undefined,
-      bundleName: "<bundle project name>",
+      bundleName: "aerealith-frontend",
       uploadToken: process.env.CODECOV_TOKEN,
     }),
   ],

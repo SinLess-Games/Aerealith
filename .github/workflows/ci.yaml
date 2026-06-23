@@ -387,7 +387,7 @@ jobs:
                 success: '✅ Passed',
                 failure: '❌ Failed',
                 skipped: '➖ Skipped',
-                cancelled: '⚪ Cancelled',
+                cancelled: '⚪ Cancelled!',
               };
 
               return results[value] ?? '⚠️ Unknown';
