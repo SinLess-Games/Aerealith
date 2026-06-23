@@ -1,0 +1,212 @@
+# .github/milestones.yaml
+#
+# Aerealith AI milestone catalogue.
+#
+# This file is intended to be the repository source of truth for GitHub
+# milestones. Dates are intentionally omitted until delivery targets are
+# approved, preventing artificial deadlines from becoming stale.
+#
+# Recommended workflow behavior:
+# - Create missing milestones.
+# - Update title, description, and due date when they change here.
+# - Preserve manually closed milestones unless explicitly configured otherwise.
+# - Do not delete milestones that contain issues or pull requests.
+
+milestones:
+  - title: "0.1 — Foundation & Workspace"
+    state: open
+    due_on: null
+    description: |
+      Establish the Aerealith AI engineering foundation.
+
+      Scope:
+      - Nx monorepo structure and workspace boundaries.
+      - pnpm, Node.js, TypeScript, ESLint, Prettier, and Commitlint standards.
+      - Core library conventions, shared contracts, error handling, schemas, and utilities.
+      - GitHub Actions baseline for linting, testing, coverage, labels, and repository automation.
+      - Docker foundations and local development documentation.
+
+      Exit criteria:
+      - The workspace installs, validates, lint checks, type checks, tests, and builds reliably in CI.
+      - Library dependency boundaries are enforced.
+      - Core shared primitives are documented and stable enough for service development.
+
+  - title: "0.2 — Core Domain & Data Platform"
+    state: open
+    due_on: null
+    description: |
+      Build the shared domain model and persistence foundation used by Aerealith services.
+
+      Scope:
+      - Core entities, enums, Zod schemas, contracts, and error codes.
+      - Database library, schema definitions, repositories, migrations, and query utilities.
+      - CockroachDB environment configuration for preview, staging, and production.
+      - User, account, profile, preference, consent, session, and waitlist data models.
+      - Database validation, test coverage, and migration safety.
+
+      Exit criteria:
+      - Domain entities have stable contracts and validation.
+      - Database migrations can be safely executed per environment.
+      - Repository and mapper behavior has strong automated test coverage.
+
+  - title: "0.3 — Authentication & Identity"
+    state: open
+    due_on: null
+    description: |
+      Deliver secure identity, account access, and session management.
+
+      Scope:
+      - Sign-up, login, logout, refresh, verification, and resend-verification flows.
+      - User lookup, account lifecycle, session handling, and consent capture.
+      - Secure authentication integration for web and API clients.
+      - Role, permission, tier, and authorization foundations.
+      - Security review, abuse protection, and audit-ready error handling.
+
+      Exit criteria:
+      - Users can securely create, verify, access, and manage accounts.
+      - Protected API routes consistently enforce authorization.
+      - Authentication flows are covered by unit, integration, and E2E tests.
+
+  - title: "0.4 — Frontend Platform"
+    state: open
+    due_on: null
+    description: |
+      Build the unified Aerealith web experience.
+
+      Scope:
+      - Public website, authenticated web application, documentation, and developer portal shell.
+      - Shared UI library, theme system, accessibility standards, and responsive layouts.
+      - User profile, settings, preferences, consent, and account-management screens.
+      - Error states, loading states, empty states, and notification patterns.
+      - Frontend observability and client-side error reporting.
+
+      Exit criteria:
+      - Website and web application share a coherent design system.
+      - Core user account workflows are usable end to end.
+      - Accessibility and frontend test coverage meet baseline quality expectations.
+
+  - title: "0.5 — API & Service Platform"
+    state: open
+    due_on: null
+    description: |
+      Establish the service architecture and public API foundation.
+
+      Scope:
+      - Hono-based microservice conventions and service templates.
+      - HTTP, tRPC, GraphQL, and WebSocket transport foundations where appropriate.
+      - Versioned service routing under /V1/services.
+      - API contracts, consistent error responses, validation, and documentation.
+      - Service health checks, configuration, and local development support.
+
+      Exit criteria:
+      - Auth and User services are deployable and independently testable.
+      - API documentation reflects implemented contracts.
+      - Services use consistent validation, observability, and error behavior.
+
+  - title: "0.6 — Developer Portal & Integrations"
+    state: open
+    due_on: null
+    description: |
+      Deliver the developer-facing integration experience.
+
+      Scope:
+      - Developer portal information architecture and documentation.
+      - API reference, onboarding guides, authentication guides, and examples.
+      - Integration management foundations, API keys, webhooks, and connection flows.
+      - SDK and client-generation strategy where appropriate.
+      - Developer support and integration diagnostics.
+
+      Exit criteria:
+      - Developers can discover, authenticate with, and integrate against Aerealith APIs.
+      - Core integrations have complete setup documentation.
+      - Portal content is versioned and reviewed alongside implementation changes.
+
+  - title: "0.7 — Discord Platform Foundation"
+    state: open
+    due_on: null
+    description: |
+      Establish Aerealith AI as a first-class Discord platform integration.
+
+      Scope:
+      - Official Discord application and bot architecture.
+      - Server installation, guild configuration, permissions, and role mapping.
+      - Modular feature framework with enable and disable controls per server.
+      - Command, event, interaction, and audit-log conventions.
+      - Shared backend integration between Discord modules and Aerealith services.
+
+      Exit criteria:
+      - A Discord server can install and configure the Aerealith AI bot.
+      - Module lifecycle and permissions are reliable.
+      - Discord interactions are observable, testable, and safely authorized.
+
+  - title: "0.8 — Moderation, Tickets & Community Operations"
+    state: open
+    due_on: null
+    description: |
+      Deliver core Discord community-management capabilities.
+
+      Scope:
+      - Moderation tools, automod rules, warnings, temporary actions, and logging.
+      - Ticket workflows, staff assignment, transcript handling, and escalation.
+      - Role automation, welcome flows, verification, and server onboarding.
+      - Community configuration UI and operational dashboards.
+      - Data retention, consent, and moderation audit requirements.
+
+      Exit criteria:
+      - Communities can run moderation and support operations through Aerealith.
+      - Staff actions are auditable and access controlled.
+      - Ticket and moderation flows are validated through automated tests.
+
+  - title: "0.9 — Observability, Reliability & Operations"
+    state: open
+    due_on: null
+    description: |
+      Make the platform measurable, diagnosable, and operationally reliable.
+
+      Scope:
+      - Structured logging, tracing, metrics, dashboards, and alerting.
+      - Grafana Cloud integration and frontend telemetry.
+      - Error reporting, health checks, readiness checks, and service-level signals.
+      - Backup, recovery, incident-response, and deployment rollback procedures.
+      - Performance baselines and load-testing strategy.
+
+      Exit criteria:
+      - Production services have actionable dashboards and alerts.
+      - Critical workflows can be traced across frontend, API, and service layers.
+      - Operational documentation supports diagnosis and recovery.
+
+  - title: "1.0 — Private Beta"
+    state: open
+    due_on: null
+    description: |
+      Prepare Aerealith AI for controlled external use.
+
+      Scope:
+      - End-to-end onboarding for invited users and Discord communities.
+      - Production environment hardening and deployment validation.
+      - Security, privacy, reliability, and performance review.
+      - Feedback collection, issue triage, and release communication workflows.
+      - Beta documentation, support processes, and success metrics.
+
+      Exit criteria:
+      - Invited users can onboard without developer intervention.
+      - Core web, API, and Discord flows operate reliably in production.
+      - Known beta risks, support paths, and rollback procedures are documented.
+
+  - title: "1.1 — MVP Production Launch"
+    state: open
+    due_on: null
+    description: |
+      Release the first public Aerealith AI product version.
+
+      Scope:
+      - Public availability, production readiness, and launch communications.
+      - Stable account, user, API, web, and Discord platform features.
+      - Billing and entitlement foundations where applicable.
+      - Usage analytics, support operations, and post-launch monitoring.
+      - Release notes, product documentation, and incident response readiness.
+
+      Exit criteria:
+      - The platform meets defined reliability, security, and support standards.
+      - Public onboarding, documentation, and operational processes are complete.
+      - Launch-blocking defects are resolved or formally accepted.

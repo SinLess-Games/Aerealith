@@ -1,0 +1,491 @@
+# .github/workflows/assign-milestones.yaml
+#
+# Automatically assigns GitHub milestones to issues and pull requests using
+# existing Aerealith labels and the milestone titles defined in
+# .github/milestones.yaml.
+#
+# Safety rules:
+# - Never checks out or executes pull request code.
+# - Reads .github/milestones.yaml from the repository default branch through
+#   the GitHub API.
+# - Never replaces an existing milestone during normal automation.
+# - Assigns a milestone only when labels resolve to exactly one candidate.
+# - Leaves ambiguous, unsupported, missing-label, and closed-milestone items
+#   unchanged and records the reason in the workflow summary.
+# - A manual workflow run may use force=true to replace an existing milestone.
+#
+# Automatic mappings:
+# - area: core / area: database        -> 0.2 — Core Domain & Data Platform
+# - area: auth                         -> 0.3 — Authentication & Identity
+# - area: frontend / area: ui          -> 0.4 — Frontend Platform
+# - area: api                           -> 0.5 — API & Service Platform
+# - area: devportal                     -> 0.6 — Developer Portal & Integrations
+# - area: observability                 -> 0.9 — Observability, Reliability & Operations
+# - area: tooling                       -> 0.1 — Foundation & Workspace
+# - type: ci / type: build              -> 0.1 — Foundation & Workspace
+# - type: accessibility                 -> 0.4 — Frontend Platform
+#
+# Intentionally not auto-mapped:
+# - area: discord, because it can legitimately belong to either the Discord
+#   foundation milestone (0.7) or community operations milestone (0.8).
+# - area: infrastructure, security, dependencies, and generic maintenance
+#   labels, because those can span several milestones.
+#
+# Assign those cases manually, or add a more specific label rule only after the
+# corresponding classification policy is stable.
+
+name: Assign Milestones
+
+on:
+  issues:
+    types:
+      - opened
+      - reopened
+      - labeled
+      - unlabeled
+
+  pull_request_target:
+    branches:
+      - master
+      - staging
+      - production
+    types:
+      - opened
+      - reopened
+      - ready_for_review
+      - labeled
+      - unlabeled
+
+  workflow_dispatch:
+    inputs:
+      number:
+        description: "Issue or pull request number to evaluate."
+        required: true
+        type: string
+
+      force:
+        description: "Replace an existing milestone when a clear rule matches."
+        required: false
+        default: false
+        type: boolean
+
+      dry_run:
+        description: "Preview the selected milestone without modifying GitHub."
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: >-
+    assign-milestones-${{
+      github.event.issue.number ||
+      github.event.pull_request.number ||
+      inputs.number ||
+      github.run_id
+    }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  assign:
+    name: Assign matching milestone
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ITEM_NUMBER: >-
+        ${{
+          github.event.issue.number ||
+          github.event.pull_request.number ||
+          inputs.number
+        }}
+      FORCE_ASSIGNMENT: >-
+        ${{
+          github.event_name == 'workflow_dispatch' &&
+          inputs.force &&
+          'true' ||
+          'false'
+        }}
+      DRY_RUN: >-
+        ${{
+          github.event_name == 'workflow_dispatch' &&
+          inputs.dry_run &&
+          'true' ||
+          'false'
+        }}
+
+    steps:
+      - name: Validate assignment context
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${ITEM_NUMBER:-}" ]]; then
+            echo "::error::Unable to determine an issue or pull request number."
+            exit 1
+          fi
+
+          if ! [[ "$ITEM_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::Invalid issue or pull request number: $ITEM_NUMBER"
+            exit 1
+          fi
+
+          command -v gh >/dev/null
+          command -v ruby >/dev/null
+
+          gh --version
+          ruby --version
+
+      - name: Resolve and assign milestone
+        id: assignment
+        env:
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          ruby <<'RUBY'
+          require 'base64'
+          require 'date'
+          require 'json'
+          require 'open3'
+          require 'yaml'
+
+          repository = ENV.fetch('REPOSITORY')
+          item_number = Integer(ENV.fetch('ITEM_NUMBER'))
+          force_assignment = ENV.fetch('FORCE_ASSIGNMENT', 'false').downcase == 'true'
+          dry_run = ENV.fetch('DRY_RUN', 'false').downcase == 'true'
+          github_output = ENV.fetch('GITHUB_OUTPUT')
+          github_summary = ENV.fetch('GITHUB_STEP_SUMMARY')
+
+          def fail!(message)
+            warn "::error::#{message}"
+            exit 1
+          end
+
+          def normalize(value)
+            value.to_s.gsub("\r\n", "\n").strip
+          end
+
+          def gh_api(method:, endpoint:, payload: nil)
+            command = [
+              'gh',
+              'api',
+              '--method',
+              method,
+              '--header',
+              'Accept: application/vnd.github+json',
+              '--header',
+              'X-GitHub-Api-Version: 2022-11-28',
+              endpoint,
+            ]
+
+            stdin_data = nil
+
+            if payload
+              command += ['--input', '-']
+              stdin_data = JSON.generate(payload)
+            end
+
+            stdout, stderr, status = Open3.capture3(
+              *command,
+              stdin_data: stdin_data,
+            )
+
+            return stdout if status.success?
+
+            warn stderr unless stderr.empty?
+            fail!("GitHub API request failed: #{method} #{endpoint}")
+          end
+
+          def gh_json(method:, endpoint:, payload: nil)
+            output = gh_api(
+              method: method,
+              endpoint: endpoint,
+              payload: payload,
+            )
+
+            return nil if output.strip.empty?
+
+            JSON.parse(output)
+          rescue JSON::ParserError => error
+            fail!("GitHub API returned invalid JSON: #{error.message}")
+          end
+
+          def write_summary(path, lines)
+            File.open(path, 'a') do |file|
+              file.puts(lines.join("\n"))
+              file.puts
+            end
+          end
+
+          # Milestone version prefixes deliberately keep this workflow resilient
+          # to minor title wording changes in .github/milestones.yaml.
+          milestone_prefixes = {
+            'foundation' => '0.1 —',
+            'data-platform' => '0.2 —',
+            'identity' => '0.3 —',
+            'frontend' => '0.4 —',
+            'api-platform' => '0.5 —',
+            'developer-portal' => '0.6 —',
+            'operations' => '0.9 —',
+          }.freeze
+
+          # Area labels take precedence over type labels. That prevents a PR such
+          # as "area: frontend" + "type: accessibility" from becoming ambiguous.
+          area_rules = {
+            'area: tooling' => 'foundation',
+            'area: core' => 'data-platform',
+            'area: database' => 'data-platform',
+            'area: auth' => 'identity',
+            'area: frontend' => 'frontend',
+            'area: ui' => 'frontend',
+            'area: api' => 'api-platform',
+            'area: devportal' => 'developer-portal',
+            'area: observability' => 'operations',
+          }.freeze
+
+          type_fallback_rules = {
+            'type: ci' => 'foundation',
+            'type: build' => 'foundation',
+            'type: accessibility' => 'frontend',
+          }.freeze
+
+          issue = gh_json(
+            method: 'GET',
+            endpoint: "/repos/#{repository}/issues/#{item_number}",
+          )
+
+          unless issue.is_a?(Hash)
+            fail!("GitHub did not return a valid issue or pull request record.")
+          end
+
+          item_type = issue.key?('pull_request') ? 'Pull request' : 'Issue'
+          item_title = normalize(issue['title'])
+          item_url = normalize(issue['html_url'])
+
+          labels = Array(issue['labels'])
+            .map { |label| label.is_a?(Hash) ? label['name'] : label }
+            .map { |label| normalize(label) }
+            .reject(&:empty?)
+            .uniq
+            .sort
+
+          existing_milestone = issue['milestone']
+          existing_milestone_title = existing_milestone&.fetch('title', nil)
+          existing_milestone_number = existing_milestone&.fetch('number', nil)
+
+          # Read from the repository default branch. This avoids reading config
+          # from an untrusted pull request when pull_request_target triggers.
+          milestone_file_response = gh_json(
+            method: 'GET',
+            endpoint: "/repos/#{repository}/contents/.github/milestones.yaml",
+          )
+
+          encoded_catalogue = milestone_file_response&.fetch('content', nil)
+
+          if normalize(encoded_catalogue).empty?
+            fail!(
+              'Unable to read .github/milestones.yaml from the repository default branch.',
+            )
+          end
+
+          begin
+            catalogue = YAML.safe_load(
+              Base64.decode64(encoded_catalogue),
+              permitted_classes: [Date, Time],
+              aliases: false,
+            )
+          rescue Psych::Exception => error
+            fail!("Unable to parse .github/milestones.yaml: #{error.message}")
+          end
+
+          desired_milestones = catalogue.is_a?(Hash) ? catalogue['milestones'] : nil
+
+          unless desired_milestones.is_a?(Array) && !desired_milestones.empty?
+            fail!(
+              '.github/milestones.yaml must contain a non-empty milestones list.',
+            )
+          end
+
+          configured_titles = {}
+
+          milestone_prefixes.each do |rule_name, prefix|
+            matches = desired_milestones.filter_map do |milestone|
+              next unless milestone.is_a?(Hash)
+
+              title = normalize(milestone['title'])
+              title if title.start_with?(prefix)
+            end
+
+            if matches.length != 1
+              fail!(
+                "Expected exactly one milestone beginning with '#{prefix}' " \
+                "for rule '#{rule_name}', found #{matches.length}.",
+              )
+            end
+
+            configured_titles[rule_name] = matches.first
+          end
+
+          github_milestones = gh_json(
+            method: 'GET',
+            endpoint: "/repos/#{repository}/milestones?state=all&per_page=100",
+          )
+
+          unless github_milestones.is_a?(Array)
+            fail!('GitHub did not return a valid milestone list.')
+          end
+
+          github_milestones_by_title = github_milestones.each_with_object({}) do |milestone, result|
+            result[normalize(milestone['title'])] = milestone
+          end
+
+          area_candidates = labels
+            .map { |label| area_rules[label] }
+            .compact
+            .uniq
+
+          type_candidates = labels
+            .map { |label| type_fallback_rules[label] }
+            .compact
+            .uniq
+
+          candidate_rule_names =
+            if area_candidates.any?
+              area_candidates
+            else
+              type_candidates
+            end
+
+          candidate_titles = candidate_rule_names.map do |rule_name|
+            configured_titles.fetch(rule_name)
+          end
+
+          result = {
+            status: nil,
+            selected_milestone: nil,
+            selected_milestone_number: nil,
+            message: nil,
+          }
+
+          if candidate_rule_names.empty?
+            result[:status] = 'no-match'
+            result[:message] = (
+              'No supported automatic milestone rule matched the current labels.'
+            )
+          elsif candidate_rule_names.length > 1
+            result[:status] = 'ambiguous'
+            result[:message] = (
+              "Multiple milestone rules matched: #{candidate_titles.join(' | ')}."
+            )
+          elsif existing_milestone && !force_assignment
+            result[:status] = 'preserved'
+            result[:message] = (
+              "Existing milestone preserved: #{existing_milestone_title} " \
+              "(##{existing_milestone_number})."
+            )
+          else
+            selected_title = candidate_titles.first
+            selected_milestone = github_milestones_by_title[selected_title]
+
+            if selected_milestone.nil?
+              result[:status] = 'missing-milestone'
+              result[:message] = (
+                "Configured milestone '#{selected_title}' does not exist on GitHub. " \
+                'Run the Sync Milestones workflow first.'
+              )
+            elsif normalize(selected_milestone['state']).downcase != 'open'
+              result[:status] = 'closed-milestone'
+              result[:message] = (
+                "Configured milestone '#{selected_title}' is closed and was not assigned."
+              )
+            elsif dry_run
+              result[:status] = 'dry-run'
+              result[:selected_milestone] = selected_title
+              result[:selected_milestone_number] = selected_milestone['number']
+              result[:message] = (
+                "Would assign milestone '#{selected_title}' " \
+                "(##{selected_milestone['number']})."
+              )
+            else
+              gh_json(
+                method: 'PATCH',
+                endpoint: "/repos/#{repository}/issues/#{item_number}",
+                payload: {
+                  'milestone' => selected_milestone['number'],
+                },
+              )
+
+              result[:status] = 'assigned'
+              result[:selected_milestone] = selected_title
+              result[:selected_milestone_number] = selected_milestone['number']
+              result[:message] = (
+                "Assigned milestone '#{selected_title}' " \
+                "(##{selected_milestone['number']})."
+              )
+            end
+          end
+
+          case result[:status]
+          when 'assigned'
+            puts "::notice::#{result[:message]}"
+          when 'dry-run'
+            puts "::notice::#{result[:message]}"
+          when 'no-match', 'preserved'
+            puts "::notice::#{result[:message]}"
+          when 'ambiguous', 'missing-milestone', 'closed-milestone'
+            puts "::warning::#{result[:message]}"
+          else
+            fail!("Unexpected assignment state: #{result[:status]}")
+          end
+
+          safe_title = item_title.gsub('|', '\\|')
+          safe_labels = labels.empty? ? '_none_' : labels.map { |label| "`#{label}`" }.join(', ')
+          candidate_display =
+            candidate_titles.empty? ? '_none_' : candidate_titles.map { |title| "`#{title}`" }.join('<br>')
+
+          summary = [
+            '## Milestone Assignment',
+            '',
+            '| Field | Value |',
+            '| --- | --- |',
+            "| Item | #{item_type} [##{item_number}](#{item_url}) |",
+            "| Title | #{safe_title} |",
+            "| Labels | #{safe_labels} |",
+            "| Existing milestone | #{existing_milestone_title ? "`#{existing_milestone_title}`" : '_none_'} |",
+            "| Candidate milestone(s) | #{candidate_display} |",
+            "| Force assignment | `#{force_assignment}` |",
+            "| Dry run | `#{dry_run}` |",
+            "| Result | `#{result[:status]}` |",
+            "| Details | #{result[:message]} |",
+          ]
+
+          write_summary(github_summary, summary)
+
+          File.open(github_output, 'a') do |file|
+            file.puts("status=#{result[:status]}")
+            file.puts("selected_milestone=#{result[:selected_milestone]}")
+            file.puts("selected_milestone_number=#{result[:selected_milestone_number]}")
+          end
+          RUBY
+
+      - name: Display assignment result
+        if: always()
+        run: |
+          {
+            echo '## Assignment Result'
+            echo
+            echo "| Output | Value |"
+            echo "| --- | --- |"
+            echo "| Status | \`${{ steps.assignment.outputs.status || 'unknown' }}\` |"
+            echo "| Milestone | \`${{ steps.assignment.outputs.selected_milestone || 'none' }}\` |"
+            echo "| Milestone number | \`${{ steps.assignment.outputs.selected_milestone_number || 'none' }}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
