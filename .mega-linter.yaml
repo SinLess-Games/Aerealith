@@ -1,0 +1,183 @@
+---
+# ==============================================================================
+# Aerealith AI — MegaLinter Configuration
+# ==============================================================================
+#
+# This configuration is intentionally strict for production source, configuration,
+# CI workflows, Dockerfiles, Markdown, and shell scripts.
+#
+# Test files, test folders, fixtures, mocks, snapshots, E2E projects, generated
+# outputs, dependencies, and build artifacts are excluded from all file-scoped
+# linters.
+#
+# MegaLinter must run after `pnpm install` so the local ESLint 10 executable and
+# the project's flat ESLint configuration dependencies are available.
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Execution behavior
+# ------------------------------------------------------------------------------
+
+# On pull requests, validate changed files only.
+# Set this to true for scheduled full-repository validation workflows.
+VALIDATE_ALL_CODEBASE: false
+
+# Keep CI output useful without flooding the logs with every checked file.
+PRINT_ALL_FILES: false
+SHOW_ELAPSED_TIME: true
+FLAVOR_SUGGESTIONS: false
+
+# Keep generated reports available to CI artifacts and GitHub job summaries.
+JSON_REPORTER: true
+REPORTERS_MARKDOWN_SUMMARY_TYPE: sections
+
+# Do not send email or upload reports to third-party file-sharing services.
+EMAIL_REPORTER: false
+FILEIO_REPORTER: false
+
+# Do not allow MegaLinter to modify source files in CI.
+# Formatting fixes should remain explicit via pnpm/Nx commands or a dedicated
+# autofix workflow.
+APPLY_FIXES: none
+
+# ------------------------------------------------------------------------------
+# Global exclusions
+# ------------------------------------------------------------------------------
+#
+# Excludes:
+# - Dependency folders and generated build output
+# - Nx, Vite, Next, coverage, and report directories
+# - Unit, integration, E2E, Cypress, Playwright, and test fixture directories
+# - *.test.*, *.spec.*, *.e2e.*, and *.cy.* test files
+# - Type declaration test files such as foo.test.d.ts
+# ------------------------------------------------------------------------------
+
+FILTER_REGEX_EXCLUDE: &excluded_paths '(^|/)(node_modules|dist|coverage|\.nx|\.git|\.vite|\.next|out|build|tmp|temp|vendor|generated|artifacts|reports)(/|$)|(^|/)(__tests__|tests?|e2e|cypress|playwright|__mocks__|__fixtures__|fixtures|__snapshots__)(/|$)|\.(test|spec|e2e|cy)\.d\.[cm]?ts$|\.(test|spec|e2e|cy)\.[cm]?[jt]sx?$'
+
+# ------------------------------------------------------------------------------
+# Enabled linters
+# ------------------------------------------------------------------------------
+#
+# Using ENABLE_LINTERS means MegaLinter only runs this intentional set.
+# This avoids surprise linters, duplicate tooling, and unrelated language checks.
+# ------------------------------------------------------------------------------
+
+ENABLE_LINTERS:
+  # JavaScript, TypeScript, React JSX, and React TSX.
+  - JAVASCRIPT_ES
+  - JSX_ESLINT
+  - TYPESCRIPT_ES
+  - TSX_ESLINT
+
+  # Project formatting rules.
+  - JAVASCRIPT_PRETTIER
+  - TYPESCRIPT_PRETTIER
+  - JSON_PRETTIER
+  - YAML_PRETTIER
+  - MARKDOWN_PRETTIER
+
+  # Documentation and configuration quality.
+  - MARKDOWN_MARKDOWNLINT
+
+  # Containers and scripts.
+  - DOCKERFILE_HADOLINT
+  - BASH_SHELLCHECK
+
+  # GitHub Actions workflow correctness and security.
+  - ACTION_ACTIONLINT
+  - ACTION_ZIZMOR
+
+# ------------------------------------------------------------------------------
+# ESLint 10 integration
+# ------------------------------------------------------------------------------
+#
+# Use the ESLint binary installed by pnpm in this workspace.
+#
+# This preserves:
+# - ESLint 10 support
+# - Your eslint.config.mjs flat configuration
+# - Nx ESLint configuration
+# - Workspace-installed plugins
+# - React Hooks and TypeScript ESLint plugins
+#
+# MegaLinter otherwise may execute its own container-installed ESLint, which can
+# fail to resolve imports from an ESLint flat config.
+# ------------------------------------------------------------------------------
+
+JAVASCRIPT_ES_CLI_EXECUTABLE:
+  - node_modules/.bin/eslint
+
+JSX_ESLINT_CLI_EXECUTABLE:
+  - node_modules/.bin/eslint
+
+TYPESCRIPT_ES_CLI_EXECUTABLE:
+  - node_modules/.bin/eslint
+
+TSX_ESLINT_CLI_EXECUTABLE:
+  - node_modules/.bin/eslint
+
+# Keep warnings meaningful in CI.
+JAVASCRIPT_ES_ARGUMENTS: "--max-warnings=0"
+JSX_ESLINT_ARGUMENTS: "--max-warnings=0"
+TYPESCRIPT_ES_ARGUMENTS: "--max-warnings=0"
+TSX_ESLINT_ARGUMENTS: "--max-warnings=0"
+
+# ------------------------------------------------------------------------------
+# File-scoped test exclusions
+# ------------------------------------------------------------------------------
+#
+# These duplicate the global exclusion intentionally. Some MegaLinter linters
+# support their own scoped filters, so this ensures test files remain skipped
+# even when a linter applies a custom file selection strategy.
+# ------------------------------------------------------------------------------
+
+JAVASCRIPT_ES_FILTER_REGEX_EXCLUDE: *excluded_paths
+JSX_ESLINT_FILTER_REGEX_EXCLUDE: *excluded_paths
+TYPESCRIPT_ES_FILTER_REGEX_EXCLUDE: *excluded_paths
+TSX_ESLINT_FILTER_REGEX_EXCLUDE: *excluded_paths
+
+JAVASCRIPT_PRETTIER_FILTER_REGEX_EXCLUDE: *excluded_paths
+TYPESCRIPT_PRETTIER_FILTER_REGEX_EXCLUDE: *excluded_paths
+JSON_PRETTIER_FILTER_REGEX_EXCLUDE: *excluded_paths
+YAML_PRETTIER_FILTER_REGEX_EXCLUDE: *excluded_paths
+MARKDOWN_PRETTIER_FILTER_REGEX_EXCLUDE: *excluded_paths
+
+BASH_SHELLCHECK_FILTER_REGEX_EXCLUDE: *excluded_paths
+
+# ------------------------------------------------------------------------------
+# Formatter configuration
+# ------------------------------------------------------------------------------
+
+# MegaLinter only enables JavaScript Prettier when this is set to prettier.
+JAVASCRIPT_DEFAULT_STYLE: prettier
+
+# ------------------------------------------------------------------------------
+# Markdown policy
+# ------------------------------------------------------------------------------
+#
+# Keep documentation checks focused on authored Markdown, not generated content.
+# ------------------------------------------------------------------------------
+
+MARKDOWN_MARKDOWNLINT_FILTER_REGEX_EXCLUDE: '(^|/)(node_modules|dist|coverage|\.nx|\.git|generated|artifacts|reports|__tests__|tests?|e2e|cypress|playwright|fixtures|__fixtures__|__snapshots__)(/|$)'
+
+# ------------------------------------------------------------------------------
+# Dockerfile policy
+# ------------------------------------------------------------------------------
+#
+# No Hadolint rules are disabled here. Dockerfiles should follow secure and
+# repeatable image-building practices by default.
+# ------------------------------------------------------------------------------
+
+DOCKERFILE_HADOLINT_FILTER_REGEX_EXCLUDE: *excluded_paths
+
+# ------------------------------------------------------------------------------
+# GitHub Actions policy
+# ------------------------------------------------------------------------------
+#
+# actionlint validates workflow syntax and expressions.
+# zizmor checks GitHub Actions security issues such as unsafe expressions,
+# permissions, and potentially risky action references.
+# ------------------------------------------------------------------------------
+
+ACTION_ACTIONLINT_FILTER_REGEX_EXCLUDE: *excluded_paths
+ACTION_ZIZMOR_FILTER_REGEX_EXCLUDE: *excluded_paths
