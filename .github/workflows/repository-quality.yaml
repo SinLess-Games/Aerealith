@@ -1,0 +1,178 @@
+# .github/workflows/repository-quality.yaml
+#
+# Runs repository-wide quality checks through MegaLinter.
+#
+# Scan policy:
+# - Pull requests: changed files only for fast feedback.
+# - Pushes to protected branches: full repository validation.
+# - Weekly schedule: full repository validation.
+# - Manual runs: choose changed-files or full-repository validation.
+#
+# MegaLinter configuration:
+# - This workflow explicitly uses .mega-linter.yaml.
+# - Keep all enabled linters, exclusions, formatter behavior, and custom
+#   linter settings inside that repository-level configuration file.
+#
+# Security:
+# - Uses pull_request, not pull_request_target.
+# - Does not grant write access to repository contents.
+# - Does not apply or commit automatic fixes.
+
+name: Repository Quality
+
+on:
+  pull_request:
+    branches:
+      - master
+      - staging
+      - production
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+
+  push:
+    branches:
+      - master
+      - staging
+      - production
+
+  schedule:
+    # Weekly full-repository quality scan every Sunday at 04:00 UTC.
+    - cron: "0 4 * * 0"
+
+  workflow_dispatch:
+    inputs:
+      validate_all_codebase:
+        description: "Validate the entire repository instead of only changed files."
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+  pull-requests: read
+  statuses: write
+
+concurrency:
+  group: >-
+    repository-quality-${{
+      github.event.pull_request.number ||
+      github.ref ||
+      github.run_id
+    }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  quality:
+    name: MegaLinter Quality Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      # The existing Aerealith configuration uses this filename.
+      # MegaLinter defaults to .mega-linter.yml, so this explicit override is
+      # required while the repository uses .mega-linter.yaml.
+      MEGALINTER_CONFIG: .mega-linter.yaml
+
+      # Keep reports in a predictable location for artifact upload.
+      REPORT_OUTPUT_FOLDER: megalinter-reports
+
+      # Never apply, commit, or push automatic formatting changes from CI.
+      APPLY_FIXES: none
+
+      # Prevent stale report files from a prior run from appearing in artifacts.
+      CLEAR_REPORT_FOLDER: true
+
+      # Better visibility in logs and generated reports.
+      SHOW_ELAPSED_TIME: true
+      SHOW_SKIPPED_LINTERS: true
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          # Full history lets MegaLinter accurately determine PR diffs and
+          # perform complete repository scans on protected branches.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify MegaLinter configuration
+        run: |
+          set -euo pipefail
+
+          if [[ ! -f "$MEGALINTER_CONFIG" ]]; then
+            echo "::error::MegaLinter configuration was not found: $MEGALINTER_CONFIG"
+            exit 1
+          fi
+
+          if [[ ! -s "$MEGALINTER_CONFIG" ]]; then
+            echo "::error::MegaLinter configuration is empty: $MEGALINTER_CONFIG"
+            exit 1
+          fi
+
+          echo "Using MegaLinter configuration: $MEGALINTER_CONFIG"
+
+      - name: Run MegaLinter
+        id: megalinter
+        uses: oxsecurity/megalinter@v9.5.0
+        env:
+          # Enables individual linter status checks when GitHub permits them.
+          GITHUB_TOKEN: ${{ github.token }}
+
+          # Pull requests receive focused changed-file validation.
+          # Pushes, scheduled runs, and manual full runs validate all source.
+          VALIDATE_ALL_CODEBASE: >-
+            ${{
+              github.event_name != 'pull_request' &&
+              (
+                github.event_name != 'workflow_dispatch' ||
+                inputs.validate_all_codebase
+              )
+            }}
+
+      - name: Upload MegaLinter reports
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: megalinter-reports-${{ github.run_id }}
+          path: |
+            megalinter-reports/**
+            mega-linter.log
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Write workflow summary
+        if: always()
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          VALIDATE_ALL_CODEBASE: >-
+            ${{
+              github.event_name != 'pull_request' &&
+              (
+                github.event_name != 'workflow_dispatch' ||
+                inputs.validate_all_codebase
+              )
+            }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          set -euo pipefail
+
+          {
+            echo '## Repository Quality'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo "| Trigger | \`$EVENT_NAME\` |"
+            echo "| Configuration | \`$MEGALINTER_CONFIG\` |"
+            echo "| Full repository scan | \`$VALIDATE_ALL_CODEBASE\` |"
+            echo '| Automatic fixes | `disabled` |'
+            echo "| Job result | \`$JOB_STATUS\` |"
+            echo
+            echo 'MegaLinter reports are attached to this workflow run when generated.'
+          } >> "$GITHUB_STEP_SUMMARY"

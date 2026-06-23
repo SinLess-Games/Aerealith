@@ -50,3 +50,6 @@ vitest.config.*.timestamp*
 *.env
 .env.*
 !.env.example
+
+megalinter-reports/
+mega-linter.log
