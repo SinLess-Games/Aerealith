@@ -22,7 +22,7 @@ permissions:
 
 engine:
   id: gemini
-  model: gemini-3.1-flash-lite
+  model: gemini-2.5-flash
 
 max-ai-credits: -1
 max-turns: 12
