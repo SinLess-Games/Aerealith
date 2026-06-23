@@ -1,0 +1,797 @@
+name: Coverage
+
+on:
+  pull_request:
+    branches:
+      - master
+      - staging
+      - production
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+
+  push:
+    branches:
+      - master
+      - staging
+      - production
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: coverage-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CI: true
+  FORCE_COLOR: 1
+  NX_DAEMON: false
+  NODE_VERSION: 25.9.0
+  PNPM_VERSION: 11.5.2
+  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+jobs:
+  vitest:
+    name: Vitest code coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Check out repository history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: false
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6.0.9
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Restore Nx cache
+        uses: actions/cache@v5.0.5
+        with:
+          path: .nx/cache
+          key: nx-vitest-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'nx.json', 'package.json') }}-${{ github.sha }}
+          restore-keys: |
+            nx-vitest-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'nx.json', 'package.json') }}-
+            nx-vitest-${{ runner.os }}-
+
+      - name: Install workspace dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate Nx project graph
+        run: |
+          set -euo pipefail
+
+          pnpm nx reset
+          "$GITHUB_WORKSPACE/node_modules/.bin/nx" show projects
+
+      - name: List projects with Vitest targets
+        id: projects
+        run: |
+          set -euo pipefail
+
+          nx_bin="$GITHUB_WORKSPACE/node_modules/.bin/nx"
+          projects_file="$RUNNER_TEMP/vitest-projects.txt"
+
+          "$nx_bin" show projects --withTarget=test > "$projects_file"
+
+          sed -i '/^[[:space:]]*$/d' "$projects_file"
+
+          if [[ ! -s "$projects_file" ]]; then
+            echo "::error::No Nx projects expose a test target."
+            exit 1
+          fi
+
+          echo "Projects with Vitest targets:"
+          cat "$projects_file"
+
+          echo "file=$projects_file" >> "$GITHUB_OUTPUT"
+
+      - name: Run Vitest with coverage and JUnit reports
+        env:
+          PROJECTS_FILE: ${{ steps.projects.outputs.file }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p coverage test-results/vitest
+
+          failures=0
+          nx_bin="$GITHUB_WORKSPACE/node_modules/.bin/nx"
+
+          while IFS= read -r project; do
+            [[ -n "$project" ]] || continue
+
+            project_file_name="$(printf '%s' "$project" | tr '/:@' '---')"
+            junit_file="$GITHUB_WORKSPACE/test-results/vitest/${project_file_name}.junit.xml"
+
+            echo "::group::Vitest — $project"
+            echo "JUnit report: $junit_file"
+
+            if ! "$nx_bin" run "$project:test" \
+              --skip-nx-cache \
+              --output-style=stream \
+              -- \
+              --run \
+              --coverage.enabled=true \
+              --coverage.reportOnFailure=true \
+              --coverage.reporter=text \
+              --coverage.reporter=lcov \
+              --coverage.reporter=json-summary \
+              --coverage.reporter=json \
+              --reporter=default \
+              --reporter=junit \
+              --outputFile.junit="$junit_file"; then
+              failures=1
+              echo "::error::Vitest failed for project: $project"
+            fi
+
+            echo "::endgroup::"
+          done < "$PROJECTS_FILE"
+
+          exit "$failures"
+
+      - name: Combine workspace coverage reports
+        if: always()
+        run: |
+          set -euo pipefail
+
+          node <<'NODE'
+          import fs from 'node:fs';
+          import path from 'node:path';
+
+          const coverageDirectory = path.resolve('coverage');
+
+          if (!fs.existsSync(coverageDirectory)) {
+            console.log('No coverage directory was generated.');
+            process.exit(0);
+          }
+
+          function walk(directory) {
+            const entries = fs.readdirSync(directory, {
+              withFileTypes: true,
+            });
+
+            return entries.flatMap((entry) => {
+              const entryPath = path.join(directory, entry.name);
+
+              if (entry.isDirectory()) {
+                return walk(entryPath);
+              }
+
+              return [entryPath];
+            });
+          }
+
+          function calculatePercentage(covered, total) {
+            if (total === 0) {
+              return 100;
+            }
+
+            return Math.round((covered / total) * 10_000) / 100;
+          }
+
+          const aggregateSummaryPath = path.join(
+            coverageDirectory,
+            'coverage-summary.json',
+          );
+
+          const aggregateFinalPath = path.join(
+            coverageDirectory,
+            'coverage-final.json',
+          );
+
+          const allFiles = walk(coverageDirectory);
+
+          const summaryFiles = allFiles.filter(
+            (filePath) =>
+              filePath.endsWith('coverage-summary.json') &&
+              filePath !== aggregateSummaryPath,
+          );
+
+          const finalFiles = allFiles.filter(
+            (filePath) =>
+              filePath.endsWith('coverage-final.json') &&
+              filePath !== aggregateFinalPath,
+          );
+
+          if (summaryFiles.length === 0) {
+            console.log('No project coverage-summary.json files were found.');
+            process.exit(0);
+          }
+
+          const metrics = ['lines', 'statements', 'functions', 'branches'];
+
+          const total = Object.fromEntries(
+            metrics.map((metric) => [
+              metric,
+              {
+                total: 0,
+                covered: 0,
+                skipped: 0,
+                pct: 100,
+              },
+            ]),
+          );
+
+          const combinedSummary = {};
+          const combinedFinal = {};
+
+          for (const summaryFile of summaryFiles) {
+            const summary = JSON.parse(fs.readFileSync(summaryFile, 'utf8'));
+
+            for (const [fileName, fileSummary] of Object.entries(summary)) {
+              if (fileName === 'total') {
+                continue;
+              }
+
+              combinedSummary[fileName] = fileSummary;
+            }
+
+            for (const metric of metrics) {
+              const value = summary.total?.[metric];
+
+              if (!value) {
+                continue;
+              }
+
+              total[metric].total += value.total ?? 0;
+              total[metric].covered += value.covered ?? 0;
+              total[metric].skipped += value.skipped ?? 0;
+            }
+          }
+
+          for (const metric of metrics) {
+            total[metric].pct = calculatePercentage(
+              total[metric].covered,
+              total[metric].total,
+            );
+          }
+
+          for (const finalFile of finalFiles) {
+            const finalCoverage = JSON.parse(fs.readFileSync(finalFile, 'utf8'));
+
+            Object.assign(combinedFinal, finalCoverage);
+          }
+
+          fs.writeFileSync(
+            aggregateSummaryPath,
+            `${JSON.stringify(
+              {
+                total,
+                ...combinedSummary,
+              },
+              null,
+              2,
+            )}\n`,
+          );
+
+          fs.writeFileSync(
+            aggregateFinalPath,
+            `${JSON.stringify(combinedFinal, null, 2)}\n`,
+          );
+
+          console.log(
+            `Combined ${summaryFiles.length} coverage summaries and ${finalFiles.length} coverage maps.`,
+          );
+          NODE
+
+      - name: Collect Vitest report files
+        id: reports
+        if: always()
+        run: |
+          set -euo pipefail
+
+          lcov_files=''
+          junit_files=''
+
+          if [[ -d coverage ]]; then
+            lcov_files="$(
+              find coverage -type f -name 'lcov.info' -print |
+                sort |
+                paste -sd ',' -
+            )"
+          fi
+
+          if [[ -d test-results/vitest ]]; then
+            junit_files="$(
+              find test-results/vitest -type f -name '*.junit.xml' -print |
+                sort |
+                paste -sd ',' -
+            )"
+          fi
+
+          if [[ -n "$lcov_files" ]]; then
+            echo 'coverage_available=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'coverage_available=false' >> "$GITHUB_OUTPUT"
+          fi
+
+          if [[ -n "$junit_files" ]]; then
+            echo 'junit_available=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'junit_available=false' >> "$GITHUB_OUTPUT"
+          fi
+
+          {
+            echo "lcov_files=$lcov_files"
+            echo "junit_files=$junit_files"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Write detailed Vitest coverage summary
+        if: always()
+        run: |
+          set -euo pipefail
+
+          node <<'NODE' >> "$GITHUB_STEP_SUMMARY"
+          import fs from 'node:fs';
+          import path from 'node:path';
+
+          const coverageSummaryPath = path.resolve(
+            'coverage/coverage-summary.json',
+          );
+
+          console.log('## Vitest Code Coverage');
+          console.log();
+
+          if (!fs.existsSync(coverageSummaryPath)) {
+            console.log('No aggregated Vitest coverage summary was generated.');
+            process.exit(0);
+          }
+
+          const summary = JSON.parse(
+            fs.readFileSync(coverageSummaryPath, 'utf8'),
+          );
+
+          const total = summary.total;
+
+          console.log('| Metric | Covered | Total | Coverage |');
+          console.log('| --- | ---: | ---: | ---: |');
+
+          for (const metric of [
+            'lines',
+            'statements',
+            'functions',
+            'branches',
+          ]) {
+            const value = total[metric];
+
+            console.log(
+              `| ${metric} | ${value.covered} | ${value.total} | ${value.pct}% |`,
+            );
+          }
+
+          const files = Object.entries(summary)
+            .filter(([fileName]) => fileName !== 'total')
+            .map(([fileName, fileCoverage]) => ({
+              fileName,
+              lines: fileCoverage.lines?.pct ?? 100,
+              statements: fileCoverage.statements?.pct ?? 100,
+              functions: fileCoverage.functions?.pct ?? 100,
+              branches: fileCoverage.branches?.pct ?? 100,
+            }))
+            .filter((file) => file.lines < 100)
+            .sort((left, right) => left.lines - right.lines)
+            .slice(0, 25);
+
+          console.log();
+          console.log('### Lowest Line Coverage Files');
+          console.log();
+
+          if (files.length === 0) {
+            console.log('All measured files have 100% line coverage. Nice. ✨');
+            process.exit(0);
+          }
+
+          console.log('| File | Lines | Statements | Functions | Branches |');
+          console.log('| --- | ---: | ---: | ---: | ---: |');
+
+          for (const file of files) {
+            const displayName = file.fileName
+              .replace(process.cwd(), '.')
+              .replaceAll('|', '\\|');
+
+            console.log(
+              `| \`${displayName}\` | ${file.lines}% | ${file.statements}% | ${file.functions}% | ${file.branches}% |`,
+            );
+          }
+          NODE
+
+      - name: Upload Vitest coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: coverage-vitest-${{ github.run_id }}
+          path: coverage/
+          if-no-files-found: warn
+          retention-days: 30
+          compression-level: 6
+
+      - name: Upload Vitest JUnit artifact
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: test-results-vitest-${{ github.run_id }}
+          path: test-results/vitest/
+          if-no-files-found: warn
+          retention-days: 30
+          compression-level: 6
+
+      - name: Upload Vitest coverage to Codecov
+        if: >-
+          always() &&
+          !cancelled() &&
+          env.CODECOV_TOKEN != '' &&
+          steps.reports.outputs.coverage_available == 'true' &&
+          (
+            github.event_name != 'pull_request' ||
+            github.event.pull_request.head.repo.full_name == github.repository
+          )
+        uses: codecov/codecov-action@v7.0.0
+        with:
+          token: ${{ env.CODECOV_TOKEN }}
+          files: ${{ steps.reports.outputs.lcov_files }}
+          disable_search: true
+          flags: vitest
+          name: vitest-coverage-${{ github.event_name }}
+          fail_ci_if_error: true
+          disable_telem: true
+          verbose: true
+
+      - name: Upload Vitest test results to Codecov
+        if: >-
+          always() &&
+          !cancelled() &&
+          env.CODECOV_TOKEN != '' &&
+          steps.reports.outputs.junit_available == 'true' &&
+          (
+            github.event_name != 'pull_request' ||
+            github.event.pull_request.head.repo.full_name == github.repository
+          )
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ env.CODECOV_TOKEN }}
+          files: ${{ steps.reports.outputs.junit_files }}
+          disable_search: true
+          flags: vitest
+          name: vitest-results-${{ github.event_name }}
+          fail_ci_if_error: true
+          verbose: true
+
+      - name: Publish pull request Vitest coverage report
+        if: >-
+          always() &&
+          !cancelled() &&
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          steps.reports.outputs.coverage_available == 'true' &&
+          hashFiles('coverage/coverage-summary.json') != ''
+        uses: davelosert/vitest-coverage-report-action@v2.12.1
+        with:
+          name: Aerealith Vitest Coverage
+          working-directory: .
+          json-summary-path: coverage/coverage-summary.json
+          json-final-path: coverage/coverage-final.json
+          comment-on: pr
+          file-coverage-mode: changes
+          show-uncovered-lines: true
+          sort-by: statements-asc
+
+  e2e:
+    name: Playwright E2E coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out repository history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: false
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6.0.9
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Restore Nx cache
+        uses: actions/cache@v5.0.5
+        with:
+          path: .nx/cache
+          key: nx-e2e-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'nx.json', 'package.json') }}-${{ github.sha }}
+          restore-keys: |
+            nx-e2e-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'nx.json', 'package.json') }}-
+            nx-e2e-${{ runner.os }}-
+
+      - name: Restore Playwright browser cache
+        uses: actions/cache@v5.0.5
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Install workspace dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate Nx project graph
+        run: |
+          set -euo pipefail
+
+          pnpm nx reset
+          "$GITHUB_WORKSPACE/node_modules/.bin/nx" show projects
+
+      - name: List projects with E2E targets
+        id: projects
+        run: |
+          set -euo pipefail
+
+          nx_bin="$GITHUB_WORKSPACE/node_modules/.bin/nx"
+          projects_file="$RUNNER_TEMP/e2e-projects.txt"
+
+          "$nx_bin" show projects --withTarget=e2e > "$projects_file"
+
+          sed -i '/^[[:space:]]*$/d' "$projects_file"
+
+          if [[ ! -s "$projects_file" ]]; then
+            echo "::error::No Nx projects expose an e2e target."
+            exit 1
+          fi
+
+          echo "Projects with E2E targets:"
+          cat "$projects_file"
+
+          echo "file=$projects_file" >> "$GITHUB_OUTPUT"
+
+      - name: Install Playwright browsers and system dependencies
+        run: |
+          set -euo pipefail
+
+          pnpm exec playwright install --with-deps
+
+      - name: Run Playwright E2E tests with detailed reports
+        env:
+          PROJECTS_FILE: ${{ steps.projects.outputs.file }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p test-results/e2e playwright-reports e2e-artifacts
+
+          failures=0
+          nx_bin="$GITHUB_WORKSPACE/node_modules/.bin/nx"
+
+          while IFS= read -r project; do
+            [[ -n "$project" ]] || continue
+
+            project_file_name="$(printf '%s' "$project" | tr '/:@' '---')"
+
+            junit_file="$GITHUB_WORKSPACE/test-results/e2e/${project_file_name}.junit.xml"
+            html_directory="$GITHUB_WORKSPACE/playwright-reports/${project_file_name}"
+            artifact_directory="$GITHUB_WORKSPACE/e2e-artifacts/${project_file_name}"
+
+            echo "::group::Playwright E2E — $project"
+            echo "JUnit report: $junit_file"
+            echo "HTML report: $html_directory"
+            echo "Test artifacts: $artifact_directory"
+
+            if ! PLAYWRIGHT_JUNIT_OUTPUT_FILE="$junit_file" \
+              PLAYWRIGHT_JUNIT_STRIP_ANSI=true \
+              PLAYWRIGHT_JUNIT_INCLUDE_PROJECT_IN_TEST_NAME=true \
+              PLAYWRIGHT_HTML_OUTPUT_DIR="$html_directory" \
+              PLAYWRIGHT_HTML_OPEN=never \
+              "$nx_bin" run "$project:e2e" \
+                --skip-nx-cache \
+                --output-style=stream \
+                -- \
+                --reporter=github,junit,html \
+                --output="$artifact_directory" \
+                --forbid-only \
+                --fail-on-flaky-tests; then
+              failures=1
+              echo "::error::E2E tests failed for project: $project"
+            fi
+
+            echo "::endgroup::"
+          done < "$PROJECTS_FILE"
+
+          exit "$failures"
+
+      - name: Collect E2E JUnit report files
+        id: reports
+        if: always()
+        run: |
+          set -euo pipefail
+
+          junit_files=''
+
+          if [[ -d test-results/e2e ]]; then
+            junit_files="$(
+              find test-results/e2e -type f -name '*.junit.xml' -print |
+                sort |
+                paste -sd ',' -
+            )"
+          fi
+
+          if [[ -n "$junit_files" ]]; then
+            echo 'junit_available=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'junit_available=false' >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "junit_files=$junit_files" >> "$GITHUB_OUTPUT"
+
+      - name: Write detailed E2E execution summary
+        if: always()
+        run: |
+          set -euo pipefail
+
+          node <<'NODE' >> "$GITHUB_STEP_SUMMARY"
+          import fs from 'node:fs';
+          import path from 'node:path';
+
+          const reportDirectory = path.resolve('test-results/e2e');
+
+          console.log('## Playwright E2E Execution Coverage');
+          console.log();
+          console.log(
+            'This section reports E2E test execution coverage and diagnostic artifacts. Browser source-line coverage requires frontend instrumentation and Playwright coverage hooks.',
+          );
+          console.log();
+
+          if (!fs.existsSync(reportDirectory)) {
+            console.log('No E2E JUnit reports were generated.');
+            process.exit(0);
+          }
+
+          function walk(directory) {
+            const entries = fs.readdirSync(directory, {
+              withFileTypes: true,
+            });
+
+            return entries.flatMap((entry) => {
+              const entryPath = path.join(directory, entry.name);
+
+              return entry.isDirectory() ? walk(entryPath) : [entryPath];
+            });
+          }
+
+          function attribute(xml, name) {
+            const match = xml.match(
+              new RegExp(`${name}="([^"]+)"`, 'i'),
+            );
+
+            return match?.[1] ?? '0';
+          }
+
+          const junitFiles = walk(reportDirectory)
+            .filter((filePath) => filePath.endsWith('.junit.xml'))
+            .sort();
+
+          if (junitFiles.length === 0) {
+            console.log('No E2E JUnit XML files were found.');
+            process.exit(0);
+          }
+
+          const totals = {
+            tests: 0,
+            failures: 0,
+            errors: 0,
+            skipped: 0,
+            time: 0,
+          };
+
+          const rows = [];
+
+          for (const filePath of junitFiles) {
+            const xml = fs.readFileSync(filePath, 'utf8');
+            const root =
+              xml.match(/<testsuites\b[^>]*>/i)?.[0] ??
+              xml.match(/<testsuite\b[^>]*>/i)?.[0] ??
+              '';
+
+            const current = {
+              tests: Number(attribute(root, 'tests')),
+              failures: Number(attribute(root, 'failures')),
+              errors: Number(attribute(root, 'errors')),
+              skipped: Number(attribute(root, 'skipped')),
+              time: Number(attribute(root, 'time')),
+            };
+
+            totals.tests += current.tests;
+            totals.failures += current.failures;
+            totals.errors += current.errors;
+            totals.skipped += current.skipped;
+            totals.time += current.time;
+
+            rows.push({
+              fileName: path.relative(process.cwd(), filePath),
+              ...current,
+            });
+          }
+
+          console.log('| Tests | Failures | Errors | Skipped | Duration |');
+          console.log('| ---: | ---: | ---: | ---: | ---: |');
+          console.log(
+            `| ${totals.tests} | ${totals.failures} | ${totals.errors} | ${totals.skipped} | ${totals.time.toFixed(2)}s |`,
+          );
+
+          console.log();
+          console.log('### E2E Report Files');
+          console.log();
+          console.log('| JUnit report | Tests | Failures | Errors | Skipped | Duration |');
+          console.log('| --- | ---: | ---: | ---: | ---: | ---: |');
+
+          for (const row of rows) {
+            console.log(
+              `| \`${row.fileName}\` | ${row.tests} | ${row.failures} | ${row.errors} | ${row.skipped} | ${row.time.toFixed(2)}s |`,
+            );
+          }
+          NODE
+
+      - name: Upload Playwright reports and E2E artifacts
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: coverage-e2e-artifacts-${{ github.run_id }}
+          path: |
+            test-results/e2e/
+            playwright-reports/
+            e2e-artifacts/
+          if-no-files-found: warn
+          retention-days: 30
+          compression-level: 6
+
+      - name: Upload E2E test results to Codecov
+        if: >-
+          always() &&
+          !cancelled() &&
+          env.CODECOV_TOKEN != '' &&
+          steps.reports.outputs.junit_available == 'true' &&
+          (
+            github.event_name != 'pull_request' ||
+            github.event.pull_request.head.repo.full_name == github.repository
+          )
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ env.CODECOV_TOKEN }}
+          files: ${{ steps.reports.outputs.junit_files }}
+          disable_search: true
+          flags: e2e
+          name: playwright-e2e-results-${{ github.event_name }}
+          fail_ci_if_error: true
+          verbose: true
