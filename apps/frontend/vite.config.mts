@@ -1,35 +1,43 @@
-/// <reference types='vitest' />
-import { codecovVitePlugin } from "@codecov/vite-plugin";
-import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
-import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
+/// <reference types="vitest" />
+
+import { codecovVitePlugin } from '@codecov/vite-plugin';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig(() => ({
   root: import.meta.dirname,
   cacheDir: '../../node_modules/.vite/apps/frontend',
+
   server: {
     port: 3000,
     host: 'localhost',
   },
+
   preview: {
     port: 3000,
     host: 'localhost',
   },
+
   plugins: [
     react(),
-    nxViteTsPaths(),
-    nxCopyAssetsPlugin(['*.md']),
+    tsconfigPaths(),
+    viteStaticCopy({
+      targets: [
+        {
+          src: '*.md',
+          dest: '.',
+        },
+      ],
+    }),
     codecovVitePlugin({
       enableBundleAnalysis: process.env.CODECOV_TOKEN !== undefined,
-      bundleName: "aerealith-frontend",
+      bundleName: 'aerealith-frontend',
       uploadToken: process.env.CODECOV_TOKEN,
     }),
   ],
-  // Uncomment this if you are using workers.
-  // worker: {
-  //   plugins: () => [ nxViteTsPaths() ],
-  // },
+
   build: {
     outDir: '../../dist/apps/frontend',
     emptyOutDir: true,
@@ -38,6 +46,7 @@ export default defineConfig(() => ({
       transformMixedEsModules: true,
     },
   },
+
   test: {
     name: 'frontend',
     watch: false,
@@ -47,7 +56,7 @@ export default defineConfig(() => ({
     reporters: ['default'],
     coverage: {
       reportsDirectory: '../../coverage/apps/frontend',
-      provider: 'v8' as const,
+      provider: 'v8',
     },
   },
 }));
