@@ -46,3 +46,7 @@ Thumbs.db
 .husky/_/*
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
+
+*.env
+.env.*
+!.env.example

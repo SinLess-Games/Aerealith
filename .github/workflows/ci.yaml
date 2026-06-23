@@ -1,0 +1,482 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+      - staging
+      - production
+
+  pull_request:
+    branches:
+      - master
+      - staging
+      - production
+
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  NX_DAEMON: "false"
+  NX_TASKS_RUNNER_DYNAMIC_OUTPUT: "false"
+  PNPM_STORE_DIR: ${{ github.workspace }}/.pnpm-store
+
+jobs:
+  validate:
+    name: Validate workspace
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    outputs:
+      affected_projects: ${{ steps.range.outputs.affected_projects }}
+      base_sha: ${{ steps.range.outputs.base_sha }}
+      head_sha: ${{ steps.range.outputs.head_sha }}
+      pnpm_cache: ${{ steps.cache_pnpm.outputs.cache-hit }}
+      nx_cache: ${{ steps.cache_nx.outputs.cache-hit }}
+      install: ${{ steps.install.outcome }}
+      lint: ${{ steps.lint.outcome }}
+      typecheck: ${{ steps.typecheck.outcome }}
+      test: ${{ steps.test.outcome }}
+      build: ${{ steps.build.outcome }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          filter: tree:0
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.23.0
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Prepare CI directories
+        shell: bash
+        run: |
+          mkdir -p \
+            "$PNPM_STORE_DIR" \
+            ".nx/cache" \
+            "artifacts/ci"
+
+      - name: Restore pnpm store cache
+        id: cache_pnpm
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.PNPM_STORE_DIR }}
+          key: pnpm-store-${{ runner.os }}-node-24-pnpm-10-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-store-${{ runner.os }}-node-24-pnpm-10-
+
+      - name: Restore Nx local cache
+        id: cache_nx
+        uses: actions/cache@v5
+        with:
+          path: .nx/cache
+          key: nx-cache-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            nx-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'package.json', 'nx.json') }}-
+            nx-cache-${{ runner.os }}-
+
+      - name: Verify toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          {
+            echo '## Toolchain'
+            echo
+            echo "| Tool | Version |"
+            echo "| --- | --- |"
+            echo "| Node.js | \`$(node --version)\` |"
+            echo "| pnpm | \`$(pnpm --version)\` |"
+            echo "| Nx | \`$(pnpm exec nx --version | tail -n 1)\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          node --version
+          pnpm --version
+          pnpm exec nx --version
+
+      - name: Install dependencies
+        id: install
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+
+          pnpm install \
+            --frozen-lockfile \
+            --store-dir "$PNPM_STORE_DIR" \
+            2>&1 | tee artifacts/ci/install.log
+
+      - name: Resolve Nx comparison range
+        id: range
+        continue-on-error: true
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_BASE_SHA: ${{ github.event.before }}
+          PUSH_HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            base_sha="$PULL_REQUEST_BASE_SHA"
+            head_sha="$PULL_REQUEST_HEAD_SHA"
+          elif [[ "$EVENT_NAME" == "push" ]]; then
+            base_sha="$PUSH_BASE_SHA"
+            head_sha="$PUSH_HEAD_SHA"
+          else
+            head_sha="$PUSH_HEAD_SHA"
+            base_sha="$(git rev-parse "${head_sha}^" 2>/dev/null || printf '%s' "$head_sha")"
+          fi
+
+          if [[ -z "$base_sha" || "$base_sha" =~ ^0+$ ]]; then
+            base_sha="$(git rev-parse "${head_sha}^" 2>/dev/null || printf '%s' "$head_sha")"
+          fi
+
+          git cat-file -e "${base_sha}^{commit}"
+          git cat-file -e "${head_sha}^{commit}"
+
+          affected_projects="$(
+            pnpm exec nx show projects \
+              --affected \
+              --base="$base_sha" \
+              --head="$head_sha" |
+              tr '\n' ',' |
+              sed 's/,$//'
+          )"
+
+          {
+            echo "NX_BASE=$base_sha"
+            echo "NX_HEAD=$head_sha"
+          } >> "$GITHUB_ENV"
+
+          {
+            echo "base_sha=$base_sha"
+            echo "head_sha=$head_sha"
+            echo "affected_projects=$affected_projects"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo '## Nx comparison range'
+            echo
+            echo "- Base: \`$base_sha\`"
+            echo "- Head: \`$head_sha\`"
+            echo "- Affected projects: \`${affected_projects:-none detected}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run affected lint checks
+        id: lint
+        if: steps.install.outcome == 'success' && steps.range.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+
+          pnpm exec nx affected \
+            --targets=lint \
+            --base="$NX_BASE" \
+            --head="$NX_HEAD" \
+            2>&1 | tee artifacts/ci/lint.log
+
+      - name: Run affected type checks
+        id: typecheck
+        if: steps.install.outcome == 'success' && steps.range.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+
+          pnpm exec nx affected \
+            --targets=typecheck \
+            --base="$NX_BASE" \
+            --head="$NX_HEAD" \
+            2>&1 | tee artifacts/ci/typecheck.log
+
+      - name: Run affected tests
+        id: test
+        if: steps.install.outcome == 'success' && steps.range.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+
+          pnpm exec nx affected \
+            --targets=test \
+            --base="$NX_BASE" \
+            --head="$NX_HEAD" \
+            2>&1 | tee artifacts/ci/test.log
+
+      - name: Build affected projects
+        id: build
+        if: steps.install.outcome == 'success' && steps.range.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+
+          pnpm exec nx affected \
+            --targets=build \
+            --base="$NX_BASE" \
+            --head="$NX_HEAD" \
+            2>&1 | tee artifacts/ci/build.log
+
+      - name: Run Nx Cloud self-healing analysis
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+
+          pnpm exec nx fix-ci 2>&1 | tee artifacts/ci/nx-fix-ci.log
+
+      - name: Upload CI logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ci-logs-${{ github.run_id }}
+          path: artifacts/ci/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Write validation summary
+        if: always()
+        shell: bash
+        env:
+          PNPM_CACHE: ${{ steps.cache_pnpm.outputs.cache-hit }}
+          NX_CACHE: ${{ steps.cache_nx.outputs.cache-hit }}
+          INSTALL: ${{ steps.install.outcome }}
+          RANGE: ${{ steps.range.outcome }}
+          LINT: ${{ steps.lint.outcome }}
+          TYPECHECK: ${{ steps.typecheck.outcome }}
+          TEST: ${{ steps.test.outcome }}
+          BUILD: ${{ steps.build.outcome }}
+        run: |
+          {
+            echo '## Aerealith CI validation'
+            echo
+            echo "| Check | Result |"
+            echo "| --- | --- |"
+            echo "| pnpm store cache | ${PNPM_CACHE:-false} |"
+            echo "| Nx local cache | ${NX_CACHE:-false} |"
+            echo "| Dependency install | ${INSTALL:-unknown} |"
+            echo "| Nx comparison range | ${RANGE:-unknown} |"
+            echo "| Lint | ${LINT:-unknown} |"
+            echo "| Typecheck | ${TYPECHECK:-unknown} |"
+            echo "| Tests | ${TEST:-unknown} |"
+            echo "| Build | ${BUILD:-unknown} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail when workspace validation failed
+        if: always()
+        shell: bash
+        env:
+          INSTALL: ${{ steps.install.outcome }}
+          RANGE: ${{ steps.range.outcome }}
+          LINT: ${{ steps.lint.outcome }}
+          TYPECHECK: ${{ steps.typecheck.outcome }}
+          TEST: ${{ steps.test.outcome }}
+          BUILD: ${{ steps.build.outcome }}
+        run: |
+          set -euo pipefail
+
+          failed=false
+
+          for result in \
+            "$INSTALL" \
+            "$RANGE" \
+            "$LINT" \
+            "$TYPECHECK" \
+            "$TEST" \
+            "$BUILD"; do
+            if [[ "$result" != "success" ]]; then
+              failed=true
+            fi
+          done
+
+          if [[ "$failed" == "true" ]]; then
+            echo '::error::One or more CI validation checks failed.'
+            exit 1
+          fi
+
+  megalinter:
+    name: MegaLinter
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    outputs:
+      result: ${{ steps.megalinter.outcome }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          filter: tree:0
+
+      - name: Run MegaLinter
+        id: megalinter
+        continue-on-error: true
+        uses: oxsecurity/megalinter@v9.5.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLY_FIXES: none
+          DEFAULT_WORKSPACE: ${{ github.workspace }}
+          SHOW_ELAPSED_TIME: true
+          VALIDATE_ALL_CODEBASE: false
+
+      - name: Upload MegaLinter report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: megalinter-report-${{ github.run_id }}
+          path: megalinter-reports/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Fail when MegaLinter failed
+        if: always() && steps.megalinter.outcome != 'success'
+        shell: bash
+        run: |
+          echo '::error::MegaLinter reported one or more validation failures.'
+          exit 1
+
+  report:
+    name: Publish CI result
+    needs:
+      - validate
+      - megalinter
+    if: ${{ always() && github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Update pull request CI summary
+        continue-on-error: true
+        uses: actions/github-script@v9
+        env:
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          RUN_NUMBER: ${{ github.run_number }}
+          AFFECTED_PROJECTS: ${{ needs.validate.outputs.affected_projects }}
+          BASE_SHA: ${{ needs.validate.outputs.base_sha }}
+          HEAD_SHA: ${{ needs.validate.outputs.head_sha }}
+          PNPM_CACHE: ${{ needs.validate.outputs.pnpm_cache }}
+          NX_CACHE: ${{ needs.validate.outputs.nx_cache }}
+          INSTALL: ${{ needs.validate.outputs.install }}
+          LINT: ${{ needs.validate.outputs.lint }}
+          TYPECHECK: ${{ needs.validate.outputs.typecheck }}
+          TEST: ${{ needs.validate.outputs.test }}
+          BUILD: ${{ needs.validate.outputs.build }}
+          MEGALINTER: ${{ needs.megalinter.outputs.result }}
+          VALIDATE_JOB: ${{ needs.validate.result }}
+          MEGALINTER_JOB: ${{ needs.megalinter.result }}
+        with:
+          retries: 2
+          script: |
+            const marker = '<!-- aerealith-ci-summary -->';
+            const issueNumber = context.payload.pull_request.number;
+
+            const resultLabel = (value) => {
+              const results = {
+                success: '✅ Passed',
+                failure: '❌ Failed',
+                skipped: '➖ Skipped',
+                cancelled: '⚪ Cancelled',
+              };
+
+              return results[value] ?? '⚠️ Unknown';
+            };
+
+            const overall =
+              process.env.VALIDATE_JOB === 'success' &&
+              process.env.MEGALINTER_JOB === 'success'
+                ? '✅ Passed'
+                : '❌ Failed';
+
+            const affectedProjects =
+              process.env.AFFECTED_PROJECTS?.trim() || 'None detected';
+
+            const body = [
+              marker,
+              '## Aerealith CI',
+              '',
+              `**Overall result:** ${overall}`,
+              `**Run:** [#${process.env.RUN_NUMBER}](${process.env.RUN_URL})`,
+              '',
+              '| Check | Result |',
+              '| --- | --- |',
+              `| Dependency install | ${resultLabel(process.env.INSTALL)} |`,
+              `| Nx lint | ${resultLabel(process.env.LINT)} |`,
+              `| Nx typecheck | ${resultLabel(process.env.TYPECHECK)} |`,
+              `| Nx tests | ${resultLabel(process.env.TEST)} |`,
+              `| Nx build | ${resultLabel(process.env.BUILD)} |`,
+              `| MegaLinter | ${resultLabel(process.env.MEGALINTER)} |`,
+              '',
+              '### Cache',
+              '',
+              `- pnpm store: \`${process.env.PNPM_CACHE === 'true' ? 'hit' : 'miss'}\``,
+              `- Nx local cache: \`${process.env.NX_CACHE === 'true' ? 'hit' : 'miss'}\``,
+              '',
+              '<details>',
+              '<summary>Run details</summary>',
+              '',
+              `- Base SHA: \`${process.env.BASE_SHA || 'unavailable'}\``,
+              `- Head SHA: \`${process.env.HEAD_SHA || 'unavailable'}\``,
+              `- Affected projects: \`${affectedProjects.slice(0, 1500)}\``,
+              '',
+              '</details>',
+            ].join('\n');
+
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                per_page: 100,
+              },
+            );
+
+            const existingComment = comments.find(
+              (comment) =>
+                comment.user?.type === 'Bot' &&
+                comment.body?.includes(marker),
+            );
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body,
+              });
+
+              return;
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body,
+            });
