@@ -1,0 +1,251 @@
+# .github/workflows/codeql.yaml
+#
+# Dynamically detects CodeQL-supported languages in tracked repository files,
+# then scans every detected language in a separate CodeQL job.
+#
+# Detection includes:
+# - C/C++
+# - C#
+# - Go
+# - Java/Kotlin
+# - JavaScript/TypeScript
+# - Python
+# - Ruby
+# - Rust
+# - Swift
+# - GitHub Actions workflows
+#
+# Build behavior:
+# - Interpreted languages use build-mode: none.
+# - C/C++, C#, Java/Kotlin, and Rust use build-mode: none so CodeQL can scan
+#   source without requiring a repository-specific build command.
+# - Go and Swift use build-mode: autobuild.
+# - Swift scans use macos-latest because Swift analysis requires macOS.
+#
+# Required repository capability:
+# - GitHub Code Security / Code Scanning must be enabled for private
+#   organization repositories.
+
+name: CodeQL
+
+on:
+  push:
+    branches:
+      - master
+      - staging
+      - production
+
+  pull_request:
+    branches:
+      - master
+      - staging
+      - production
+
+  merge_group:
+
+  schedule:
+    # Weekly full repository scan every Sunday at 03:30 UTC.
+    - cron: "30 3 * * 0"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: >-
+    codeql-${{
+      github.event.pull_request.number ||
+      github.ref ||
+      github.run_id
+    }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  detect-languages:
+    name: Detect CodeQL languages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    outputs:
+      matrix: ${{ steps.detect.outputs.matrix }}
+      languages: ${{ steps.detect.outputs.languages }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Detect supported languages
+        id: detect
+        run: |
+          set -euo pipefail
+
+          declare -A detected=()
+
+          while IFS= read -r -d '' file; do
+            case "$file" in
+              node_modules/*|*/node_modules/*|dist/*|*/dist/*|coverage/*|*/coverage/*|.nx/*|*/.nx/*)
+                continue
+                ;;
+            esac
+
+            case "$file" in
+              *.js|*.cjs|*.mjs|*.jsx|*.ts|*.cts|*.mts|*.tsx|*.vue|*.svelte|*.astro)
+                detected['javascript-typescript']=true
+                ;;
+            esac
+
+            case "$file" in
+              *.py)
+                detected['python']=true
+                ;;
+            esac
+
+            case "$file" in
+              *.rb|Gemfile|Rakefile)
+                detected['ruby']=true
+                ;;
+            esac
+
+            case "$file" in
+              *.c|*.cc|*.cp|*.cpp|*.cxx|*.h|*.hh|*.hpp|*.hxx)
+                detected['c-cpp']=true
+                ;;
+            esac
+
+            case "$file" in
+              *.cs)
+                detected['csharp']=true
+                ;;
+            esac
+
+            case "$file" in
+              *.go)
+                detected['go']=true
+                ;;
+            esac
+
+            case "$file" in
+              *.java|*.kt|*.kts)
+                detected['java-kotlin']=true
+                ;;
+            esac
+
+            case "$file" in
+              *.rs)
+                detected['rust']=true
+                ;;
+            esac
+
+            case "$file" in
+              *.swift)
+                detected['swift']=true
+                ;;
+            esac
+
+            case "$file" in
+              .github/workflows/*.yml|.github/workflows/*.yaml|action.yml|action.yaml|*/action.yml|*/action.yaml)
+                detected['actions']=true
+                ;;
+            esac
+          done < <(git ls-files -z)
+
+          if (( ${#detected[@]} == 0 )); then
+            echo "::error::No CodeQL-supported languages were detected in tracked repository files."
+            exit 1
+          fi
+
+          mapfile -t languages < <(
+            printf '%s\n' "${!detected[@]}" | sort
+          )
+
+          matrix="$(
+            printf '%s\n' "${languages[@]}" |
+              jq -R . |
+              jq -cs '{
+                include: map({
+                  language: .,
+                  build_mode: (
+                    if (. == "go" or . == "swift")
+                    then "autobuild"
+                    else "none"
+                    end
+                  ),
+                  runner: (
+                    if . == "swift"
+                    then "macos-latest"
+                    else "ubuntu-latest"
+                    end
+                  )
+                })
+              }'
+          )"
+
+          languages_json="$(
+            printf '%s\n' "${languages[@]}" |
+              jq -R . |
+              jq -sc '.'
+          )"
+
+          {
+            echo "matrix=$matrix"
+            echo "languages=$languages_json"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo '## CodeQL Language Detection'
+            echo
+            echo 'The workflow will scan these CodeQL-supported languages:'
+            echo
+
+            for language in "${languages[@]}"; do
+              echo "- \`$language\`"
+            done
+
+            echo
+            echo '### Generated Scan Matrix'
+            echo
+            echo '```json'
+            echo "$matrix"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  analyze:
+    name: Analyze ${{ matrix.language }}
+    needs: detect-languages
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.detect-languages.outputs.matrix) }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build_mode }}
+
+          # Includes CodeQL's default security suite plus additional lower
+          # severity and lower precision security queries.
+          queries: security-extended
+
+      - name: Analyze code
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:${{ matrix.language }}"
