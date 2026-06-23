@@ -1,0 +1,1295 @@
+name: Aerealith Governance Bootstrap
+
+run-name: Aerealith governance bootstrap • @${{ github.actor }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type BOOTSTRAP_AEREALITH_GOVERNANCE to continue."
+        required: true
+        type: string
+
+      replace_legacy_labels:
+        description: "Delete repository labels not defined in labels.yaml."
+        required: true
+        default: false
+        type: boolean
+
+      dry_run:
+        description: "Preview changes without writing to GitHub."
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aerealith-governance-bootstrap-${{ github.repository }}
+  cancel-in-progress: false
+
+env:
+  REQUIRED_CONFIRMATION: BOOTSTRAP_AEREALITH_GOVERNANCE
+
+jobs:
+  bootstrap:
+    name: Bootstrap Aerealith Governance
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout governance configuration
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Bootstrap labels milestones and Project
+        id: governance
+        uses: actions/github-script@v9
+        env:
+          BOOTSTRAP_CONFIRMATION: ${{ inputs.confirmation }}
+          REPLACE_LEGACY_LABELS: ${{ inputs.replace_legacy_labels }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        with:
+          github-token: ${{ secrets.GH_AW_WRITE_PROJECT_TOKEN }}
+          retries: 2
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const { execFileSync } = require('child_process');
+
+            const owner = context.repo.owner;
+            const repository = context.repo.repo;
+            const defaultBranch = context.payload.repository.default_branch;
+
+            const dryRun = process.env.DRY_RUN === 'true';
+            const replaceLegacyLabels =
+              process.env.REPLACE_LEGACY_LABELS === 'true';
+
+            const suppliedConfirmation = String(
+              process.env.BOOTSTRAP_CONFIRMATION || '',
+            ).trim();
+
+            const requiredConfirmation = String(
+              process.env.REQUIRED_CONFIRMATION ||
+                'BOOTSTRAP_AEREALITH_GOVERNANCE',
+            ).trim();
+
+            const workspace = process.env.GITHUB_WORKSPACE;
+
+            const stats = {
+              createdLabels: 0,
+              updatedLabels: 0,
+              deletedLabels: 0,
+              createdMilestones: 0,
+              createdProject: false,
+              updatedProject: false,
+              linkedRepositories: 0,
+              createdFields: 0,
+              updatedFieldOptions: 0,
+              dryRunActions: [],
+              manualViews: [],
+            };
+
+            const allowedProjectColors = new Set([
+              'GRAY',
+              'BLUE',
+              'GREEN',
+              'YELLOW',
+              'ORANGE',
+              'RED',
+              'PINK',
+              'PURPLE',
+            ]);
+
+            const projectTypeMap = {
+              singleSelect: 'SINGLE_SELECT',
+              text: 'TEXT',
+              number: 'NUMBER',
+              date: 'DATE',
+            };
+
+            const projectSelection = `
+              id
+              number
+              title
+              shortDescription
+              public
+              url
+              repositories(first: 100) {
+                nodes {
+                  id
+                  nameWithOwner
+                }
+              }
+              fields(first: 100) {
+                nodes {
+                  __typename
+                  ... on ProjectV2Field {
+                    id
+                    name
+                    dataType
+                  }
+                  ... on ProjectV2SingleSelectField {
+                    id
+                    name
+                    dataType
+                    options {
+                      id
+                      name
+                      color
+                      description
+                    }
+                  }
+                  ... on ProjectV2IterationField {
+                    id
+                    name
+                    dataType
+                  }
+                }
+              }
+            `;
+
+            function fail(message) {
+              throw new Error(message);
+            }
+
+            function plan(message) {
+              stats.dryRunActions.push(message);
+              core.info(`[dry run] ${message}`);
+            }
+
+            async function graphql(query, variables = {}) {
+              try {
+                return await github.graphql(query, variables);
+              } catch (error) {
+                const message = String(error?.message || error);
+
+                if (
+                  message.includes('Resource not accessible') ||
+                  message.includes('FORBIDDEN') ||
+                  message.includes('Could not resolve to a node')
+                ) {
+                  throw new Error(
+                    'GH_AW_WRITE_PROJECT_TOKEN cannot access the required ' +
+                      'GitHub Project or organization resource. Confirm it has ' +
+                      'Organization Projects: Read and write access for ' +
+                      'SinLess-Games. ' +
+                      `Original error: ${message}`,
+                  );
+                }
+
+                throw error;
+              }
+            }
+
+            async function rest(operation, parameters) {
+              try {
+                return await operation(parameters);
+              } catch (error) {
+                const message = String(error?.message || error);
+
+                if (
+                  message.includes('Not Found') ||
+                  message.includes('404') ||
+                  message.includes('Resource not accessible')
+                ) {
+                  throw new Error(
+                    'GH_AW_WRITE_PROJECT_TOKEN cannot perform this repository ' +
+                      'write. Confirm it is scoped to SinLess-Games/Aerealith ' +
+                      'with repository Issues: Read and write permission. ' +
+                      `Original error: ${message}`,
+                  );
+                }
+
+                throw error;
+              }
+            }
+
+            function parseYamlConfiguration() {
+              const rubyProgram = String.raw`
+                require 'date'
+                require 'json'
+                require 'time'
+                require 'yaml'
+
+                def load_yaml(path)
+                  raise "Required configuration file is missing: #{path}" unless File.file?(path)
+
+                  YAML.safe_load(
+                    File.read(path),
+                    permitted_classes: [::Date, ::Time],
+                    aliases: true,
+                  ) || {}
+                end
+
+                def json_safe(value)
+                  case value
+                  when ::Date
+                    value.iso8601
+                  when ::Time
+                    value.utc.iso8601
+                  when Array
+                    value.map { |item| json_safe(item) }
+                  when Hash
+                    value.transform_keys(&:to_s).transform_values { |item| json_safe(item) }
+                  else
+                    value
+                  end
+                end
+
+                def collect_labels(node, labels = [], key = nil)
+                  case node
+                  when Array
+                    node.each do |item|
+                      collect_labels(item, labels)
+                    end
+
+                  when Hash
+                    value = node.transform_keys(&:to_s)
+
+                    if value['name'].is_a?(String) && value['color'].is_a?(String)
+                      labels << {
+                        'name' => value['name'],
+                        'color' => value['color'],
+                        'description' => value['description'].to_s,
+                      }
+                    elsif key.is_a?(String) && value['color'].is_a?(String)
+                      labels << {
+                        'name' => key,
+                        'color' => value['color'],
+                        'description' => value['description'].to_s,
+                      }
+                    else
+                      value.each do |child_key, child_value|
+                        collect_labels(child_value, labels, child_key)
+                      end
+                    end
+                  end
+
+                  labels
+                end
+
+                def collect_milestones(node, milestones = [], key = nil)
+                  case node
+                  when Array
+                    node.each do |item|
+                      collect_milestones(item, milestones)
+                    end
+
+                  when Hash
+                    value = node.transform_keys(&:to_s)
+
+                    if value['title'].is_a?(String)
+                      milestones << {
+                        'title' => value['title'],
+                        'description' => value['description'].to_s,
+                        'due_on' => value['due_on'] ||
+                          value['due-date'] ||
+                          value['due_date'],
+                      }
+                    elsif key.is_a?(String) && (
+                      value.key?('description') ||
+                      value.key?('due_on') ||
+                      value.key?('due-date') ||
+                      value.key?('due_date')
+                    )
+                      milestones << {
+                        'title' => key,
+                        'description' => value['description'].to_s,
+                        'due_on' => value['due_on'] ||
+                          value['due-date'] ||
+                          value['due_date'],
+                      }
+                    else
+                      value.each do |child_key, child_value|
+                        collect_milestones(child_value, milestones, child_key)
+                      end
+                    end
+                  end
+
+                  milestones
+                end
+
+                labels_document = load_yaml('.github/config/labels.yaml')
+                milestones_document = load_yaml('.github/config/milestones.yaml')
+                project_document = load_yaml('.github/config/project.yaml')
+
+                puts JSON.generate(
+                  {
+                    'labels' => json_safe(collect_labels(labels_document)),
+                    'milestones' => json_safe(collect_milestones(milestones_document)),
+                    'project' => json_safe(project_document),
+                  },
+                )
+              `;
+
+              const output = execFileSync(
+                'ruby',
+                ['-e', rubyProgram],
+                {
+                  cwd: workspace,
+                  encoding: 'utf8',
+                },
+              );
+
+              return JSON.parse(output);
+            }
+
+            function normalizeLabel(label) {
+              const name = String(label?.name || '').trim();
+              const color = String(label?.color || '')
+                .replace(/^#/, '')
+                .trim()
+                .toLowerCase();
+
+              const description = String(label?.description || '').trim();
+
+              if (!name) {
+                fail('A configured label has an empty name.');
+              }
+
+              if (!/^[0-9a-f]{6}$/i.test(color)) {
+                fail(
+                  `Invalid label color for "${name}": "${label?.color}". ` +
+                    'Expected a six-character hexadecimal value.',
+                );
+              }
+
+              if (description.length > 100) {
+                fail(
+                  `Label description for "${name}" exceeds GitHub's ` +
+                    '100-character limit.',
+                );
+              }
+
+              return {
+                name,
+                color,
+                description,
+              };
+            }
+
+            function normalizeMilestone(milestone) {
+              const title = String(milestone?.title || '').trim();
+              const description = String(milestone?.description || '').trim();
+              const rawDueOn = String(milestone?.due_on || '').trim();
+
+              if (!title) {
+                fail('A configured milestone has an empty title.');
+              }
+
+              let dueOn = null;
+
+              if (rawDueOn) {
+                if (/^\d{4}-\d{2}-\d{2}$/.test(rawDueOn)) {
+                  dueOn = `${rawDueOn}T00:00:00Z`;
+                } else {
+                  const parsed = new Date(rawDueOn);
+
+                  if (Number.isNaN(parsed.getTime())) {
+                    fail(
+                      `Invalid due date for milestone "${title}": "${rawDueOn}".`,
+                    );
+                  }
+
+                  dueOn = parsed.toISOString();
+                }
+              }
+
+              return {
+                title,
+                description,
+                dueOn,
+              };
+            }
+
+            function normalizeField(field) {
+              const name = String(field?.name || '').trim();
+              const configuredType = String(field?.type || '').trim();
+
+              if (!name) {
+                fail('A Project field has an empty name.');
+              }
+
+              const dataType = projectTypeMap[configuredType];
+
+              if (!dataType) {
+                fail(
+                  `Unsupported Project field type "${configuredType}" for ` +
+                    `"${name}". Supported types: singleSelect, text, number, date.`,
+                );
+              }
+
+              const options = Array.isArray(field.options)
+                ? field.options.map((option) => {
+                    const optionName = String(option?.name || '').trim();
+                    const color = String(option?.color || 'GRAY')
+                      .trim()
+                      .toUpperCase();
+
+                    const description = String(
+                      option?.description || '',
+                    ).trim();
+
+                    if (!optionName) {
+                      fail(
+                        `Project field "${name}" has an option with no name.`,
+                      );
+                    }
+
+                    if (!allowedProjectColors.has(color)) {
+                      fail(
+                        `Project field "${name}" option "${optionName}" has ` +
+                          `unsupported color "${color}".`,
+                      );
+                    }
+
+                    return {
+                      name: optionName,
+                      color,
+                      description,
+                    };
+                  })
+                : [];
+
+              if (dataType === 'SINGLE_SELECT' && options.length === 0) {
+                fail(
+                  `Project field "${name}" is singleSelect but has no options.`,
+                );
+              }
+
+              return {
+                name,
+                dataType,
+                options,
+              };
+            }
+
+            function normalizeRepositoryName(value) {
+              const fullName = String(value || '').trim();
+
+              if (!/^[^/\s]+\/[^/\s]+$/.test(fullName)) {
+                fail(
+                  `Invalid source repository "${fullName}". ` +
+                    'Expected OWNER/REPOSITORY.',
+                );
+              }
+
+              return fullName;
+            }
+
+            if (context.ref !== `refs/heads/${defaultBranch}`) {
+              fail(
+                'Run this workflow from the default branch only. ' +
+                  `Current ref: "${context.ref}". ` +
+                  `Expected: "refs/heads/${defaultBranch}".`,
+              );
+            }
+
+            if (suppliedConfirmation !== requiredConfirmation) {
+              fail(
+                `Confirmation failed. Enter "${requiredConfirmation}" exactly.`,
+              );
+            }
+
+            const config = parseYamlConfiguration();
+
+            const projectDocument = config.project || {};
+            const projectConfig = projectDocument.project || {};
+
+            if (
+              String(projectConfig.ownerType || '').toLowerCase() !==
+              'organization'
+            ) {
+              fail(
+                'project.ownerType must be "organization" for this workflow.',
+              );
+            }
+
+            const configuredOwner = String(
+              projectConfig.ownerLogin || '',
+            ).trim();
+
+            const projectTitle = String(
+              projectConfig.title || '',
+            ).trim();
+
+            const projectDescription = String(
+              projectConfig.shortDescription || '',
+            ).trim();
+
+            const projectVisibility = String(
+              projectConfig.visibility || 'private',
+            ).trim().toLowerCase();
+
+            const configuredProjectId = projectConfig.projectId
+              ? String(projectConfig.projectId).trim()
+              : null;
+
+            if (
+              configuredOwner.toLowerCase() !== owner.toLowerCase()
+            ) {
+              fail(
+                'project.ownerLogin must match the repository organization. ' +
+                  `Expected "${owner}", received "${configuredOwner}".`,
+              );
+            }
+
+            if (!projectTitle) {
+              fail('project.title is required in project.yaml.');
+            }
+
+            if (
+              projectVisibility !== 'private' &&
+              projectVisibility !== 'public'
+            ) {
+              fail(
+                'project.visibility must be either "private" or "public".',
+              );
+            }
+
+            const desiredLabels = (config.labels || [])
+              .map(normalizeLabel)
+              .sort((left, right) => left.name.localeCompare(right.name));
+
+            const desiredMilestones = (config.milestones || [])
+              .map(normalizeMilestone)
+              .sort((left, right) => left.title.localeCompare(right.title));
+
+            const desiredFields = (projectDocument.fields || [])
+              .map(normalizeField)
+              .sort((left, right) => left.name.localeCompare(right.name));
+
+            if (desiredLabels.length === 0) {
+              fail(
+                'No labels were found in .github/config/labels.yaml.',
+              );
+            }
+
+            if (desiredMilestones.length === 0) {
+              fail(
+                'No milestones were found in .github/config/milestones.yaml.',
+              );
+            }
+
+            const labelNames = new Set();
+
+            for (const label of desiredLabels) {
+              if (labelNames.has(label.name)) {
+                fail(`Duplicate label in labels.yaml: "${label.name}".`);
+              }
+
+              labelNames.add(label.name);
+            }
+
+            const milestoneTitles = new Set();
+
+            for (const milestone of desiredMilestones) {
+              if (milestoneTitles.has(milestone.title)) {
+                fail(
+                  `Duplicate milestone in milestones.yaml: "${milestone.title}".`,
+                );
+              }
+
+              milestoneTitles.add(milestone.title);
+            }
+
+            const fieldNames = new Set();
+
+            for (const field of desiredFields) {
+              if (fieldNames.has(field.name)) {
+                fail(
+                  `Duplicate Project field in project.yaml: "${field.name}".`,
+                );
+              }
+
+              fieldNames.add(field.name);
+            }
+
+            const repositoryLinking =
+              projectConfig.repositoryLinking || {};
+
+            let sourceRepositories =
+              repositoryLinking.enabled === false
+                ? []
+                : Array.isArray(repositoryLinking.sourceRepositories)
+                  ? repositoryLinking.sourceRepositories
+                  : [];
+
+            if (
+              repositoryLinking.enabled !== false &&
+              sourceRepositories.length === 0
+            ) {
+              sourceRepositories = [`${owner}/${repository}`];
+            }
+
+            sourceRepositories = Array.from(
+              new Set(sourceRepositories.map(normalizeRepositoryName)),
+            );
+
+            if (
+              repositoryLinking.enabled !== false &&
+              !sourceRepositories.some(
+                (fullName) =>
+                  fullName.toLowerCase() ===
+                  `${owner}/${repository}`.toLowerCase(),
+              )
+            ) {
+              sourceRepositories.push(`${owner}/${repository}`);
+            }
+
+            const repositoryNodes = [];
+
+            for (const fullName of sourceRepositories) {
+              const [repositoryOwner, repositoryName] = fullName.split('/');
+
+              const response = await rest(
+                github.rest.repos.get,
+                {
+                  owner: repositoryOwner,
+                  repo: repositoryName,
+                },
+              );
+
+              repositoryNodes.push({
+                id: response.data.node_id,
+                nameWithOwner: response.data.full_name,
+              });
+            }
+
+            const organizationResult = await graphql(
+              `
+                query FindAerealithProject($owner: String!) {
+                  organization(login: $owner) {
+                    id
+                    projectsV2(first: 100) {
+                      nodes {
+                        ${projectSelection}
+                      }
+                    }
+                  }
+                }
+              `,
+              {
+                owner,
+              },
+            );
+
+            const organization = organizationResult.organization;
+
+            if (!organization) {
+              fail(
+                `Organization "${owner}" was not found or is inaccessible ` +
+                  'to GH_AW_WRITE_PROJECT_TOKEN.',
+              );
+            }
+
+            let project = null;
+
+            if (configuredProjectId) {
+              const configuredProjectResult = await graphql(
+                `
+                  query GetConfiguredProject($projectId: ID!) {
+                    node(id: $projectId) {
+                      ... on ProjectV2 {
+                        ${projectSelection}
+                      }
+                    }
+                  }
+                `,
+                {
+                  projectId: configuredProjectId,
+                },
+              );
+
+              project = configuredProjectResult.node || null;
+
+              if (!project) {
+                fail(
+                  'project.yaml contains projectId, but GitHub could not find ' +
+                    'that Project. Resolve the stale ID manually before running bootstrap.',
+                );
+              }
+
+              if (project.title !== projectTitle) {
+                fail(
+                  'project.yaml projectId resolves to a Project with a different ' +
+                    `title. Expected "${projectTitle}", found "${project.title}".`,
+                );
+              }
+            } else {
+              const matchingProjects =
+                organization.projectsV2.nodes.filter(
+                  (candidate) => candidate.title === projectTitle,
+                );
+
+              if (matchingProjects.length > 1) {
+                fail(
+                  `Found ${matchingProjects.length} Projects named ` +
+                    `"${projectTitle}". Resolve duplicate Projects manually.`,
+                );
+              }
+
+              project = matchingProjects[0] || null;
+            }
+
+            if (!project) {
+              if (dryRun) {
+                plan(
+                  `Create organization Project "${projectTitle}".`,
+                );
+
+                project = {
+                  id: null,
+                  number: null,
+                  title: projectTitle,
+                  shortDescription: projectDescription,
+                  public: projectVisibility === 'public',
+                  url: null,
+                  repositories: {
+                    nodes: [],
+                  },
+                  fields: {
+                    nodes: [],
+                  },
+                };
+              } else {
+                const createdProject = await graphql(
+                  `
+                    mutation CreateAerealithProject(
+                      $input: CreateProjectV2Input!
+                    ) {
+                      createProjectV2(input: $input) {
+                        projectV2 {
+                          ${projectSelection}
+                        }
+                      }
+                    }
+                  `,
+                  {
+                    input: {
+                      ownerId: organization.id,
+                      title: projectTitle,
+                    },
+                  },
+                );
+
+                project = createdProject.createProjectV2.projectV2;
+                stats.createdProject = true;
+
+                core.info(
+                  `Created Project "${project.title}" (${project.id}).`,
+                );
+              }
+            }
+
+            const desiredPublic = projectVisibility === 'public';
+
+            if (
+              project.shortDescription !== projectDescription ||
+              project.public !== desiredPublic
+            ) {
+              if (dryRun) {
+                plan(
+                  `Update Project metadata for "${projectTitle}".`,
+                );
+              } else {
+                const updatedProject = await graphql(
+                  `
+                    mutation UpdateAerealithProject(
+                      $input: UpdateProjectV2Input!
+                    ) {
+                      updateProjectV2(input: $input) {
+                        projectV2 {
+                          ${projectSelection}
+                        }
+                      }
+                    }
+                  `,
+                  {
+                    input: {
+                      projectId: project.id,
+                      title: projectTitle,
+                      shortDescription: projectDescription,
+                      public: desiredPublic,
+                    },
+                  },
+                );
+
+                project = updatedProject.updateProjectV2.projectV2;
+                stats.updatedProject = true;
+
+                core.info(
+                  `Updated Project metadata for "${project.title}".`,
+                );
+              }
+            }
+
+            const linkedRepositories = new Set(
+              (project.repositories?.nodes || []).map(
+                (item) => item.nameWithOwner.toLowerCase(),
+              ),
+            );
+
+            for (const sourceRepository of repositoryNodes) {
+              if (
+                linkedRepositories.has(
+                  sourceRepository.nameWithOwner.toLowerCase(),
+                )
+              ) {
+                continue;
+              }
+
+              if (dryRun) {
+                plan(
+                  `Link Project "${projectTitle}" to ` +
+                    `"${sourceRepository.nameWithOwner}".`,
+                );
+
+                continue;
+              }
+
+              await graphql(
+                `
+                  mutation LinkProjectRepository(
+                    $input: LinkProjectV2ToRepositoryInput!
+                  ) {
+                    linkProjectV2ToRepository(input: $input) {
+                      repository {
+                        id
+                        nameWithOwner
+                      }
+                    }
+                  }
+                `,
+                {
+                  input: {
+                    projectId: project.id,
+                    repositoryId: sourceRepository.id,
+                  },
+                },
+              );
+
+              stats.linkedRepositories += 1;
+
+              core.info(
+                `Linked Project to "${sourceRepository.nameWithOwner}".`,
+              );
+            }
+
+            if (!dryRun) {
+              const refreshedProject = await graphql(
+                `
+                  query RefreshAerealithProject($projectId: ID!) {
+                    node(id: $projectId) {
+                      ... on ProjectV2 {
+                        ${projectSelection}
+                      }
+                    }
+                  }
+                `,
+                {
+                  projectId: project.id,
+                },
+              );
+
+              project = refreshedProject.node;
+            }
+
+            const existingFieldsByName = new Map(
+              (project.fields?.nodes || []).map(
+                (field) => [field.name, field],
+              ),
+            );
+
+            for (const field of desiredFields) {
+              const existingField = existingFieldsByName.get(field.name);
+
+              if (
+                existingField &&
+                existingField.dataType !== field.dataType
+              ) {
+                fail(
+                  `Project field "${field.name}" already exists with ` +
+                    `type "${existingField.dataType}", but project.yaml ` +
+                    `requires "${field.dataType}". Resolve this manually.`,
+                );
+              }
+
+              if (!existingField) {
+                if (dryRun) {
+                  plan(
+                    `Create Project field "${field.name}" (${field.dataType}).`,
+                  );
+
+                  continue;
+                }
+
+                const input = {
+                  projectId: project.id,
+                  name: field.name,
+                  dataType: field.dataType,
+                };
+
+                if (field.dataType === 'SINGLE_SELECT') {
+                  input.singleSelectOptions = field.options;
+                }
+
+                await graphql(
+                  `
+                    mutation CreateAerealithProjectField(
+                      $input: CreateProjectV2FieldInput!
+                    ) {
+                      createProjectV2Field(input: $input) {
+                        projectV2Field {
+                          ... on ProjectV2Field {
+                            id
+                            name
+                            dataType
+                          }
+                          ... on ProjectV2SingleSelectField {
+                            id
+                            name
+                            dataType
+                          }
+                        }
+                      }
+                    }
+                  `,
+                  {
+                    input,
+                  },
+                );
+
+                stats.createdFields += 1;
+                core.info(`Created Project field "${field.name}".`);
+
+                continue;
+              }
+
+              if (field.dataType !== 'SINGLE_SELECT') {
+                continue;
+              }
+
+              const existingOptions = existingField.options || [];
+              const existingOptionsByName = new Map(
+                existingOptions.map((option) => [option.name, option]),
+              );
+
+              let optionsChanged = false;
+
+              const synchronizedOptions = [
+                ...existingOptions
+                  .filter(
+                    (option) =>
+                      !field.options.some(
+                        (configuredOption) =>
+                          configuredOption.name === option.name,
+                      ),
+                  )
+                  .map((option) => ({
+                    id: option.id,
+                    name: option.name,
+                    color: option.color,
+                    description: option.description || '',
+                  })),
+                ...field.options.map((configuredOption) => {
+                  const existingOption = existingOptionsByName.get(
+                    configuredOption.name,
+                  );
+
+                  if (!existingOption) {
+                    optionsChanged = true;
+
+                    return configuredOption;
+                  }
+
+                  if (
+                    existingOption.color !== configuredOption.color ||
+                    String(existingOption.description || '').trim() !==
+                      configuredOption.description
+                  ) {
+                    optionsChanged = true;
+                  }
+
+                  return {
+                    id: existingOption.id,
+                    name: configuredOption.name,
+                    color: configuredOption.color,
+                    description: configuredOption.description,
+                  };
+                }),
+              ];
+
+              if (!optionsChanged) {
+                continue;
+              }
+
+              if (dryRun) {
+                plan(
+                  `Synchronize single-select options for ` +
+                    `Project field "${field.name}".`,
+                );
+
+                continue;
+              }
+
+              await graphql(
+                `
+                  mutation UpdateAerealithProjectField(
+                    $input: UpdateProjectV2FieldInput!
+                  ) {
+                    updateProjectV2Field(input: $input) {
+                      projectV2Field {
+                        ... on ProjectV2SingleSelectField {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                `,
+                {
+                  input: {
+                    fieldId: existingField.id,
+                    singleSelectOptions: synchronizedOptions,
+                  },
+                },
+              );
+
+              stats.updatedFieldOptions += 1;
+
+              core.info(
+                `Synchronized options for Project field "${field.name}".`,
+              );
+            }
+
+            const existingLabels = await github.paginate(
+              github.rest.issues.listLabelsForRepo,
+              {
+                owner,
+                repo: repository,
+                per_page: 100,
+              },
+            );
+
+            const existingLabelsByName = new Map(
+              existingLabels.map((label) => [label.name, label]),
+            );
+
+            for (const label of desiredLabels) {
+              const existingLabel = existingLabelsByName.get(label.name);
+
+              if (!existingLabel) {
+                if (dryRun) {
+                  plan(`Create label "${label.name}".`);
+                  continue;
+                }
+
+                await rest(
+                  github.rest.issues.createLabel,
+                  {
+                    owner,
+                    repo: repository,
+                    name: label.name,
+                    color: label.color,
+                    description: label.description,
+                  },
+                );
+
+                stats.createdLabels += 1;
+                core.info(`Created label "${label.name}".`);
+
+                continue;
+              }
+
+              const existingColor = String(
+                existingLabel.color || '',
+              ).toLowerCase();
+
+              const existingDescription = String(
+                existingLabel.description || '',
+              ).trim();
+
+              if (
+                existingColor === label.color &&
+                existingDescription === label.description
+              ) {
+                continue;
+              }
+
+              if (dryRun) {
+                plan(`Update label "${label.name}".`);
+                continue;
+              }
+
+              await rest(
+                github.rest.issues.updateLabel,
+                {
+                  owner,
+                  repo: repository,
+                  name: label.name,
+                  new_name: label.name,
+                  color: label.color,
+                  description: label.description,
+                },
+              );
+
+              stats.updatedLabels += 1;
+              core.info(`Updated label "${label.name}".`);
+            }
+
+            if (replaceLegacyLabels) {
+              for (const existingLabel of existingLabels) {
+                if (labelNames.has(existingLabel.name)) {
+                  continue;
+                }
+
+                if (dryRun) {
+                  plan(
+                    `Delete legacy label "${existingLabel.name}".`,
+                  );
+
+                  continue;
+                }
+
+                await rest(
+                  github.rest.issues.deleteLabel,
+                  {
+                    owner,
+                    repo: repository,
+                    name: existingLabel.name,
+                  },
+                );
+
+                stats.deletedLabels += 1;
+                core.info(
+                  `Deleted legacy label "${existingLabel.name}".`,
+                );
+              }
+            }
+
+            const existingMilestones = await github.paginate(
+              github.rest.issues.listMilestones,
+              {
+                owner,
+                repo: repository,
+                state: 'all',
+                per_page: 100,
+              },
+            );
+
+            const existingMilestoneTitles = new Set(
+              existingMilestones.map((milestone) => milestone.title),
+            );
+
+            for (const milestone of desiredMilestones) {
+              if (existingMilestoneTitles.has(milestone.title)) {
+                continue;
+              }
+
+              if (dryRun) {
+                plan(
+                  `Create milestone "${milestone.title}".`,
+                );
+
+                continue;
+              }
+
+              const milestonePayload = {
+                owner,
+                repo: repository,
+                title: milestone.title,
+                description: milestone.description,
+              };
+
+              if (milestone.dueOn) {
+                milestonePayload.due_on = milestone.dueOn;
+              }
+
+              await rest(
+                github.rest.issues.createMilestone,
+                milestonePayload,
+              );
+
+              stats.createdMilestones += 1;
+              core.info(
+                `Created milestone "${milestone.title}".`,
+              );
+            }
+
+            stats.manualViews = Array.isArray(projectDocument.views)
+              ? projectDocument.views
+                  .map((view) => String(view?.name || '').trim())
+                  .filter(Boolean)
+              : [];
+
+            if (!dryRun && project.id) {
+              core.setOutput('project-id', project.id);
+              core.setOutput('project-number', project.number);
+              core.setOutput('project-url', project.url);
+            }
+
+            await core.summary
+              .addHeading('Aerealith Governance Bootstrap')
+              .addRaw(
+                `Mode: **${dryRun ? 'Dry run' : 'Live bootstrap'}**`,
+              )
+              .addBreak()
+              .addRaw(
+                `Project: ${project.url || projectTitle}`,
+              )
+              .addBreak()
+              .addTable([
+                [
+                  { data: 'Operation', header: true },
+                  { data: 'Count', header: true },
+                ],
+                ['Created labels', String(stats.createdLabels)],
+                ['Updated labels', String(stats.updatedLabels)],
+                ['Deleted legacy labels', String(stats.deletedLabels)],
+                ['Created milestones', String(stats.createdMilestones)],
+                ['Created Project fields', String(stats.createdFields)],
+                [
+                  'Updated Project field options',
+                  String(stats.updatedFieldOptions),
+                ],
+                ['Linked repositories', String(stats.linkedRepositories)],
+                [
+                  'Created Project',
+                  stats.createdProject ? 'Yes' : 'No',
+                ],
+                [
+                  'Updated Project metadata',
+                  stats.updatedProject ? 'Yes' : 'No',
+                ],
+                [
+                  'Legacy label deletion',
+                  replaceLegacyLabels ? 'Enabled' : 'Disabled',
+                ],
+              ])
+              .addHeading('Project Views', 2)
+              .addRaw(
+                'GitHub Projects views are listed in project.yaml for policy ' +
+                  'and documentation. Create the following views manually in ' +
+                  'the Project UI after the bootstrap completes:',
+              )
+              .addList(
+                stats.manualViews.length > 0
+                  ? stats.manualViews
+                  : ['No Project views are configured.'],
+              )
+              .addHeading('Dry-Run Plan', 2)
+              .addList(
+                dryRun
+                  ? (
+                      stats.dryRunActions.length > 0
+                        ? stats.dryRunActions
+                        : ['No governance changes are required.']
+                    )
+                  : ['Live governance changes were applied.'],
+              )
+              .write();
