@@ -40,6 +40,8 @@ on:
         required: true
         default: false
         type: boolean
+  bots:
+    - renovate[bot]
 
 permissions:
   contents: read

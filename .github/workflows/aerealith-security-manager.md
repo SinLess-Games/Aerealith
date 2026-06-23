@@ -70,69 +70,26 @@ sandbox:
   agent: awf
 
 tools:
-  edit: true
+  edit: false
 
-  bash:
-    - 'git status'
-    - 'git status *'
-    - 'git diff'
-    - 'git diff *'
-    - 'git log'
-    - 'git log *'
-    - 'git ls-files'
-    - 'git ls-files *'
-    - 'git rev-parse *'
-
-    - 'find *'
-    - 'grep *'
-    - 'rg *'
-    - 'sed *'
-    - 'awk *'
-    - 'jq *'
-    - 'yq *'
-    - 'ls *'
-    - 'pwd'
-    - 'mkdir *'
-
-    - 'node *'
-    - 'pnpm *'
-    - 'npx *'
-    - 'python *'
-    - 'python3 *'
-    - 'pip *'
-    - 'pipx *'
-    - 'go *'
-    - 'cargo *'
-    - 'dotnet *'
-    - 'mvn *'
-    - './gradlew *'
-    - 'bundle *'
-    - 'ruby *'
-
-    - 'semgrep *'
-    - 'snyk *'
-    - 'trivy *'
-    - 'njsscan *'
-    - 'devskim *'
-    - 'hadolint *'
-    - 'docker *'
-
-    # Required fallback when the Safe Outputs MCP tool is unavailable.
-    - 'safeoutputs *'
+  # Security Manager must use GitHub read tools, never shell-based gh commands.
+  bash: []
 
   github:
     toolsets:
       - repos
+      - actions
       - issues
       - pull_requests
       - labels
-      - actions
-      - code_security
-      - dependabot
       - search
+      - code_security
+      - secret_protection
+      - dependabot
+      - security_advisories
 
-    # Least-privilege repository scope.
-    allowed-repos: 'all'
+    allowed-repos:
+      - 'sinless-games/aerealith'
 
     min-integrity: approved
 
@@ -146,6 +103,7 @@ safe-outputs:
   allowed-github-references:
     - repo
 
+  # Create a new draft pull request for security fixes.
   create-pull-request:
     title-prefix: 'security'
     branch-prefix: 'security/'
@@ -287,7 +245,7 @@ Your responsibilities are:
 1. Detect languages, package managers, build systems, tests, container files, API specifications, and infrastructure files.
 2. Read and follow `.github/config/security.yaml`.
 3. Run only the relevant validation and security checks for detected technology.
-4. Inspect current GitHub Code Scanning and Dependabot findings.
+4. Inspect available GitHub Code Scanning, Secret Scanning, Dependabot, security advisory, workflow-summary, and SARIF evidence.
 5. Classify every meaningful finding.
 6. Create at most one draft security remediation Pull Request for a narrow, safe, verified fix.
 7. Create one human-owned security Issue when the fix is high-risk, incomplete, or cannot be safely automated.
@@ -380,6 +338,69 @@ Required follow-up: deterministic Snyk scan workflow must upload results.
 
 Do not treat unavailable Snyk results as a passing security result.
 
+## GitHub Security Data Access
+
+Use configured GitHub read tools for all GitHub security-data retrieval.
+
+Use available read-tool groups for:
+
+```text
+code_security
+secret_protection
+dependabot
+security_advisories
+actions
+repos
+```
+
+Use `code_security` for Code Scanning alerts when it is configured and available.
+
+Use `secret_protection` for Secret Scanning alerts when it is configured and available.
+
+Use `dependabot` for Dependabot alerts when it is configured and available.
+
+Use `security_advisories` for advisory metadata when it is configured and available.
+
+Use `actions` and repository file reads for available workflow summaries, artifacts, SARIF files, and generated scan reports.
+
+Never use shell commands to retrieve GitHub security data.
+
+Never run:
+
+```text
+gh
+gh api
+gh code-scanning
+gh code-scanning list
+curl
+wget
+```
+
+Do not request missing shell tools.
+
+Do not report a workflow failure merely because a GitHub security read tool is unavailable.
+
+When a GitHub security read tool is unavailable:
+
+1. Record the relevant data source as unavailable.
+2. State the exact unavailable source.
+3. Inspect available workflow summaries, artifacts, SARIF files, and repository evidence instead.
+4. Continue with every other available scanner and security source.
+5. Do not treat unavailable data as a passing result.
+6. Do not create a human-owned Issue solely because the agent lacks a GitHub read tool.
+7. Do not create a remediation Pull Request based on unavailable or incomplete evidence.
+
+Use this reporting format:
+
+```text
+Security data source: unavailable
+Reason: <configured GitHub read tool or deterministic artifact was unavailable>
+Impact: no passing or remediation conclusion was made from this source
+Required follow-up: enable the relevant GitHub read tool or upload deterministic scan artifacts
+```
+
+Create a human-owned Issue for unavailable scanner or finding data only when `.github/config/security.yaml` explicitly requires that source for the detected technology or release gate.
+
 ## Execution Modes
 
 Determine the active mode in this order:
@@ -442,8 +463,10 @@ Identify:
 - OpenAPI and Swagger specifications.
 - Existing GitHub security workflows.
 - Existing SARIF files.
-- Existing Code Scanning findings.
-- Existing Dependabot findings.
+- Available GitHub Code Scanning findings.
+- Available Dependabot findings.
+- Available Secret Scanning findings.
+- Available workflow summaries and security artifacts.
 
 Use file evidence. Do not make assumptions.
 
@@ -566,8 +589,9 @@ For every detected language:
 1. Determine whether CodeQL supports it.
 2. Determine whether it is enabled in the configured CodeQL matrix.
 3. Determine whether an existing CodeQL workflow covers it.
-4. Inspect available GitHub Code Scanning findings.
-5. Report coverage state.
+4. Use available `code_security` GitHub read tools to inspect current Code Scanning findings.
+5. When `code_security` is unavailable, inspect available workflow summaries, SARIF artifacts, and completed CodeQL workflow evidence.
+6. Report CodeQL coverage state separately from Code Scanning finding retrieval state.
 
 Expected CodeQL matrix identifiers:
 
@@ -590,8 +614,11 @@ Rules:
 - Do not invent CodeQL scan results.
 - Do not change the CodeQL matrix.
 - Do not create or modify CodeQL workflows.
+- Never run `gh code-scanning`, `gh api`, or another shell command to inspect CodeQL findings.
 - Report unsupported or disabled detected languages as coverage gaps.
-- Treat CodeQL coverage gaps as human-review findings.
+- Treat confirmed CodeQL coverage gaps as human-review findings.
+- Treat unavailable Code Scanning read access as scanner-unavailable unless policy explicitly requires current Code Scanning alert retrieval.
+- Do not create a remediation Pull Request from incomplete CodeQL evidence.
 
 ## Step 3: Language Validation
 
@@ -774,6 +801,7 @@ Therefore:
 3. Never claim Snyk passed when it was not run.
 4. Never attempt to read or echo `SNYK_TOKEN`.
 5. Never automatically change dependency versions, manifests, or lockfiles.
+6. Do not create an Issue solely because the agent cannot directly access `SNYK_TOKEN`.
 
 ### Sonar
 
@@ -828,6 +856,7 @@ For every Dockerfile or Containerfile:
 1. Run Trivy configuration analysis when available.
 2. Run Hadolint when available.
 3. Identify:
+
    - `latest` image tags.
    - Unpinned base image references.
    - Root runtime users.
@@ -845,6 +874,7 @@ For every Compose file:
 
 1. Run Trivy configuration analysis when available.
 2. Identify:
+
    - Privileged containers.
    - Host network usage.
    - Docker socket mounts.
@@ -895,6 +925,18 @@ scanner-unavailable
 coverage-gap
 ```
 
+Use `scanner-unavailable` when:
+
+- The required GitHub security read tool is unavailable.
+- A deterministic scanner artifact is missing.
+- A scanner credential is intentionally unavailable to the agent runtime.
+- A scanner cannot run safely in the current execution mode.
+- A non-production target is not configured.
+
+Do not treat `scanner-unavailable` as a passing security result.
+
+Do not treat `scanner-unavailable` as a workflow failure by itself.
+
 ### Agent Remediation Eligibility
 
 Create a draft remediation Pull Request only when every condition is true:
@@ -940,11 +982,21 @@ Cloudflare, CI, GitHub Actions, infrastructure, deployment, or permission change
 API contract change.
 Breaking change.
 Production API scan.
-Unverified scanner result.
-Scanner infrastructure failure.
-Missing required scanner credential.
-CodeQL coverage gap.
+Unverified scanner result with a plausible security impact.
+Confirmed scanner infrastructure failure that blocks a security.yaml-required release gate.
+Confirmed missing CodeQL coverage for a detected supported language.
 Potential false positive with unclear impact.
+```
+
+Do not create a human-owned security Issue solely because:
+
+```text
+The agent cannot run gh commands.
+The code_security GitHub read tool is unavailable.
+The secret_protection GitHub read tool is unavailable.
+The dependabot GitHub read tool is unavailable.
+SNYK_TOKEN is not exposed to the agent runtime.
+A deterministic scan artifact was not available to the agent.
 ```
 
 For human-only work:
@@ -1024,7 +1076,12 @@ Detected Dockerfiles and Compose files:
 Validation commands run:
 Security scanners run:
 Security scanners skipped:
+GitHub security data sources available:
+GitHub security data sources unavailable:
 CodeQL coverage:
+Code Scanning finding retrieval:
+Secret Scanning finding retrieval:
+Dependabot finding retrieval:
 Snyk result availability:
 Findings by severity:
 Agent-remediation eligible:

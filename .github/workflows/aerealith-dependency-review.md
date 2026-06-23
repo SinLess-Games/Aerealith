@@ -25,6 +25,8 @@ on:
         description: 'Pull Request number to review.'
         required: true
         type: string
+  bots:
+    - renovate[bot]
 
 permissions:
   contents: read
