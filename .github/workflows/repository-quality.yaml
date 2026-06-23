@@ -69,11 +69,11 @@ defaults:
     shell: bash
 
 env:
-  CI: true
-  FORCE_COLOR: 1
-  NX_DAEMON: false
-  NODE_VERSION: 25.9.0
-  PNPM_VERSION: 11.5.2
+  CI: "true"
+  FORCE_COLOR: "1"
+  NX_DAEMON: "false"
+  NODE_VERSION: "25.9.0"
+  PNPM_VERSION: "11.5.2"
 
 jobs:
   quality:
@@ -94,11 +94,11 @@ jobs:
       APPLY_FIXES: none
 
       # Prevent stale report files from a prior run from appearing in artifacts.
-      CLEAR_REPORT_FOLDER: true
+      CLEAR_REPORT_FOLDER: "true"
 
       # Better visibility in logs and generated reports.
-      SHOW_ELAPSED_TIME: true
-      SHOW_SKIPPED_LINTERS: true
+      SHOW_ELAPSED_TIME: "true"
+      SHOW_SKIPPED_LINTERS: "true"
 
     steps:
       - name: Check out repository
@@ -126,8 +126,8 @@ jobs:
         run: |
           set -euo pipefail
 
-          echo "Node.js: $(node --version)"
-          echo "pnpm: $(pnpm --version)"
+          printf 'Node.js: %s\n' "$(node --version)"
+          printf 'pnpm: %s\n' "$(pnpm --version)"
 
           if [[ ! -f 'package.json' ]]; then
             echo '::error::package.json was not found in the repository root.'
@@ -159,7 +159,7 @@ jobs:
             exit 1
           fi
 
-          echo "Using MegaLinter configuration: $MEGALINTER_CONFIG"
+          printf 'Using MegaLinter configuration: %s\n' "$MEGALINTER_CONFIG"
 
       - name: Run MegaLinter
         id: megalinter
@@ -206,19 +206,45 @@ jobs:
         run: |
           set -euo pipefail
 
+          markdown_tick=$'\x60'
+          node_version="$(node --version)"
+          pnpm_version="$(pnpm --version)"
+
           {
             echo '## Repository Quality'
             echo
             echo '| Setting | Value |'
             echo '| --- | --- |'
-            echo "| Trigger | \`$EVENT_NAME\` |"
-            echo "| Configuration | \`$MEGALINTER_CONFIG\` |"
-            echo "| Node.js | \`$(node --version)\` |"
-            echo "| pnpm | \`$(pnpm --version)\` |"
-            echo "| Full repository scan | \`$VALIDATE_ALL_CODEBASE\` |"
-            echo '| Dependency install | `pnpm install --frozen-lockfile` |'
-            echo '| Automatic fixes | `disabled` |'
-            echo "| Job result | \`$JOB_STATUS\` |"
+            printf '| Trigger | %s%s%s |\n' \
+              "$markdown_tick" \
+              "$EVENT_NAME" \
+              "$markdown_tick"
+            printf '| Configuration | %s%s%s |\n' \
+              "$markdown_tick" \
+              "$MEGALINTER_CONFIG" \
+              "$markdown_tick"
+            printf '| Node.js | %s%s%s |\n' \
+              "$markdown_tick" \
+              "$node_version" \
+              "$markdown_tick"
+            printf '| pnpm | %s%s%s |\n' \
+              "$markdown_tick" \
+              "$pnpm_version" \
+              "$markdown_tick"
+            printf '| Full repository scan | %s%s%s |\n' \
+              "$markdown_tick" \
+              "$VALIDATE_ALL_CODEBASE" \
+              "$markdown_tick"
+            printf '| Dependency install | %spnpm install --frozen-lockfile%s |\n' \
+              "$markdown_tick" \
+              "$markdown_tick"
+            printf '| Automatic fixes | %sdisabled%s |\n' \
+              "$markdown_tick" \
+              "$markdown_tick"
+            printf '| Job result | %s%s%s |\n' \
+              "$markdown_tick" \
+              "$JOB_STATUS" \
+              "$markdown_tick"
             echo
             echo 'MegaLinter reports are attached to this workflow run when generated.'
           } >> "$GITHUB_STEP_SUMMARY"

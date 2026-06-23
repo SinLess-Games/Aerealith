@@ -1,3 +1,8 @@
+# .github/workflows/ci.yaml
+#
+# Validates the Aerealith Nx workspace using affected-project checks and
+# MegaLinter quality validation.
+
 name: CI
 
 on:
@@ -71,7 +76,7 @@ jobs:
 
           mkdir -p \
             "$PNPM_STORE_DIR" \
-            "artifacts/ci"
+            'artifacts/ci'
 
       - name: Restore pnpm store cache
         id: cache_pnpm
@@ -218,15 +223,15 @@ jobs:
         shell: bash
         run: |
           {
-            echo
-            echo '## Nx validation diagnostics'
-            echo
-            echo 'Nx could not complete affected validation.'
-            echo
-            echo 'If the log contains `Plugin worker "@nx/vite/plugin" exited unexpectedly` or'
-            echo '`Plugin worker "@nx/vitest" exited unexpectedly`, the repository Nx/Vite/Vitest'
-            echo 'configuration must be repaired. This CI workflow clears local Nx state before'
-            echo 'validation and uploads the complete diagnostic log as an artifact.'
+            printf '\n## Nx validation diagnostics\n\n'
+            printf '%s\n' 'Nx could not complete affected validation.'
+            printf '\n'
+            printf '%s\n' \
+              'If the log reports a plugin-worker failure for @nx/vite/plugin or' \
+              '@nx/vitest, repair the affected Nx, Vite, or Vitest configuration.'
+            printf '%s\n' \
+              'This CI workflow clears local Nx state before validation and uploads' \
+              'the complete diagnostic log as an artifact.'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Run Nx Cloud self-healing analysis
