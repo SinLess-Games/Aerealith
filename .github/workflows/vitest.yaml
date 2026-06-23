@@ -1,0 +1,442 @@
+name: Vitest
+
+on:
+  pull_request:
+    branches:
+      - master
+      - staging
+      - production
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+
+  push:
+    branches:
+      - master
+      - staging
+      - production
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: vitest-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CI: true
+  FORCE_COLOR: 1
+  NX_DAEMON: false
+  NODE_VERSION: 25.9.0
+  PNPM_VERSION: 11.5.2
+
+jobs:
+  test:
+    name: Run Vitest
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: false
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6.0.9
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install workspace dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate Nx project graph
+        run: |
+          set -euo pipefail
+
+          pnpm nx reset
+          pnpm nx show projects
+
+      - name: Check Codecov availability
+        id: codecov
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [[ -n "${CODECOV_TOKEN:-}" ]]; then
+            echo 'enabled=true' >> "$GITHUB_OUTPUT"
+            echo 'Codecov uploads are enabled.'
+          else
+            echo 'enabled=false' >> "$GITHUB_OUTPUT"
+            echo 'Codecov uploads are disabled because CODECOV_TOKEN is not configured.'
+          fi
+
+      - name: List projects with test targets
+        id: projects
+        run: |
+          set -euo pipefail
+
+          mapfile -t projects < <(pnpm nx show projects --withTarget=test)
+
+          if [[ "${#projects[@]}" -eq 0 ]]; then
+            echo '::error::No Nx projects expose a test target.'
+            exit 1
+          fi
+
+          printf 'Projects with test targets:\n'
+          printf '%s\n' "${projects[@]}"
+
+          {
+            echo 'projects<<EOF'
+            printf '%s\n' "${projects[@]}"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Run Vitest with coverage and JUnit reports
+        env:
+          PROJECTS: ${{ steps.projects.outputs.projects }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p coverage test-results
+
+          failures=0
+
+          while IFS= read -r project; do
+            [[ -n "$project" ]] || continue
+
+            project_file_name="$(printf '%s' "$project" | tr '/:@' '---')"
+            junit_file="$GITHUB_WORKSPACE/test-results/${project_file_name}.junit.xml"
+
+            echo "::group::Vitest — $project"
+            echo "JUnit report: $junit_file"
+
+            if ! pnpm nx run "$project:test" \
+              --skip-nx-cache \
+              --output-style=stream \
+              -- \
+              --run \
+              --coverage.enabled=true \
+              --coverage.reportOnFailure=true \
+              --coverage.reporter=text \
+              --coverage.reporter=lcov \
+              --coverage.reporter=json-summary \
+              --coverage.reporter=json \
+              --reporter=default \
+              --reporter=junit \
+              --outputFile.junit="$junit_file"; then
+              failures=1
+              echo "::error::Vitest failed for project: $project"
+            fi
+
+            echo "::endgroup::"
+          done <<< "$PROJECTS"
+
+          exit "$failures"
+
+      - name: Combine workspace coverage reports
+        if: always()
+        run: |
+          set -euo pipefail
+
+          node <<'NODE'
+          import fs from 'node:fs';
+          import path from 'node:path';
+
+          const coverageDirectory = path.resolve('coverage');
+
+          if (!fs.existsSync(coverageDirectory)) {
+            console.log('No coverage directory was generated.');
+            process.exit(0);
+          }
+
+          function walk(directory) {
+            const entries = fs.readdirSync(directory, {
+              withFileTypes: true,
+            });
+
+            return entries.flatMap((entry) => {
+              const entryPath = path.join(directory, entry.name);
+
+              if (entry.isDirectory()) {
+                return walk(entryPath);
+              }
+
+              return [entryPath];
+            });
+          }
+
+          function calculatePercentage(covered, total) {
+            if (total === 0) {
+              return 100;
+            }
+
+            return Math.round((covered / total) * 10_000) / 100;
+          }
+
+          const aggregateSummaryPath = path.join(
+            coverageDirectory,
+            'coverage-summary.json',
+          );
+
+          const aggregateFinalPath = path.join(
+            coverageDirectory,
+            'coverage-final.json',
+          );
+
+          const allFiles = walk(coverageDirectory);
+
+          const summaryFiles = allFiles.filter(
+            (filePath) =>
+              filePath.endsWith('coverage-summary.json') &&
+              filePath !== aggregateSummaryPath,
+          );
+
+          const finalFiles = allFiles.filter(
+            (filePath) =>
+              filePath.endsWith('coverage-final.json') &&
+              filePath !== aggregateFinalPath,
+          );
+
+          if (summaryFiles.length === 0) {
+            console.log('No project coverage-summary.json files were found.');
+            process.exit(0);
+          }
+
+          const metrics = ['lines', 'statements', 'functions', 'branches'];
+
+          const total = Object.fromEntries(
+            metrics.map((metric) => [
+              metric,
+              {
+                total: 0,
+                covered: 0,
+                skipped: 0,
+                pct: 100,
+              },
+            ]),
+          );
+
+          const combinedSummary = {};
+          const combinedFinal = {};
+
+          for (const summaryFile of summaryFiles) {
+            const summary = JSON.parse(fs.readFileSync(summaryFile, 'utf8'));
+
+            for (const [fileName, fileSummary] of Object.entries(summary)) {
+              if (fileName === 'total') {
+                continue;
+              }
+
+              combinedSummary[fileName] = fileSummary;
+            }
+
+            for (const metric of metrics) {
+              const value = summary.total?.[metric];
+
+              if (!value) {
+                continue;
+              }
+
+              total[metric].total += value.total ?? 0;
+              total[metric].covered += value.covered ?? 0;
+              total[metric].skipped += value.skipped ?? 0;
+            }
+          }
+
+          for (const metric of metrics) {
+            total[metric].pct = calculatePercentage(
+              total[metric].covered,
+              total[metric].total,
+            );
+          }
+
+          for (const finalFile of finalFiles) {
+            const finalCoverage = JSON.parse(fs.readFileSync(finalFile, 'utf8'));
+
+            Object.assign(combinedFinal, finalCoverage);
+          }
+
+          fs.writeFileSync(
+            aggregateSummaryPath,
+            `${JSON.stringify(
+              {
+                total,
+                ...combinedSummary,
+              },
+              null,
+              2,
+            )}\n`,
+          );
+
+          fs.writeFileSync(
+            aggregateFinalPath,
+            `${JSON.stringify(combinedFinal, null, 2)}\n`,
+          );
+
+          console.log(
+            `Combined ${summaryFiles.length} coverage summaries and ${finalFiles.length} coverage maps.`,
+          );
+          NODE
+
+      - name: Collect generated report files
+        id: reports
+        if: always()
+        run: |
+          set -euo pipefail
+
+          coverage_files=''
+          junit_files=''
+
+          if [[ -d coverage ]]; then
+            coverage_files="$(
+              find coverage -type f -name 'lcov.info' -print |
+                paste -sd ',' -
+            )"
+          fi
+
+          if [[ -d test-results ]]; then
+            junit_files="$(
+              find test-results -type f -name '*.junit.xml' -print |
+                paste -sd ',' -
+            )"
+          fi
+
+          if [[ -n "$coverage_files" ]]; then
+            echo 'coverage_available=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'coverage_available=false' >> "$GITHUB_OUTPUT"
+          fi
+
+          if [[ -n "$junit_files" ]]; then
+            echo 'junit_available=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'junit_available=false' >> "$GITHUB_OUTPUT"
+          fi
+
+          {
+            echo "coverage_files=$coverage_files"
+            echo "junit_files=$junit_files"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Display generated reports
+        if: always()
+        run: |
+          set -euo pipefail
+
+          echo 'Coverage reports:'
+
+          if [[ -d coverage ]]; then
+            find coverage -type f -print | sort
+          else
+            echo 'No coverage directory exists.'
+          fi
+
+          echo
+          echo 'JUnit test reports:'
+
+          if [[ -d test-results ]]; then
+            find test-results -type f -print | sort
+          else
+            echo 'No test-results directory exists.'
+          fi
+
+      - name: Upload Vitest coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: vitest-coverage-${{ github.run_id }}
+          path: coverage/
+          if-no-files-found: warn
+          retention-days: 14
+          compression-level: 6
+
+      - name: Upload Vitest JUnit artifact
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: vitest-junit-results-${{ github.run_id }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 14
+          compression-level: 6
+
+      - name: Upload coverage to Codecov
+        if: >-
+          always() &&
+          !cancelled() &&
+          steps.codecov.outputs.enabled == 'true' &&
+          steps.reports.outputs.coverage_available == 'true' &&
+          (
+            github.event_name != 'pull_request' ||
+            github.event.pull_request.head.repo.full_name == github.repository
+          )
+        uses: codecov/codecov-action@v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ${{ steps.reports.outputs.coverage_files }}
+          disable_search: true
+          flags: vitest
+          name: vitest-coverage-${{ github.event_name }}
+          fail_ci_if_error: true
+          disable_telem: true
+          verbose: true
+
+      - name: Upload Vitest test results to Codecov
+        if: >-
+          always() &&
+          !cancelled() &&
+          steps.codecov.outputs.enabled == 'true' &&
+          steps.reports.outputs.junit_available == 'true' &&
+          (
+            github.event_name != 'pull_request' ||
+            github.event.pull_request.head.repo.full_name == github.repository
+          )
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ${{ steps.reports.outputs.junit_files }}
+          disable_search: true
+          flags: vitest
+          name: vitest-test-results-${{ github.event_name }}
+          fail_ci_if_error: true
+          verbose: true
+
+      - name: Publish pull request coverage report
+        if: >-
+          always() &&
+          !cancelled() &&
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          steps.reports.outputs.coverage_available == 'true' &&
+          hashFiles('coverage/coverage-summary.json') != ''
+        uses: davelosert/vitest-coverage-report-action@v2.12.1
+        with:
+          name: Aerealith Vitest Coverage
+          working-directory: .
+          json-summary-path: coverage/coverage-summary.json
+          json-final-path: coverage/coverage-final.json
+          comment-on: pr
+          file-coverage-mode: changes
+          show-uncovered-lines: true
+          sort-by: statements-asc
