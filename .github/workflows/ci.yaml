@@ -95,7 +95,7 @@ jobs:
             nx-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'package.json', 'nx.json') }}-
             nx-cache-${{ runner.os }}-
 
-      - name: Verify toolchain
+      - name: Verify Node.js and pnpm
         shell: bash
         run: |
           set -euo pipefail
@@ -103,20 +103,17 @@ jobs:
           {
             echo '## Toolchain'
             echo
-            echo "| Tool | Version |"
-            echo "| --- | --- |"
+            echo '| Tool | Version |'
+            echo '| --- | --- |'
             echo "| Node.js | \`$(node --version)\` |"
             echo "| pnpm | \`$(pnpm --version)\` |"
-            echo "| Nx | \`$(pnpm exec nx --version | tail -n 1)\` |"
           } >> "$GITHUB_STEP_SUMMARY"
 
           node --version
           pnpm --version
-          pnpm exec nx --version
 
       - name: Install dependencies
         id: install
-        continue-on-error: true
         shell: bash
         run: |
           set -o pipefail
@@ -125,6 +122,24 @@ jobs:
             --frozen-lockfile \
             --store-dir "$PNPM_STORE_DIR" \
             2>&1 | tee artifacts/ci/install.log
+
+      - name: Verify Nx installation
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          nx_version="$(pnpm exec nx --version)"
+
+          {
+            echo
+            echo '## Nx'
+            echo
+            echo '```text'
+            echo "$nx_version"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          printf '%s\n' "$nx_version"
 
       - name: Resolve Nx comparison range
         id: range
