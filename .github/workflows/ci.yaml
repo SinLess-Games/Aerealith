@@ -18,8 +18,6 @@ on:
 permissions:
   actions: read
   contents: read
-  issues: write
-  pull-requests: write
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -38,16 +36,14 @@ jobs:
     timeout-minutes: 35
 
     outputs:
-      affected_projects: ${{ steps.range.outputs.affected_projects }}
       base_sha: ${{ steps.range.outputs.base_sha }}
       head_sha: ${{ steps.range.outputs.head_sha }}
       pnpm_cache: ${{ steps.cache_pnpm.outputs.cache-hit }}
-      nx_cache: ${{ steps.cache_nx.outputs.cache-hit }}
       install: ${{ steps.install.outcome }}
-      lint: ${{ steps.lint.outcome }}
-      typecheck: ${{ steps.typecheck.outcome }}
-      test: ${{ steps.test.outcome }}
-      build: ${{ steps.build.outcome }}
+      nx_verify: ${{ steps.nx_verify.outcome }}
+      nx_reset: ${{ steps.nx_reset.outcome }}
+      range: ${{ steps.range.outcome }}
+      affected_validation: ${{ steps.affected_validation.outcome }}
 
     steps:
       - name: Checkout repository
@@ -71,9 +67,10 @@ jobs:
       - name: Prepare CI directories
         shell: bash
         run: |
+          set -euo pipefail
+
           mkdir -p \
             "$PNPM_STORE_DIR" \
-            ".nx/cache" \
             "artifacts/ci"
 
       - name: Restore pnpm store cache
@@ -85,35 +82,29 @@ jobs:
           restore-keys: |
             pnpm-store-${{ runner.os }}-node-24-pnpm-10-
 
-      - name: Restore Nx local cache
-        id: cache_nx
-        uses: actions/cache@v5
-        with:
-          path: .nx/cache
-          key: nx-cache-${{ runner.os }}-${{ github.sha }}
-          restore-keys: |
-            nx-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'package.json', 'nx.json') }}-
-            nx-cache-${{ runner.os }}-
-
       - name: Verify Node.js and pnpm
         shell: bash
         run: |
           set -euo pipefail
+
+          node_version="$(node --version)"
+          pnpm_version="$(pnpm --version)"
 
           {
             echo '## Toolchain'
             echo
             echo '| Tool | Version |'
             echo '| --- | --- |'
-            echo "| Node.js | \`$(node --version)\` |"
-            echo "| pnpm | \`$(pnpm --version)\` |"
+            echo "| Node.js | \`$node_version\` |"
+            echo "| pnpm | \`$pnpm_version\` |"
           } >> "$GITHUB_STEP_SUMMARY"
 
-          node --version
-          pnpm --version
+          printf 'Node.js: %s\n' "$node_version"
+          printf 'pnpm: %s\n' "$pnpm_version"
 
       - name: Install dependencies
         id: install
+        continue-on-error: true
         shell: bash
         run: |
           set -o pipefail
@@ -124,25 +115,39 @@ jobs:
             2>&1 | tee artifacts/ci/install.log
 
       - name: Verify Nx installation
+        id: nx_verify
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
         shell: bash
         run: |
-          set -euo pipefail
+          set -o pipefail
 
-          nx_version="$(pnpm exec nx --version)"
+          pnpm exec nx report 2>&1 | tee artifacts/ci/nx-report.log
 
           {
             echo
-            echo '## Nx'
+            echo '## Nx report'
             echo
             echo '```text'
-            echo "$nx_version"
+            cat artifacts/ci/nx-report.log
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-          printf '%s\n' "$nx_version"
+      - name: Reset local Nx workspace state
+        id: nx_reset
+        if: steps.install.outcome == 'success' && steps.nx_verify.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
 
-      - name: Resolve Nx comparison range
+          # Do not restore .nx/cache between runs while diagnosing project-graph
+          # plugin crashes. Nx Cloud remains responsible for remote task caching.
+          pnpm exec nx reset 2>&1 | tee artifacts/ci/nx-reset.log
+
+      - name: Resolve Git comparison range
         id: range
+        if: steps.install.outcome == 'success' && steps.nx_verify.outcome == 'success' && steps.nx_reset.outcome == 'success'
         continue-on-error: true
         shell: bash
         env:
@@ -154,10 +159,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+          if [[ "$EVENT_NAME" == 'pull_request' ]]; then
             base_sha="$PULL_REQUEST_BASE_SHA"
             head_sha="$PULL_REQUEST_HEAD_SHA"
-          elif [[ "$EVENT_NAME" == "push" ]]; then
+          elif [[ "$EVENT_NAME" == 'push' ]]; then
             base_sha="$PUSH_BASE_SHA"
             head_sha="$PUSH_HEAD_SHA"
           else
@@ -172,15 +177,6 @@ jobs:
           git cat-file -e "${base_sha}^{commit}"
           git cat-file -e "${head_sha}^{commit}"
 
-          affected_projects="$(
-            pnpm exec nx show projects \
-              --affected \
-              --base="$base_sha" \
-              --head="$head_sha" |
-              tr '\n' ',' |
-              sed 's/,$//'
-          )"
-
           {
             echo "NX_BASE=$base_sha"
             echo "NX_HEAD=$head_sha"
@@ -189,81 +185,83 @@ jobs:
           {
             echo "base_sha=$base_sha"
             echo "head_sha=$head_sha"
-            echo "affected_projects=$affected_projects"
           } >> "$GITHUB_OUTPUT"
 
           {
+            echo
             echo '## Nx comparison range'
             echo
             echo "- Base: \`$base_sha\`"
             echo "- Head: \`$head_sha\`"
-            echo "- Affected projects: \`${affected_projects:-none detected}\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Run affected lint checks
-        id: lint
-        if: steps.install.outcome == 'success' && steps.range.outcome == 'success'
+      - name: Validate affected projects
+        id: affected_validation
+        if: steps.install.outcome == 'success' && steps.nx_verify.outcome == 'success' && steps.nx_reset.outcome == 'success' && steps.range.outcome == 'success'
         continue-on-error: true
         shell: bash
+        env:
+          NX_VERBOSE_LOGGING: "true"
         run: |
           set -o pipefail
 
           pnpm exec nx affected \
-            --targets=lint \
+            --targets=lint,typecheck,test,build \
             --base="$NX_BASE" \
             --head="$NX_HEAD" \
-            2>&1 | tee artifacts/ci/lint.log
+            --parallel=3 \
+            --outputStyle=static \
+            2>&1 | tee artifacts/ci/nx-affected-validation.log
 
-      - name: Run affected type checks
-        id: typecheck
-        if: steps.install.outcome == 'success' && steps.range.outcome == 'success'
-        continue-on-error: true
+      - name: Explain Nx project graph failure
+        if: always() && steps.affected_validation.outcome == 'failure'
         shell: bash
         run: |
-          set -o pipefail
-
-          pnpm exec nx affected \
-            --targets=typecheck \
-            --base="$NX_BASE" \
-            --head="$NX_HEAD" \
-            2>&1 | tee artifacts/ci/typecheck.log
-
-      - name: Run affected tests
-        id: test
-        if: steps.install.outcome == 'success' && steps.range.outcome == 'success'
-        continue-on-error: true
-        shell: bash
-        run: |
-          set -o pipefail
-
-          pnpm exec nx affected \
-            --targets=test \
-            --base="$NX_BASE" \
-            --head="$NX_HEAD" \
-            2>&1 | tee artifacts/ci/test.log
-
-      - name: Build affected projects
-        id: build
-        if: steps.install.outcome == 'success' && steps.range.outcome == 'success'
-        continue-on-error: true
-        shell: bash
-        run: |
-          set -o pipefail
-
-          pnpm exec nx affected \
-            --targets=build \
-            --base="$NX_BASE" \
-            --head="$NX_HEAD" \
-            2>&1 | tee artifacts/ci/build.log
+          {
+            echo
+            echo '## Nx validation diagnostics'
+            echo
+            echo 'Nx could not complete affected validation.'
+            echo
+            echo 'If the log contains `Plugin worker "@nx/vite/plugin" exited unexpectedly` or'
+            echo '`Plugin worker "@nx/vitest" exited unexpectedly`, the repository Nx/Vite/Vitest'
+            echo 'configuration must be repaired. This CI workflow clears local Nx state before'
+            echo 'validation and uploads the complete diagnostic log as an artifact.'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Run Nx Cloud self-healing analysis
-        if: always()
+        if: always() && steps.install.outcome == 'success' && steps.affected_validation.outcome == 'failure'
         continue-on-error: true
         shell: bash
         run: |
           set -o pipefail
 
           pnpm exec nx fix-ci 2>&1 | tee artifacts/ci/nx-fix-ci.log
+
+      - name: Write validation summary
+        if: always()
+        shell: bash
+        env:
+          PNPM_CACHE: ${{ steps.cache_pnpm.outputs.cache-hit }}
+          INSTALL: ${{ steps.install.outcome }}
+          NX_VERIFY: ${{ steps.nx_verify.outcome }}
+          NX_RESET: ${{ steps.nx_reset.outcome }}
+          RANGE: ${{ steps.range.outcome }}
+          AFFECTED_VALIDATION: ${{ steps.affected_validation.outcome }}
+        run: |
+          {
+            echo
+            echo '## Aerealith CI validation'
+            echo
+            echo '| Check | Result |'
+            echo '| --- | --- |'
+            echo "| pnpm store cache | ${PNPM_CACHE:-false} |"
+            echo "| Dependency install | ${INSTALL:-unknown} |"
+            echo "| Nx installation | ${NX_VERIFY:-unknown} |"
+            echo "| Nx workspace reset | ${NX_RESET:-unknown} |"
+            echo "| Git comparison range | ${RANGE:-unknown} |"
+            echo "| Nx affected lint, typecheck, test, build | ${AFFECTED_VALIDATION:-unknown} |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload CI logs
         if: always()
@@ -274,44 +272,15 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Write validation summary
-        if: always()
-        shell: bash
-        env:
-          PNPM_CACHE: ${{ steps.cache_pnpm.outputs.cache-hit }}
-          NX_CACHE: ${{ steps.cache_nx.outputs.cache-hit }}
-          INSTALL: ${{ steps.install.outcome }}
-          RANGE: ${{ steps.range.outcome }}
-          LINT: ${{ steps.lint.outcome }}
-          TYPECHECK: ${{ steps.typecheck.outcome }}
-          TEST: ${{ steps.test.outcome }}
-          BUILD: ${{ steps.build.outcome }}
-        run: |
-          {
-            echo '## Aerealith CI validation'
-            echo
-            echo "| Check | Result |"
-            echo "| --- | --- |"
-            echo "| pnpm store cache | ${PNPM_CACHE:-false} |"
-            echo "| Nx local cache | ${NX_CACHE:-false} |"
-            echo "| Dependency install | ${INSTALL:-unknown} |"
-            echo "| Nx comparison range | ${RANGE:-unknown} |"
-            echo "| Lint | ${LINT:-unknown} |"
-            echo "| Typecheck | ${TYPECHECK:-unknown} |"
-            echo "| Tests | ${TEST:-unknown} |"
-            echo "| Build | ${BUILD:-unknown} |"
-          } >> "$GITHUB_STEP_SUMMARY"
-
       - name: Fail when workspace validation failed
         if: always()
         shell: bash
         env:
           INSTALL: ${{ steps.install.outcome }}
+          NX_VERIFY: ${{ steps.nx_verify.outcome }}
+          NX_RESET: ${{ steps.nx_reset.outcome }}
           RANGE: ${{ steps.range.outcome }}
-          LINT: ${{ steps.lint.outcome }}
-          TYPECHECK: ${{ steps.typecheck.outcome }}
-          TEST: ${{ steps.test.outcome }}
-          BUILD: ${{ steps.build.outcome }}
+          AFFECTED_VALIDATION: ${{ steps.affected_validation.outcome }}
         run: |
           set -euo pipefail
 
@@ -319,18 +288,17 @@ jobs:
 
           for result in \
             "$INSTALL" \
+            "$NX_VERIFY" \
+            "$NX_RESET" \
             "$RANGE" \
-            "$LINT" \
-            "$TYPECHECK" \
-            "$TEST" \
-            "$BUILD"; do
-            if [[ "$result" != "success" ]]; then
+            "$AFFECTED_VALIDATION"; do
+            if [[ "$result" != 'success' ]]; then
               failed=true
             fi
           done
 
-          if [[ "$failed" == "true" ]]; then
-            echo '::error::One or more CI validation checks failed.'
+          if [[ "$failed" == 'true' ]]; then
+            echo '::error::One or more workspace validation checks failed.'
             exit 1
           fi
 
@@ -381,32 +349,35 @@ jobs:
     needs:
       - validate
       - megalinter
-    if: ${{ always() && github.event_name == 'pull_request' }}
+    if: always() && github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+
     steps:
       - name: Update pull request CI summary
+        if: github.event.pull_request.head.repo.full_name == github.repository
         continue-on-error: true
-        uses: actions/github-script@v9
+        uses: actions/github-script@v8
         env:
           RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           RUN_NUMBER: ${{ github.run_number }}
-          AFFECTED_PROJECTS: ${{ needs.validate.outputs.affected_projects }}
           BASE_SHA: ${{ needs.validate.outputs.base_sha }}
           HEAD_SHA: ${{ needs.validate.outputs.head_sha }}
           PNPM_CACHE: ${{ needs.validate.outputs.pnpm_cache }}
-          NX_CACHE: ${{ needs.validate.outputs.nx_cache }}
           INSTALL: ${{ needs.validate.outputs.install }}
-          LINT: ${{ needs.validate.outputs.lint }}
-          TYPECHECK: ${{ needs.validate.outputs.typecheck }}
-          TEST: ${{ needs.validate.outputs.test }}
-          BUILD: ${{ needs.validate.outputs.build }}
+          NX_VERIFY: ${{ needs.validate.outputs.nx_verify }}
+          NX_RESET: ${{ needs.validate.outputs.nx_reset }}
+          RANGE: ${{ needs.validate.outputs.range }}
+          AFFECTED_VALIDATION: ${{ needs.validate.outputs.affected_validation }}
           MEGALINTER: ${{ needs.megalinter.outputs.result }}
           VALIDATE_JOB: ${{ needs.validate.result }}
           MEGALINTER_JOB: ${{ needs.megalinter.result }}
         with:
-          retries: 2
           script: |
             const marker = '<!-- aerealith-ci-summary -->';
             const issueNumber = context.payload.pull_request.number;
@@ -428,8 +399,15 @@ jobs:
                 ? '✅ Passed'
                 : '❌ Failed';
 
-            const affectedProjects =
-              process.env.AFFECTED_PROJECTS?.trim() || 'None detected';
+            const nxDiagnostic =
+              process.env.AFFECTED_VALIDATION === 'failure'
+                ? [
+                    '',
+                    '> [!WARNING]',
+                    '> Nx affected validation failed. Download the `ci-logs` artifact and inspect `nx-affected-validation.log`.',
+                    '> If the project graph reports Vite or Vitest plugin-worker failures, repair the affected Nx/Vite/Vitest configuration before rerunning CI.',
+                  ].join('\n')
+                : '';
 
             const body = [
               marker,
@@ -441,25 +419,27 @@ jobs:
               '| Check | Result |',
               '| --- | --- |',
               `| Dependency install | ${resultLabel(process.env.INSTALL)} |`,
-              `| Nx lint | ${resultLabel(process.env.LINT)} |`,
-              `| Nx typecheck | ${resultLabel(process.env.TYPECHECK)} |`,
-              `| Nx tests | ${resultLabel(process.env.TEST)} |`,
-              `| Nx build | ${resultLabel(process.env.BUILD)} |`,
+              `| Nx installation | ${resultLabel(process.env.NX_VERIFY)} |`,
+              `| Nx workspace reset | ${resultLabel(process.env.NX_RESET)} |`,
+              `| Git comparison range | ${resultLabel(process.env.RANGE)} |`,
+              `| Nx affected validation | ${resultLabel(process.env.AFFECTED_VALIDATION)} |`,
               `| MegaLinter | ${resultLabel(process.env.MEGALINTER)} |`,
               '',
               '### Cache',
               '',
               `- pnpm store: \`${process.env.PNPM_CACHE === 'true' ? 'hit' : 'miss'}\``,
-              `- Nx local cache: \`${process.env.NX_CACHE === 'true' ? 'hit' : 'miss'}\``,
+              '- Nx task cache: managed by Nx Cloud when configured for this workspace.',
               '',
               '<details>',
               '<summary>Run details</summary>',
               '',
               `- Base SHA: \`${process.env.BASE_SHA || 'unavailable'}\``,
               `- Head SHA: \`${process.env.HEAD_SHA || 'unavailable'}\``,
-              `- Affected projects: \`${affectedProjects.slice(0, 1500)}\``,
+              '- Validation targets: `lint`, `typecheck`, `test`, `build`',
+              '- Logs: download the `ci-logs` artifact from the workflow run.',
               '',
               '</details>',
+              nxDiagnostic,
             ].join('\n');
 
             const comments = await github.paginate(
