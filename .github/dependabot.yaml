@@ -1,0 +1,104 @@
+# .github/dependabot.yml
+#
+# Aerealith dependency update policy.
+#
+# Covers:
+# - npm / pnpm workspace dependencies from the repository root.
+# - GitHub Actions used by repository workflows.
+#
+# Security updates remain separate from version-update grouping so vulnerable
+# packages stay easy to review and merge quickly.
+
+version: 2
+
+updates:
+  # ============================================================================
+  # Node.js / pnpm workspace dependencies
+  # ============================================================================
+  #
+  # Dependabot uses the npm ecosystem for npm, Yarn, and pnpm manifests and
+  # lockfiles. The root directory covers this Nx monorepo's pnpm workspace.
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Boise
+
+    # Prevent Dependabot from flooding the repository with unrelated PRs.
+    open-pull-requests-limit: 10
+
+    labels:
+      - dependencies
+      - automated
+      - "area: tooling"
+
+    commit-message:
+      prefix: "chore(deps)"
+      include: scope
+
+    # Keep non-breaking updates easy to review while leaving major upgrades in
+    # their own pull requests for deliberate testing and migration work.
+    groups:
+      production-minor-and-patch:
+        dependency-type: production
+        update-types:
+          - minor
+          - patch
+
+      development-minor-and-patch:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+
+      production-major:
+        dependency-type: production
+        update-types:
+          - major
+
+      development-major:
+        dependency-type: development
+        update-types:
+          - major
+
+    # Version updates can wait briefly for ecosystem churn to settle.
+    # Dependabot security updates are not delayed by cooldown settings.
+    cooldown:
+      semver-major-days: 14
+      semver-minor-days: 3
+      semver-patch-days: 1
+
+  # ============================================================================
+  # GitHub Actions
+  # ============================================================================
+  #
+  # Keeps action references in .github/workflows and reusable workflows current.
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:30"
+      timezone: America/Boise
+
+    open-pull-requests-limit: 5
+
+    labels:
+      - dependencies
+      - automated
+      - "type: ci"
+
+    commit-message:
+      prefix: "chore(ci)"
+      include: scope
+
+    # Keep workflow/action upgrades together so they can be validated as one
+    # CI maintenance pull request.
+    groups:
+      github-actions:
+        patterns:
+          - "*"
