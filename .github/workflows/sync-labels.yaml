@@ -1,0 +1,116 @@
+# .github/workflows/sync-labels.yaml
+#
+# Synchronizes repository labels from .github/labels.yaml.
+#
+# The label catalogue is the source of truth. By default, labels not defined
+# in .github/labels.yaml are removed to prevent stale or duplicate labels.
+#
+# Manual runs can preview changes with dry_run=true or preserve unmanaged labels
+# with delete_other_labels=false.
+
+name: Sync Labels
+
+on:
+  push:
+    branches:
+      - master
+      - staging
+      - production
+    paths:
+      - ".github/labels.yaml"
+      - ".github/workflows/sync-labels.yaml"
+
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Preview label changes without modifying repository labels."
+        required: false
+        default: false
+        type: boolean
+
+      delete_other_labels:
+        description: "Delete repository labels not defined in .github/labels.yaml."
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: sync-labels-${{ github.repository }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  sync:
+    name: Synchronize repository labels
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out label catalogue
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/labels.yaml
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - name: Validate label catalogue exists
+        run: |
+          set -euo pipefail
+
+          labels_file='.github/labels.yaml'
+
+          if [[ ! -f "$labels_file" ]]; then
+            echo "::error::Required label catalogue was not found: $labels_file"
+            exit 1
+          fi
+
+          if [[ ! -s "$labels_file" ]]; then
+            echo "::error::Label catalogue is empty: $labels_file"
+            exit 1
+          fi
+
+          label_count="$(grep -Ec "^- name:" "$labels_file" || true)"
+
+          if [[ "$label_count" -eq 0 ]]; then
+            echo "::error::No labels were found in $labels_file."
+            exit 1
+          fi
+
+          echo "Found $label_count labels in $labels_file."
+
+      - name: Synchronize labels
+        uses: EndBug/label-sync@v2.3.3
+        with:
+          config-file: .github/labels.yaml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
+          delete-other-labels: ${{ github.event_name != 'workflow_dispatch' || inputs.delete_other_labels }}
+
+      - name: Write workflow summary
+        if: always()
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
+          DELETE_OTHER_LABELS: ${{ github.event_name != 'workflow_dispatch' || inputs.delete_other_labels }}
+        run: |
+          set -euo pipefail
+
+          {
+            echo '## Label Synchronization'
+            echo
+            echo "| Setting | Value |"
+            echo "| --- | --- |"
+            echo "| Trigger | \`$EVENT_NAME\` |"
+            echo "| Source | \`.github/labels.yaml\` |"
+            echo "| Dry run | \`$DRY_RUN\` |"
+            echo "| Delete unmanaged labels | \`$DELETE_OTHER_LABELS\` |"
+          } >> "$GITHUB_STEP_SUMMARY"

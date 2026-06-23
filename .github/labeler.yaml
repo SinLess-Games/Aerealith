@@ -1,0 +1,308 @@
+# .github/labeler.yaml
+#
+# Automatic pull request labels for Aerealith.
+#
+# This file is used by actions/labeler@v6.
+# The workflow must explicitly set:
+#
+# with:
+#   repo-token: ${{ secrets.GITHUB_TOKEN }}
+#   configuration-path: .github/labeler.yaml
+#   sync-labels: true
+#
+# Labels below must exist in .github/labels.yaml before this workflow runs.
+
+# Prevent noisy labeling on huge mechanical changes.
+max-files-changed: 500
+
+# Do not add an excessive number of file-based labels to one pull request.
+changed-files-labels-limit: 10
+
+# ==============================================================================
+# Type Labels
+# ==============================================================================
+
+"type: bug":
+  - head-branch:
+      - "^bugfix/"
+      - "^bug/"
+      - "^fix/"
+      - "^hotfix/"
+
+"type: feature":
+  - head-branch:
+      - "^feature/"
+      - "^feat/"
+
+"type: documentation":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+          - "docs/**"
+          - "README*"
+          - "CONTRIBUTING*"
+          - "CODE_OF_CONDUCT*"
+          - "SECURITY*"
+          - "LICENSE*"
+
+"type: test":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"
+          - "**/*.spec.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"
+          - "**/*.e2e.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"
+          - "**/*.cy.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"
+          - "**/__tests__/**"
+          - "**/__mocks__/**"
+          - "**/__fixtures__/**"
+          - "**/__snapshots__/**"
+          - "**/tests/**"
+          - "**/test/**"
+          - "**/e2e/**"
+          - "**/playwright/**"
+          - "**/cypress/**"
+          - "**/vitest.config.*"
+          - "**/playwright.config.*"
+          - "**/cypress.config.*"
+
+"type: ci":
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+          - ".github/actions/**"
+          - ".github/actions-list.yaml"
+          - ".github/labeler.yaml"
+          - ".github/labels.yaml"
+          - ".mega-linter.yaml"
+
+"type: build":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "package.json"
+          - "pnpm-lock.yaml"
+          - "pnpm-workspace.yaml"
+          - "nx.json"
+          - "tsconfig*.json"
+          - "**/tsconfig*.json"
+          - "**/vite.config.*"
+          - "**/vitest.config.*"
+          - "**/webpack.config.*"
+          - "**/rollup.config.*"
+          - "**/Dockerfile"
+          - "Dockerfile"
+          - "docker-compose*.yml"
+          - "docker-compose*.yaml"
+          - "compose*.yml"
+          - "compose*.yaml"
+
+"type: security":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "SECURITY*"
+          - ".github/workflows/codeql*"
+          - ".github/workflows/security*"
+          - ".github/dependabot.yml"
+          - ".github/dependabot.yaml"
+          - "**/*security*"
+          - "**/*auth*"
+          - "**/*authorization*"
+          - "**/*permission*"
+
+"type: performance":
+  - head-branch:
+      - "^perf/"
+      - "^performance/"
+
+"type: accessibility":
+  - head-branch:
+      - "^a11y/"
+      - "^accessibility/"
+
+"type: refactor":
+  - head-branch:
+      - "^refactor/"
+
+"type: chore":
+  - head-branch:
+      - "^chore/"
+      - "^maintenance/"
+
+# ==============================================================================
+# Area Labels
+# ==============================================================================
+
+"area: frontend":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "apps/frontend/**"
+
+"area: ui":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "libs/ui/**"
+          - "apps/frontend/src/components/**"
+          - "apps/frontend/src/styles/**"
+          - "apps/frontend/src/theme/**"
+
+"area: api":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "libs/api/**"
+          - "apps/services/**"
+          - "apps/**/api/**"
+          - "apps/frontend/src/app/api/**"
+
+"area: auth":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "apps/services/auth/**"
+          - "libs/auth/**"
+          - "apps/frontend/src/auth.*"
+          - "apps/frontend/src/app/api/**/auth/**"
+          - "**/*auth*.{ts,tsx,js,jsx}"
+          - "**/*session*.{ts,tsx,js,jsx}"
+          - "**/*permission*.{ts,tsx,js,jsx}"
+
+"area: core":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "libs/core/**"
+
+"area: database":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "libs/db/**"
+          - "**/migrations/**"
+          - "**/*migration*.{ts,tsx,js,jsx}"
+          - "**/*repository*.{ts,tsx,js,jsx}"
+          - "**/*schema*.{ts,tsx,js,jsx}"
+          - "**/*database*.{ts,tsx,js,jsx}"
+          - "**/*drizzle*.{ts,tsx,js,jsx}"
+          - "**/*mikro-orm*.{ts,tsx,js,jsx}"
+
+"area: utils":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "libs/utils/**"
+
+"area: infrastructure":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "infrastructure/**"
+          - "infra/**"
+          - "deploy/**"
+          - "deployment/**"
+          - "k8s/**"
+          - "kubernetes/**"
+          - "helm/**"
+          - "terraform/**"
+          - "ansible/**"
+          - "docker/**"
+          - "**/Dockerfile"
+          - "Dockerfile"
+          - "docker-compose*.yml"
+          - "docker-compose*.yaml"
+          - "compose*.yml"
+          - "compose*.yaml"
+
+"area: cloudflare":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/wrangler.toml"
+          - "**/wrangler.json"
+          - "**/wrangler.jsonc"
+          - "**/cloudflare/**"
+          - ".github/workflows/cloudflare-*.yaml"
+          - ".github/workflows/cloudflare-*.yml"
+          - ".github/scripts/cloudflare/**"
+
+"area: discord":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "apps/services/discord/**"
+          - "apps/discord/**"
+          - "libs/discord/**"
+          - "**/*discord*.{ts,tsx,js,jsx}"
+
+"area: devportal":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "apps/devportal/**"
+          - "apps/frontend/src/**/devportal/**"
+          - "apps/frontend/src/**/developer-portal/**"
+          - "apps/frontend/src/**/docs/**"
+          - "docs/**"
+
+"area: observability":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*observability*.{ts,tsx,js,jsx}"
+          - "**/*telemetry*.{ts,tsx,js,jsx}"
+          - "**/*tracing*.{ts,tsx,js,jsx}"
+          - "**/*metrics*.{ts,tsx,js,jsx}"
+          - "**/*logging*.{ts,tsx,js,jsx}"
+          - "**/*logger*.{ts,tsx,js,jsx}"
+          - "**/*grafana*.{ts,tsx,js,jsx}"
+          - "**/*faro*.{ts,tsx,js,jsx}"
+          - "**/*opentelemetry*.{ts,tsx,js,jsx}"
+          - "**/*otel*.{ts,tsx,js,jsx}"
+
+"area: tooling":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "package.json"
+          - "pnpm-lock.yaml"
+          - "pnpm-workspace.yaml"
+          - "nx.json"
+          - "eslint.config.*"
+          - "**/eslint.config.*"
+          - "prettier.config.*"
+          - ".prettierrc*"
+          - "commitlint.config.*"
+          - "tsconfig*.json"
+          - "**/tsconfig*.json"
+          - "**/vite.config.*"
+          - "**/vitest.config.*"
+          - ".nvmrc"
+          - ".node-version"
+
+# ==============================================================================
+# Workflow and Repository Maintenance Labels
+# ==============================================================================
+
+"dependencies":
+  - any:
+      - changed-files:
+          - any-glob-to-any-file:
+              - "package.json"
+              - "pnpm-lock.yaml"
+              - "pnpm-workspace.yaml"
+              - ".github/dependabot.yml"
+              - ".github/dependabot.yaml"
+      - head-branch:
+          - "^dependabot/"
+          - "^renovate/"
+
+"automated":
+  - head-branch:
+      - "^dependabot/"
+      - "^renovate/"
+      - "^github-actions/"
+      - "^automation/"
+      - "^bot/"
+
+"breaking-change":
+  - head-branch:
+      - "^breaking/"
+      - "^breaking-change/"
+      - "^major/"
+
+"needs-design":
+  - head-branch:
+      - "^design/"
+      - "^ux/"
+
+"status: needs-triage":
+  - head-branch:
+      - "^issue/"
+      - "^triage/"
