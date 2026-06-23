@@ -102,7 +102,7 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           # Full history lets MegaLinter accurately determine PR diffs and
           # perform complete repository scans on protected branches.
