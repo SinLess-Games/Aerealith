@@ -45,7 +45,9 @@ sandbox:
 
 tools:
   edit: false
-  bash: false
+
+  bash:
+    - 'safeoutputs *'
 
   github:
     mode: remote
@@ -120,7 +122,6 @@ Read these files before taking any action:
 .github/config/reviewers.yaml
 .github/instructions/agent-instructions.md
 .github/instructions/aerealith.instructions.md
-.github/copilot-instructions.md
 ```
 
 The authoritative Project definition is:
