@@ -1,0 +1,48 @@
+# .snyk
+#
+# Aerealith Snyk policy.
+#
+# Test code is intentionally excluded from Snyk Code analysis because it is not
+# shipped as production application code. Production source, infrastructure,
+# dependency manifests, and container definitions remain in scope.
+
+version: v1.25.1
+
+exclude:
+  code:
+    # Conventional test directories.
+    - 'test/**'
+    - 'tests/**'
+    - 'spec/**'
+    - 'specs/**'
+    - 'e2e/**'
+    - 'e2e-tests/**'
+    - 'integration/**'
+    - 'integration-tests/**'
+    - '__tests__/**'
+    - '__mocks__/**'
+    - '__fixtures__/**'
+
+    # Nested conventional test directories.
+    - '**/test/**'
+    - '**/tests/**'
+    - '**/spec/**'
+    - '**/specs/**'
+    - '**/e2e/**'
+    - '**/e2e-tests/**'
+    - '**/integration/**'
+    - '**/integration-tests/**'
+    - '**/__tests__/**'
+    - '**/__mocks__/**'
+    - '**/__fixtures__/**'
+
+    # JavaScript and TypeScript test-file conventions.
+    - '**/*.test.*'
+    - '**/*.spec.*'
+    - '**/*.e2e.*'
+    - '**/*.integration.*'
+
+    # Common alternate test naming conventions.
+    - '**/*-test.*'
+    - '**/*-spec.*'
+    - '**/*-e2e.*'

@@ -1,28 +1,27 @@
 # .github/workflows/snyk.yaml
 #
-# Scans Aerealith's Node.js and pnpm workspace dependencies with Snyk.
+# Scans Aerealith dependencies and production source code with Snyk.
 #
 # Coverage:
-# - Detects tracked Node.js package manifests and supported lockfiles.
-# - Scans all discovered pnpm workspace projects with Snyk Open Source.
-# - Uploads SARIF findings to GitHub Code Scanning.
-# - Uploads JSON and SARIF reports as workflow artifacts.
+# - Snyk Open Source scans pnpm workspace dependency manifests.
+# - Snyk Code scans production source code.
+# - Test directories and .test, .spec, .e2e, and .integration source files are
+#   excluded from Snyk Code through the repository-root .snyk policy file.
+# - Snyk Open Source excludes package manifests found in conventional test and
+#   fixture directories.
+# - SARIF findings are uploaded to GitHub Code Scanning.
 #
 # Safe skip behavior:
 # - Passes when no Node.js package manifests are tracked.
 # - Passes when SNYK_TOKEN is not configured.
-# - Passes for external fork pull requests because GitHub does not expose
-#   repository secrets to those workflows.
+# - Passes for external fork pull requests because repository secrets are not
+#   available to them.
 #
 # Required secret:
 # - SNYK_TOKEN
 #
-# Optional repository policy file:
+# Required policy file:
 # - .snyk
-#
-# Container images are intentionally not scanned here. They are handled by
-# .github/workflows/container-security.yaml, which builds and scans every
-# tracked Dockerfile with Trivy.
 
 name: Snyk
 
@@ -45,8 +44,7 @@ on:
       - production
 
   schedule:
-    # Weekly dependency scan catches vulnerabilities disclosed after the last
-    # source-code change.
+    # Weekly dependency and source-code scan.
     - cron: "0 5 * * 0"
 
   workflow_dispatch:
@@ -75,6 +73,14 @@ env:
   NODE_VERSION: "25.9.0"
   PNPM_VERSION: "11.5.2"
   SNYK_SEVERITY_THRESHOLD: high
+  SNYK_POLICY_FILE: .snyk
+
+  # Snyk Open Source only accepts exact file or directory names here, not
+  # paths or glob patterns. These names prevent fixture manifests inside test
+  # directories from being included in --all-projects discovery.
+  SNYK_OPEN_SOURCE_EXCLUDES: >-
+    test,tests,spec,specs,e2e,e2e-tests,integration,integration-tests,
+    __tests__,__mocks__,__fixtures__,fixtures
 
 jobs:
   preflight:
@@ -87,6 +93,7 @@ jobs:
       package_manifest_count: ${{ steps.detect.outputs.package_manifest_count }}
       lockfile_count: ${{ steps.detect.outputs.lockfile_count }}
       snyk_token_available: ${{ steps.detect.outputs.snyk_token_available }}
+      snyk_policy_available: ${{ steps.detect.outputs.snyk_policy_available }}
       is_internal_pull_request: ${{ steps.detect.outputs.is_internal_pull_request }}
       scan_enabled: ${{ steps.detect.outputs.scan_enabled }}
       skip_reason: ${{ steps.detect.outputs.skip_reason }}
@@ -114,6 +121,7 @@ jobs:
           lockfile_count=0
           node_project_detected='false'
           snyk_token_available='false'
+          snyk_policy_available='false'
           is_internal_pull_request='true'
           scan_enabled='false'
           skip_reason=''
@@ -140,6 +148,10 @@ jobs:
             snyk_token_available='true'
           fi
 
+          if [[ -f "$SNYK_POLICY_FILE" ]] && [[ -s "$SNYK_POLICY_FILE" ]]; then
+            snyk_policy_available='true'
+          fi
+
           if [[ "$EVENT_NAME" == 'pull_request' ]] &&
             [[ "$PULL_REQUEST_HEAD_REPOSITORY" != "$CURRENT_REPOSITORY" ]]; then
             is_internal_pull_request='false'
@@ -151,6 +163,8 @@ jobs:
             skip_reason='No supported Node.js lockfile was found.'
           elif [[ "$snyk_token_available" != 'true' ]]; then
             skip_reason='SNYK_TOKEN is not configured.'
+          elif [[ "$snyk_policy_available" != 'true' ]]; then
+            skip_reason='The required .snyk policy file is missing or empty.'
           elif [[ "$is_internal_pull_request" != 'true' ]]; then
             skip_reason='External fork pull requests do not receive repository secrets.'
           else
@@ -163,6 +177,7 @@ jobs:
             echo "package_manifest_count=$package_manifest_count"
             echo "lockfile_count=$lockfile_count"
             echo "snyk_token_available=$snyk_token_available"
+            echo "snyk_policy_available=$snyk_policy_available"
             echo "is_internal_pull_request=$is_internal_pull_request"
             echo "scan_enabled=$scan_enabled"
             echo "skip_reason=$skip_reason"
@@ -177,6 +192,7 @@ jobs:
             echo "| Supported lockfiles | $lockfile_count |"
             echo "| Node.js project detected | $node_project_detected |"
             echo "| SNYK_TOKEN available | $snyk_token_available |"
+            echo "| .snyk policy available | $snyk_policy_available |"
             echo "| Internal pull request | $is_internal_pull_request |"
             echo "| Scan enabled | $scan_enabled |"
             echo "| Status | $skip_reason |"
@@ -215,12 +231,9 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
-      - name: Verify toolchain
+      - name: Verify workspace and Snyk policy
         run: |
           set -euo pipefail
-
-          printf 'Node.js: %s\n' "$(node --version)"
-          printf 'pnpm: %s\n' "$(pnpm --version)"
 
           if [[ ! -f 'pnpm-lock.yaml' ]]; then
             echo '::error::pnpm-lock.yaml was not found in the repository root.'
@@ -232,12 +245,19 @@ jobs:
             exit 1
           fi
 
+          if [[ ! -s "$SNYK_POLICY_FILE" ]]; then
+            echo "::error::Snyk policy file is missing or empty: $SNYK_POLICY_FILE"
+            exit 1
+          fi
+
+          printf 'Node.js: %s\n' "$(node --version)"
+          printf 'pnpm: %s\n' "$(pnpm --version)"
+          printf 'Snyk policy: %s\n' "$SNYK_POLICY_FILE"
+
       - name: Install workspace dependencies
         run: |
           set -euo pipefail
 
-          # Snyk scans dependency metadata. Lifecycle scripts are intentionally
-          # disabled because they are not needed for lockfile-based analysis.
           pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Prepare Snyk reports directory
@@ -255,20 +275,22 @@ jobs:
         with:
           args: >-
             --all-projects
+            --exclude=${{ env.SNYK_OPEN_SOURCE_EXCLUDES }}
             --detection-depth=6
             --strict-out-of-sync=false
             --severity-threshold=${{ env.SNYK_SEVERITY_THRESHOLD }}
+            --policy-path=${{ env.SNYK_POLICY_FILE }}
             --sarif-file-output=snyk-reports/open-source.sarif
             --json-file-output=snyk-reports/open-source.json
 
-      - name: Upload Snyk findings to GitHub Code Scanning
+      - name: Upload Open Source findings to GitHub Code Scanning
         if: always() && hashFiles('snyk-reports/open-source.sarif') != ''
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: snyk-reports/open-source.sarif
           category: snyk-open-source
 
-      - name: Upload Snyk reports
+      - name: Upload Open Source reports
         if: always()
         uses: actions/upload-artifact@v7.0.1
         with:
@@ -279,7 +301,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      - name: Write scan summary
+      - name: Write Open Source scan summary
         if: always()
         env:
           SCAN_RESULT: ${{ steps.snyk_test.outcome }}
@@ -291,17 +313,114 @@ jobs:
             echo
             echo '| Setting | Value |'
             echo '| --- | --- |'
-            echo '| Scan scope | all detected pnpm workspace projects |'
+            echo '| Scan scope | pnpm workspace dependency manifests |'
+            echo "| Test manifest exclusions | $SNYK_OPEN_SOURCE_EXCLUDES |"
             echo "| Severity threshold | $SNYK_SEVERITY_THRESHOLD |"
             echo "| Scan result | ${SCAN_RESULT:-skipped} |"
             echo '| SARIF report | snyk-reports/open-source.sarif |'
             echo '| JSON report | snyk-reports/open-source.json |'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Fail when Snyk finds actionable vulnerabilities
+      - name: Fail when Snyk finds actionable dependency vulnerabilities
         if: always() && steps.snyk_test.outcome != 'success'
         run: |
-          echo '::error::Snyk detected one or more vulnerabilities at or above the configured severity threshold.'
+          echo '::error::Snyk detected one or more dependency vulnerabilities at or above the configured severity threshold.'
+          exit 1
+
+  code:
+    name: Scan production source code
+    needs: preflight
+    if: needs.preflight.outputs.scan_enabled == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    outputs:
+      result: ${{ steps.snyk_code.outcome }}
+
+    env:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify Snyk Code policy
+        run: |
+          set -euo pipefail
+
+          if [[ ! -s "$SNYK_POLICY_FILE" ]]; then
+            echo "::error::Snyk policy file is missing or empty: $SNYK_POLICY_FILE"
+            exit 1
+          fi
+
+          echo 'Snyk Code will exclude test directories and test source files using .snyk.'
+
+      - name: Prepare Snyk reports directory
+        run: |
+          set -euo pipefail
+
+          mkdir -p snyk-reports
+
+      - name: Scan production source with Snyk Code
+        id: snyk_code
+        continue-on-error: true
+        uses: snyk/actions/node@v1.0.0
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: code
+          args: >-
+            test
+            --severity-threshold=${{ env.SNYK_SEVERITY_THRESHOLD }}
+            --sarif-file-output=snyk-reports/code.sarif
+            --json-file-output=snyk-reports/code.json
+
+      - name: Upload Snyk Code findings to GitHub Code Scanning
+        if: always() && hashFiles('snyk-reports/code.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: snyk-reports/code.sarif
+          category: snyk-code
+
+      - name: Upload Snyk Code reports
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: snyk-code-${{ github.run_id }}
+          path: |
+            snyk-reports/code.sarif
+            snyk-reports/code.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Write Snyk Code scan summary
+        if: always()
+        env:
+          SCAN_RESULT: ${{ steps.snyk_code.outcome }}
+        run: |
+          set -euo pipefail
+
+          {
+            echo '## Snyk Code Scan'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo '| Scope | production source code only |'
+            echo "| Policy file | $SNYK_POLICY_FILE |"
+            echo '| Excluded source | test folders, .test, .spec, .e2e, and .integration files |'
+            echo "| Severity threshold | $SNYK_SEVERITY_THRESHOLD |"
+            echo "| Scan result | ${SCAN_RESULT:-skipped} |"
+            echo '| SARIF report | snyk-reports/code.sarif |'
+            echo '| JSON report | snyk-reports/code.json |'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail when Snyk finds actionable production code vulnerabilities
+        if: always() && steps.snyk_code.outcome != 'success'
+        run: |
+          echo '::error::Snyk detected one or more production source-code vulnerabilities at or above the configured severity threshold.'
           exit 1
 
   summary:
@@ -309,6 +428,7 @@ jobs:
     needs:
       - preflight
       - open_source
+      - code
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -320,9 +440,11 @@ jobs:
           PACKAGE_MANIFEST_COUNT: ${{ needs.preflight.outputs.package_manifest_count }}
           LOCKFILE_COUNT: ${{ needs.preflight.outputs.lockfile_count }}
           SNYK_TOKEN_AVAILABLE: ${{ needs.preflight.outputs.snyk_token_available }}
+          SNYK_POLICY_AVAILABLE: ${{ needs.preflight.outputs.snyk_policy_available }}
           SCAN_ENABLED: ${{ needs.preflight.outputs.scan_enabled }}
           SKIP_REASON: ${{ needs.preflight.outputs.skip_reason }}
           OPEN_SOURCE_RESULT: ${{ needs.open_source.result }}
+          CODE_RESULT: ${{ needs.code.result }}
         run: |
           set -euo pipefail
 
@@ -335,16 +457,19 @@ jobs:
             echo "| Package manifests | ${PACKAGE_MANIFEST_COUNT:-0} |"
             echo "| Supported lockfiles | ${LOCKFILE_COUNT:-0} |"
             echo "| SNYK_TOKEN available | ${SNYK_TOKEN_AVAILABLE:-false} |"
+            echo "| .snyk policy available | ${SNYK_POLICY_AVAILABLE:-false} |"
             echo "| Scan enabled | ${SCAN_ENABLED:-false} |"
-            echo "| Open-source scan result | ${OPEN_SOURCE_RESULT:-skipped} |"
+            echo "| Open Source result | ${OPEN_SOURCE_RESULT:-skipped} |"
+            echo "| Snyk Code result | ${CODE_RESULT:-skipped} |"
             echo "| Status | ${SKIP_REASON:-unknown} |"
             echo
 
             if [[ "${SCAN_ENABLED:-false}" != 'true' ]]; then
-              echo '> Passed: Snyk scanning was safely skipped because the required scan prerequisites were not met.'
-            elif [[ "${OPEN_SOURCE_RESULT:-skipped}" == 'success' ]]; then
-              echo '> Passed: Snyk found no vulnerabilities at or above the configured severity threshold.'
+              echo '> Passed: Snyk scanning was safely skipped because prerequisites were not met.'
+            elif [[ "${OPEN_SOURCE_RESULT:-skipped}" != 'success' ]] ||
+              [[ "${CODE_RESULT:-skipped}" != 'success' ]]; then
+              echo '> Failed: review the uploaded Snyk SARIF and JSON reports for actionable findings.'
             else
-              echo '> Failed: review the Snyk SARIF and JSON artifacts for actionable dependency findings.'
+              echo '> Passed: Snyk Open Source and Snyk Code completed successfully.'
             fi
           } >> "$GITHUB_STEP_SUMMARY"
