@@ -1,0 +1,350 @@
+# .github/workflows/snyk.yaml
+#
+# Scans Aerealith's Node.js and pnpm workspace dependencies with Snyk.
+#
+# Coverage:
+# - Detects tracked Node.js package manifests and supported lockfiles.
+# - Scans all discovered pnpm workspace projects with Snyk Open Source.
+# - Uploads SARIF findings to GitHub Code Scanning.
+# - Uploads JSON and SARIF reports as workflow artifacts.
+#
+# Safe skip behavior:
+# - Passes when no Node.js package manifests are tracked.
+# - Passes when SNYK_TOKEN is not configured.
+# - Passes for external fork pull requests because GitHub does not expose
+#   repository secrets to those workflows.
+#
+# Required secret:
+# - SNYK_TOKEN
+#
+# Optional repository policy file:
+# - .snyk
+#
+# Container images are intentionally not scanned here. They are handled by
+# .github/workflows/container-security.yaml, which builds and scans every
+# tracked Dockerfile with Trivy.
+
+name: Snyk
+
+on:
+  pull_request:
+    branches:
+      - master
+      - staging
+      - production
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+
+  push:
+    branches:
+      - master
+      - staging
+      - production
+
+  schedule:
+    # Weekly dependency scan catches vulnerabilities disclosed after the last
+    # source-code change.
+    - cron: "0 5 * * 0"
+
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+concurrency:
+  group: >-
+    snyk-${{
+      github.event.pull_request.number ||
+      github.ref ||
+      github.run_id
+    }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CI: "true"
+  FORCE_COLOR: "1"
+  NODE_VERSION: "25.9.0"
+  PNPM_VERSION: "11.5.2"
+  SNYK_SEVERITY_THRESHOLD: high
+
+jobs:
+  preflight:
+    name: Detect supported projects
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    outputs:
+      node_project_detected: ${{ steps.detect.outputs.node_project_detected }}
+      package_manifest_count: ${{ steps.detect.outputs.package_manifest_count }}
+      lockfile_count: ${{ steps.detect.outputs.lockfile_count }}
+      snyk_token_available: ${{ steps.detect.outputs.snyk_token_available }}
+      is_internal_pull_request: ${{ steps.detect.outputs.is_internal_pull_request }}
+      scan_enabled: ${{ steps.detect.outputs.scan_enabled }}
+      skip_reason: ${{ steps.detect.outputs.skip_reason }}
+
+    env:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Detect Node.js projects and scan eligibility
+        id: detect
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PULL_REQUEST_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          CURRENT_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          package_manifest_count=0
+          lockfile_count=0
+          node_project_detected='false'
+          snyk_token_available='false'
+          is_internal_pull_request='true'
+          scan_enabled='false'
+          skip_reason=''
+
+          while IFS= read -r -d '' file; do
+            case "$file" in
+              package.json|*/package.json)
+                package_manifest_count=$((package_manifest_count + 1))
+                ;;
+            esac
+
+            case "$file" in
+              pnpm-lock.yaml|package-lock.json|npm-shrinkwrap.json|yarn.lock)
+                lockfile_count=$((lockfile_count + 1))
+                ;;
+            esac
+          done < <(git ls-files -z)
+
+          if [[ "$package_manifest_count" -gt 0 ]]; then
+            node_project_detected='true'
+          fi
+
+          if [[ -n "${SNYK_TOKEN:-}" ]]; then
+            snyk_token_available='true'
+          fi
+
+          if [[ "$EVENT_NAME" == 'pull_request' ]] &&
+            [[ "$PULL_REQUEST_HEAD_REPOSITORY" != "$CURRENT_REPOSITORY" ]]; then
+            is_internal_pull_request='false'
+          fi
+
+          if [[ "$node_project_detected" != 'true' ]]; then
+            skip_reason='No tracked package.json files were found.'
+          elif [[ "$lockfile_count" -eq 0 ]]; then
+            skip_reason='No supported Node.js lockfile was found.'
+          elif [[ "$snyk_token_available" != 'true' ]]; then
+            skip_reason='SNYK_TOKEN is not configured.'
+          elif [[ "$is_internal_pull_request" != 'true' ]]; then
+            skip_reason='External fork pull requests do not receive repository secrets.'
+          else
+            scan_enabled='true'
+            skip_reason='Ready to scan.'
+          fi
+
+          {
+            echo "node_project_detected=$node_project_detected"
+            echo "package_manifest_count=$package_manifest_count"
+            echo "lockfile_count=$lockfile_count"
+            echo "snyk_token_available=$snyk_token_available"
+            echo "is_internal_pull_request=$is_internal_pull_request"
+            echo "scan_enabled=$scan_enabled"
+            echo "skip_reason=$skip_reason"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo '## Snyk Preflight'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo "| Package manifests | $package_manifest_count |"
+            echo "| Supported lockfiles | $lockfile_count |"
+            echo "| Node.js project detected | $node_project_detected |"
+            echo "| SNYK_TOKEN available | $snyk_token_available |"
+            echo "| Internal pull request | $is_internal_pull_request |"
+            echo "| Scan enabled | $scan_enabled |"
+            echo "| Status | $skip_reason |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  open_source:
+    name: Scan open-source dependencies
+    needs: preflight
+    if: needs.preflight.outputs.scan_enabled == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    outputs:
+      result: ${{ steps.snyk_test.outcome }}
+
+    env:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6.0.9
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Verify toolchain
+        run: |
+          set -euo pipefail
+
+          printf 'Node.js: %s\n' "$(node --version)"
+          printf 'pnpm: %s\n' "$(pnpm --version)"
+
+          if [[ ! -f 'pnpm-lock.yaml' ]]; then
+            echo '::error::pnpm-lock.yaml was not found in the repository root.'
+            exit 1
+          fi
+
+          if [[ ! -f 'pnpm-workspace.yaml' ]]; then
+            echo '::error::pnpm-workspace.yaml was not found in the repository root.'
+            exit 1
+          fi
+
+      - name: Install workspace dependencies
+        run: |
+          set -euo pipefail
+
+          # Snyk scans dependency metadata. Lifecycle scripts are intentionally
+          # disabled because they are not needed for lockfile-based analysis.
+          pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Prepare Snyk reports directory
+        run: |
+          set -euo pipefail
+
+          mkdir -p snyk-reports
+
+      - name: Scan pnpm workspace dependencies
+        id: snyk_test
+        continue-on-error: true
+        uses: snyk/actions/node@v1.0.0
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: >-
+            --all-projects
+            --detection-depth=6
+            --strict-out-of-sync=false
+            --severity-threshold=${{ env.SNYK_SEVERITY_THRESHOLD }}
+            --sarif-file-output=snyk-reports/open-source.sarif
+            --json-file-output=snyk-reports/open-source.json
+
+      - name: Upload Snyk findings to GitHub Code Scanning
+        if: always() && hashFiles('snyk-reports/open-source.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: snyk-reports/open-source.sarif
+          category: snyk-open-source
+
+      - name: Upload Snyk reports
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: snyk-open-source-${{ github.run_id }}
+          path: |
+            snyk-reports/open-source.sarif
+            snyk-reports/open-source.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Write scan summary
+        if: always()
+        env:
+          SCAN_RESULT: ${{ steps.snyk_test.outcome }}
+        run: |
+          set -euo pipefail
+
+          {
+            echo '## Snyk Open Source Scan'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo '| Scan scope | all detected pnpm workspace projects |'
+            echo "| Severity threshold | $SNYK_SEVERITY_THRESHOLD |"
+            echo "| Scan result | ${SCAN_RESULT:-skipped} |"
+            echo '| SARIF report | snyk-reports/open-source.sarif |'
+            echo '| JSON report | snyk-reports/open-source.json |'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail when Snyk finds actionable vulnerabilities
+        if: always() && steps.snyk_test.outcome != 'success'
+        run: |
+          echo '::error::Snyk detected one or more vulnerabilities at or above the configured severity threshold.'
+          exit 1
+
+  summary:
+    name: Publish Snyk result
+    needs:
+      - preflight
+      - open_source
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Write workflow summary
+        env:
+          NODE_PROJECT_DETECTED: ${{ needs.preflight.outputs.node_project_detected }}
+          PACKAGE_MANIFEST_COUNT: ${{ needs.preflight.outputs.package_manifest_count }}
+          LOCKFILE_COUNT: ${{ needs.preflight.outputs.lockfile_count }}
+          SNYK_TOKEN_AVAILABLE: ${{ needs.preflight.outputs.snyk_token_available }}
+          SCAN_ENABLED: ${{ needs.preflight.outputs.scan_enabled }}
+          SKIP_REASON: ${{ needs.preflight.outputs.skip_reason }}
+          OPEN_SOURCE_RESULT: ${{ needs.open_source.result }}
+        run: |
+          set -euo pipefail
+
+          {
+            echo '## Snyk Result'
+            echo
+            echo '| Check | Result |'
+            echo '| --- | --- |'
+            echo "| Node.js project detected | ${NODE_PROJECT_DETECTED:-false} |"
+            echo "| Package manifests | ${PACKAGE_MANIFEST_COUNT:-0} |"
+            echo "| Supported lockfiles | ${LOCKFILE_COUNT:-0} |"
+            echo "| SNYK_TOKEN available | ${SNYK_TOKEN_AVAILABLE:-false} |"
+            echo "| Scan enabled | ${SCAN_ENABLED:-false} |"
+            echo "| Open-source scan result | ${OPEN_SOURCE_RESULT:-skipped} |"
+            echo "| Status | ${SKIP_REASON:-unknown} |"
+            echo
+
+            if [[ "${SCAN_ENABLED:-false}" != 'true' ]]; then
+              echo '> Passed: Snyk scanning was safely skipped because the required scan prerequisites were not met.'
+            elif [[ "${OPEN_SOURCE_RESULT:-skipped}" == 'success' ]]; then
+              echo '> Passed: Snyk found no vulnerabilities at or above the configured severity threshold.'
+            else
+              echo '> Failed: review the Snyk SARIF and JSON artifacts for actionable dependency findings.'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
