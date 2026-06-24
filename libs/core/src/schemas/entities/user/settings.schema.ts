@@ -1,37 +1,31 @@
-// libs/core/src/schemas/entities/user/settings.schema.ts
-
-import { z } from 'zod';
+import { z } from 'zod'
 
 /**
  * Internal user settings entity ID.
  */
-export const UserSettingsIdSchema = z.string().uuid();
+export const UserSettingsIdSchema = z.uuid()
 
 /**
  * User settings schema version.
  */
-export const UserSettingsSchemaVersionSchema = z.number().int().min(1);
+export const UserSettingsSchemaVersionSchema = z.number().int().min(1)
 
 /**
  * Text scaling multiplier used by the user interface.
  */
-export const UserSettingsTextScaleSchema = z.number().min(0.5).max(2);
+export const UserSettingsTextScaleSchema = z.number().min(0.5).max(2)
 
 /**
  * User interface theme preference.
  */
-export const UserSettingsThemeSchema = z.enum([
-  'system',
-  'light',
-  'dark',
-]);
+export const UserSettingsThemeSchema = z.enum(['system', 'light', 'dark'])
 
 /**
  * Metadata used to evolve the settings structure safely.
  */
 export const UserSettingsMetadataSchema = z.object({
   schemaVersion: UserSettingsSchemaVersionSchema,
-});
+})
 
 /**
  * Accessibility-related user settings.
@@ -40,7 +34,7 @@ export const UserAccessibilitySettingsSchema = z.object({
   reduceMotion: z.boolean(),
   highContrast: z.boolean(),
   textScale: UserSettingsTextScaleSchema,
-});
+})
 
 /**
  * Appearance-related user settings.
@@ -48,7 +42,7 @@ export const UserAccessibilitySettingsSchema = z.object({
 export const UserAppearanceSettingsSchema = z.object({
   theme: UserSettingsThemeSchema,
   compactMode: z.boolean(),
-});
+})
 
 /**
  * Communication-related user settings.
@@ -56,7 +50,7 @@ export const UserAppearanceSettingsSchema = z.object({
 export const UserCommunicationSettingsSchema = z.object({
   progressUpdates: z.boolean(),
   quietMode: z.boolean(),
-});
+})
 
 /**
  * Notification-related user settings.
@@ -66,7 +60,7 @@ export const UserNotificationSettingsSchema = z.object({
   push: z.boolean(),
   productUpdates: z.boolean(),
   securityAlerts: z.boolean(),
-});
+})
 
 /**
  * Privacy-related user settings.
@@ -74,21 +68,21 @@ export const UserNotificationSettingsSchema = z.object({
 export const UserPrivacySettingsSchema = z.object({
   analytics: z.boolean(),
   personalization: z.boolean(),
-});
+})
 
 /**
  * Security-related user settings.
  */
 export const UserSecuritySettingsSchema = z.object({
   mfaEnabled: z.boolean(),
-});
+})
 
 /**
  * Full internal user settings entity schema.
  */
 export const UserSettingsEntitySchema = z.object({
   id: UserSettingsIdSchema,
-  userId: z.string().uuid(),
+  userId: z.uuid(),
 
   metadata: UserSettingsMetadataSchema,
 
@@ -102,7 +96,7 @@ export const UserSettingsEntitySchema = z.object({
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
   deletedAt: z.coerce.date().nullable(),
-});
+})
 
 /**
  * Data accepted when creating user settings.
@@ -110,7 +104,7 @@ export const UserSettingsEntitySchema = z.object({
  * The entity supplies defaults for all setting groups.
  */
 export const CreateUserSettingsEntitySchema = z.object({
-  userId: z.string().uuid(),
+  userId: z.uuid(),
 
   metadata: UserSettingsMetadataSchema.optional(),
 
@@ -120,7 +114,7 @@ export const CreateUserSettingsEntitySchema = z.object({
   notifications: UserNotificationSettingsSchema.partial().optional(),
   privacy: UserPrivacySettingsSchema.partial().optional(),
   security: UserSecuritySettingsSchema.partial().optional(),
-});
+})
 
 /**
  * Data allowed when updating user settings.
@@ -135,14 +129,14 @@ export const UpdateUserSettingsEntitySchema = z.object({
   notifications: UserNotificationSettingsSchema.partial().optional(),
   privacy: UserPrivacySettingsSchema.partial().optional(),
   security: UserSecuritySettingsSchema.partial().optional(),
-});
+})
 
 /**
  * API-safe user settings response.
  */
 export const UserSettingsContractSchema = z.object({
   id: UserSettingsIdSchema,
-  userId: z.string().uuid(),
+  userId: z.uuid(),
 
   metadata: UserSettingsMetadataSchema,
 
@@ -153,60 +147,57 @@ export const UserSettingsContractSchema = z.object({
   privacy: UserPrivacySettingsSchema,
   security: UserSecuritySettingsSchema,
 
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-});
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+})
 
 /**
  * API request payload for updating the current user's settings.
  */
-export const UpdateUserSettingsContractSchema =
-  UpdateUserSettingsEntitySchema;
+export const UpdateUserSettingsContractSchema = UpdateUserSettingsEntitySchema
 
 export type UserSettingsMetadataInput = z.infer<
   typeof UserSettingsMetadataSchema
->;
+>
 
 export type UserAccessibilitySettingsInput = z.infer<
   typeof UserAccessibilitySettingsSchema
->;
+>
 
 export type UserAppearanceSettingsInput = z.infer<
   typeof UserAppearanceSettingsSchema
->;
+>
 
 export type UserCommunicationSettingsInput = z.infer<
   typeof UserCommunicationSettingsSchema
->;
+>
 
 export type UserNotificationSettingsInput = z.infer<
   typeof UserNotificationSettingsSchema
->;
+>
 
-export type UserPrivacySettingsInput = z.infer<
-  typeof UserPrivacySettingsSchema
->;
+export type UserPrivacySettingsInput = z.infer<typeof UserPrivacySettingsSchema>
 
 export type UserSecuritySettingsInput = z.infer<
   typeof UserSecuritySettingsSchema
->;
+>
 
 export type UserSettingsEntitySchemaType = z.infer<
   typeof UserSettingsEntitySchema
->;
+>
 
 export type CreateUserSettingsEntityInput = z.infer<
   typeof CreateUserSettingsEntitySchema
->;
+>
 
 export type UpdateUserSettingsEntityInput = z.infer<
   typeof UpdateUserSettingsEntitySchema
->;
+>
 
 export type UserSettingsContractSchemaType = z.infer<
   typeof UserSettingsContractSchema
->;
+>
 
 export type UpdateUserSettingsContractInput = z.infer<
   typeof UpdateUserSettingsContractSchema
->;
+>

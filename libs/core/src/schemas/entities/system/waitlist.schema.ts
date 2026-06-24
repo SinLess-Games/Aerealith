@@ -1,16 +1,18 @@
-// libs/core/src/schemas/entities/system/waitlist.schema.ts
-
-import { z } from 'zod';
+import { z } from 'zod'
 
 /**
  * Internal waitlist entry ID.
  */
-export const WaitlistIdSchema = z.string().uuid();
+export const WaitlistIdSchema = z.uuid()
 
 /**
  * Waitlist email addresses are stored lowercase.
  */
-export const WaitlistEmailSchema = z.string().trim().toLowerCase().email();
+export const WaitlistEmailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .pipe(z.email())
 
 /**
  * Full internal waitlist entity schema.
@@ -25,14 +27,14 @@ export const WaitlistEntitySchema = z.object({
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
   deletedAt: z.coerce.date().nullable(),
-});
+})
 
 /**
  * Data accepted when adding an email address to the waitlist.
  */
 export const CreateWaitlistEntitySchema = z.object({
   email: WaitlistEmailSchema,
-});
+})
 
 /**
  * Safe waitlist response for an authorized internal/admin API.
@@ -40,17 +42,13 @@ export const CreateWaitlistEntitySchema = z.object({
 export const WaitlistContractSchema = z.object({
   id: WaitlistIdSchema,
   email: WaitlistEmailSchema,
-  createdAt: z.string().datetime(),
-});
+  createdAt: z.iso.datetime(),
+})
 
-export type WaitlistEntitySchemaType = z.infer<
-  typeof WaitlistEntitySchema
->;
+export type WaitlistEntitySchemaType = z.infer<typeof WaitlistEntitySchema>
 
 export type CreateWaitlistEntityInput = z.infer<
   typeof CreateWaitlistEntitySchema
->;
+>
 
-export type WaitlistContractSchemaType = z.infer<
-  typeof WaitlistContractSchema
->;
+export type WaitlistContractSchemaType = z.infer<typeof WaitlistContractSchema>

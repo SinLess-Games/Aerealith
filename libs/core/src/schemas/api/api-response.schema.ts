@@ -1,20 +1,18 @@
-// libs/core/src/schemas/api/api-response.schema.ts
-
-import { z } from 'zod';
+import { z } from 'zod'
 
 /**
  * Shared metadata returned with API responses.
  */
 export const ApiMetaSchema = z.object({
   requestId: z.string().min(1).optional(),
-  timestamp: z.string().datetime().optional(),
+  timestamp: z.iso.datetime().optional(),
   path: z.string().min(1).optional(),
-});
+})
 
 /**
  * Generic API error-code schema.
  */
-export const ApiErrorCodeSchema = z.string().min(1);
+export const ApiErrorCodeSchema = z.string().min(1)
 
 /**
  * Standard API error payload.
@@ -23,7 +21,7 @@ export const ApiErrorSchema = z.object({
   code: ApiErrorCodeSchema,
   message: z.string().min(1),
   details: z.unknown().optional(),
-});
+})
 
 /**
  * Builds a successful API response schema.
@@ -35,7 +33,7 @@ export function apiSuccessResponseSchema<TData extends z.ZodType>(
     ok: z.literal(true),
     data: dataSchema,
     meta: ApiMetaSchema.optional(),
-  });
+  })
 }
 
 /**
@@ -52,7 +50,7 @@ export function apiErrorResponseSchema<TCode extends z.ZodType>(
       details: z.unknown().optional(),
     }),
     meta: ApiMetaSchema.optional(),
-  });
+  })
 }
 
 /**
@@ -65,15 +63,13 @@ export function apiResponseSchema<
   return z.discriminatedUnion('ok', [
     apiSuccessResponseSchema(dataSchema),
     apiErrorResponseSchema(codeSchema),
-  ]);
+  ])
 }
 
 /**
  * Generic error response schema.
  */
-export const ApiErrorResponseSchema = apiErrorResponseSchema(
-  ApiErrorCodeSchema,
-);
+export const ApiErrorResponseSchema = apiErrorResponseSchema(ApiErrorCodeSchema)
 
 /**
  * Generic API response schema for unknown response data.
@@ -81,14 +77,12 @@ export const ApiErrorResponseSchema = apiErrorResponseSchema(
 export const ApiResponseSchema = apiResponseSchema(
   z.unknown(),
   ApiErrorCodeSchema,
-);
+)
 
-export type ApiMetaSchemaType = z.infer<typeof ApiMetaSchema>;
+export type ApiMetaSchemaType = z.infer<typeof ApiMetaSchema>
 
-export type ApiErrorSchemaType = z.infer<typeof ApiErrorSchema>;
+export type ApiErrorSchemaType = z.infer<typeof ApiErrorSchema>
 
-export type ApiErrorResponseSchemaType = z.infer<
-  typeof ApiErrorResponseSchema
->;
+export type ApiErrorResponseSchemaType = z.infer<typeof ApiErrorResponseSchema>
 
-export type ApiResponseSchemaType = z.infer<typeof ApiResponseSchema>;
+export type ApiResponseSchemaType = z.infer<typeof ApiResponseSchema>

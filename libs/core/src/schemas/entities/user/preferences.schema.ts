@@ -1,6 +1,4 @@
-// libs/core/src/schemas/entities/user/preferences.schema.ts
-
-import { z } from 'zod';
+import { z } from 'zod'
 
 import {
   ContentMaturity,
@@ -11,12 +9,12 @@ import {
   TimezoneGreenwich,
   TimezoneUtc,
   WeekStartDay,
-} from '../../../enumns';
+} from '../../../enumns'
 
 /**
  * Internal user preferences entity ID.
  */
-export const UserPreferencesIdSchema = z.string().uuid();
+export const UserPreferencesIdSchema = z.uuid()
 
 /**
  * IETF BCP 47 locale code.
@@ -26,7 +24,7 @@ export const UserPreferencesIdSchema = z.string().uuid();
  * - es-MX
  * - fr-CA
  */
-export const UserLocaleSchema = z.string().trim().min(2).max(100);
+export const UserLocaleSchema = z.string().trim().min(2).max(100)
 
 /**
  * IANA timezone name.
@@ -36,30 +34,30 @@ export const UserLocaleSchema = z.string().trim().min(2).max(100);
  * - America/New_York
  * - Europe/London
  */
-export const UserTimezoneSchema = z.string().trim().min(1).max(100);
+export const UserTimezoneSchema = z.string().trim().min(1).max(100)
 
-export const ContentMaturitySchema = z.enum(ContentMaturity);
+export const ContentMaturitySchema = z.enum(ContentMaturity)
 
-export const DateFormatSchema = z.enum(DateFormat);
+export const DateFormatSchema = z.enum(DateFormat)
 
-export const MeasurementSystemSchema = z.enum(MeasurementSystem);
+export const MeasurementSystemSchema = z.enum(MeasurementSystem)
 
-export const NameDisplayOrderSchema = z.enum(NameDisplayOrder);
+export const NameDisplayOrderSchema = z.enum(NameDisplayOrder)
 
-export const TimeFormatSchema = z.enum(TimeFormat);
+export const TimeFormatSchema = z.enum(TimeFormat)
 
-export const TimezoneGreenwichSchema = z.enum(TimezoneGreenwich);
+export const TimezoneGreenwichSchema = z.enum(TimezoneGreenwich)
 
-export const TimezoneUtcSchema = z.enum(TimezoneUtc);
+export const TimezoneUtcSchema = z.enum(TimezoneUtc)
 
-export const WeekStartDaySchema = z.enum(WeekStartDay);
+export const WeekStartDaySchema = z.enum(WeekStartDay)
 
 /**
  * Full internal user preferences entity schema.
  */
 export const UserPreferencesEntitySchema = z.object({
   id: UserPreferencesIdSchema,
-  userId: z.string().uuid(),
+  userId: z.uuid(),
 
   locale: UserLocaleSchema.nullable(),
   timezone: UserTimezoneSchema.nullable(),
@@ -76,7 +74,7 @@ export const UserPreferencesEntitySchema = z.object({
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
   deletedAt: z.coerce.date().nullable(),
-});
+})
 
 /**
  * Data accepted when creating user preferences.
@@ -85,7 +83,7 @@ export const UserPreferencesEntitySchema = z.object({
  * provides safe defaults.
  */
 export const CreateUserPreferencesEntitySchema = z.object({
-  userId: z.string().uuid(),
+  userId: z.uuid(),
 
   locale: UserLocaleSchema.nullable().optional(),
   timezone: UserTimezoneSchema.nullable().optional(),
@@ -98,7 +96,7 @@ export const CreateUserPreferencesEntitySchema = z.object({
   nameDisplayOrder: NameDisplayOrderSchema.optional(),
   measurementSystem: MeasurementSystemSchema.optional(),
   contentMaturity: ContentMaturitySchema.optional(),
-});
+})
 
 /**
  * Data allowed when updating user preferences.
@@ -115,14 +113,14 @@ export const UpdateUserPreferencesEntitySchema = z.object({
   nameDisplayOrder: NameDisplayOrderSchema.optional(),
   measurementSystem: MeasurementSystemSchema.optional(),
   contentMaturity: ContentMaturitySchema.optional(),
-});
+})
 
 /**
  * API-safe user preferences response.
  */
 export const UserPreferencesContractSchema = z.object({
   id: UserPreferencesIdSchema,
-  userId: z.string().uuid(),
+  userId: z.uuid(),
 
   locale: UserLocaleSchema.nullable(),
   timezone: UserTimezoneSchema.nullable(),
@@ -136,22 +134,22 @@ export const UserPreferencesContractSchema = z.object({
   measurementSystem: MeasurementSystemSchema,
   contentMaturity: ContentMaturitySchema,
 
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-});
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+})
 
 export type UserPreferencesEntitySchemaType = z.infer<
   typeof UserPreferencesEntitySchema
->;
+>
 
 export type CreateUserPreferencesEntityInput = z.infer<
   typeof CreateUserPreferencesEntitySchema
->;
+>
 
 export type UpdateUserPreferencesEntityInput = z.infer<
   typeof UpdateUserPreferencesEntitySchema
->;
+>
 
 export type UserPreferencesContractSchemaType = z.infer<
   typeof UserPreferencesContractSchema
->;
+>

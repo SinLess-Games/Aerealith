@@ -22,12 +22,18 @@ ENV PATH=$PNPM_HOME:$PATH
 
 # Install only the native compilation tooling needed for workspace dependencies.
 # The final runtime image does not contain these tools.
+#
+# --ignore-scripts prevents package lifecycle scripts from running as root
+# during pnpm installation.
 RUN apk add --no-cache \
     g++ \
     libc6-compat \
     make \
     python3 \
-    && npm install --global pnpm@11.5.2
+    && npm install \
+    --global \
+    --ignore-scripts \
+    pnpm@11.5.2
 
 # The frontend depends on the Nx workspace and shared libraries, so Docker must
 # build from the repository root context.
@@ -37,13 +43,15 @@ COPY --chown=node:node . .
 RUN mkdir -p /pnpm/store \
     && chown -R node:node /pnpm /workspace
 
-# Build as the non-root Node image user. This prevents lifecycle scripts and
-# build tooling from running as root inside the image build stage.
+# Build as the non-root Node image user. This prevents package lifecycle scripts
+# and build tooling from running as root inside the image build stage.
 USER node
 
 RUN --mount=type=cache,id=aerealith-pnpm-store,target=/pnpm/store,uid=1000,gid=1000 \
     pnpm config set store-dir /pnpm/store \
-    && pnpm install --frozen-lockfile \
+    && pnpm install \
+    --frozen-lockfile \
+    --ignore-scripts \
     && pnpm exec nx build frontend --skip-nx-cache
 
 # ==============================================================================
