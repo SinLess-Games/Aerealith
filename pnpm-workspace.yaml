@@ -3,8 +3,10 @@ resolvePeersFromWorkspaceRoot: true
 dedupePeerDependents: true
 dedupeDirectDeps: true
 allowBuilds:
-  '@swc/core': true
+  "@swc/core": true
   esbuild: true
   nx: true
   sharp: true
   workerd: true
+overrides:
+  "@opentelemetry/core": 2.8.0
