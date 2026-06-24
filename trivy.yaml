@@ -1,0 +1,112 @@
+# trivy.yaml
+#
+# Shared Trivy security policy for Aerealith.
+#
+# This file is intended for:
+# - Docker image vulnerability scans.
+# - Dockerfile and infrastructure misconfiguration scans.
+# - Local developer scans.
+# - GitHub Actions container-security workflows.
+#
+# Per-scan settings such as output format, SARIF output path, and exit code
+# remain in the workflow because they differ between configuration and image
+# scans.
+
+# ==============================================================================
+# Global behavior
+# ==============================================================================
+
+# Keep CI scans from hanging indefinitely while database updates or large image
+# analysis is in progress.
+timeout: 10m
+
+# Disable Trivy's anonymous telemetry for local and CI security scans.
+scan:
+  disable-telemetry: true
+
+  # Limit parallel analysis to keep CI runner resource use predictable.
+  parallel: 5
+
+  # Generated files and dependency directories are not source configuration
+  # and should not be scanned during repository configuration scans.
+  skip-dirs:
+    - .git
+    - .nx
+    - .pnpm
+    - .pnpm-store
+    - .turbo
+    - .cache
+    - artifacts
+    - build
+    - coverage
+    - dist
+    - megalinter-reports
+    - node_modules
+    - out
+    - playwright-report
+    - reports
+    - test-results
+
+# ==============================================================================
+# Reporting and filtering
+# ==============================================================================
+
+# The workflow overrides this with SARIF for GitHub Code Scanning uploads.
+# Table output remains useful for local `trivy image` and `trivy config` runs.
+format: table
+
+# Keep output focused on actionable findings in CI and local scans.
+severity:
+  - CRITICAL
+  - HIGH
+
+# Use the structured exception catalogue created for this repository.
+#
+# Do not replace this with a broad ignore list. Every exception must remain
+# documented and time-bounded in .trivyignore.yaml.
+ignorefile: .trivyignore.yaml
+
+# Do not list every package when the report is not a dependency inventory.
+list-all-pkgs: false
+
+# ==============================================================================
+# Vulnerability scanning
+# ==============================================================================
+
+vulnerability:
+  # Report only vulnerabilities with an available fix. This avoids blocking
+  # builds on findings that cannot yet be remediated upstream.
+  ignore-unfixed: true
+
+  # Prefer Trivy's automatic source selection for CVE severity metadata.
+  severity-source:
+    - auto
+
+# Scan both operating-system packages and application libraries in built images.
+pkg:
+  types:
+    - os
+    - library
+
+# ==============================================================================
+# Misconfiguration scanning
+# ==============================================================================
+
+misconfiguration:
+  # Scan the configuration formats relevant to current and planned Aerealith
+  # Docker, Kubernetes, Helm, and Terraform infrastructure.
+  scanners:
+    - dockerfile
+    - helm
+    - kubernetes
+    - terraform
+    - terraformplan-json
+    - terraformplan-snapshot
+
+  # Do not include passing checks in SARIF or normal scan output.
+  include-non-failures: false
+
+  terraform:
+    # Preserve visibility into downloaded Terraform modules when they are
+    # present. This catches insecure module configuration early.
+    exclude-downloaded-modules: false

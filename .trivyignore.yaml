@@ -1,0 +1,18 @@
+# .trivyignore.yaml
+#
+# Temporary, documented exceptions for Trivy findings.
+#
+# Rules:
+# - Do not add broad file exclusions.
+# - Every exception must have a clear statement.
+# - Every temporary exception must include expired_at in YYYY-MM-DD format.
+# - Remove entries when the dependency, image, configuration, or finding is fixed.
+# - Prefer fixing the issue over suppressing it.
+
+vulnerabilities: []
+
+misconfigurations: []
+
+secrets: []
+
+licenses: []

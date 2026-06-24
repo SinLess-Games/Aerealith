@@ -1,0 +1,131 @@
+# ==============================================================================
+# Dependencies and package-manager caches
+# ==============================================================================
+
+node_modules/
+**/node_modules/
+
+.pnpm-store/
+.pnpm/
+.npm/
+.yarn/
+.yarn-cache/
+.yarnrc.local
+
+# Do not copy local npm registry credentials into container builds.
+.npmrc
+
+# ==============================================================================
+# Build, test, and tool output
+# ==============================================================================
+
+dist/
+**/dist/
+
+build/
+**/build/
+
+coverage/
+**/coverage/
+
+test-results/
+**/test-results/
+
+playwright-report/
+**/playwright-report/
+
+playwright/.cache/
+**/playwright/.cache/
+
+artifacts/
+**/artifacts/
+
+reports/
+**/reports/
+
+megalinter-reports/
+mega-linter.log
+
+.nx/cache/
+.nx/workspace-data/
+.nx/terminalOutputs/
+
+.turbo/
+.cache/
+**/.cache/
+
+.vite/
+**/.vite/
+
+.next/
+**/.next/
+
+out/
+**/out/
+
+tmp/
+temp/
+**/tmp/
+**/temp/
+
+# ==============================================================================
+# Version control and GitHub metadata
+# ==============================================================================
+
+.git/
+.gitignore
+.gitattributes
+
+.github/
+.gitlab/
+.vscode/
+.idea/
+
+# ==============================================================================
+# Environment files, local secrets, and credentials
+# ==============================================================================
+
+.env
+.env.*
+!.env.example
+!.env.template
+
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+
+secrets/
+**/secrets/
+
+credentials/
+**/credentials/
+
+# ==============================================================================
+# Logs and diagnostics
+# ==============================================================================
+
+*.log
+*.log.*
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+*.pid
+*.pid.lock
+
+# ==============================================================================
+# Operating system and editor files
+# ==============================================================================
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+*.swp
+*.swo
+*~
