@@ -1,19 +1,22 @@
 # .github/workflows/snyk.yaml
 #
-# Scans Aerealith dependencies and production source code with the Snyk CLI.
+# Scans Aerealith dependencies and production source code with Snyk.
 #
 # Coverage:
-# - Snyk Open Source scans all pnpm workspace dependency projects.
+# - Snyk Open Source scans all discovered pnpm workspace dependency projects.
 # - Snyk Code scans production source code.
-# - .snyk excludes test directories and .spec/.e2e test files from Snyk Code.
-# - Snyk Open Source excludes package manifests found inside test directories.
-# - SARIF findings are uploaded to GitHub Code Scanning for trusted runs.
+# - .snyk excludes test directories and .spec/.e2e/.test files from Snyk Code.
+# - Open Source scan ignores package manifests found in conventional test,
+#   fixture, mock, and E2E directories.
+# - Detailed vulnerability summaries are written to the GitHub Actions job
+#   summary for both Open Source and Snyk Code scans.
+# - SARIF and JSON reports are uploaded as artifacts and to GitHub Code Scanning.
 #
-# Why this workflow invokes Snyk directly:
-# - snyk/actions/node passes its args input as one Docker argument.
-# - --all-projects requires several independently parsed CLI arguments.
-# - snyk/actions/setup installs the official Snyk CLI so shell steps can pass
-#   every argument correctly.
+# Required secret:
+# - SNYK_TOKEN
+#
+# Required policy file:
+# - .snyk
 
 name: Snyk
 
@@ -36,7 +39,8 @@ on:
       - production
 
   schedule:
-    # Weekly dependency and production-code scan.
+    # Weekly scan catches vulnerabilities disclosed after the most recent code
+    # or dependency change.
     - cron: "0 5 * * 0"
 
   workflow_dispatch:
@@ -67,11 +71,16 @@ env:
   SNYK_VERSION: latest
   SNYK_SEVERITY_THRESHOLD: high
   SNYK_POLICY_FILE: .snyk
+  SNYK_REPORT_DIRECTORY: snyk-reports
 
-  # Snyk Open Source --exclude accepts comma-separated exact directory or file
-  # names. It does not accept globs here.
+  # Snyk Open Source --exclude accepts exact directory or file names. It does
+  # not accept file globs such as *.spec.ts or **/tests/**.
   SNYK_OPEN_SOURCE_EXCLUDES: >-
     test,tests,spec,specs,e2e,e2e-tests,integration,integration-tests,__tests__,__mocks__,__fixtures__,fixtures
+
+  # Limits GitHub Step Summary output while still showing enough actionable
+  # findings for triage.
+  SNYK_SUMMARY_MAX_FINDINGS: "50"
 
 jobs:
   preflight:
@@ -80,15 +89,16 @@ jobs:
     timeout-minutes: 10
 
     outputs:
+      scan_enabled: ${{ steps.detect.outputs.scan_enabled }}
       package_manifest_count: ${{ steps.detect.outputs.package_manifest_count }}
       lockfile_count: ${{ steps.detect.outputs.lockfile_count }}
+      source_file_count: ${{ steps.detect.outputs.source_file_count }}
       snyk_token_available: ${{ steps.detect.outputs.snyk_token_available }}
       snyk_policy_available: ${{ steps.detect.outputs.snyk_policy_available }}
       is_internal_pull_request: ${{ steps.detect.outputs.is_internal_pull_request }}
       open_source_enabled: ${{ steps.detect.outputs.open_source_enabled }}
       code_enabled: ${{ steps.detect.outputs.code_enabled }}
-      open_source_reason: ${{ steps.detect.outputs.open_source_reason }}
-      code_reason: ${{ steps.detect.outputs.code_reason }}
+      skip_reason: ${{ steps.detect.outputs.skip_reason }}
 
     env:
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
@@ -100,7 +110,7 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Detect scan targets and eligibility
+      - name: Detect Snyk scan targets
         id: detect
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -111,13 +121,14 @@ jobs:
 
           package_manifest_count=0
           lockfile_count=0
+          source_file_count=0
           snyk_token_available='false'
           snyk_policy_available='false'
           is_internal_pull_request='true'
           open_source_enabled='false'
           code_enabled='false'
-          open_source_reason=''
-          code_reason=''
+          scan_enabled='false'
+          skip_reason=''
 
           while IFS= read -r -d '' file; do
             case "$file" in
@@ -129,6 +140,18 @@ jobs:
             case "$file" in
               pnpm-lock.yaml|package-lock.json|npm-shrinkwrap.json|yarn.lock)
                 lockfile_count=$((lockfile_count + 1))
+                ;;
+            esac
+
+            case "$file" in
+              *.js|*.cjs|*.mjs|*.jsx|*.ts|*.cts|*.mts|*.tsx|*.vue|*.svelte|*.astro)
+                case "$file" in
+                  *.test.*|*.spec.*|*.e2e.*|*.integration.*|*/test/*|*/tests/*|*/spec/*|*/specs/*|*/e2e/*|*/e2e-tests/*|*/integration/*|*/integration-tests/*|*/__tests__/*|*/__mocks__/*|*/__fixtures__/*)
+                    ;;
+                  *)
+                    source_file_count=$((source_file_count + 1))
+                    ;;
+                esac
                 ;;
             esac
           done < <(git ls-files -z)
@@ -147,39 +170,45 @@ jobs:
           fi
 
           if [[ "$snyk_token_available" != 'true' ]]; then
-            open_source_reason='SNYK_TOKEN is not configured.'
-            code_reason='SNYK_TOKEN is not configured.'
+            skip_reason='SNYK_TOKEN is not configured.'
           elif [[ "$is_internal_pull_request" != 'true' ]]; then
-            open_source_reason='External fork pull requests do not receive repository secrets.'
-            code_reason='External fork pull requests do not receive repository secrets.'
+            skip_reason='External fork pull requests do not receive repository secrets.'
           else
-            if [[ "$package_manifest_count" -eq 0 ]]; then
-              open_source_reason='No tracked package.json files were found.'
-            elif [[ "$lockfile_count" -eq 0 ]]; then
-              open_source_reason='No supported Node.js lockfile was found.'
-            else
+            scan_enabled='true'
+
+            if [[ "$package_manifest_count" -gt 0 ]] &&
+              [[ "$lockfile_count" -gt 0 ]]; then
               open_source_enabled='true'
-              open_source_reason='Ready to scan pnpm workspace dependencies.'
             fi
 
-            if [[ "$snyk_policy_available" != 'true' ]]; then
-              code_reason='.snyk is missing or empty, so test-file exclusions cannot be enforced.'
-            else
+            if [[ "$source_file_count" -gt 0 ]] &&
+              [[ "$snyk_policy_available" == 'true' ]]; then
               code_enabled='true'
-              code_reason='Ready to scan production source code.'
+            fi
+
+            if [[ "$open_source_enabled" == 'true' ]] &&
+              [[ "$code_enabled" == 'true' ]]; then
+              skip_reason='Open Source and Snyk Code scans are enabled.'
+            elif [[ "$open_source_enabled" == 'true' ]]; then
+              skip_reason='Open Source scan enabled; Snyk Code scan has no eligible production source or .snyk policy.'
+            elif [[ "$code_enabled" == 'true' ]]; then
+              skip_reason='Snyk Code scan enabled; Open Source scan has no package manifest and lockfile combination.'
+            else
+              skip_reason='No supported Snyk scan target was found.'
             fi
           fi
 
           {
+            echo "scan_enabled=$scan_enabled"
             echo "package_manifest_count=$package_manifest_count"
             echo "lockfile_count=$lockfile_count"
+            echo "source_file_count=$source_file_count"
             echo "snyk_token_available=$snyk_token_available"
             echo "snyk_policy_available=$snyk_policy_available"
             echo "is_internal_pull_request=$is_internal_pull_request"
             echo "open_source_enabled=$open_source_enabled"
             echo "code_enabled=$code_enabled"
-            echo "open_source_reason=$open_source_reason"
-            echo "code_reason=$code_reason"
+            echo "skip_reason=$skip_reason"
           } >> "$GITHUB_OUTPUT"
 
           {
@@ -189,24 +218,34 @@ jobs:
             echo '| --- | --- |'
             echo "| Package manifests | $package_manifest_count |"
             echo "| Supported lockfiles | $lockfile_count |"
+            echo "| Eligible production source files | $source_file_count |"
             echo "| SNYK_TOKEN available | $snyk_token_available |"
             echo "| .snyk policy available | $snyk_policy_available |"
             echo "| Internal pull request | $is_internal_pull_request |"
             echo "| Open Source scan enabled | $open_source_enabled |"
             echo "| Snyk Code scan enabled | $code_enabled |"
-            echo "| Open Source status | $open_source_reason |"
-            echo "| Snyk Code status | $code_reason |"
+            echo "| Status | $skip_reason |"
           } >> "$GITHUB_STEP_SUMMARY"
 
-  open-source:
-    name: Scan open-source dependencies
+  scan:
+    name: Scan dependencies and production source
     needs: preflight
-    if: needs.preflight.outputs.open_source_enabled == 'true'
+    if: needs.preflight.outputs.scan_enabled == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
 
     outputs:
-      result: ${{ steps.snyk_test.outcome }}
+      open_source_status: ${{ steps.open_source_scan.outputs.status }}
+      open_source_exit_code: ${{ steps.open_source_scan.outputs.exit_code }}
+      open_source_finding_count: ${{ steps.open_source_summary.outputs.finding_count }}
+      open_source_critical_count: ${{ steps.open_source_summary.outputs.critical_count }}
+      open_source_high_count: ${{ steps.open_source_summary.outputs.high_count }}
+      code_status: ${{ steps.code_scan.outputs.status }}
+      code_exit_code: ${{ steps.code_scan.outputs.exit_code }}
+      code_finding_count: ${{ steps.code_summary.outputs.finding_count }}
+      code_high_count: ${{ steps.code_summary.outputs.high_count }}
+      code_medium_count: ${{ steps.code_summary.outputs.medium_count }}
+      code_low_count: ${{ steps.code_summary.outputs.low_count }}
 
     env:
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
@@ -219,12 +258,14 @@ jobs:
           persist-credentials: false
 
       - name: Set up pnpm
+        if: needs.preflight.outputs.open_source_enabled == 'true'
         uses: pnpm/action-setup@v6.0.9
         with:
           version: ${{ env.PNPM_VERSION }}
           run_install: false
 
       - name: Set up Node.js
+        if: needs.preflight.outputs.open_source_enabled == 'true'
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -232,31 +273,33 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
 
       - name: Verify pnpm workspace
+        if: needs.preflight.outputs.open_source_enabled == 'true'
         run: |
           set -euo pipefail
 
-          if [[ ! -f 'package.json' ]]; then
-            echo '::error::package.json was not found in the repository root.'
-            exit 1
-          fi
+          required_files=(
+            package.json
+            pnpm-lock.yaml
+            pnpm-workspace.yaml
+          )
 
-          if [[ ! -f 'pnpm-lock.yaml' ]]; then
-            echo '::error::pnpm-lock.yaml was not found in the repository root.'
-            exit 1
-          fi
-
-          if [[ ! -f 'pnpm-workspace.yaml' ]]; then
-            echo '::error::pnpm-workspace.yaml was not found in the repository root.'
-            exit 1
-          fi
+          for required_file in "${required_files[@]}"; do
+            if [[ ! -f "$required_file" ]]; then
+              echo "::error::Required workspace file was not found: $required_file"
+              exit 1
+            fi
+          done
 
           printf 'Node.js: %s\n' "$(node --version)"
           printf 'pnpm: %s\n' "$(pnpm --version)"
 
       - name: Install workspace dependencies
+        if: needs.preflight.outputs.open_source_enabled == 'true'
         run: |
           set -euo pipefail
 
+          # Snyk needs workspace package metadata and package-manager support.
+          # Lifecycle scripts are not necessary for lockfile dependency analysis.
           pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Set up Snyk CLI
@@ -271,93 +314,8 @@ jobs:
           snyk version
           snyk whoami
 
-      - name: Prepare Snyk reports directory
-        run: |
-          set -euo pipefail
-
-          mkdir -p snyk-reports
-
-      - name: Scan pnpm workspace dependencies
-        id: snyk_test
-        continue-on-error: true
-        run: |
-          set -o pipefail
-
-          snyk test \
-            --all-projects \
-            --exclude="$SNYK_OPEN_SOURCE_EXCLUDES" \
-            --detection-depth=6 \
-            --strict-out-of-sync=false \
-            --severity-threshold="$SNYK_SEVERITY_THRESHOLD" \
-            --policy-path="$SNYK_POLICY_FILE" \
-            --sarif-file-output=snyk-reports/open-source.sarif \
-            --json-file-output=snyk-reports/open-source.json
-
-      - name: Upload Open Source findings to GitHub Code Scanning
-        if: always() && hashFiles('snyk-reports/open-source.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: snyk-reports/open-source.sarif
-          category: snyk-open-source
-
-      - name: Upload Open Source reports
-        if: always()
-        uses: actions/upload-artifact@v7.0.1
-        with:
-          name: snyk-open-source-${{ github.run_id }}
-          path: |
-            snyk-reports/open-source.sarif
-            snyk-reports/open-source.json
-          if-no-files-found: ignore
-          retention-days: 14
-
-      - name: Write Open Source scan summary
-        if: always()
-        env:
-          SCAN_RESULT: ${{ steps.snyk_test.outcome }}
-        run: |
-          set -euo pipefail
-
-          {
-            echo '## Snyk Open Source Scan'
-            echo
-            echo '| Setting | Value |'
-            echo '| --- | --- |'
-            echo '| Scan scope | pnpm workspace dependency manifests |'
-            echo "| Test manifest exclusions | $SNYK_OPEN_SOURCE_EXCLUDES |"
-            echo "| Severity threshold | $SNYK_SEVERITY_THRESHOLD |"
-            echo "| Scan result | ${SCAN_RESULT:-skipped} |"
-            echo '| SARIF report | snyk-reports/open-source.sarif |'
-            echo '| JSON report | snyk-reports/open-source.json |'
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Fail when dependency vulnerabilities are found
-        if: always() && steps.snyk_test.outcome == 'failure'
-        run: |
-          echo '::error::Snyk found dependency vulnerabilities at or above the configured severity threshold.'
-          exit 1
-
-  code:
-    name: Scan production source code
-    needs: preflight
-    if: needs.preflight.outputs.code_enabled == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-
-    outputs:
-      result: ${{ steps.snyk_code.outcome }}
-
-    env:
-      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 1
-          persist-credentials: false
-
-      - name: Verify Snyk Code exclusion policy
+      - name: Verify Snyk policy file
+        if: needs.preflight.outputs.code_enabled == 'true'
         run: |
           set -euo pipefail
 
@@ -366,36 +324,643 @@ jobs:
             exit 1
           fi
 
-          echo 'Snyk Code uses .snyk to exclude test directories and test files.'
-
-      - name: Set up Snyk CLI
-        uses: snyk/actions/setup@v1.0.0
-        with:
-          snyk-version: ${{ env.SNYK_VERSION }}
-
-      - name: Verify Snyk authentication
-        run: |
-          set -euo pipefail
-
-          snyk version
-          snyk whoami
+          printf 'Snyk Code policy file: %s\n' "$SNYK_POLICY_FILE"
 
       - name: Prepare Snyk reports directory
         run: |
           set -euo pipefail
 
-          mkdir -p snyk-reports
+          mkdir -p "$SNYK_REPORT_DIRECTORY"
 
-      - name: Scan production source code
-        id: snyk_code
+      - name: Scan pnpm workspace dependencies
+        id: open_source_scan
+        if: needs.preflight.outputs.open_source_enabled == 'true'
         continue-on-error: true
         run: |
-          set -o pipefail
+          set +e
 
+          snyk test \
+            --all-projects \
+            --exclude="$SNYK_OPEN_SOURCE_EXCLUDES" \
+            --detection-depth=6 \
+            --strict-out-of-sync=false \
+            --severity-threshold="$SNYK_SEVERITY_THRESHOLD" \
+            --policy-path="$SNYK_POLICY_FILE" \
+            --sarif-file-output="$SNYK_REPORT_DIRECTORY/open-source.sarif" \
+            --json-file-output="$SNYK_REPORT_DIRECTORY/open-source.json"
+
+          exit_code=$?
+
+          set -e
+
+          case "$exit_code" in
+            0)
+              status='passed'
+              ;;
+            1)
+              status='findings'
+              ;;
+            *)
+              status='error'
+              ;;
+          esac
+
+          {
+            echo "exit_code=$exit_code"
+            echo "status=$status"
+          } >> "$GITHUB_OUTPUT"
+
+          if [[ "$status" == 'error' ]]; then
+            echo "::error::Snyk Open Source scan failed before producing a valid vulnerability result."
+            exit "$exit_code"
+          fi
+
+      - name: Summarize Open Source vulnerabilities
+        id: open_source_summary
+        if: always() && needs.preflight.outputs.open_source_enabled == 'true'
+        env:
+          REPORT_FILE: ${{ env.SNYK_REPORT_DIRECTORY }}/open-source.json
+          SCAN_STATUS: ${{ steps.open_source_scan.outputs.status }}
+          SCAN_EXIT_CODE: ${{ steps.open_source_scan.outputs.exit_code }}
+          MAX_FINDINGS: ${{ env.SNYK_SUMMARY_MAX_FINDINGS }}
+        run: |
+          set -euo pipefail
+
+          python3 <<'PYTHON'
+          import html
+          import json
+          import os
+          from collections import Counter
+          from pathlib import Path
+
+          report_file = Path(os.environ["REPORT_FILE"])
+          scan_status = os.environ.get("SCAN_STATUS", "skipped")
+          scan_exit_code = os.environ.get("SCAN_EXIT_CODE", "")
+          max_findings = int(os.environ.get("MAX_FINDINGS", "50"))
+          output_file = Path(os.environ["GITHUB_OUTPUT"])
+          summary_file = Path(os.environ["GITHUB_STEP_SUMMARY"])
+
+          severity_order = {
+              "critical": 0,
+              "high": 1,
+              "medium": 2,
+              "low": 3,
+              "unknown": 4,
+          }
+
+          def clean(value):
+              if value is None:
+                  return "unknown"
+
+              text = str(value)
+              text = text.replace("\r", " ").replace("\n", " ").strip()
+              text = text.replace("|", "\\|")
+
+              return html.escape(text)
+
+          def find_projects(value, inherited_context="workspace"):
+              if isinstance(value, dict):
+                  vulnerabilities = value.get("vulnerabilities")
+
+                  if isinstance(vulnerabilities, list):
+                      context = (
+                          value.get("projectName")
+                          or value.get("projectNameOverride")
+                          or value.get("displayTargetFile")
+                          or value.get("targetFile")
+                          or value.get("path")
+                          or inherited_context
+                      )
+
+                      yield str(context), vulnerabilities
+
+                  for key, child in value.items():
+                      if key == "vulnerabilities":
+                          continue
+
+                      if isinstance(child, (dict, list)):
+                          next_context = inherited_context
+
+                          if key in {"projects", "results", "project"}:
+                              next_context = inherited_context
+
+                          yield from find_projects(child, next_context)
+
+              elif isinstance(value, list):
+                  for child in value:
+                      yield from find_projects(child, inherited_context)
+
+          def fixed_version(vulnerability):
+              fixed_in = vulnerability.get("fixedIn")
+
+              if isinstance(fixed_in, list) and fixed_in:
+                  return ", ".join(str(version) for version in fixed_in[:3])
+
+              nearest = vulnerability.get("nearestFixedInVersion")
+
+              if nearest:
+                  return str(nearest)
+
+              upgrade_path = vulnerability.get("upgradePath")
+
+              if isinstance(upgrade_path, list):
+                  for upgrade in reversed(upgrade_path):
+                      if upgrade and upgrade is not False:
+                          return f"upgrade to {upgrade}"
+
+              if vulnerability.get("isUpgradable"):
+                  return "upgrade available"
+
+              if vulnerability.get("isPatchable"):
+                  return "patch available"
+
+              return "no fix reported"
+
+          lines = [
+              "## Snyk Open Source Vulnerabilities",
+              "",
+          ]
+
+          if not report_file.is_file():
+              lines.extend(
+                  [
+                      "| Setting | Value |",
+                      "| --- | --- |",
+                      f"| Scan status | {clean(scan_status)} |",
+                      f"| Exit code | {clean(scan_exit_code or 'unknown')} |",
+                      "| Findings report | not created |",
+                      "",
+                      "> Snyk did not create an Open Source JSON report. Review the scanner logs for an authentication, project-detection, or CLI error.",
+                  ]
+              )
+
+              summary_file.write_text(
+                  summary_file.read_text() + "\n".join(lines) + "\n",
+                  encoding="utf-8",
+              )
+
+              output_file.write_text(
+                  "\n".join(
+                      [
+                          "finding_count=0",
+                          "unique_issue_count=0",
+                          "critical_count=0",
+                          "high_count=0",
+                          "report_available=false",
+                      ]
+                  )
+                  + "\n",
+                  encoding="utf-8",
+              )
+
+              raise SystemExit(0)
+
+          try:
+              report = json.loads(report_file.read_text(encoding="utf-8"))
+          except json.JSONDecodeError as error:
+              lines.extend(
+                  [
+                      f"> Unable to parse the Open Source JSON report: {clean(error)}",
+                  ]
+              )
+
+              summary_file.write_text(
+                  summary_file.read_text() + "\n".join(lines) + "\n",
+                  encoding="utf-8",
+              )
+
+              output_file.write_text(
+                  "\n".join(
+                      [
+                          "finding_count=0",
+                          "unique_issue_count=0",
+                          "critical_count=0",
+                          "high_count=0",
+                          "report_available=false",
+                      ]
+                  )
+                  + "\n",
+                  encoding="utf-8",
+              )
+
+              raise SystemExit(0)
+
+          findings = []
+          seen = set()
+
+          for project, vulnerabilities in find_projects(report):
+              for vulnerability in vulnerabilities:
+                  if not isinstance(vulnerability, dict):
+                      continue
+
+                  issue_id = (
+                      vulnerability.get("id")
+                      or vulnerability.get("issueId")
+                      or vulnerability.get("identifier")
+                      or "unknown"
+                  )
+
+                  package_name = (
+                      vulnerability.get("packageName")
+                      or vulnerability.get("moduleName")
+                      or vulnerability.get("name")
+                      or "unknown"
+                  )
+
+                  severity = str(vulnerability.get("severity") or "unknown").lower()
+                  dependency_path = vulnerability.get("from")
+
+                  if isinstance(dependency_path, list):
+                      dependency_path = " > ".join(str(part) for part in dependency_path)
+
+                  dependency_path = dependency_path or ""
+                  fingerprint = (
+                      str(project),
+                      str(issue_id),
+                      str(package_name),
+                      str(dependency_path),
+                  )
+
+                  if fingerprint in seen:
+                      continue
+
+                  seen.add(fingerprint)
+
+                  findings.append(
+                      {
+                          "severity": severity,
+                          "issue_id": str(issue_id),
+                          "title": str(vulnerability.get("title") or issue_id),
+                          "package": str(package_name),
+                          "project": str(project),
+                          "path": str(dependency_path),
+                          "fix": fixed_version(vulnerability),
+                          "url": str(vulnerability.get("url") or ""),
+                      }
+                  )
+
+          severity_counts = Counter(
+              finding["severity"]
+              for finding in findings
+          )
+
+          unique_issue_count = len(
+              {
+                  finding["issue_id"]
+                  for finding in findings
+              }
+          )
+
+          findings.sort(
+              key=lambda finding: (
+                  severity_order.get(finding["severity"], 99),
+                  finding["package"].lower(),
+                  finding["issue_id"].lower(),
+              )
+          )
+
+          lines.extend(
+              [
+                  "| Setting | Value |",
+                  "| --- | --- |",
+                  f"| Scan status | {clean(scan_status)} |",
+                  f"| Exit code | {clean(scan_exit_code or 'unknown')} |",
+                  f"| Finding occurrences | {len(findings)} |",
+                  f"| Unique vulnerability IDs | {unique_issue_count} |",
+                  f"| Critical findings | {severity_counts['critical']} |",
+                  f"| High findings | {severity_counts['high']} |",
+                  f"| Medium findings | {severity_counts['medium']} |",
+                  f"| Low findings | {severity_counts['low']} |",
+                  "",
+              ]
+          )
+
+          if not findings:
+              lines.append("> No Open Source vulnerabilities met the configured severity threshold.")
+          else:
+              lines.extend(
+                  [
+                      "### Findings",
+                      "",
+                      "| Severity | Vulnerability | Package | Project | Suggested fix |",
+                      "| --- | --- | --- | --- | --- |",
+                  ]
+              )
+
+              for finding in findings[:max_findings]:
+                  issue = clean(finding["issue_id"])
+
+                  if finding["url"].startswith("https://"):
+                      issue = f"[{issue}]({finding['url']})"
+
+                  title = clean(finding["title"])
+                  package = clean(finding["package"])
+                  project = clean(finding["project"])
+                  fix = clean(finding["fix"])
+
+                  lines.append(
+                      f"| {clean(finding['severity'])} | {issue}<br>{title} | {package} | {project} | {fix} |"
+                  )
+
+              if len(findings) > max_findings:
+                  remaining = len(findings) - max_findings
+
+                  lines.extend(
+                      [
+                          "",
+                          f"> {remaining} additional findings are available in the Open Source JSON and SARIF artifacts.",
+                      ]
+                  )
+
+          with summary_file.open("a", encoding="utf-8") as summary:
+              summary.write("\n".join(lines) + "\n")
+
+          with output_file.open("a", encoding="utf-8") as output:
+              output.write(f"finding_count={len(findings)}\n")
+              output.write(f"unique_issue_count={unique_issue_count}\n")
+              output.write(f"critical_count={severity_counts['critical']}\n")
+              output.write(f"high_count={severity_counts['high']}\n")
+              output.write("report_available=true\n")
+          PYTHON
+
+      - name: Upload Open Source findings to GitHub Code Scanning
+        if: always() && hashFiles('snyk-reports/open-source.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: snyk-reports/open-source.sarif
+          category: snyk-open-source
+
+      - name: Scan production source code
+        id: code_scan
+        if: needs.preflight.outputs.code_enabled == 'true'
+        continue-on-error: true
+        run: |
+          set +e
+
+          # The repository-root .snyk policy is loaded automatically by the CLI.
+          # It excludes test, spec, E2E, integration, fixture, mock, and other
+          # non-production source files defined in the policy.
           snyk code test \
             --severity-threshold="$SNYK_SEVERITY_THRESHOLD" \
-            --sarif-file-output=snyk-reports/code.sarif \
-            --json-file-output=snyk-reports/code.json
+            --sarif-file-output="$SNYK_REPORT_DIRECTORY/code.sarif" \
+            --json-file-output="$SNYK_REPORT_DIRECTORY/code.json"
+
+          exit_code=$?
+
+          set -e
+
+          case "$exit_code" in
+            0)
+              status='passed'
+              ;;
+            1)
+              status='findings'
+              ;;
+            *)
+              status='error'
+              ;;
+          esac
+
+          {
+            echo "exit_code=$exit_code"
+            echo "status=$status"
+          } >> "$GITHUB_OUTPUT"
+
+          if [[ "$status" == 'error' ]]; then
+            echo "::error::Snyk Code scan failed before producing a valid vulnerability result."
+            exit "$exit_code"
+          fi
+
+      - name: Summarize Snyk Code vulnerabilities
+        id: code_summary
+        if: always() && needs.preflight.outputs.code_enabled == 'true'
+        env:
+          REPORT_FILE: ${{ env.SNYK_REPORT_DIRECTORY }}/code.json
+          SCAN_STATUS: ${{ steps.code_scan.outputs.status }}
+          SCAN_EXIT_CODE: ${{ steps.code_scan.outputs.exit_code }}
+          MAX_FINDINGS: ${{ env.SNYK_SUMMARY_MAX_FINDINGS }}
+        run: |
+          set -euo pipefail
+
+          python3 <<'PYTHON'
+          import html
+          import json
+          import os
+          from collections import Counter
+          from pathlib import Path
+
+          report_file = Path(os.environ["REPORT_FILE"])
+          scan_status = os.environ.get("SCAN_STATUS", "skipped")
+          scan_exit_code = os.environ.get("SCAN_EXIT_CODE", "")
+          max_findings = int(os.environ.get("MAX_FINDINGS", "50"))
+          output_file = Path(os.environ["GITHUB_OUTPUT"])
+          summary_file = Path(os.environ["GITHUB_STEP_SUMMARY"])
+
+          severity_map = {
+              "error": "high",
+              "warning": "medium",
+              "note": "low",
+              "none": "low",
+          }
+
+          severity_order = {
+              "high": 0,
+              "medium": 1,
+              "low": 2,
+              "unknown": 3,
+          }
+
+          def clean(value):
+              if value is None:
+                  return "unknown"
+
+              text = str(value)
+              text = text.replace("\r", " ").replace("\n", " ").strip()
+              text = text.replace("|", "\\|")
+
+              return html.escape(text)
+
+          lines = [
+              "## Snyk Code Vulnerabilities",
+              "",
+          ]
+
+          if not report_file.is_file():
+              if scan_status == "passed":
+                  message = "No Snyk Code findings met the configured severity threshold."
+              else:
+                  message = "Snyk did not create a Snyk Code JSON report. Review scanner logs for details."
+
+              lines.extend(
+                  [
+                      "| Setting | Value |",
+                      "| --- | --- |",
+                      f"| Scan status | {clean(scan_status)} |",
+                      f"| Exit code | {clean(scan_exit_code or 'unknown')} |",
+                      "| Findings report | not created |",
+                      "",
+                      f"> {message}",
+                  ]
+              )
+
+              with summary_file.open("a", encoding="utf-8") as summary:
+                  summary.write("\n".join(lines) + "\n")
+
+              with output_file.open("a", encoding="utf-8") as output:
+                  output.write("finding_count=0\n")
+                  output.write("high_count=0\n")
+                  output.write("medium_count=0\n")
+                  output.write("low_count=0\n")
+                  output.write("report_available=false\n")
+
+              raise SystemExit(0)
+
+          try:
+              report = json.loads(report_file.read_text(encoding="utf-8"))
+          except json.JSONDecodeError as error:
+              lines.append(f"> Unable to parse the Snyk Code JSON report: {clean(error)}")
+
+              with summary_file.open("a", encoding="utf-8") as summary:
+                  summary.write("\n".join(lines) + "\n")
+
+              with output_file.open("a", encoding="utf-8") as output:
+                  output.write("finding_count=0\n")
+                  output.write("high_count=0\n")
+                  output.write("medium_count=0\n")
+                  output.write("low_count=0\n")
+                  output.write("report_available=false\n")
+
+              raise SystemExit(0)
+
+          findings = []
+          rule_help_urls = {}
+
+          for run in report.get("runs", []):
+              driver = run.get("tool", {}).get("driver", {})
+
+              for rule in driver.get("rules", []):
+                  rule_id = rule.get("id")
+
+                  if rule_id:
+                      rule_help_urls[rule_id] = rule.get("helpUri", "")
+
+              for result in run.get("results", []):
+                  properties = result.get("properties", {})
+                  level = str(result.get("level") or "unknown").lower()
+                  severity = severity_map.get(level, level)
+
+                  rule_id = (
+                      result.get("ruleId")
+                      or properties.get("ruleId")
+                      or "unknown"
+                  )
+
+                  message = (
+                      result.get("message", {}).get("text")
+                      or result.get("message", {}).get("markdown")
+                      or rule_id
+                  )
+
+                  help_url = (
+                      result.get("helpUri")
+                      or rule_help_urls.get(rule_id, "")
+                  )
+
+                  location = "unknown"
+                  line_number = ""
+
+                  locations = result.get("locations", [])
+
+                  if locations:
+                      physical_location = locations[0].get("physicalLocation", {})
+                      artifact_location = physical_location.get("artifactLocation", {})
+                      region = physical_location.get("region", {})
+
+                      location = artifact_location.get("uri") or "unknown"
+                      line_number = str(region.get("startLine") or "")
+
+                  if line_number:
+                      location = f"{location}:{line_number}"
+
+                  findings.append(
+                      {
+                          "severity": severity,
+                          "rule_id": str(rule_id),
+                          "message": str(message),
+                          "location": str(location),
+                          "url": str(help_url),
+                      }
+                  )
+
+          severity_counts = Counter(
+              finding["severity"]
+              for finding in findings
+          )
+
+          findings.sort(
+              key=lambda finding: (
+                  severity_order.get(finding["severity"], 99),
+                  finding["location"].lower(),
+                  finding["rule_id"].lower(),
+              )
+          )
+
+          lines.extend(
+              [
+                  "| Setting | Value |",
+                  "| --- | --- |",
+                  f"| Scan status | {clean(scan_status)} |",
+                  f"| Exit code | {clean(scan_exit_code or 'unknown')} |",
+                  f"| Findings | {len(findings)} |",
+                  f"| High findings | {severity_counts['high']} |",
+                  f"| Medium findings | {severity_counts['medium']} |",
+                  f"| Low findings | {severity_counts['low']} |",
+                  "",
+              ]
+          )
+
+          if not findings:
+              lines.append("> No Snyk Code vulnerabilities met the configured severity threshold.")
+          else:
+              lines.extend(
+                  [
+                      "### Findings",
+                      "",
+                      "| Severity | Rule | Location | Description |",
+                      "| --- | --- | --- | --- |",
+                  ]
+              )
+
+              for finding in findings[:max_findings]:
+                  rule = clean(finding["rule_id"])
+
+                  if finding["url"].startswith("https://"):
+                      rule = f"[{rule}]({finding['url']})"
+
+                  lines.append(
+                      f"| {clean(finding['severity'])} | {rule} | {clean(finding['location'])} | {clean(finding['message'])} |"
+                  )
+
+              if len(findings) > max_findings:
+                  remaining = len(findings) - max_findings
+
+                  lines.extend(
+                      [
+                          "",
+                          f"> {remaining} additional findings are available in the Snyk Code JSON and SARIF artifacts.",
+                      ]
+                  )
+
+          with summary_file.open("a", encoding="utf-8") as summary:
+              summary.write("\n".join(lines) + "\n")
+
+          with output_file.open("a", encoding="utf-8") as output:
+              output.write(f"finding_count={len(findings)}\n")
+              output.write(f"high_count={severity_counts['high']}\n")
+              output.write(f"medium_count={severity_counts['medium']}\n")
+              output.write(f"low_count={severity_counts['low']}\n")
+              output.write("report_available=true\n")
+          PYTHON
 
       - name: Upload Snyk Code findings to GitHub Code Scanning
         if: always() && hashFiles('snyk-reports/code.sarif') != ''
@@ -404,50 +969,47 @@ jobs:
           sarif_file: snyk-reports/code.sarif
           category: snyk-code
 
-      - name: Upload Snyk Code reports
+      - name: Upload Snyk reports
         if: always()
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: snyk-code-${{ github.run_id }}
+          name: snyk-reports-${{ github.run_id }}
           path: |
+            snyk-reports/open-source.sarif
+            snyk-reports/open-source.json
             snyk-reports/code.sarif
             snyk-reports/code.json
           if-no-files-found: ignore
           retention-days: 14
 
-      - name: Write Snyk Code scan summary
-        if: always()
-        env:
-          SCAN_RESULT: ${{ steps.snyk_code.outcome }}
+      - name: Fail when Open Source vulnerabilities are found
+        if: always() && steps.open_source_scan.outputs.status == 'findings'
         run: |
-          set -euo pipefail
+          echo '::error::Snyk Open Source found one or more dependency vulnerabilities at or above the configured severity threshold.'
+          exit 1
 
-          {
-            echo '## Snyk Code Scan'
-            echo
-            echo '| Setting | Value |'
-            echo '| --- | --- |'
-            echo '| Scope | production source code |'
-            echo "| Policy file | $SNYK_POLICY_FILE |"
-            echo '| Excluded source | tests, specs, E2E files, fixtures, and mocks |'
-            echo "| Severity threshold | $SNYK_SEVERITY_THRESHOLD |"
-            echo "| Scan result | ${SCAN_RESULT:-skipped} |"
-            echo '| SARIF report | snyk-reports/code.sarif |'
-            echo '| JSON report | snyk-reports/code.json |'
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Fail when production source vulnerabilities are found
-        if: always() && steps.snyk_code.outcome == 'failure'
+      - name: Fail when Snyk Code vulnerabilities are found
+        if: always() && steps.code_scan.outputs.status == 'findings'
         run: |
-          echo '::error::Snyk found production source-code vulnerabilities at or above the configured severity threshold.'
+          echo '::error::Snyk Code found one or more production source-code vulnerabilities at or above the configured severity threshold.'
+          exit 1
+
+      - name: Fail when a Snyk scanner has an operational error
+        if: >-
+          always() &&
+          (
+            steps.open_source_scan.outputs.status == 'error' ||
+            steps.code_scan.outputs.status == 'error'
+          )
+        run: |
+          echo '::error::One or more Snyk scans failed before a valid vulnerability result was produced.'
           exit 1
 
   summary:
     name: Publish Snyk result
     needs:
       - preflight
-      - open-source
-      - code
+      - scan
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -455,32 +1017,43 @@ jobs:
     steps:
       - name: Write workflow summary
         env:
+          SCAN_ENABLED: ${{ needs.preflight.outputs.scan_enabled }}
           PACKAGE_MANIFEST_COUNT: ${{ needs.preflight.outputs.package_manifest_count }}
           LOCKFILE_COUNT: ${{ needs.preflight.outputs.lockfile_count }}
-          SNYK_TOKEN_AVAILABLE: ${{ needs.preflight.outputs.snyk_token_available }}
-          SNYK_POLICY_AVAILABLE: ${{ needs.preflight.outputs.snyk_policy_available }}
-          OPEN_SOURCE_ENABLED: ${{ needs.preflight.outputs.open_source_enabled }}
-          CODE_ENABLED: ${{ needs.preflight.outputs.code_enabled }}
-          OPEN_SOURCE_REASON: ${{ needs.preflight.outputs.open_source_reason }}
-          CODE_REASON: ${{ needs.preflight.outputs.code_reason }}
-          OPEN_SOURCE_RESULT: ${{ needs.open-source.result }}
-          CODE_RESULT: ${{ needs.code.result }}
+          SOURCE_FILE_COUNT: ${{ needs.preflight.outputs.source_file_count }}
+          SKIP_REASON: ${{ needs.preflight.outputs.skip_reason }}
+          OPEN_SOURCE_STATUS: ${{ needs.scan.outputs.open_source_status }}
+          OPEN_SOURCE_FINDING_COUNT: ${{ needs.scan.outputs.open_source_finding_count }}
+          OPEN_SOURCE_CRITICAL_COUNT: ${{ needs.scan.outputs.open_source_critical_count }}
+          OPEN_SOURCE_HIGH_COUNT: ${{ needs.scan.outputs.open_source_high_count }}
+          CODE_STATUS: ${{ needs.scan.outputs.code_status }}
+          CODE_FINDING_COUNT: ${{ needs.scan.outputs.code_finding_count }}
+          CODE_HIGH_COUNT: ${{ needs.scan.outputs.code_high_count }}
+          CODE_MEDIUM_COUNT: ${{ needs.scan.outputs.code_medium_count }}
+          CODE_LOW_COUNT: ${{ needs.scan.outputs.code_low_count }}
         run: |
           set -euo pipefail
 
           {
-            echo '## Snyk Result'
+            echo '## Snyk Workflow Result'
             echo
             echo '| Check | Result |'
             echo '| --- | --- |'
+            echo "| Scan enabled | ${SCAN_ENABLED:-false} |"
             echo "| Package manifests | ${PACKAGE_MANIFEST_COUNT:-0} |"
             echo "| Supported lockfiles | ${LOCKFILE_COUNT:-0} |"
-            echo "| SNYK_TOKEN available | ${SNYK_TOKEN_AVAILABLE:-false} |"
-            echo "| .snyk policy available | ${SNYK_POLICY_AVAILABLE:-false} |"
-            echo "| Open Source scan enabled | ${OPEN_SOURCE_ENABLED:-false} |"
-            echo "| Snyk Code scan enabled | ${CODE_ENABLED:-false} |"
-            echo "| Open Source result | ${OPEN_SOURCE_RESULT:-skipped} |"
-            echo "| Snyk Code result | ${CODE_RESULT:-skipped} |"
-            echo "| Open Source status | ${OPEN_SOURCE_REASON:-unknown} |"
-            echo "| Snyk Code status | ${CODE_REASON:-unknown} |"
+            echo "| Eligible production source files | ${SOURCE_FILE_COUNT:-0} |"
+            echo "| Open Source status | ${OPEN_SOURCE_STATUS:-skipped} |"
+            echo "| Open Source findings | ${OPEN_SOURCE_FINDING_COUNT:-0} |"
+            echo "| Open Source critical findings | ${OPEN_SOURCE_CRITICAL_COUNT:-0} |"
+            echo "| Open Source high findings | ${OPEN_SOURCE_HIGH_COUNT:-0} |"
+            echo "| Snyk Code status | ${CODE_STATUS:-skipped} |"
+            echo "| Snyk Code findings | ${CODE_FINDING_COUNT:-0} |"
+            echo "| Snyk Code high findings | ${CODE_HIGH_COUNT:-0} |"
+            echo "| Snyk Code medium findings | ${CODE_MEDIUM_COUNT:-0} |"
+            echo "| Snyk Code low findings | ${CODE_LOW_COUNT:-0} |"
+            echo "| Preflight status | ${SKIP_REASON:-unknown} |"
+            echo
+            echo 'Detailed vulnerability tables are available in the Scan dependencies and production source job summary.'
+            echo 'Complete JSON and SARIF reports are attached as the snyk-reports workflow artifact.'
           } >> "$GITHUB_STEP_SUMMARY"
