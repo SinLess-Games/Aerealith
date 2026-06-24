@@ -1,27 +1,28 @@
 # .github/workflows/sonar.yaml
 #
-# Runs SonarQube analysis for the Aerealith Nx monorepo.
+# SonarQube Cloud analysis for the Aerealith Nx monorepo.
 #
-# Supported modes:
-# - SonarQube Cloud:
-#   - SONAR_TOKEN secret
-#   - SONAR_PROJECT_KEY repository variable
-#   - SONAR_ORGANIZATION repository variable
+# Required GitHub configuration:
 #
-# - Self-hosted SonarQube Server:
-#   - SONAR_TOKEN secret
-#   - SONAR_PROJECT_KEY repository variable
-#   - SONAR_HOST_URL repository variable
+# Repository secret:
+# - SONAR_TOKEN
 #
-# Notes:
-# - Test, spec, E2E, integration, fixture, and mock files are excluded from
-#   production source analysis.
-# - Vitest coverage is generated before scanning and passed to Sonar as LCOV.
-# - The workflow safely skips external fork pull requests because repository
-#   secrets are unavailable to them.
-# - The scanner waits for the Sonar quality gate and fails when it is red.
+# Repository variables:
+# - SONAR_PROJECT_KEY
+# - SONAR_ORGANIZATION
+#
+# This workflow:
+# - Runs Vitest coverage for every Nx project with a test target.
+# - Sends every LCOV report to SonarQube Cloud.
+# - Excludes test, spec, E2E, integration, fixture, mock, story, generated,
+#   declaration, dependency, and build-output files from source analysis.
+# - Uploads analysis without failing immediately on a red quality gate.
+# - Polls SonarQube Cloud after upload completes.
+# - Writes exact failed gate conditions, actual metric values, thresholds,
+#   Compute Engine errors, and open Sonar issues into the GitHub summary.
+# - Fails only after the diagnostic summary and artifact are published.
 
-name: SonarQube
+name: SonarQube Cloud
 
 on:
   pull_request:
@@ -42,7 +43,6 @@ on:
       - production
 
   schedule:
-    # Weekly full quality scan.
     - cron: "0 6 * * 0"
 
   workflow_dispatch:
@@ -71,35 +71,30 @@ env:
   NODE_VERSION: "25.9.0"
   PNPM_VERSION: "11.5.2"
 
+  SONAR_API_URL: "https://sonarcloud.io"
   SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
-  SONAR_PROJECT_NAME: ${{ vars.SONAR_PROJECT_NAME }}
   SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION }}
-  SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
 
-  SONAR_QUALITY_GATE_TIMEOUT: "300"
+  SONAR_REPORT_DIRECTORY: "sonar-reports"
+  SONAR_ANALYSIS_TIMEOUT_SECONDS: "300"
+  SONAR_ANALYSIS_POLL_SECONDS: "5"
+  SONAR_SUMMARY_MAX_ISSUES: "50"
 
 jobs:
   preflight:
-    name: Validate Sonar configuration
+    name: Validate SonarQube Cloud configuration
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     outputs:
       scan_enabled: ${{ steps.detect.outputs.scan_enabled }}
-      platform: ${{ steps.detect.outputs.platform }}
       skip_reason: ${{ steps.detect.outputs.skip_reason }}
 
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 1
-          persist-credentials: false
-
-      - name: Detect Sonar configuration
+      - name: Validate SonarQube Cloud configuration
         id: detect
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -109,9 +104,7 @@ jobs:
           set -euo pipefail
 
           scan_enabled='false'
-          platform='unknown'
           skip_reason=''
-
           is_internal_pull_request='true'
 
           if [[ "$EVENT_NAME" == 'pull_request' ]] &&
@@ -125,62 +118,58 @@ jobs:
             skip_reason='External fork pull requests do not receive repository secrets.'
           elif [[ -z "${SONAR_PROJECT_KEY:-}" ]]; then
             skip_reason='SONAR_PROJECT_KEY repository variable is not configured.'
-          elif [[ -n "${SONAR_HOST_URL:-}" ]]; then
-            scan_enabled='true'
-            platform='server'
-            skip_reason='Ready to scan with self-hosted SonarQube Server.'
-          elif [[ -n "${SONAR_ORGANIZATION:-}" ]]; then
-            scan_enabled='true'
-            platform='cloud'
-            skip_reason='Ready to scan with SonarQube Cloud.'
+          elif [[ -z "${SONAR_ORGANIZATION:-}" ]]; then
+            skip_reason='SONAR_ORGANIZATION repository variable is not configured.'
           else
-            skip_reason='Configure SONAR_ORGANIZATION for SonarQube Cloud or SONAR_HOST_URL for SonarQube Server.'
+            scan_enabled='true'
+            skip_reason='Ready to scan with SonarQube Cloud.'
           fi
 
           {
             echo "scan_enabled=$scan_enabled"
-            echo "platform=$platform"
             echo "skip_reason=$skip_reason"
           } >> "$GITHUB_OUTPUT"
 
           {
-            echo '## SonarQube Preflight'
+            echo '## SonarQube Cloud Preflight'
             echo
             echo '| Setting | Value |'
             echo '| --- | --- |'
-            echo "| Sonar platform | $platform |"
+            echo '| Platform | SonarQube Cloud |'
             echo "| SONAR_TOKEN available | $([[ -n "${SONAR_TOKEN:-}" ]] && echo true || echo false) |"
             echo "| SONAR_PROJECT_KEY available | $([[ -n "${SONAR_PROJECT_KEY:-}" ]] && echo true || echo false) |"
             echo "| SONAR_ORGANIZATION available | $([[ -n "${SONAR_ORGANIZATION:-}" ]] && echo true || echo false) |"
-            echo "| SONAR_HOST_URL available | $([[ -n "${SONAR_HOST_URL:-}" ]] && echo true || echo false) |"
             echo "| Internal pull request | $is_internal_pull_request |"
             echo "| Scan enabled | $scan_enabled |"
             echo "| Status | $skip_reason |"
           } >> "$GITHUB_STEP_SUMMARY"
 
   analyze:
-    name: Test, cover, and analyze
+    name: Test, cover, analyze, and diagnose
     needs: preflight
     if: needs.preflight.outputs.scan_enabled == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 50
 
     outputs:
       coverage_status: ${{ steps.coverage.outputs.coverage_status }}
       test_project_count: ${{ steps.coverage.outputs.test_project_count }}
       lcov_count: ${{ steps.coverage.outputs.lcov_count }}
-      scan_result: ${{ steps.sonar_scan.outcome }}
+      scanner_outcome: ${{ steps.sonar_scan.outcome }}
+      analysis_task_status: ${{ steps.sonar_diagnosis.outputs.analysis_task_status }}
+      quality_gate_status: ${{ steps.sonar_diagnosis.outputs.quality_gate_status }}
+      failed_condition_count: ${{ steps.sonar_diagnosis.outputs.failed_condition_count }}
+      issue_count: ${{ steps.sonar_diagnosis.outputs.issue_count }}
+      diagnosis_status: ${{ steps.sonar_diagnosis.outputs.diagnosis_status }}
+      dashboard_url: ${{ steps.sonar_diagnosis.outputs.dashboard_url }}
 
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SONAR_ROOT_CERT: ${{ secrets.SONAR_ROOT_CERT }}
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
         with:
-          # Sonar needs complete history for accurate blame information and
-          # pull-request reporting.
           fetch-depth: 0
           persist-credentials: false
 
@@ -246,12 +235,12 @@ jobs:
           {
             echo '## Sonar Coverage Generation'
             echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
             echo "| Nx test projects discovered | $test_project_count |"
           } >> "$GITHUB_STEP_SUMMARY"
 
           if [[ "$test_project_count" -eq 0 ]]; then
-            echo 'No Nx projects expose a test target. Sonar will continue without coverage reports.'
-
             {
               echo 'coverage_status=not-run'
               echo 'test_project_count=0'
@@ -259,6 +248,7 @@ jobs:
               echo 'lcov_reports='
             } >> "$GITHUB_OUTPUT"
 
+            echo '> No Nx projects expose a test target. Sonar analysis will continue without LCOV coverage.' >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
@@ -304,16 +294,20 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
           {
-            echo
             echo "| Coverage execution status | $coverage_status |"
             echo "| LCOV reports found | $lcov_count |"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Create temporary Sonar project configuration
+      - name: Prepare Sonar report directory
+        run: |
+          set -euo pipefail
+
+          mkdir -p "$SONAR_REPORT_DIRECTORY"
+
+      - name: Create temporary SonarQube Cloud configuration
         id: sonar_config
         env:
           LCOV_REPORTS: ${{ steps.coverage.outputs.lcov_reports }}
-          SONAR_PLATFORM: ${{ needs.preflight.outputs.platform }}
         run: |
           set -euo pipefail
 
@@ -326,34 +320,24 @@ jobs:
             config_existed='true'
           fi
 
-          project_name="${SONAR_PROJECT_NAME:-Aerealith}"
-
           {
             echo "sonar.projectKey=$SONAR_PROJECT_KEY"
-            echo "sonar.projectName=$project_name"
+            echo "sonar.organization=$SONAR_ORGANIZATION"
             echo 'sonar.sourceEncoding=UTF-8'
 
-            if [[ "$SONAR_PLATFORM" == 'cloud' ]]; then
-              echo "sonar.organization=$SONAR_ORGANIZATION"
-            fi
-
-            # Analyze production application and library code only.
             echo 'sonar.sources=apps,libs'
 
-            # Do not scan tests, specs, E2E tests, fixtures, generated output,
-            # caches, dependency folders, or declaration files as production code.
             echo 'sonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/.nx/**,**/.vite/**,**/out-tsc/**,**/storybook-static/**,**/*.d.ts,**/*.test.*,**/*.spec.*,**/*.e2e.*,**/*.integration.*,**/*.stories.*,**/test/**,**/tests/**,**/spec/**,**/specs/**,**/e2e/**,**/e2e-tests/**,**/integration/**,**/integration-tests/**,**/__tests__/**,**/__mocks__/**,**/__fixtures__/**'
 
-            # Keep test and generated code out of production coverage metrics.
             echo 'sonar.coverage.exclusions=**/*.test.*,**/*.spec.*,**/*.e2e.*,**/*.integration.*,**/*.stories.*,**/test/**,**/tests/**,**/spec/**,**/specs/**,**/e2e/**,**/e2e-tests/**,**/integration/**,**/integration-tests/**,**/__tests__/**,**/__mocks__/**,**/__fixtures__/**,**/*.d.ts'
 
             if [[ -n "${LCOV_REPORTS:-}" ]]; then
               echo "sonar.javascript.lcov.reportPaths=$LCOV_REPORTS"
             fi
 
-            # Block the workflow when Sonar calculates a failed quality gate.
-            echo 'sonar.qualitygate.wait=true'
-            echo "sonar.qualitygate.timeout=$SONAR_QUALITY_GATE_TIMEOUT"
+            # The workflow polls SonarQube Cloud after upload and prints exact
+            # failed conditions before it decides whether to fail the workflow.
+            echo 'sonar.qualitygate.wait=false'
           } > "$config_path"
 
           {
@@ -367,21 +351,368 @@ jobs:
             echo
             echo '| Setting | Value |'
             echo '| --- | --- |'
-            echo "| Platform | $SONAR_PLATFORM |"
-            echo "| Project key configured | true |"
-            echo "| Source roots | apps, libs |"
+            echo '| Platform | SonarQube Cloud |'
+            echo '| Source roots | apps, libs |'
             echo '| Test and E2E source excluded | true |'
             echo "| LCOV reports configured | $([[ -n "${LCOV_REPORTS:-}" ]] && echo true || echo false) |"
-            echo '| Quality gate wait enabled | true |'
+            echo '| Scanner quality-gate wait | false |'
+            echo '| Detailed quality-gate diagnosis | enabled |'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Run SonarQube analysis
+      - name: Run SonarQube Cloud analysis
         id: sonar_scan
+        continue-on-error: true
         uses: SonarSource/sonarqube-scan-action@v8.2.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
-          SONAR_ROOT_CERT: ${{ secrets.SONAR_ROOT_CERT }}
+          SONAR_HOST_URL: https://sonarcloud.io
+
+      - name: Fetch exact SonarQube Cloud diagnosis
+        id: sonar_diagnosis
+        if: always()
+        env:
+          SCANNER_OUTCOME: ${{ steps.sonar_scan.outcome }}
+          EVENT_NAME: ${{ github.event_name }}
+          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+          BRANCH_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          report_task_path="$GITHUB_WORKSPACE/.scannerwork/report-task.txt"
+          task_file="$SONAR_REPORT_DIRECTORY/compute-engine-task.json"
+          gate_file="$SONAR_REPORT_DIRECTORY/quality-gate.json"
+          issues_file="$SONAR_REPORT_DIRECTORY/issues.json"
+          errors_file="$SONAR_REPORT_DIRECTORY/diagnostic-errors.txt"
+
+          mkdir -p "$SONAR_REPORT_DIRECTORY"
+
+          printf '{}\n' > "$task_file"
+          printf '{}\n' > "$gate_file"
+          printf '{}\n' > "$issues_file"
+          : > "$errors_file"
+
+          sonar_curl() {
+            curl \
+              --fail-with-body \
+              --silent \
+              --show-error \
+              --retry 2 \
+              --retry-delay 2 \
+              --header "Authorization: Bearer $SONAR_TOKEN" \
+              "$@"
+          }
+
+          report_task_found='false'
+          ce_task_url=''
+          dashboard_url=''
+          analysis_id=''
+          analysis_task_status='not-available'
+          quality_gate_status='not-available'
+
+          if [[ -s "$report_task_path" ]]; then
+            report_task_found='true'
+            cp "$report_task_path" "$SONAR_REPORT_DIRECTORY/report-task.txt"
+
+            ce_task_url="$(
+              awk -F= '
+                $1 == "ceTaskUrl" {
+                  sub(/^[^=]*=/, "");
+                  print;
+                  exit;
+                }
+              ' "$report_task_path"
+            )"
+
+            dashboard_url="$(
+              awk -F= '
+                $1 == "dashboardUrl" {
+                  sub(/^[^=]*=/, "");
+                  print;
+                  exit;
+                }
+              ' "$report_task_path"
+            )"
+          else
+            {
+              echo 'Sonar scanner did not create .scannerwork/report-task.txt.'
+              echo "Scanner action outcome: ${SCANNER_OUTCOME:-unknown}"
+              echo 'The scanner likely failed before SonarQube Cloud accepted the analysis.'
+            } >> "$errors_file"
+          fi
+
+          if [[ -n "$ce_task_url" ]]; then
+            max_attempts=$((SONAR_ANALYSIS_TIMEOUT_SECONDS / SONAR_ANALYSIS_POLL_SECONDS))
+
+            if [[ "$max_attempts" -lt 1 ]]; then
+              max_attempts=1
+            fi
+
+            for ((attempt = 1; attempt <= max_attempts; attempt++)); do
+              if sonar_curl \
+                --output "$task_file" \
+                "$ce_task_url" \
+                2>>"$errors_file"; then
+                analysis_task_status="$(
+                  jq -r '.task.status // "unknown"' "$task_file"
+                )"
+
+                analysis_id="$(
+                  jq -r '.task.analysisId // empty' "$task_file"
+                )"
+
+                case "$analysis_task_status" in
+                  SUCCESS|FAILED|CANCELED)
+                    break
+                    ;;
+                  *)
+                    sleep "$SONAR_ANALYSIS_POLL_SECONDS"
+                    ;;
+                esac
+              else
+                sleep "$SONAR_ANALYSIS_POLL_SECONDS"
+              fi
+            done
+          fi
+
+          if [[ "$analysis_task_status" == 'SUCCESS' ]] &&
+            [[ -n "$analysis_id" ]]; then
+            if sonar_curl \
+              --get \
+              "$SONAR_API_URL/api/qualitygates/project_status" \
+              --data-urlencode "analysisId=$analysis_id" \
+              --output "$gate_file" \
+              2>>"$errors_file"; then
+              quality_gate_status="$(
+                jq -r '.projectStatus.status // "unknown"' "$gate_file"
+              )"
+            else
+              echo 'Unable to retrieve SonarQube Cloud quality-gate data.' >> "$errors_file"
+            fi
+          elif [[ "$analysis_task_status" == 'FAILED' ]]; then
+            echo 'SonarQube Cloud rejected the uploaded analysis during Compute Engine processing.' >> "$errors_file"
+          elif [[ "$analysis_task_status" == 'CANCELED' ]]; then
+            echo 'SonarQube Cloud canceled the uploaded analysis during Compute Engine processing.' >> "$errors_file"
+          elif [[ "$report_task_found" == 'true' ]]; then
+            echo 'Timed out while waiting for SonarQube Cloud to process the analysis.' >> "$errors_file"
+          fi
+
+          issue_arguments=(
+            --get
+            "$SONAR_API_URL/api/issues/search"
+            --data-urlencode "componentKeys=$SONAR_PROJECT_KEY"
+            --data-urlencode 'resolved=false'
+            --data-urlencode 'ps=100'
+          )
+
+          if [[ "$EVENT_NAME" == 'pull_request' ]] &&
+            [[ -n "${PULL_REQUEST_NUMBER:-}" ]]; then
+            issue_arguments+=(
+              --data-urlencode
+              "pullRequest=$PULL_REQUEST_NUMBER"
+            )
+          elif [[ -n "${BRANCH_NAME:-}" ]]; then
+            issue_arguments+=(
+              --data-urlencode
+              "branch=$BRANCH_NAME"
+            )
+          fi
+
+          if [[ "$analysis_task_status" == 'SUCCESS' ]]; then
+            sonar_curl \
+              "${issue_arguments[@]}" \
+              --output "$issues_file" \
+              2>>"$errors_file" \
+              || echo 'Unable to retrieve SonarQube Cloud issue details.' >> "$errors_file"
+          fi
+
+          failed_condition_count="$(
+            jq '[.projectStatus.conditions[]? | select(.status != "OK" and .status != "NO_VALUE")] | length' \
+              "$gate_file"
+          )"
+
+          issue_count="$(
+            jq -r '.total // 0' "$issues_file"
+          )"
+
+          if [[ "$analysis_task_status" == 'FAILED' ]]; then
+            diagnosis_status='analysis-task-failed'
+          elif [[ "$analysis_task_status" == 'CANCELED' ]]; then
+            diagnosis_status='analysis-task-canceled'
+          elif [[ "$quality_gate_status" == 'ERROR' ]]; then
+            diagnosis_status='quality-gate-failed'
+          elif [[ "$quality_gate_status" == 'OK' ]]; then
+            diagnosis_status='quality-gate-passed'
+          elif [[ "$SCANNER_OUTCOME" == 'failure' ]]; then
+            diagnosis_status='scanner-failed'
+          else
+            diagnosis_status='diagnosis-incomplete'
+          fi
+
+          {
+            echo '## SonarQube Cloud Exact Diagnosis'
+            echo
+            echo '| Check | Result |'
+            echo '| --- | --- |'
+            echo "| Scanner action outcome | ${SCANNER_OUTCOME:-unknown} |"
+            echo "| Compute Engine task status | $analysis_task_status |"
+            echo "| Quality gate status | $quality_gate_status |"
+            echo "| Failed quality-gate conditions | $failed_condition_count |"
+            echo "| Open Sonar issues | $issue_count |"
+            echo "| Diagnostic state | $diagnosis_status |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "$dashboard_url" == https://* ]]; then
+            {
+              echo
+              echo "[Open the SonarQube Cloud dashboard]($dashboard_url)"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [[ "$analysis_task_status" == 'FAILED' ]]; then
+            task_error="$(
+              jq -r '.task.errorMessage // "No Compute Engine error message was returned."' \
+                "$task_file"
+            )"
+
+            {
+              echo
+              echo '### Analysis Processing Failure'
+              echo
+              printf '%s\n' "$task_error"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [[ "$failed_condition_count" -gt 0 ]]; then
+            {
+              echo
+              echo '### Failed Quality-Gate Conditions'
+              echo
+              echo '| Metric | Actual value | Required condition | Status |'
+              echo '| --- | --- | --- | --- |'
+            } >> "$GITHUB_STEP_SUMMARY"
+
+            jq -r '
+              def clean:
+                tostring
+                | gsub("[\r\n]+"; " ")
+                | gsub("[|]"; "&#124;");
+
+              .projectStatus.conditions[]?
+              | select(.status != "OK" and .status != "NO_VALUE")
+              | .metricKey as $metric
+              | (
+                  if .comparator == "GT" then
+                    "must be less than or equal to"
+                  elif .comparator == "LT" then
+                    "must be greater than or equal to"
+                  elif .comparator == "EQ" then
+                    "must not equal"
+                  elif .comparator == "NE" then
+                    "must equal"
+                  elif .comparator == "LE" then
+                    "must be greater than"
+                  elif .comparator == "GE" then
+                    "must be less than"
+                  else
+                    (.comparator // "unknown comparator")
+                  end
+                ) as $requirement
+              | "| \($metric | clean) | \((.actualValue // "not measured") | clean) | \($requirement | clean) \((.errorThreshold // "not configured") | clean) | \((.status // "unknown") | clean) |"
+            ' "$gate_file" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [[ "$issue_count" -gt 0 ]]; then
+            {
+              echo
+              echo '### Open Sonar Issue Totals'
+              echo
+              echo '| Category | Count |'
+              echo '| --- | --- |'
+            } >> "$GITHUB_STEP_SUMMARY"
+
+            jq -r '
+              .issues
+              | group_by(.severity)
+              | .[]
+              | "| Severity: \(.[0].severity // "UNKNOWN") | \(length) |"
+            ' "$issues_file" >> "$GITHUB_STEP_SUMMARY"
+
+            jq -r '
+              .issues
+              | group_by(.type)
+              | .[]
+              | "| Type: \(.[0].type // "UNKNOWN") | \(length) |"
+            ' "$issues_file" >> "$GITHUB_STEP_SUMMARY"
+
+            {
+              echo
+              echo '### Open Sonar Issues'
+              echo
+              echo '| Type | Severity | Rule | Location | Message |'
+              echo '| --- | --- | --- | --- | --- |'
+            } >> "$GITHUB_STEP_SUMMARY"
+
+            jq -r \
+              --argjson maximum "$SONAR_SUMMARY_MAX_ISSUES" '
+                def clean:
+                  tostring
+                  | gsub("[\r\n]+"; " ")
+                  | gsub("[|]"; "&#124;");
+
+                .issues[0:$maximum][]
+                | (.component // "unknown") as $component
+                | (
+                    if .line then
+                      "\($component):\(.line)"
+                    else
+                      $component
+                    end
+                  ) as $location
+                | "| \((.type // "unknown") | clean) | \((.severity // "unknown") | clean) | \((.rule // "unknown") | clean) | \($location | clean) | \((.message // "unknown") | clean) |"
+              ' "$issues_file" >> "$GITHUB_STEP_SUMMARY"
+
+            if [[ "$issue_count" -gt "$SONAR_SUMMARY_MAX_ISSUES" ]]; then
+              {
+                echo
+                echo "> Sonar reported $issue_count open issues. This summary displays the first $SONAR_SUMMARY_MAX_ISSUES."
+              } >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+
+          if [[ -s "$errors_file" ]]; then
+            {
+              echo
+              echo '### Diagnostic Retrieval Notes'
+              echo
+              echo '```text'
+              sed -n '1,120p' "$errors_file"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          {
+            echo
+            case "$diagnosis_status" in
+              quality-gate-passed)
+                echo '> SonarQube Cloud analysis completed and the quality gate passed.'
+                ;;
+              quality-gate-failed)
+                echo '> The quality gate failed. The exact failed conditions are listed above.'
+                ;;
+              *)
+                echo '> SonarQube Cloud did not complete a clean quality-gate evaluation. Review the processing failure or diagnostic notes above.'
+                ;;
+            esac
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          {
+            echo "analysis_task_status=$analysis_task_status"
+            echo "quality_gate_status=$quality_gate_status"
+            echo "failed_condition_count=$failed_condition_count"
+            echo "issue_count=$issue_count"
+            echo "diagnosis_status=$diagnosis_status"
+            echo "dashboard_url=$dashboard_url"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Restore repository Sonar configuration
         if: always()
@@ -398,43 +729,49 @@ jobs:
             rm -f "$CONFIG_PATH"
           fi
 
-      - name: Upload Sonar coverage reports
-        if: always() && steps.coverage.outputs.lcov_count != '0'
+      - name: Upload Sonar diagnostics and coverage
+        if: always()
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: sonar-coverage-${{ github.run_id }}
+          name: sonar-diagnostics-${{ github.run_id }}
           path: |
+            sonar-reports/**
             coverage/**/lcov.info
             coverage/**/coverage-summary.json
           if-no-files-found: ignore
           retention-days: 14
 
-      - name: Publish analysis summary
+      - name: Fail after publishing exact Sonar diagnosis
         if: always()
         env:
-          COVERAGE_STATUS: ${{ steps.coverage.outputs.coverage_status }}
-          TEST_PROJECT_COUNT: ${{ steps.coverage.outputs.test_project_count }}
-          LCOV_COUNT: ${{ steps.coverage.outputs.lcov_count }}
-          SCAN_RESULT: ${{ steps.sonar_scan.outcome }}
+          SCANNER_OUTCOME: ${{ steps.sonar_scan.outcome }}
+          ANALYSIS_TASK_STATUS: ${{ steps.sonar_diagnosis.outputs.analysis_task_status }}
+          QUALITY_GATE_STATUS: ${{ steps.sonar_diagnosis.outputs.quality_gate_status }}
+          FAILED_CONDITION_COUNT: ${{ steps.sonar_diagnosis.outputs.failed_condition_count }}
+          DIAGNOSIS_STATUS: ${{ steps.sonar_diagnosis.outputs.diagnosis_status }}
         run: |
           set -euo pipefail
 
-          {
-            echo '## SonarQube Analysis Result'
-            echo
-            echo '| Check | Result |'
-            echo '| --- | --- |'
-            echo "| Vitest coverage status | ${COVERAGE_STATUS:-unknown} |"
-            echo "| Nx test projects run | ${TEST_PROJECT_COUNT:-0} |"
-            echo "| LCOV reports supplied | ${LCOV_COUNT:-0} |"
-            echo "| Sonar scanner result | ${SCAN_RESULT:-unknown} |"
-            echo
-            echo 'Detailed quality-gate status, issue triage, duplication metrics,'
-            echo 'security findings, and coverage results are available in SonarQube.'
-          } >> "$GITHUB_STEP_SUMMARY"
+          if [[ "$SCANNER_OUTCOME" == 'failure' ]]; then
+            echo '::error::The Sonar scanner failed. Review the SonarQube Cloud Exact Diagnosis summary.'
+            exit 1
+          fi
+
+          if [[ "$ANALYSIS_TASK_STATUS" == 'FAILED' ]] ||
+            [[ "$ANALYSIS_TASK_STATUS" == 'CANCELED' ]]; then
+            echo '::error::SonarQube Cloud rejected or canceled the analysis task. Review the diagnostic summary.'
+            exit 1
+          fi
+
+          if [[ "$QUALITY_GATE_STATUS" != 'OK' ]]; then
+            echo "::error::SonarQube Cloud quality gate failed or could not be verified. Failed conditions: ${FAILED_CONDITION_COUNT:-unknown}. Diagnostic state: ${DIAGNOSIS_STATUS:-unknown}."
+            exit 1
+          fi
+
+          echo 'SonarQube Cloud scanner, analysis task, and quality gate all passed.'
 
   summary:
-    name: Publish Sonar result
+    name: Publish SonarQube Cloud result
     needs:
       - preflight
       - analyze
@@ -446,34 +783,49 @@ jobs:
       - name: Write workflow summary
         env:
           SCAN_ENABLED: ${{ needs.preflight.outputs.scan_enabled }}
-          PLATFORM: ${{ needs.preflight.outputs.platform }}
           PREFLIGHT_STATUS: ${{ needs.preflight.outputs.skip_reason }}
           COVERAGE_STATUS: ${{ needs.analyze.outputs.coverage_status }}
           TEST_PROJECT_COUNT: ${{ needs.analyze.outputs.test_project_count }}
           LCOV_COUNT: ${{ needs.analyze.outputs.lcov_count }}
-          ANALYSIS_RESULT: ${{ needs.analyze.result }}
+          SCANNER_OUTCOME: ${{ needs.analyze.outputs.scanner_outcome }}
+          ANALYSIS_TASK_STATUS: ${{ needs.analyze.outputs.analysis_task_status }}
+          QUALITY_GATE_STATUS: ${{ needs.analyze.outputs.quality_gate_status }}
+          FAILED_CONDITION_COUNT: ${{ needs.analyze.outputs.failed_condition_count }}
+          ISSUE_COUNT: ${{ needs.analyze.outputs.issue_count }}
+          DIAGNOSIS_STATUS: ${{ needs.analyze.outputs.diagnosis_status }}
+          DASHBOARD_URL: ${{ needs.analyze.outputs.dashboard_url }}
+          ANALYZE_RESULT: ${{ needs.analyze.result }}
         run: |
           set -euo pipefail
 
           {
-            echo '## SonarQube Workflow Result'
+            echo '## SonarQube Cloud Workflow Result'
             echo
             echo '| Check | Result |'
             echo '| --- | --- |'
             echo "| Scan enabled | ${SCAN_ENABLED:-false} |"
-            echo "| Platform | ${PLATFORM:-unknown} |"
-            echo "| Coverage status | ${COVERAGE_STATUS:-not-run} |"
-            echo "| Test projects | ${TEST_PROJECT_COUNT:-0} |"
+            echo "| Vitest coverage status | ${COVERAGE_STATUS:-not-run} |"
+            echo "| Nx test projects | ${TEST_PROJECT_COUNT:-0} |"
             echo "| LCOV reports | ${LCOV_COUNT:-0} |"
-            echo "| Analysis job result | ${ANALYSIS_RESULT:-skipped} |"
+            echo "| Scanner action outcome | ${SCANNER_OUTCOME:-skipped} |"
+            echo "| Compute Engine task | ${ANALYSIS_TASK_STATUS:-not-available} |"
+            echo "| Quality gate | ${QUALITY_GATE_STATUS:-not-available} |"
+            echo "| Failed quality-gate conditions | ${FAILED_CONDITION_COUNT:-0} |"
+            echo "| Open Sonar issues | ${ISSUE_COUNT:-0} |"
+            echo "| Diagnostic state | ${DIAGNOSIS_STATUS:-unknown} |"
+            echo "| Workflow result | ${ANALYZE_RESULT:-skipped} |"
             echo "| Preflight status | ${PREFLIGHT_STATUS:-unknown} |"
-            echo
+          } >> "$GITHUB_STEP_SUMMARY"
 
-            if [[ "${SCAN_ENABLED:-false}" != 'true' ]]; then
-              echo '> Passed: SonarQube scanning was safely skipped because configuration is incomplete or secrets were unavailable.'
-            elif [[ "${ANALYSIS_RESULT:-unknown}" == 'success' ]]; then
-              echo '> Passed: SonarQube analysis and the configured quality gate completed successfully.'
-            else
-              echo '> Failed: inspect the SonarQube analysis job and SonarQube project dashboard for the exact quality-gate failure or scanner error.'
-            fi
+          if [[ "${DASHBOARD_URL:-}" == https://* ]]; then
+            {
+              echo
+              echo "[Open the SonarQube Cloud dashboard]($DASHBOARD_URL)"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          {
+            echo
+            echo 'The detailed SonarQube Cloud Exact Diagnosis section is in the Test, cover, analyze, and diagnose job summary.'
+            echo 'The sonar-diagnostics artifact contains raw task, quality-gate, issue, and coverage reports.'
           } >> "$GITHUB_STEP_SUMMARY"
