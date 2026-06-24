@@ -1,0 +1,408 @@
+# .github/workflows/graphql-schema.yaml
+#
+# Detects GraphQL usage in the repository and validates file-backed GraphQL
+# schema changes when a baseline schema exists.
+#
+# Behavior:
+# - Searches tracked repository files for GraphQL code references, GraphQL
+#   configuration files, GraphQL documents, and conventional schema filenames.
+# - Passes when no GraphQL references exist.
+# - Passes when GraphQL is code-first and no file-backed schema is available.
+# - Runs GraphQL Inspector only for schema files that exist in both the current
+#   commit and the comparison baseline.
+# - Fails only when GraphQL Inspector detects breaking schema changes.
+#
+# Conventional schema files detected:
+# - schema.graphql
+# - schema.gql
+# - schema.graphqls
+# - *.schema.graphql
+# - *.schema.gql
+# - *.schema.graphqls
+#
+# Code-first GraphQL note:
+# - Decorator- or code-first schemas cannot be diffed automatically without an
+#   exported SDL or introspection artifact.
+# - Once a generated schema file is committed, this workflow detects it
+#   automatically.
+
+name: GraphQL Schema
+
+on:
+  pull_request:
+    branches:
+      - master
+      - staging
+      - production
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+
+  push:
+    branches:
+      - master
+      - staging
+      - production
+
+  schedule:
+    # Weekly repository scan every Sunday at 04:30 UTC.
+    - cron: "30 4 * * 0"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+
+concurrency:
+  group: >-
+    graphql-schema-${{
+      github.event.pull_request.number ||
+      github.ref ||
+      github.run_id
+    }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  discover:
+    name: Discover GraphQL references
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    outputs:
+      graphql_detected: ${{ steps.discover.outputs.graphql_detected }}
+      graphql_reference_count: ${{ steps.discover.outputs.graphql_reference_count }}
+      graphql_source_count: ${{ steps.discover.outputs.graphql_source_count }}
+      schema_candidate_count: ${{ steps.discover.outputs.schema_candidate_count }}
+      diffable_schema_count: ${{ steps.discover.outputs.diffable_schema_count }}
+      baseline_missing_count: ${{ steps.discover.outputs.baseline_missing_count }}
+      base_sha: ${{ steps.range.outputs.base_sha }}
+      head_sha: ${{ steps.range.outputs.head_sha }}
+      matrix: ${{ steps.discover.outputs.matrix }}
+
+    steps:
+      - name: Check out repository history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Resolve comparison range
+        id: range
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          zero_sha='0000000000000000000000000000000000000000'
+          base_sha=''
+          head_sha="$CURRENT_SHA"
+
+          case "$EVENT_NAME" in
+            pull_request)
+              base_sha="$PULL_REQUEST_BASE_SHA"
+              head_sha="$PULL_REQUEST_HEAD_SHA"
+              ;;
+            push)
+              base_sha="$PUSH_BEFORE_SHA"
+              ;;
+            schedule|workflow_dispatch)
+              base_sha="$(git rev-parse "${head_sha}^" 2>/dev/null || true)"
+              ;;
+            *)
+              echo "::error::Unsupported workflow event: $EVENT_NAME"
+              exit 1
+              ;;
+          esac
+
+          if [[ "$base_sha" == "$zero_sha" ]]; then
+            base_sha=''
+          fi
+
+          git cat-file -e "${head_sha}^{commit}"
+
+          if [[ -n "$base_sha" ]]; then
+            if ! git cat-file -e "${base_sha}^{commit}" 2>/dev/null; then
+              echo "::warning::Comparison base commit is unavailable. Schema diffs will be skipped."
+              base_sha=''
+            fi
+          fi
+
+          {
+            echo "base_sha=$base_sha"
+            echo "head_sha=$head_sha"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Discover GraphQL files and schema candidates
+        id: discover
+        env:
+          BASE_SHA: ${{ steps.range.outputs.base_sha }}
+        run: |
+          set -euo pipefail
+
+          matrix_file="$RUNNER_TEMP/graphql-schema-matrix.jsonl"
+          reference_file="$RUNNER_TEMP/graphql-reference-files.txt"
+          source_file="$RUNNER_TEMP/graphql-source-files.txt"
+          schema_file="$RUNNER_TEMP/graphql-schema-files.txt"
+          baseline_missing_file="$RUNNER_TEMP/graphql-schema-baseline-missing.txt"
+
+          : > "$matrix_file"
+          : > "$reference_file"
+          : > "$source_file"
+          : > "$schema_file"
+          : > "$baseline_missing_file"
+
+          graphql_reference_pattern='(@graphql/|graphql|GraphQL|ApolloServer|GraphQLSchema|buildSchema|createSchema|createYoga|graphql-yoga|gql)'
+
+          graphql_reference_count=0
+          graphql_source_count=0
+          schema_candidate_count=0
+          diffable_schema_count=0
+          baseline_missing_count=0
+
+          while IFS= read -r -d '' file; do
+            basename="${file##*/}"
+
+            case "$file" in
+              .graphqlrc|.graphqlrc.*|graphql.config.*|codegen.*|*/.graphqlrc|*/.graphqlrc.*|*/graphql.config.*)
+                printf '%s\n' "$file" >> "$reference_file"
+                graphql_reference_count=$((graphql_reference_count + 1))
+                ;;
+            esac
+
+            case "$file" in
+              *.graphql|*.gql|*.graphqls)
+                printf '%s\n' "$file" >> "$source_file"
+                graphql_source_count=$((graphql_source_count + 1))
+
+                case "$basename" in
+                  schema.graphql|schema.gql|schema.graphqls|*.schema.graphql|*.schema.gql|*.schema.graphqls)
+                    printf '%s\n' "$file" >> "$schema_file"
+                    schema_candidate_count=$((schema_candidate_count + 1))
+
+                    if [[ -n "$BASE_SHA" ]] && git cat-file -e "${BASE_SHA}:${file}" 2>/dev/null; then
+                      slug="$(
+                        printf '%s' "$file" |
+                          sed \
+                            -e 's#^\./##' \
+                            -e 's#[/._ ]\+#-#g' \
+                            -e 's#[^[:alnum:]-]##g' \
+                            -e 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'
+                      )"
+
+                      if [[ -z "$slug" ]]; then
+                        slug='schema'
+                      fi
+
+                      jq --null-input \
+                        --arg name "$slug" \
+                        --arg schema "$file" \
+                        '{
+                          name: $name,
+                          schema: $schema
+                        }' \
+                        >> "$matrix_file"
+
+                      diffable_schema_count=$((diffable_schema_count + 1))
+                    else
+                      printf '%s\n' "$file" >> "$baseline_missing_file"
+                      baseline_missing_count=$((baseline_missing_count + 1))
+                    fi
+                    ;;
+                esac
+                ;;
+            esac
+
+            case "$file" in
+              package.json|*/package.json|*.js|*.cjs|*.mjs|*.jsx|*.ts|*.cts|*.mts|*.tsx|*.vue|*.svelte|*.astro)
+                if grep --binary-files=without-match --extended-regexp --ignore-case --quiet \
+                  "$graphql_reference_pattern" \
+                  "$file"; then
+                  printf '%s\n' "$file" >> "$reference_file"
+                  graphql_reference_count=$((graphql_reference_count + 1))
+                fi
+                ;;
+            esac
+          done < <(git ls-files -z)
+
+          if [[ "$graphql_reference_count" -gt 0 || "$graphql_source_count" -gt 0 ]]; then
+            graphql_detected='true'
+          else
+            graphql_detected='false'
+          fi
+
+          if [[ "$diffable_schema_count" -gt 0 ]]; then
+            matrix="$(jq --slurp '{include: .}' "$matrix_file")"
+          else
+            matrix='{"include":[]}'
+          fi
+
+          {
+            echo "graphql_detected=$graphql_detected"
+            echo "graphql_reference_count=$graphql_reference_count"
+            echo "graphql_source_count=$graphql_source_count"
+            echo "schema_candidate_count=$schema_candidate_count"
+            echo "diffable_schema_count=$diffable_schema_count"
+            echo "baseline_missing_count=$baseline_missing_count"
+            echo 'matrix<<EOF'
+            echo "$matrix"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo '## GraphQL Discovery'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo "| GraphQL detected | $graphql_detected |"
+            echo "| GraphQL code or config references | $graphql_reference_count |"
+            echo "| GraphQL source files | $graphql_source_count |"
+            echo "| Schema candidates | $schema_candidate_count |"
+            echo "| Diffable schemas | $diffable_schema_count |"
+            echo "| Schemas without a baseline | $baseline_missing_count |"
+            echo
+
+            if [[ "$graphql_detected" == 'false' ]]; then
+              echo '> No GraphQL references were detected. GraphQL schema validation is not required for this revision.'
+            elif [[ "$schema_candidate_count" == '0' ]]; then
+              echo '> GraphQL usage was detected, but no conventional file-backed schema was found. The workflow passes without a schema diff.'
+            elif [[ "$diffable_schema_count" == '0' ]]; then
+              echo '> Schema candidates were found, but none have a matching baseline schema. The workflow passes without a schema diff.'
+            fi
+
+            if [[ -s "$reference_file" ]]; then
+              echo
+              echo '### GraphQL References'
+              echo
+
+              while IFS= read -r reference; do
+                printf -- '- %s\n' "$reference"
+              done < <(sort -u "$reference_file" | head -n 50)
+            fi
+
+            if [[ -s "$source_file" ]]; then
+              echo
+              echo '### GraphQL Source Files'
+              echo
+
+              while IFS= read -r source; do
+                printf -- '- %s\n' "$source"
+              done < <(sort -u "$source_file" | head -n 50)
+            fi
+
+            if [[ -s "$schema_file" ]]; then
+              echo
+              echo '### Schema Candidates'
+              echo
+
+              while IFS= read -r schema; do
+                printf -- '- %s\n' "$schema"
+              done < <(sort -u "$schema_file")
+            fi
+
+            if [[ -s "$baseline_missing_file" ]]; then
+              echo
+              echo '### Schemas Without a Baseline'
+              echo
+              echo 'These schemas are new or their comparison commit does not contain a matching file.'
+              echo
+
+              while IFS= read -r schema; do
+                printf -- '- %s\n' "$schema"
+              done < <(sort -u "$baseline_missing_file")
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  inspect:
+    name: Inspect ${{ matrix.name }}
+    needs: discover
+    if: >-
+      needs.discover.outputs.diffable_schema_count != '0' &&
+      (
+        github.event_name != 'pull_request' ||
+        github.event.pull_request.head.repo.full_name == github.repository
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.discover.outputs.matrix) }}
+
+    steps:
+      - name: Check out repository history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Compare GraphQL schema
+        uses: graphql-hive/graphql-inspector@release-1781692943029
+        with:
+          name: GraphQL Schema - ${{ matrix.name }}
+          schema: "${{ needs.discover.outputs.base_sha }}:${{ matrix.schema }}"
+          annotations: false
+          fail-on-breaking: true
+
+  summary:
+    name: Publish GraphQL schema result
+    needs:
+      - discover
+      - inspect
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Write workflow summary
+        env:
+          GRAPHQL_DETECTED: ${{ needs.discover.outputs.graphql_detected }}
+          GRAPHQL_REFERENCE_COUNT: ${{ needs.discover.outputs.graphql_reference_count }}
+          GRAPHQL_SOURCE_COUNT: ${{ needs.discover.outputs.graphql_source_count }}
+          SCHEMA_CANDIDATE_COUNT: ${{ needs.discover.outputs.schema_candidate_count }}
+          DIFFABLE_SCHEMA_COUNT: ${{ needs.discover.outputs.diffable_schema_count }}
+          BASELINE_MISSING_COUNT: ${{ needs.discover.outputs.baseline_missing_count }}
+          BASE_SHA: ${{ needs.discover.outputs.base_sha }}
+          HEAD_SHA: ${{ needs.discover.outputs.head_sha }}
+          INSPECT_RESULT: ${{ needs.inspect.result }}
+        run: |
+          set -euo pipefail
+
+          {
+            echo '## GraphQL Schema Result'
+            echo
+            echo '| Check | Result |'
+            echo '| --- | --- |'
+            echo "| GraphQL detected | ${GRAPHQL_DETECTED:-false} |"
+            echo "| GraphQL references | ${GRAPHQL_REFERENCE_COUNT:-0} |"
+            echo "| GraphQL source files | ${GRAPHQL_SOURCE_COUNT:-0} |"
+            echo "| Schema candidates | ${SCHEMA_CANDIDATE_COUNT:-0} |"
+            echo "| Diffable schemas | ${DIFFABLE_SCHEMA_COUNT:-0} |"
+            echo "| Missing schema baselines | ${BASELINE_MISSING_COUNT:-0} |"
+            echo "| Inspector result | ${INSPECT_RESULT:-skipped} |"
+            echo "| Base commit | ${BASE_SHA:-unavailable} |"
+            echo "| Head commit | ${HEAD_SHA:-unavailable} |"
+            echo
+
+            if [[ "${GRAPHQL_DETECTED:-false}" != 'true' ]]; then
+              echo '> Passed: no GraphQL references were found in tracked repository files.'
+            elif [[ "${DIFFABLE_SCHEMA_COUNT:-0}" == '0' ]]; then
+              echo '> Passed: no baseline-backed GraphQL schema files required inspection.'
+            elif [[ "${INSPECT_RESULT:-skipped}" == 'success' ]]; then
+              echo '> Passed: GraphQL Inspector found no breaking schema changes.'
+            elif [[ "${INSPECT_RESULT:-skipped}" == 'skipped' ]]; then
+              echo '> Inspector was skipped because the pull request originates from a fork and does not receive write-scoped checks permissions.'
+            else
+              echo '> GraphQL Inspector reported a schema comparison failure.'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
