@@ -1,5 +1,3 @@
-// libs/core/src/enumns/system/errors/auth-error.enum.ts
-
 /**
  * Authentication and authorization error codes.
  *
@@ -11,14 +9,14 @@ export const AuthErrorCode = {
   // Credentials and input.
   INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
   INVALID_EMAIL: 'INVALID_EMAIL',
-  INVALID_PASSWORD: 'INVALID_PASSWORD',
+  INVALID_PASSWORD: 'INVALID_PASSWORD', //NOSONAR Error-code identifier, not a credential.
 
   EMAIL_REQUIRED: 'EMAIL_REQUIRED',
-  PASSWORD_REQUIRED: 'PASSWORD_REQUIRED',
-  PASSWORD_TOO_SHORT: 'PASSWORD_TOO_SHORT',
-  PASSWORD_TOO_LONG: 'PASSWORD_TOO_LONG',
-  PASSWORD_TOO_WEAK: 'PASSWORD_TOO_WEAK',
-  PASSWORD_REUSED: 'PASSWORD_REUSED',
+  PASSWORD_REQUIRED: 'PASSWORD_REQUIRED', //NOSONAR Error-code identifier, not a credential.
+  PASSWORD_TOO_SHORT: 'PASSWORD_TOO_SHORT', //NOSONAR Error-code identifier, not a credential.
+  PASSWORD_TOO_LONG: 'PASSWORD_TOO_LONG', //NOSONAR Error-code identifier, not a credential.
+  PASSWORD_TOO_WEAK: 'PASSWORD_TOO_WEAK', //NOSONAR Error-code identifier, not a credential.
+  PASSWORD_REUSED: 'PASSWORD_REUSED', //NOSONAR Error-code identifier, not a credential.
 
   USERNAME_REQUIRED: 'USERNAME_REQUIRED',
   USERNAME_INVALID: 'USERNAME_INVALID',
@@ -56,7 +54,7 @@ export const AuthErrorCode = {
   INVALID_ACCESS_TOKEN: 'INVALID_ACCESS_TOKEN',
   INVALID_REFRESH_TOKEN: 'INVALID_REFRESH_TOKEN',
   INVALID_VERIFICATION_TOKEN: 'INVALID_VERIFICATION_TOKEN',
-  INVALID_PASSWORD_RESET_TOKEN: 'INVALID_PASSWORD_RESET_TOKEN',
+  INVALID_PASSWORD_RESET_TOKEN: 'INVALID_PASSWORD_RESET_TOKEN', //NOSONAR Error-code identifier, not a credential.
 
   TOKEN_MISSING: 'TOKEN_MISSING',
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
@@ -78,10 +76,10 @@ export const AuthErrorCode = {
   MFA_RECOVERY_CODE_USED: 'MFA_RECOVERY_CODE_USED',
 
   // Password reset.
-  PASSWORD_RESET_REQUIRED: 'PASSWORD_RESET_REQUIRED',
-  PASSWORD_RESET_EXPIRED: 'PASSWORD_RESET_EXPIRED',
-  PASSWORD_RESET_FAILED: 'PASSWORD_RESET_FAILED',
-  PASSWORD_RESET_REQUEST_FAILED: 'PASSWORD_RESET_REQUEST_FAILED',
+  PASSWORD_RESET_REQUIRED: 'PASSWORD_RESET_REQUIRED', //NOSONAR Error-code identifier, not a credential.
+  PASSWORD_RESET_EXPIRED: 'PASSWORD_RESET_EXPIRED', //NOSONAR Error-code identifier, not a credential.
+  PASSWORD_RESET_FAILED: 'PASSWORD_RESET_FAILED', //NOSONAR Error-code identifier, not a credential.
+  PASSWORD_RESET_REQUEST_FAILED: 'PASSWORD_RESET_REQUEST_FAILED', //NOSONAR Error-code identifier, not a credential.
 
   // Authorization.
   PERMISSION_DENIED: 'PERMISSION_DENIED',
@@ -104,16 +102,15 @@ export const AuthErrorCode = {
 
   // Fallback.
   AUTH_UNKNOWN_ERROR: 'AUTH_UNKNOWN_ERROR',
-} as const;
+} as const
 
-export type AuthErrorCode =
-  (typeof AuthErrorCode)[keyof typeof AuthErrorCode];
+export type AuthErrorCode = (typeof AuthErrorCode)[keyof typeof AuthErrorCode]
 
-export const AuthErrorCodeValues = Object.values(AuthErrorCode);
+export const AuthErrorCodeValues = Object.values(AuthErrorCode)
 
 export function isAuthErrorCode(value: unknown): value is AuthErrorCode {
   return (
     typeof value === 'string' &&
     AuthErrorCodeValues.includes(value as AuthErrorCode)
-  );
+  )
 }

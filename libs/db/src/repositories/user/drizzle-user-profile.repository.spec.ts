@@ -1,17 +1,12 @@
-// libs/db/src/repositories/user/drizzle-user-profile.repository.spec.ts
+import { describe, expect, it, vi } from 'vitest'
 
-import { describe, expect, it, vi } from 'vitest';
-
-import type { DatabaseClient } from '../../client';
-import {
-  type UserProfileRow,
-  userProfilesTable,
-} from '../../schema';
-import { DrizzleUserProfileRepository } from './drizzle-user-profile.repository';
+import type { DatabaseClient } from '../../client'
+import { type UserProfileRow, userProfilesTable } from '../../schema'
+import { DrizzleUserProfileRepository } from './drizzle-user-profile.repository'
 
 type DeletedUserProfileRow = {
-  id: string;
-};
+  id: string
+}
 
 function createUserProfileRow(
   overrides: Partial<UserProfileRow> = {},
@@ -53,7 +48,7 @@ function createUserProfileRow(
     deletedAt: null,
 
     ...overrides,
-  };
+  }
 }
 
 function createDatabaseMock({
@@ -61,48 +56,48 @@ function createDatabaseMock({
   insertedRows = [],
   updatedRows = [],
 }: {
-  selectedRows?: UserProfileRow[];
-  insertedRows?: UserProfileRow[];
-  updatedRows?: UserProfileRow[] | DeletedUserProfileRow[];
+  selectedRows?: UserProfileRow[]
+  insertedRows?: UserProfileRow[]
+  updatedRows?: UserProfileRow[] | DeletedUserProfileRow[]
 } = {}) {
-  const selectLimit = vi.fn().mockResolvedValue(selectedRows);
+  const selectLimit = vi.fn().mockResolvedValue(selectedRows)
 
   const selectResult = {
     limit: selectLimit,
-  };
+  }
 
-  const selectWhere = vi.fn(() => selectResult);
+  const selectWhere = vi.fn(() => selectResult)
   const selectFrom = vi.fn(() => ({
     where: selectWhere,
-  }));
+  }))
   const select = vi.fn(() => ({
     from: selectFrom,
-  }));
+  }))
 
-  const insertReturning = vi.fn().mockResolvedValue(insertedRows);
+  const insertReturning = vi.fn().mockResolvedValue(insertedRows)
   const insertValues = vi.fn(() => ({
     returning: insertReturning,
-  }));
+  }))
   const insert = vi.fn(() => ({
     values: insertValues,
-  }));
+  }))
 
-  const updateReturning = vi.fn().mockResolvedValue(updatedRows);
+  const updateReturning = vi.fn().mockResolvedValue(updatedRows)
   const updateWhere = vi.fn(() => ({
     returning: updateReturning,
-  }));
+  }))
   const updateSet = vi.fn(() => ({
     where: updateWhere,
-  }));
+  }))
   const update = vi.fn(() => ({
     set: updateSet,
-  }));
+  }))
 
   const database = {
     select,
     insert,
     update,
-  } as unknown as DatabaseClient;
+  } as unknown as DatabaseClient
 
   return {
     database,
@@ -117,7 +112,7 @@ function createDatabaseMock({
     updateSet,
     updateWhere,
     updateReturning,
-  };
+  }
 }
 
 function toExpectedContract(row: UserProfileRow) {
@@ -155,80 +150,68 @@ function toExpectedContract(row: UserProfileRow) {
 
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
-  };
+  }
 }
 
 describe('DrizzleUserProfileRepository', () => {
   it('finds an active profile by user ID', async () => {
-    const row = createUserProfileRow();
+    const row = createUserProfileRow()
     const databaseMock = createDatabaseMock({
       selectedRows: [row],
-    });
+    })
 
-    const repository = new DrizzleUserProfileRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserProfileRepository(databaseMock.database)
 
-    const result = await repository.findByUserId(row.userId);
+    const result = await repository.findByUserId(row.userId)
 
-    expect(result).toEqual(toExpectedContract(row));
+    expect(result).toEqual(toExpectedContract(row))
 
-    expect(databaseMock.select).toHaveBeenCalledOnce();
-    expect(databaseMock.selectFrom).toHaveBeenCalledWith(
-      userProfilesTable,
-    );
-    expect(databaseMock.selectLimit).toHaveBeenCalledWith(1);
-  });
+    expect(databaseMock.select).toHaveBeenCalledOnce()
+    expect(databaseMock.selectFrom).toHaveBeenCalledWith(userProfilesTable)
+    expect(databaseMock.selectLimit).toHaveBeenCalledWith(1)
+  })
 
   it('returns null when a profile does not exist for a user', async () => {
-    const databaseMock = createDatabaseMock();
+    const databaseMock = createDatabaseMock()
 
-    const repository = new DrizzleUserProfileRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserProfileRepository(databaseMock.database)
 
-    const result = await repository.findByUserId('missing_user');
+    const result = await repository.findByUserId('missing_user')
 
-    expect(result).toBeNull();
-  });
+    expect(result).toBeNull()
+  })
 
   it('finds an active profile by handle', async () => {
-    const row = createUserProfileRow();
+    const row = createUserProfileRow()
     const databaseMock = createDatabaseMock({
       selectedRows: [row],
-    });
+    })
 
-    const repository = new DrizzleUserProfileRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserProfileRepository(databaseMock.database)
 
-    const result = await repository.findByHandle('  SINLESS777  ');
+    const result = await repository.findByHandle('  SINLESS777  ')
 
-    expect(result).toEqual(toExpectedContract(row));
-    expect(databaseMock.selectLimit).toHaveBeenCalledWith(1);
-  });
+    expect(result).toEqual(toExpectedContract(row))
+    expect(databaseMock.selectLimit).toHaveBeenCalledWith(1)
+  })
 
   it('returns null when a profile does not exist for a handle', async () => {
-    const databaseMock = createDatabaseMock();
+    const databaseMock = createDatabaseMock()
 
-    const repository = new DrizzleUserProfileRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserProfileRepository(databaseMock.database)
 
-    const result = await repository.findByHandle('missing_handle');
+    const result = await repository.findByHandle('missing_handle')
 
-    expect(result).toBeNull();
-  });
+    expect(result).toBeNull()
+  })
 
   it('creates and returns a user profile', async () => {
-    const row = createUserProfileRow();
+    const row = createUserProfileRow()
     const databaseMock = createDatabaseMock({
       insertedRows: [row],
-    });
+    })
 
-    const repository = new DrizzleUserProfileRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserProfileRepository(databaseMock.database)
 
     const result = await repository.create({
       userId: row.userId,
@@ -238,11 +221,11 @@ describe('DrizzleUserProfileRepository', () => {
       familyName: '  Pierce  ',
       bio: '  Building Aerealith.  ',
       websiteUrl: '  https://aerealith.com  ',
-    });
+    })
 
-    expect(result).toEqual(toExpectedContract(row));
+    expect(result).toEqual(toExpectedContract(row))
 
-    expect(databaseMock.insert).toHaveBeenCalledWith(userProfilesTable);
+    expect(databaseMock.insert).toHaveBeenCalledWith(userProfilesTable)
 
     expect(databaseMock.insertValues).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -254,47 +237,43 @@ describe('DrizzleUserProfileRepository', () => {
         bio: 'Building Aerealith.',
         websiteUrl: 'https://aerealith.com',
       }),
-    );
-  });
+    )
+  })
 
   it('throws when creating a profile does not return a row', async () => {
-    const databaseMock = createDatabaseMock();
+    const databaseMock = createDatabaseMock()
 
-    const repository = new DrizzleUserProfileRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserProfileRepository(databaseMock.database)
 
     await expect(
       repository.create({
         userId: 'user_123',
         handle: 'sinless777',
       }),
-    ).rejects.toThrow();
-  });
+    ).rejects.toThrow()
+  })
 
   it('updates and returns a user profile', async () => {
     const row = createUserProfileRow({
       displayName: 'Updated Sinless',
       bio: 'Updated bio.',
       updatedAt: new Date('2026-06-21T00:00:00.000Z'),
-    });
+    })
 
     const databaseMock = createDatabaseMock({
       updatedRows: [row],
-    });
+    })
 
-    const repository = new DrizzleUserProfileRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserProfileRepository(databaseMock.database)
 
     const result = await repository.update(row.userId, {
       displayName: '  Updated Sinless  ',
       bio: '  Updated bio.  ',
-    });
+    })
 
-    expect(result).toEqual(toExpectedContract(row));
+    expect(result).toEqual(toExpectedContract(row))
 
-    expect(databaseMock.update).toHaveBeenCalledWith(userProfilesTable);
+    expect(databaseMock.update).toHaveBeenCalledWith(userProfilesTable)
 
     expect(databaseMock.updateSet).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -302,22 +281,96 @@ describe('DrizzleUserProfileRepository', () => {
         bio: 'Updated bio.',
         updatedAt: expect.any(Date),
       }),
-    );
-  });
+    )
+  })
+
+  it('normalizes a handle when updating a user profile', async () => {
+    const row = createUserProfileRow({
+      handle: 'updated_handle',
+      updatedAt: new Date('2026-06-21T00:00:00.000Z'),
+    })
+
+    const databaseMock = createDatabaseMock({
+      updatedRows: [row],
+    })
+
+    const repository = new DrizzleUserProfileRepository(databaseMock.database)
+
+    const result = await repository.update(row.userId, {
+      handle: '  UPDATED_HANDLE  ',
+    })
+
+    expect(result).toEqual(toExpectedContract(row))
+
+    expect(databaseMock.updateSet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        handle: 'updated_handle',
+        updatedAt: expect.any(Date),
+      }),
+    )
+  })
+
+  it('preserves explicit null values and normalizes empty strings during updates', async () => {
+    const row = createUserProfileRow({
+      displayName: null,
+      avatarUrl: null,
+      country: null,
+      websiteUrl: null,
+      updatedAt: new Date('2026-06-21T00:00:00.000Z'),
+    })
+
+    const databaseMock = createDatabaseMock({
+      updatedRows: [row],
+    })
+
+    const repository = new DrizzleUserProfileRepository(databaseMock.database)
+
+    const result = await repository.update(row.userId, {
+      displayName: '   ',
+      avatarUrl: null,
+      country: null,
+      websiteUrl: '   ',
+    })
+
+    expect(result).toEqual(toExpectedContract(row))
+
+    expect(databaseMock.updateSet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        displayName: null,
+        avatarUrl: null,
+        country: null,
+        websiteUrl: null,
+        updatedAt: expect.any(Date),
+      }),
+    )
+  })
+
+  it('returns the current profile without updating when no fields are supplied', async () => {
+    const row = createUserProfileRow()
+    const databaseMock = createDatabaseMock({
+      selectedRows: [row],
+    })
+
+    const repository = new DrizzleUserProfileRepository(databaseMock.database)
+
+    const result = await repository.update(row.userId, {})
+
+    expect(result).toEqual(toExpectedContract(row))
+    expect(databaseMock.select).toHaveBeenCalledOnce()
+    expect(databaseMock.update).not.toHaveBeenCalled()
+  })
 
   it('returns null when updating a profile that does not exist', async () => {
-    const databaseMock = createDatabaseMock();
+    const databaseMock = createDatabaseMock()
 
-    const repository = new DrizzleUserProfileRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserProfileRepository(databaseMock.database)
 
     const result = await repository.update('missing_user', {
       displayName: 'Updated Sinless',
-    });
+    })
 
-    expect(result).toBeNull();
-  });
+    expect(result).toBeNull()
+  })
 
   it('soft deletes an existing user profile', async () => {
     const databaseMock = createDatabaseMock({
@@ -326,36 +379,30 @@ describe('DrizzleUserProfileRepository', () => {
           id: 'profile_123',
         },
       ],
-    });
+    })
 
-    const repository = new DrizzleUserProfileRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserProfileRepository(databaseMock.database)
 
-    const result = await repository.softDeleteByUserId('user_123');
+    const result = await repository.softDeleteByUserId('user_123')
 
-    expect(result).toBe(true);
-    expect(databaseMock.update).toHaveBeenCalledWith(
-      userProfilesTable,
-    );
+    expect(result).toBe(true)
+    expect(databaseMock.update).toHaveBeenCalledWith(userProfilesTable)
 
     expect(databaseMock.updateSet).toHaveBeenCalledWith(
       expect.objectContaining({
         deletedAt: expect.any(Date),
         updatedAt: expect.any(Date),
       }),
-    );
-  });
+    )
+  })
 
   it('returns false when there is no profile to soft delete', async () => {
-    const databaseMock = createDatabaseMock();
+    const databaseMock = createDatabaseMock()
 
-    const repository = new DrizzleUserProfileRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserProfileRepository(databaseMock.database)
 
-    const result = await repository.softDeleteByUserId('missing_user');
+    const result = await repository.softDeleteByUserId('missing_user')
 
-    expect(result).toBe(false);
-  });
-});
+    expect(result).toBe(false)
+  })
+})

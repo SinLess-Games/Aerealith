@@ -1,17 +1,12 @@
-// libs/core/src/schemas/entitites/user/user.schema.ts
+import { z } from 'zod'
 
-import { z } from 'zod';
-
-import {
-  UserRole,
-  UserTier,
-} from '../../../enumns';
-import { UserLifecycleStatus } from '../../../entities/user/user.entity';
+import { UserLifecycleStatus } from '../../../entities/user/user.entity'
+import { UserRole, UserTier } from '../../../enumns'
 
 /**
  * Internal user entity ID.
  */
-export const UserIdSchema = z.string().uuid();
+export const UserIdSchema = z.uuid()
 
 /**
  * Usernames are stored lowercase.
@@ -22,27 +17,27 @@ export const UsernameSchema = z
   .toLowerCase()
   .min(3)
   .max(32)
-  .regex(/^[a-z0-9_]+$/);
+  .regex(/^[a-z0-9_]+$/)
 
 /**
  * User email addresses are stored lowercase.
  */
-export const UserEmailSchema = z.string().trim().toLowerCase().email();
+export const UserEmailSchema = z.string().trim().toLowerCase().pipe(z.email())
 
 /**
  * Internal password hash.
  *
  * Never use this schema for a raw password submitted by a user.
  */
-export const PasswordHashSchema = z.string().trim().min(1).max(1024);
+export const PasswordHashSchema = z.string().trim().min(1).max(1024)
 
-export const UserMetadataSchema = z.record(z.string(), z.unknown());
+export const UserMetadataSchema = z.record(z.string(), z.unknown())
 
-export const UserLifecycleStatusSchema = z.enum(UserLifecycleStatus);
+export const UserLifecycleStatusSchema = z.enum(UserLifecycleStatus)
 
-export const UserRoleSchema = z.enum(UserRole);
+export const UserRoleSchema = z.enum(UserRole)
 
-export const UserTierSchema = z.enum(UserTier);
+export const UserTierSchema = z.enum(UserTier)
 
 /**
  * Full internal user entity schema.
@@ -67,7 +62,7 @@ export const UserEntitySchema = z.object({
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
   deletedAt: z.coerce.date().nullable(),
-});
+})
 
 /**
  * Data accepted when an internal service creates a user entity.
@@ -87,7 +82,7 @@ export const CreateUserEntitySchema = z.object({
   tier: UserTierSchema.optional(),
 
   metadata: UserMetadataSchema.optional(),
-});
+})
 
 /**
  * Internal user entity updates.
@@ -104,25 +99,19 @@ export const UpdateUserEntitySchema = z.object({
   tier: UserTierSchema.optional(),
 
   metadata: UserMetadataSchema.optional(),
-});
+})
 
 /**
  * Safe user data without internal password information.
  */
 export const PublicUserEntitySchema = UserEntitySchema.omit({
   passwordHash: true,
-});
+})
 
-export type UserEntitySchemaType = z.infer<typeof UserEntitySchema>;
+export type UserEntitySchemaType = z.infer<typeof UserEntitySchema>
 
-export type CreateUserEntityInput = z.infer<
-  typeof CreateUserEntitySchema
->;
+export type CreateUserEntityInput = z.infer<typeof CreateUserEntitySchema>
 
-export type UpdateUserEntityInput = z.infer<
-  typeof UpdateUserEntitySchema
->;
+export type UpdateUserEntityInput = z.infer<typeof UpdateUserEntitySchema>
 
-export type PublicUserEntitySchemaType = z.infer<
-  typeof PublicUserEntitySchema
->;
+export type PublicUserEntitySchemaType = z.infer<typeof PublicUserEntitySchema>

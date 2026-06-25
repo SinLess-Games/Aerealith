@@ -1,5 +1,3 @@
-// libs/core/src/enumns/entities/language/languages.enum.ts
-
 /**
  * ISO-style language code values for user profile language preferences.
  *
@@ -445,16 +443,16 @@ export const Languages = {
   ClassicalNewari: 'nwc',
   ClassicalTibetan: 'xct',
   ClassicalMongolian: 'cmg',
-} as const;
+} as const
 
-export type Languages = (typeof Languages)[keyof typeof Languages];
+export type Languages = (typeof Languages)[keyof typeof Languages]
 
-export type Language = Languages;
+export const DefaultLanguage = Languages.Unspecified
 
-export const DefaultLanguage = Languages.Unspecified;
+export const LanguageValues = [...new Set(Object.values(Languages))]
 
-export const LanguageValues = [...new Set(Object.values(Languages))];
-
-export function isLanguage(value: unknown): value is Language {
-  return typeof value === 'string' && LanguageValues.includes(value as Language);
+export function isLanguage(value: unknown): value is Languages {
+  return (
+    typeof value === 'string' && LanguageValues.includes(value as Languages)
+  )
 }

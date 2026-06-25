@@ -1,6 +1,4 @@
-// libs/db/src/repositories/user/drizzle-user-profile.repository.ts
-
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm'
 
 import type {
   Country,
@@ -14,50 +12,50 @@ import type {
   UserProfileFieldVisibility,
   UserProfileLanguage,
   UserProfileLink,
-} from '@aerealith-ai/core';
+} from '@aerealith-ai/core'
 
-import type { DatabaseClient } from '../../client';
+import type { DatabaseClient } from '../../client'
 import {
   type NewUserProfileRow,
   type UserProfileRow,
   userProfilesTable,
-} from '../../schema';
+} from '../../schema'
 
 export type CreateUserProfileInput = {
-  userId: string;
-  handle: string;
+  userId: string
+  handle: string
 
-  displayName?: string | null;
-  givenName?: string | null;
-  middleName?: string | null;
-  familyName?: string | null;
-  pronouns?: string | null;
+  displayName?: string | null
+  givenName?: string | null
+  middleName?: string | null
+  familyName?: string | null
+  pronouns?: string | null
 
-  avatarUrl?: string | null;
-  bannerUrl?: string | null;
-  bio?: string | null;
+  avatarUrl?: string | null
+  bannerUrl?: string | null
+  bio?: string | null
 
-  status?: ProfileStatus;
-  fieldVisibility?: UserProfileFieldVisibility;
+  status?: ProfileStatus
+  fieldVisibility?: UserProfileFieldVisibility
 
-  locationLabel?: string | null;
-  country?: Country | null;
+  locationLabel?: string | null
+  country?: Country | null
 
-  gender?: Gender | null;
-  sex?: Sex | null;
-  sexuality?: Sexuality | null;
-  romanticOrientation?: RomanticOrientation | null;
-  sexAttitude?: SexAttitude | null;
+  gender?: Gender | null
+  sex?: Sex | null
+  sexuality?: Sexuality | null
+  romanticOrientation?: RomanticOrientation | null
+  sexAttitude?: SexAttitude | null
 
-  languages?: UserProfileLanguage[];
-  websiteUrl?: string | null;
-  links?: UserProfileLink[];
-};
+  languages?: UserProfileLanguage[]
+  websiteUrl?: string | null
+  links?: UserProfileLink[]
+}
 
 export type UpdateUserProfileInput = Omit<
   Partial<CreateUserProfileInput>,
   'userId'
->;
+>
 
 /**
  * Drizzle persistence for user profiles.
@@ -69,9 +67,7 @@ export type UpdateUserProfileInput = Omit<
 export class DrizzleUserProfileRepository {
   constructor(private readonly database: DatabaseClient) {}
 
-  async findByUserId(
-    userId: string,
-  ): Promise<UserProfileContract | null> {
+  async findByUserId(userId: string): Promise<UserProfileContract | null> {
     const [row] = await this.database
       .select()
       .from(userProfilesTable)
@@ -81,14 +77,12 @@ export class DrizzleUserProfileRepository {
           isNull(userProfilesTable.deletedAt),
         ),
       )
-      .limit(1);
+      .limit(1)
 
-    return row ? toUserProfileContract(row) : null;
+    return row ? toUserProfileContract(row) : null
   }
 
-  async findByHandle(
-    handle: string,
-  ): Promise<UserProfileContract | null> {
+  async findByHandle(handle: string): Promise<UserProfileContract | null> {
     const [row] = await this.database
       .select()
       .from(userProfilesTable)
@@ -98,34 +92,32 @@ export class DrizzleUserProfileRepository {
           isNull(userProfilesTable.deletedAt),
         ),
       )
-      .limit(1);
+      .limit(1)
 
-    return row ? toUserProfileContract(row) : null;
+    return row ? toUserProfileContract(row) : null
   }
 
-  async create(
-    input: CreateUserProfileInput,
-  ): Promise<UserProfileContract> {
+  async create(input: CreateUserProfileInput): Promise<UserProfileContract> {
     const [row] = await this.database
       .insert(userProfilesTable)
       .values(toNewUserProfileRow(input))
-      .returning();
+      .returning()
 
     if (!row) {
-      throw new Error('Failed to create user profile.');
+      throw new Error('Failed to create user profile.')
     }
 
-    return toUserProfileContract(row);
+    return toUserProfileContract(row)
   }
 
   async update(
     userId: string,
     input: UpdateUserProfileInput,
   ): Promise<UserProfileContract | null> {
-    const values = createUpdateValues(input);
+    const values = createUpdateValues(input)
 
     if (Object.keys(values).length === 0) {
-      return this.findByUserId(userId);
+      return this.findByUserId(userId)
     }
 
     const [row] = await this.database
@@ -140,13 +132,13 @@ export class DrizzleUserProfileRepository {
           isNull(userProfilesTable.deletedAt),
         ),
       )
-      .returning();
+      .returning()
 
-    return row ? toUserProfileContract(row) : null;
+    return row ? toUserProfileContract(row) : null
   }
 
   async softDeleteByUserId(userId: string): Promise<boolean> {
-    const now = new Date();
+    const now = new Date()
 
     const [row] = await this.database
       .update(userProfilesTable)
@@ -162,15 +154,13 @@ export class DrizzleUserProfileRepository {
       )
       .returning({
         id: userProfilesTable.id,
-      });
+      })
 
-    return row !== undefined;
+    return row !== undefined
   }
 }
 
-function toNewUserProfileRow(
-  input: CreateUserProfileInput,
-): NewUserProfileRow {
+function toNewUserProfileRow(input: CreateUserProfileInput): NewUserProfileRow {
   return {
     userId: input.userId.trim(),
     handle: normalizeHandle(input.handle),
@@ -200,104 +190,92 @@ function toNewUserProfileRow(
     languages: input.languages,
     websiteUrl: normalizeOptionalString(input.websiteUrl),
     links: input.links,
-  };
+  }
 }
 
 function createUpdateValues(
   input: UpdateUserProfileInput,
 ): Partial<NewUserProfileRow> {
-  const values: Partial<NewUserProfileRow> = {};
+  const values: Partial<NewUserProfileRow> = {}
 
-  if (input.handle !== undefined) {
-    values.handle = normalizeHandle(input.handle);
-  }
+  setDefinedValue(values, 'handle', normalizeUpdatedHandle(input.handle))
 
-  if (input.displayName !== undefined) {
-    values.displayName = normalizeOptionalString(input.displayName);
-  }
+  setDefinedValue(
+    values,
+    'displayName',
+    normalizeUpdatedOptionalString(input.displayName),
+  )
+  setDefinedValue(
+    values,
+    'givenName',
+    normalizeUpdatedOptionalString(input.givenName),
+  )
+  setDefinedValue(
+    values,
+    'middleName',
+    normalizeUpdatedOptionalString(input.middleName),
+  )
+  setDefinedValue(
+    values,
+    'familyName',
+    normalizeUpdatedOptionalString(input.familyName),
+  )
+  setDefinedValue(
+    values,
+    'pronouns',
+    normalizeUpdatedOptionalString(input.pronouns),
+  )
 
-  if (input.givenName !== undefined) {
-    values.givenName = normalizeOptionalString(input.givenName);
-  }
+  setDefinedValue(
+    values,
+    'avatarUrl',
+    normalizeUpdatedOptionalString(input.avatarUrl),
+  )
+  setDefinedValue(
+    values,
+    'bannerUrl',
+    normalizeUpdatedOptionalString(input.bannerUrl),
+  )
+  setDefinedValue(values, 'bio', normalizeUpdatedOptionalString(input.bio))
 
-  if (input.middleName !== undefined) {
-    values.middleName = normalizeOptionalString(input.middleName);
-  }
+  setDefinedValue(values, 'status', input.status)
+  setDefinedValue(values, 'fieldVisibility', input.fieldVisibility)
 
-  if (input.familyName !== undefined) {
-    values.familyName = normalizeOptionalString(input.familyName);
-  }
+  setDefinedValue(
+    values,
+    'locationLabel',
+    normalizeUpdatedOptionalString(input.locationLabel),
+  )
+  setDefinedValue(values, 'country', input.country)
 
-  if (input.pronouns !== undefined) {
-    values.pronouns = normalizeOptionalString(input.pronouns);
-  }
+  setDefinedValue(values, 'gender', input.gender)
+  setDefinedValue(values, 'sex', input.sex)
+  setDefinedValue(values, 'sexuality', input.sexuality)
+  setDefinedValue(values, 'romanticOrientation', input.romanticOrientation)
+  setDefinedValue(values, 'sexAttitude', input.sexAttitude)
 
-  if (input.avatarUrl !== undefined) {
-    values.avatarUrl = normalizeOptionalString(input.avatarUrl);
-  }
+  setDefinedValue(values, 'languages', input.languages)
+  setDefinedValue(
+    values,
+    'websiteUrl',
+    normalizeUpdatedOptionalString(input.websiteUrl),
+  )
+  setDefinedValue(values, 'links', input.links)
 
-  if (input.bannerUrl !== undefined) {
-    values.bannerUrl = normalizeOptionalString(input.bannerUrl);
-  }
-
-  if (input.bio !== undefined) {
-    values.bio = normalizeOptionalString(input.bio);
-  }
-
-  if (input.status !== undefined) {
-    values.status = input.status;
-  }
-
-  if (input.fieldVisibility !== undefined) {
-    values.fieldVisibility = input.fieldVisibility;
-  }
-
-  if (input.locationLabel !== undefined) {
-    values.locationLabel = normalizeOptionalString(input.locationLabel);
-  }
-
-  if (input.country !== undefined) {
-    values.country = input.country;
-  }
-
-  if (input.gender !== undefined) {
-    values.gender = input.gender;
-  }
-
-  if (input.sex !== undefined) {
-    values.sex = input.sex;
-  }
-
-  if (input.sexuality !== undefined) {
-    values.sexuality = input.sexuality;
-  }
-
-  if (input.romanticOrientation !== undefined) {
-    values.romanticOrientation = input.romanticOrientation;
-  }
-
-  if (input.sexAttitude !== undefined) {
-    values.sexAttitude = input.sexAttitude;
-  }
-
-  if (input.languages !== undefined) {
-    values.languages = input.languages;
-  }
-
-  if (input.websiteUrl !== undefined) {
-    values.websiteUrl = normalizeOptionalString(input.websiteUrl);
-  }
-
-  if (input.links !== undefined) {
-    values.links = input.links;
-  }
-
-  return values;
+  return values
 }
 
-function toUserProfileContract(
-  row: UserProfileRow,
-): UserProfileContract {
+function setDefinedValue<TKey extends keyof NewUserProfileRow>(
+  values: Partial<NewUserProfileRow>,
+  key: TKey,
+  value: NewUserProfileRow[TKey] | undefined,
+): void {
+  if (value !== undefined) {
+    values[key] = value
+  }
+}
+
+function toUserProfileContract(row: UserProfileRow): UserProfileContract {
   return {
     id: row.id,
     userId: row.userId,
@@ -332,17 +310,27 @@ function toUserProfileContract(
 
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
-  };
+  }
 }
 
 function normalizeHandle(handle: string): string {
-  return handle.trim().toLowerCase();
+  return handle.trim().toLowerCase()
+}
+
+function normalizeUpdatedHandle(value: string | undefined): string | undefined {
+  return value === undefined ? undefined : normalizeHandle(value)
+}
+
+function normalizeUpdatedOptionalString(
+  value: string | null | undefined,
+): string | null | undefined {
+  return value === undefined ? undefined : normalizeOptionalString(value)
 }
 
 function normalizeOptionalString(
   value: string | null | undefined,
 ): string | null {
-  const normalized = value?.trim();
+  const normalized = value?.trim()
 
-  return normalized || null;
+  return normalized || null
 }

@@ -67,7 +67,8 @@ RUN --mount=type=cache,id=aerealith-pnpm-store,target=/pnpm/store,uid=1000,gid=1
 FROM nginxinc/nginx-unprivileged:1.31.2-alpine3.23 AS runtime
 
 # We temporarily become root only to replace the stock virtual-host
-# configuration. The final container process always runs as nginx.
+# configuration and install read-only static assets. The final container
+# process always runs as nginx.
 USER root
 
 RUN rm -f /etc/nginx/conf.d/default.conf \
@@ -114,11 +115,14 @@ server {
 }
 NGINX_CONF
 
-# Copy only the built frontend into the runtime image.
-# Ownership is explicitly assigned to the non-root NGINX user.
-COPY --chown=nginx:nginx --from=build \
-    /workspace/dist/apps/frontend \
-    /usr/share/nginx/html
+# Static assets are root-owned and read-only. NGINX only needs read access,
+# so the non-root runtime user must not be able to change deployed files.
+COPY --chown=root:root --from=build \
+    /workspace/dist/apps/frontend/ \
+    /usr/share/nginx/html/
+
+RUN find /usr/share/nginx/html -type d -exec chmod 0555 {} \; \
+    && find /usr/share/nginx/html -type f -exec chmod 0444 {} \;
 
 # The final process must never run as root.
 USER nginx

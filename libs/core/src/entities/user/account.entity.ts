@@ -1,83 +1,79 @@
-// libs/core/src/entities/user/account.entity.ts
+import { BaseEntity, type BaseEntityInput } from '../base.entity'
 
-import { BaseEntity, type BaseEntityInput } from '../base.entity';
-
-export type UserAccountStatus = 'active' | 'revoked' | 'suspended' | 'expired';
+export type UserAccountStatus = 'active' | 'revoked' | 'suspended' | 'expired'
 
 export type UserAccountInput = BaseEntityInput & {
-  userId: string;
-  provider: string;
-  accountId: string;
-  displayName: string;
-  managementUrl?: string | null;
-  status?: UserAccountStatus;
-  connectedAt?: Date;
-};
+  userId: string
+  provider: string
+  accountId: string
+  displayName: string
+  managementUrl?: string | null
+  status?: UserAccountStatus
+  connectedAt?: Date
+}
 
 export class UserAccountEntity extends BaseEntity {
-  userId: string;
+  userId: string
 
-  provider: string;
+  provider: string
 
-  accountId: string;
+  accountId: string
 
-  displayName: string;
+  displayName: string
 
-  managementUrl: string | null;
+  managementUrl: string | null
 
-  status: UserAccountStatus;
+  status: UserAccountStatus
 
-  connectedAt: Date;
+  connectedAt: Date
 
   constructor(input: UserAccountInput) {
-    super(input);
+    super(input)
 
-    this.userId = input.userId;
-    this.provider = this.normalizeProvider(input.provider);
-    this.accountId = input.accountId.trim();
-    this.displayName = input.displayName.trim();
-    this.managementUrl = this.normalizeOptionalUrl(input.managementUrl);
-    this.status = input.status ?? 'active';
-    this.connectedAt = input.connectedAt ?? new Date();
+    this.userId = input.userId
+    this.provider = this.normalizeProvider(input.provider)
+    this.accountId = input.accountId.trim()
+    this.displayName = input.displayName.trim()
+    this.managementUrl = this.normalizeOptionalUrl(input.managementUrl)
+    this.status = input.status ?? 'active'
+    this.connectedAt = input.connectedAt ?? new Date()
   }
 
   activate(): void {
-    this.status = 'active';
-    this.touch();
+    this.status = 'active'
+    this.touch()
   }
 
   revoke(): void {
-    this.status = 'revoked';
-    this.touch();
+    this.status = 'revoked'
+    this.touch()
   }
 
   suspend(): void {
-    this.status = 'suspended';
-    this.touch();
+    this.status = 'suspended'
+    this.touch()
   }
 
   expire(): void {
-    this.status = 'expired';
-    this.touch();
+    this.status = 'expired'
+    this.touch()
   }
 
   updateDisplayName(displayName: string): void {
-    this.displayName = displayName.trim();
-    this.touch();
+    this.displayName = displayName.trim()
+    this.touch()
   }
 
   updateManagementUrl(managementUrl?: string | null): void {
-    this.managementUrl = this.normalizeOptionalUrl(managementUrl);
-    this.touch();
+    this.managementUrl = this.normalizeOptionalUrl(managementUrl)
+    this.touch()
   }
 
   private normalizeProvider(provider: string): string {
-    return provider.trim().toLowerCase();
+    return provider.trim().toLowerCase()
   }
 
   private normalizeOptionalUrl(value?: string | null): string | null {
-    const normalized = value?.trim();
-
-    return normalized ? normalized : null;
+    return value?.trim() || null
   }
 }
