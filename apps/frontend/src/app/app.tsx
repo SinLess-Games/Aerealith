@@ -1,54 +1,46 @@
 import { Link, Route, Routes } from 'react-router-dom'
 
-import NxWelcome from './nx-welcome'
-
-// Uncomment this line to use CSS modules
-// import styles from './app.module.css';
-
 export function App() {
   return (
-    <div>
-      <NxWelcome />
+    <main>
+      <header>
+        <h1>Aerealith AI</h1>
 
-      {/* START: routes */}
-      {/* These routes and navigation have been generated for you */}
-      {/* Feel free to move and update them to fit your needs */}
-      <br />
-      <hr />
-      <br />
-
-      <nav aria-label='Primary navigation'>
-        <ul>
-          <li>
-            <Link to='/'>Home</Link>
-          </li>
-          <li>
-            <Link to='/page-2'>Page 2</Link>
-          </li>
-        </ul>
-      </nav>
+        <nav aria-label='Primary navigation'>
+          <ul>
+            <li>
+              <Link to='/'>Home</Link>
+            </li>
+            <li>
+              <Link to='/page-2'>Page 2</Link>
+            </li>
+          </ul>
+        </nav>
+      </header>
 
       <Routes>
         <Route
           path='/'
           element={
-            <div>
-              This is the generated root route.{' '}
-              <Link to='/page-2'>Click here for page 2.</Link>
-            </div>
+            <section>
+              <h2>Welcome to Aerealith</h2>
+              <p>The application foundation is ready.</p>
+              <Link to='/page-2'>Open page 2</Link>
+            </section>
           }
         />
+
         <Route
           path='/page-2'
           element={
-            <div>
-              <Link to='/'>Click here to go back to root page.</Link>
-            </div>
+            <section>
+              <h2>Page 2</h2>
+              <Link to='/'>Return home</Link>
+            </section>
           }
         />
       </Routes>
-      {/* END: routes */}
-    </div>
+    </main>
   )
 }
 

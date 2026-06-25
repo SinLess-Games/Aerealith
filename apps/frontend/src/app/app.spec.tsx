@@ -1,26 +1,62 @@
-import { render } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 
-import App from './app';
+import App from './app'
 
 describe('App', () => {
-  it('should render successfully', () => {
+  it('renders successfully', () => {
     const { baseElement } = render(
-      <BrowserRouter>
+      <MemoryRouter>
         <App />
-      </BrowserRouter>,
-    );
-    expect(baseElement).toBeTruthy();
-  });
+      </MemoryRouter>,
+    )
 
-  it('should have a greeting as the title', () => {
-    const { getAllByText } = render(
-      <BrowserRouter>
+    expect(baseElement).toBeTruthy()
+  })
+
+  it('shows the Aerealith headings', () => {
+    render(
+      <MemoryRouter>
         <App />
-      </BrowserRouter>,
-    );
+      </MemoryRouter>,
+    )
+
     expect(
-      getAllByText(new RegExp('Welcome frontend', 'gi')).length > 0,
-    ).toBeTruthy();
-  });
-});
+      screen.getByRole('heading', {
+        name: 'Aerealith AI',
+      }),
+    ).toBeTruthy()
+
+    expect(
+      screen.getByRole('heading', {
+        name: 'Welcome to Aerealith',
+      }),
+    ).toBeTruthy()
+  })
+
+  it('renders primary navigation', () => {
+    render(
+      <MemoryRouter>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(
+      screen.getByRole('navigation', {
+        name: 'Primary navigation',
+      }),
+    ).toBeTruthy()
+
+    expect(
+      screen.getByRole('link', {
+        name: 'Home',
+      }),
+    ).toBeTruthy()
+
+    expect(
+      screen.getByRole('link', {
+        name: 'Page 2',
+      }),
+    ).toBeTruthy()
+  })
+})
