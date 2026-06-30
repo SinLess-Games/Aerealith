@@ -1,7 +1,9 @@
+// libs/core/src/entities/user/profile.entity.ts
+
 import type {
   Country,
   Gender,
-  Language,
+  Languages as Language,
   LanguageProficiency,
   ProfileLinkPlatform,
   RomanticOrientation,
@@ -11,6 +13,33 @@ import type {
 } from '../../enumns'
 import { ProfileFieldVisibility, ProfileStatus } from '../../enumns'
 import { BaseEntity, type BaseEntityInput } from '../base.entity'
+
+const UserProfileTextFields = [
+  'displayName',
+  'givenName',
+  'middleName',
+  'familyName',
+  'pronouns',
+  'avatarUrl',
+  'bannerUrl',
+  'bio',
+  'locationLabel',
+  'websiteUrl',
+] as const
+
+type UserProfileTextField = (typeof UserProfileTextFields)[number]
+
+const UserProfilePersonalDetailFields = [
+  'country',
+  'gender',
+  'sex',
+  'sexuality',
+  'romanticOrientation',
+  'sexAttitude',
+] as const
+
+type UserProfilePersonalDetailField =
+  (typeof UserProfilePersonalDetailFields)[number]
 
 /**
  * A link shown on a user's profile.
@@ -213,7 +242,6 @@ export class UserProfileEntity extends BaseEntity {
     this.sexAttitude = input.sexAttitude ?? null
 
     this.languages = this.normalizeLanguages(input.languages ?? [])
-
     this.websiteUrl = this.normalizeOptionalString(input.websiteUrl)
     this.links = this.normalizeLinks(input.links ?? [])
   }
@@ -223,6 +251,7 @@ export class UserProfileEntity extends BaseEntity {
   }
 
   update(input: UserProfileUpdate): void {
+    this.updateHandle(input.handle)
     this.updateTextFields(input)
     this.updateProfileState(input)
     this.updatePersonalDetails(input)
@@ -253,41 +282,21 @@ export class UserProfileEntity extends BaseEntity {
     this.touch()
   }
 
-  private updateTextFields(input: UserProfileUpdate): void {
-    if (input.handle !== undefined) {
-      this.handle = this.normalizeHandle(input.handle)
+  private updateHandle(handle: string | undefined): void {
+    if (handle !== undefined) {
+      this.handle = this.normalizeHandle(handle)
     }
+  }
 
-    if (input.displayName !== undefined) {
-      this.displayName = this.normalizeOptionalString(input.displayName)
-    }
+  private updateTextFields(
+    input: Pick<UserProfileUpdate, UserProfileTextField>,
+  ): void {
+    for (const field of UserProfileTextFields) {
+      const value = input[field]
 
-    if (input.givenName !== undefined) {
-      this.givenName = this.normalizeOptionalString(input.givenName)
-    }
-
-    if (input.middleName !== undefined) {
-      this.middleName = this.normalizeOptionalString(input.middleName)
-    }
-
-    if (input.familyName !== undefined) {
-      this.familyName = this.normalizeOptionalString(input.familyName)
-    }
-
-    if (input.pronouns !== undefined) {
-      this.pronouns = this.normalizeOptionalString(input.pronouns)
-    }
-
-    if (input.avatarUrl !== undefined) {
-      this.avatarUrl = this.normalizeOptionalString(input.avatarUrl)
-    }
-
-    if (input.bannerUrl !== undefined) {
-      this.bannerUrl = this.normalizeOptionalString(input.bannerUrl)
-    }
-
-    if (input.bio !== undefined) {
-      this.bio = this.normalizeOptionalString(input.bio)
+      if (value !== undefined) {
+        this[field] = this.normalizeOptionalString(value)
+      }
     }
   }
 
@@ -305,32 +314,8 @@ export class UserProfileEntity extends BaseEntity {
   }
 
   private updatePersonalDetails(input: UserProfileUpdate): void {
-    if (input.locationLabel !== undefined) {
-      this.locationLabel = this.normalizeOptionalString(input.locationLabel)
-    }
-
-    if (input.country !== undefined) {
-      this.country = input.country
-    }
-
-    if (input.gender !== undefined) {
-      this.gender = input.gender
-    }
-
-    if (input.sex !== undefined) {
-      this.sex = input.sex
-    }
-
-    if (input.sexuality !== undefined) {
-      this.sexuality = input.sexuality
-    }
-
-    if (input.romanticOrientation !== undefined) {
-      this.romanticOrientation = input.romanticOrientation
-    }
-
-    if (input.sexAttitude !== undefined) {
-      this.sexAttitude = input.sexAttitude
+    for (const field of UserProfilePersonalDetailFields) {
+      this.setDefinedPersonalDetail(field, input[field])
     }
   }
 
@@ -339,12 +324,16 @@ export class UserProfileEntity extends BaseEntity {
       this.languages = this.normalizeLanguages(input.languages)
     }
 
-    if (input.websiteUrl !== undefined) {
-      this.websiteUrl = this.normalizeOptionalString(input.websiteUrl)
-    }
-
     if (input.links !== undefined) {
       this.links = this.normalizeLinks(input.links)
+    }
+  }
+
+  private setDefinedPersonalDetail<
+    TField extends UserProfilePersonalDetailField,
+  >(field: TField, value: UserProfileUpdate[TField]): void {
+    if (value !== undefined) {
+      this[field] = value as this[TField]
     }
   }
 

@@ -57,6 +57,36 @@ export type UpdateUserProfileInput = Omit<
   'userId'
 >
 
+const optionalStringFields = [
+  'displayName',
+  'givenName',
+  'middleName',
+  'familyName',
+  'pronouns',
+  'avatarUrl',
+  'bannerUrl',
+  'bio',
+  'locationLabel',
+  'websiteUrl',
+] as const
+
+const directUpdateFields = [
+  'status',
+  'fieldVisibility',
+  'country',
+  'gender',
+  'sex',
+  'sexuality',
+  'romanticOrientation',
+  'sexAttitude',
+  'languages',
+  'links',
+] as const
+
+type OptionalStringField = (typeof optionalStringFields)[number]
+
+type DirectUpdateField = (typeof directUpdateFields)[number]
+
 /**
  * Drizzle persistence for user profiles.
  *
@@ -199,70 +229,34 @@ function createUpdateValues(
   const values: Partial<NewUserProfileRow> = {}
 
   setDefinedValue(values, 'handle', normalizeUpdatedHandle(input.handle))
-
-  setDefinedValue(
-    values,
-    'displayName',
-    normalizeUpdatedOptionalString(input.displayName),
-  )
-  setDefinedValue(
-    values,
-    'givenName',
-    normalizeUpdatedOptionalString(input.givenName),
-  )
-  setDefinedValue(
-    values,
-    'middleName',
-    normalizeUpdatedOptionalString(input.middleName),
-  )
-  setDefinedValue(
-    values,
-    'familyName',
-    normalizeUpdatedOptionalString(input.familyName),
-  )
-  setDefinedValue(
-    values,
-    'pronouns',
-    normalizeUpdatedOptionalString(input.pronouns),
-  )
-
-  setDefinedValue(
-    values,
-    'avatarUrl',
-    normalizeUpdatedOptionalString(input.avatarUrl),
-  )
-  setDefinedValue(
-    values,
-    'bannerUrl',
-    normalizeUpdatedOptionalString(input.bannerUrl),
-  )
-  setDefinedValue(values, 'bio', normalizeUpdatedOptionalString(input.bio))
-
-  setDefinedValue(values, 'status', input.status)
-  setDefinedValue(values, 'fieldVisibility', input.fieldVisibility)
-
-  setDefinedValue(
-    values,
-    'locationLabel',
-    normalizeUpdatedOptionalString(input.locationLabel),
-  )
-  setDefinedValue(values, 'country', input.country)
-
-  setDefinedValue(values, 'gender', input.gender)
-  setDefinedValue(values, 'sex', input.sex)
-  setDefinedValue(values, 'sexuality', input.sexuality)
-  setDefinedValue(values, 'romanticOrientation', input.romanticOrientation)
-  setDefinedValue(values, 'sexAttitude', input.sexAttitude)
-
-  setDefinedValue(values, 'languages', input.languages)
-  setDefinedValue(
-    values,
-    'websiteUrl',
-    normalizeUpdatedOptionalString(input.websiteUrl),
-  )
-  setDefinedValue(values, 'links', input.links)
+  setOptionalStringUpdateValues(values, input)
+  setDirectUpdateValues(values, input)
 
   return values
+}
+
+function setOptionalStringUpdateValues(
+  values: Partial<NewUserProfileRow>,
+  input: UpdateUserProfileInput,
+): void {
+  for (const field of optionalStringFields) {
+    const value = input[field]
+
+    setDefinedValue(
+      values,
+      field,
+      value === undefined ? undefined : normalizeOptionalString(value),
+    )
+  }
+}
+
+function setDirectUpdateValues(
+  values: Partial<NewUserProfileRow>,
+  input: UpdateUserProfileInput,
+): void {
+  for (const field of directUpdateFields) {
+    setDefinedValue(values, field, input[field])
+  }
 }
 
 function setDefinedValue<TKey extends keyof NewUserProfileRow>(
@@ -319,12 +313,6 @@ function normalizeHandle(handle: string): string {
 
 function normalizeUpdatedHandle(value: string | undefined): string | undefined {
   return value === undefined ? undefined : normalizeHandle(value)
-}
-
-function normalizeUpdatedOptionalString(
-  value: string | null | undefined,
-): string | null | undefined {
-  return value === undefined ? undefined : normalizeOptionalString(value)
 }
 
 function normalizeOptionalString(

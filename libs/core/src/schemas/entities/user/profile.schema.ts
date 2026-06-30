@@ -1,3 +1,5 @@
+// libs/core/src/schemas/entities/user/profile.schema.ts
+
 import { z } from 'zod'
 
 import {
@@ -42,11 +44,43 @@ export const UserProfileLocationSchema = z.string().trim().min(1).max(200)
 
 export const UserProfileUrlSchema = z.string().trim().pipe(z.url())
 
+const UserProfileCountrySchema = z.enum(Country)
+
+const UserProfileGenderSchema = z.enum(Gender)
+
+const UserProfileLanguageProficiencySchema = z.enum(LanguageProficiency)
+
+const UserProfileLanguageValueSchema = z.enum(Languages)
+
+const UserProfileFieldVisibilityValueSchema = z.enum(ProfileFieldVisibility)
+
+const UserProfileLinkPlatformSchema = z.enum(ProfileLinkPlatform)
+
+const UserProfileStatusSchema = z.enum(ProfileStatus)
+
+const UserProfileRomanticOrientationSchema = z.enum(RomanticOrientation)
+
+const UserProfileSexSchema = z.enum(Sex)
+
+const UserProfileSexAttitudeSchema = z.enum(SexAttitude)
+
+const UserProfileSexualitySchema = z.enum(Sexuality)
+
+const NullableUserProfileNameSchema = UserProfileNameSchema.nullable()
+
+const NullableUserProfilePronounsSchema = UserProfilePronounsSchema.nullable()
+
+const NullableUserProfileBioSchema = UserProfileBioSchema.nullable()
+
+const NullableUserProfileLocationSchema = UserProfileLocationSchema.nullable()
+
+const NullableUserProfileUrlSchema = UserProfileUrlSchema.nullable()
+
 /**
  * A supported external profile link.
  */
 export const UserProfileLinkSchema = z.object({
-  platform: z.enum(ProfileLinkPlatform),
+  platform: UserProfileLinkPlatformSchema,
   url: UserProfileUrlSchema,
   label: z.string().trim().min(1).max(100).nullable().optional(),
 })
@@ -55,8 +89,8 @@ export const UserProfileLinkSchema = z.object({
  * A language known by the user.
  */
 export const UserProfileLanguageSchema = z.object({
-  language: z.enum(Languages),
-  proficiency: z.enum(LanguageProficiency).optional(),
+  language: UserProfileLanguageValueSchema,
+  proficiency: UserProfileLanguageProficiencySchema.optional(),
   isPrimary: z.boolean().optional(),
 })
 
@@ -88,31 +122,74 @@ export const UserProfileFieldSchema = z.enum([
 
 /**
  * Per-field profile visibility overrides.
+ *
+ * Every field is optional, but only supported profile field names are accepted.
  */
-export const UserProfileFieldVisibilitySchema = z
-  .object({
-    handle: z.enum(ProfileFieldVisibility).optional(),
-    displayName: z.enum(ProfileFieldVisibility).optional(),
-    givenName: z.enum(ProfileFieldVisibility).optional(),
-    middleName: z.enum(ProfileFieldVisibility).optional(),
-    familyName: z.enum(ProfileFieldVisibility).optional(),
-    pronouns: z.enum(ProfileFieldVisibility).optional(),
-    avatarUrl: z.enum(ProfileFieldVisibility).optional(),
-    bannerUrl: z.enum(ProfileFieldVisibility).optional(),
-    bio: z.enum(ProfileFieldVisibility).optional(),
-    locationLabel: z.enum(ProfileFieldVisibility).optional(),
-    country: z.enum(ProfileFieldVisibility).optional(),
-    gender: z.enum(ProfileFieldVisibility).optional(),
-    sex: z.enum(ProfileFieldVisibility).optional(),
-    sexuality: z.enum(ProfileFieldVisibility).optional(),
-    romanticOrientation: z.enum(ProfileFieldVisibility).optional(),
-    sexAttitude: z.enum(ProfileFieldVisibility).optional(),
-    languages: z.enum(ProfileFieldVisibility).optional(),
-    websiteUrl: z.enum(ProfileFieldVisibility).optional(),
-    links: z.enum(ProfileFieldVisibility).optional(),
-    createdAt: z.enum(ProfileFieldVisibility).optional(),
-  })
-  .partial()
+export const UserProfileFieldVisibilitySchema = z.partialRecord(
+  UserProfileFieldSchema,
+  UserProfileFieldVisibilityValueSchema,
+)
+
+/**
+ * Reusable profile fields shared by entity, create, update, and API schemas.
+ */
+const UserProfileFieldsSchema = z.object({
+  handle: UserProfileHandleSchema,
+
+  displayName: NullableUserProfileNameSchema,
+  givenName: NullableUserProfileNameSchema,
+  middleName: NullableUserProfileNameSchema,
+  familyName: NullableUserProfileNameSchema,
+  pronouns: NullableUserProfilePronounsSchema,
+
+  avatarUrl: NullableUserProfileUrlSchema,
+  bannerUrl: NullableUserProfileUrlSchema,
+  bio: NullableUserProfileBioSchema,
+
+  status: UserProfileStatusSchema,
+  fieldVisibility: UserProfileFieldVisibilitySchema,
+
+  locationLabel: NullableUserProfileLocationSchema,
+  country: UserProfileCountrySchema.nullable(),
+
+  gender: UserProfileGenderSchema.nullable(),
+  sex: UserProfileSexSchema.nullable(),
+  sexuality: UserProfileSexualitySchema.nullable(),
+  romanticOrientation: UserProfileRomanticOrientationSchema.nullable(),
+  sexAttitude: UserProfileSexAttitudeSchema.nullable(),
+
+  languages: z.array(UserProfileLanguageSchema),
+
+  websiteUrl: NullableUserProfileUrlSchema,
+  links: z.array(UserProfileLinkSchema),
+})
+
+const PublicUserProfileFieldsSchema = UserProfileFieldsSchema.pick({
+  handle: true,
+  displayName: true,
+  pronouns: true,
+  avatarUrl: true,
+  bannerUrl: true,
+  bio: true,
+  locationLabel: true,
+  country: true,
+  languages: true,
+  websiteUrl: true,
+  links: true,
+})
+
+const PrivateUserProfileFieldsSchema = UserProfileFieldsSchema.pick({
+  givenName: true,
+  middleName: true,
+  familyName: true,
+  status: true,
+  fieldVisibility: true,
+  gender: true,
+  sex: true,
+  sexuality: true,
+  romanticOrientation: true,
+  sexAttitude: true,
+})
 
 /**
  * Full internal user profile entity schema.
@@ -120,39 +197,9 @@ export const UserProfileFieldVisibilitySchema = z
  * Includes private profile fields, so do not use this schema directly
  * for public profile responses.
  */
-export const UserProfileEntitySchema = z.object({
+export const UserProfileEntitySchema = UserProfileFieldsSchema.extend({
   id: UserProfileIdSchema,
   userId: z.uuid(),
-
-  handle: UserProfileHandleSchema,
-
-  displayName: UserProfileNameSchema.nullable(),
-  givenName: UserProfileNameSchema.nullable(),
-  middleName: UserProfileNameSchema.nullable(),
-  familyName: UserProfileNameSchema.nullable(),
-  pronouns: UserProfilePronounsSchema.nullable(),
-
-  avatarUrl: UserProfileUrlSchema.nullable(),
-  bannerUrl: UserProfileUrlSchema.nullable(),
-  bio: UserProfileBioSchema.nullable(),
-
-  status: z.enum(ProfileStatus),
-  fieldVisibility: UserProfileFieldVisibilitySchema,
-
-  locationLabel: UserProfileLocationSchema.nullable(),
-  country: z.enum(Country).nullable(),
-
-  gender: z.enum(Gender).nullable(),
-  sex: z.enum(Sex).nullable(),
-  sexuality: z.enum(Sexuality).nullable(),
-  romanticOrientation: z.enum(RomanticOrientation).nullable(),
-  sexAttitude: z.enum(SexAttitude).nullable(),
-
-  languages: z.array(UserProfileLanguageSchema),
-
-  websiteUrl: UserProfileUrlSchema.nullable(),
-  links: z.array(UserProfileLinkSchema),
-
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
   deletedAt: z.coerce.date().nullable(),
@@ -163,98 +210,27 @@ export const UserProfileEntitySchema = z.object({
  *
  * Most profile data is optional because the entity provides defaults.
  */
-export const CreateUserProfileEntitySchema = z.object({
-  userId: z.uuid(),
-  handle: UserProfileHandleSchema,
-
-  displayName: UserProfileNameSchema.nullable().optional(),
-  givenName: UserProfileNameSchema.nullable().optional(),
-  middleName: UserProfileNameSchema.nullable().optional(),
-  familyName: UserProfileNameSchema.nullable().optional(),
-  pronouns: UserProfilePronounsSchema.nullable().optional(),
-
-  avatarUrl: UserProfileUrlSchema.nullable().optional(),
-  bannerUrl: UserProfileUrlSchema.nullable().optional(),
-  bio: UserProfileBioSchema.nullable().optional(),
-
-  status: z.enum(ProfileStatus).optional(),
-  fieldVisibility: UserProfileFieldVisibilitySchema.optional(),
-
-  locationLabel: UserProfileLocationSchema.nullable().optional(),
-  country: z.enum(Country).nullable().optional(),
-
-  gender: z.enum(Gender).nullable().optional(),
-  sex: z.enum(Sex).nullable().optional(),
-  sexuality: z.enum(Sexuality).nullable().optional(),
-  romanticOrientation: z.enum(RomanticOrientation).nullable().optional(),
-  sexAttitude: z.enum(SexAttitude).nullable().optional(),
-
-  languages: z.array(UserProfileLanguageSchema).optional(),
-
-  websiteUrl: UserProfileUrlSchema.nullable().optional(),
-  links: z.array(UserProfileLinkSchema).optional(),
-})
+export const CreateUserProfileEntitySchema =
+  UserProfileFieldsSchema.partial().extend({
+    userId: z.uuid(),
+    handle: UserProfileHandleSchema,
+  })
 
 /**
  * Data allowed when updating an existing user profile.
  */
-export const UpdateUserProfileEntitySchema = z.object({
-  handle: UserProfileHandleSchema.optional(),
-
-  displayName: UserProfileNameSchema.nullable().optional(),
-  givenName: UserProfileNameSchema.nullable().optional(),
-  middleName: UserProfileNameSchema.nullable().optional(),
-  familyName: UserProfileNameSchema.nullable().optional(),
-  pronouns: UserProfilePronounsSchema.nullable().optional(),
-
-  avatarUrl: UserProfileUrlSchema.nullable().optional(),
-  bannerUrl: UserProfileUrlSchema.nullable().optional(),
-  bio: UserProfileBioSchema.nullable().optional(),
-
-  status: z.enum(ProfileStatus).optional(),
-  fieldVisibility: UserProfileFieldVisibilitySchema.optional(),
-
-  locationLabel: UserProfileLocationSchema.nullable().optional(),
-  country: z.enum(Country).nullable().optional(),
-
-  gender: z.enum(Gender).nullable().optional(),
-  sex: z.enum(Sex).nullable().optional(),
-  sexuality: z.enum(Sexuality).nullable().optional(),
-  romanticOrientation: z.enum(RomanticOrientation).nullable().optional(),
-  sexAttitude: z.enum(SexAttitude).nullable().optional(),
-
-  languages: z.array(UserProfileLanguageSchema).optional(),
-
-  websiteUrl: UserProfileUrlSchema.nullable().optional(),
-  links: z.array(UserProfileLinkSchema).optional(),
-})
+export const UpdateUserProfileEntitySchema = UserProfileFieldsSchema.partial()
 
 /**
  * Profile data safe for public responses.
  *
  * Your service must still apply `fieldVisibility` before returning fields.
  */
-export const PublicUserProfileContractSchema = z.object({
-  userId: z.uuid(),
-  handle: UserProfileHandleSchema,
-
-  displayName: UserProfileNameSchema.nullable(),
-  pronouns: UserProfilePronounsSchema.nullable(),
-
-  avatarUrl: UserProfileUrlSchema.nullable(),
-  bannerUrl: UserProfileUrlSchema.nullable(),
-  bio: UserProfileBioSchema.nullable(),
-
-  locationLabel: UserProfileLocationSchema.nullable(),
-  country: z.enum(Country).nullable(),
-
-  languages: z.array(UserProfileLanguageSchema),
-
-  websiteUrl: UserProfileUrlSchema.nullable(),
-  links: z.array(UserProfileLinkSchema),
-
-  createdAt: z.iso.datetime(),
-})
+export const PublicUserProfileContractSchema =
+  PublicUserProfileFieldsSchema.extend({
+    userId: z.uuid(),
+    createdAt: z.iso.datetime(),
+  })
 
 /**
  * Full profile response for the owner or an authorized administrator.
@@ -263,18 +239,7 @@ export const UserProfileContractSchema = PublicUserProfileContractSchema.extend(
   {
     id: UserProfileIdSchema,
 
-    givenName: UserProfileNameSchema.nullable(),
-    middleName: UserProfileNameSchema.nullable(),
-    familyName: UserProfileNameSchema.nullable(),
-
-    status: z.enum(ProfileStatus),
-    fieldVisibility: UserProfileFieldVisibilitySchema,
-
-    gender: z.enum(Gender).nullable(),
-    sex: z.enum(Sex).nullable(),
-    sexuality: z.enum(Sexuality).nullable(),
-    romanticOrientation: z.enum(RomanticOrientation).nullable(),
-    sexAttitude: z.enum(SexAttitude).nullable(),
+    ...PrivateUserProfileFieldsSchema.shape,
 
     updatedAt: z.iso.datetime(),
   },
