@@ -1,38 +1,46 @@
 /// <reference types="vitest" />
 
-import { codecovVitePlugin } from '@codecov/vite-plugin';
-import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
-import tsconfigPaths from 'vite-tsconfig-paths';
+import { cloudflare } from '@cloudflare/vite-plugin'
+import { codecovVitePlugin } from '@codecov/vite-plugin'
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
+import tsconfigPaths from 'vite-tsconfig-paths'
 
-export default defineConfig(() => ({
+const FrontendSourceDirectory = 'src'
+
+export default defineConfig(({ mode }) => ({
   root: import.meta.dirname,
+
   cacheDir: '../../node_modules/.vite/apps/frontend',
-
-  server: {
-    port: 3000,
-    host: 'localhost',
-  },
-
-  preview: {
-    port: 3000,
-    host: 'localhost',
-  },
 
   plugins: [
     react(),
     tsconfigPaths(),
+    cloudflare(),
     codecovVitePlugin({
       enableBundleAnalysis: process.env.CODECOV_TOKEN !== undefined,
-      bundleName: 'aerealith-frontend',
+      bundleName: `aerealith-frontend-${mode}`,
       uploadToken: process.env.CODECOV_TOKEN,
     }),
   ],
+
+  server: {
+    host: 'localhost',
+    port: 3000,
+    strictPort: true,
+  },
+
+  preview: {
+    host: 'localhost',
+    port: 3000,
+    strictPort: true,
+  },
 
   build: {
     outDir: '../../dist/apps/frontend',
     emptyOutDir: true,
     reportCompressedSize: true,
+    sourcemap: true,
     commonjsOptions: {
       transformMixedEsModules: true,
     },
@@ -43,11 +51,14 @@ export default defineConfig(() => ({
     watch: false,
     globals: true,
     environment: 'jsdom',
-    include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    include: [
+      `{${FrontendSourceDirectory},tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}`,
+    ],
     reporters: ['default'],
     coverage: {
-      reportsDirectory: '../../coverage/apps/frontend',
       provider: 'v8',
+      reportsDirectory: '../../coverage/apps/frontend',
+      reporter: ['text', 'json-summary', 'lcov'],
     },
   },
-}));
+}))

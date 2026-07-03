@@ -2,100 +2,63 @@
 #
 # Cloudflare Worker configuration for the Aerealith frontend.
 #
-# This Worker hosts the public website, web application, documentation,
-# and developer portal as one Vite-powered frontend deployment.
+# This is the single Worker service used for:
+# - Production: https://aerealith.com
+# - Staging: staging-aerealith.sinless-deploy.workers.dev
+# - Pull request previews: pr-<number>-aerealith.sinless-deploy.workers.dev
+#
+# Staging and pull-request previews are Worker versions and aliases.
+# They are not separate Wrangler environments or separate Worker services.
 #
 # Do not place secrets in this file.
 # Use Cloudflare Worker secrets for runtime credentials.
 
 "$schema" = "../../node_modules/wrangler/config-schema.json"
 
-name = "aerealith-frontend"
+# This must match the existing Worker shown in the Cloudflare dashboard.
+name = "aerealith"
 
-# Update intentionally when adopting newer Cloudflare compatibility behavior.
+# Update intentionally when adopting newer Cloudflare runtime behavior.
 compatibility_date = "2026-07-03"
 
-# Required for GitHub Actions PR previews and workers.dev deployments.
-workers_dev = true
+# The production workers.dev URL remains disabled.
+#
+# Production traffic uses the existing custom domain:
+# https://aerealith.com
+workers_dev = false
+
+# Explicitly enable versioned and aliased preview URLs even though workers_dev
+# is disabled. This is required for staging and pull-request preview aliases.
 preview_urls = true
 
-# Keep source maps available for Cloudflare stack traces and debugging.
-upload_source_maps = true
-
-# Preserve runtime variables configured through Cloudflare when deploying.
-# Secrets are still managed separately through `wrangler secret put`.
+# Keep dashboard-managed runtime variables on deployment.
+#
+# Wrangler config remains the source of truth for Worker code and supported
+# configuration, while secrets remain managed separately through Cloudflare.
 keep_vars = true
 
-# The Cloudflare Vite plugin reads this entry point and automatically creates
-# the generated deployment configuration during the frontend build.
+# Upload source maps with deployable Worker versions for readable Cloudflare
+# stack traces and debugging.
+upload_source_maps = true
+
+# The Cloudflare Vite plugin reads this Worker entry point and generates the
+# deployable Worker configuration during the frontend build.
 main = "./src/worker.ts"
 
 # React Router SPA fallback.
 #
-# Do not set `directory` here. The Cloudflare Vite plugin automatically points
-# Worker Assets at the generated frontend build output.
+# Do not set an assets directory here. The Cloudflare Vite plugin supplies the
+# generated build output and generated deployment configuration.
 [assets]
 not_found_handling = "single-page-application"
 html_handling = "auto-trailing-slash"
 
-# Development/default environment.
-[vars]
-AEREALITH_ENV = "development"
-
-# Keep detailed telemetry for ephemeral pull-request previews.
-[env.preview]
-name = "aerealith-frontend-preview"
-
-[env.preview.vars]
-AEREALITH_ENV = "preview"
-
-[env.preview.observability]
-enabled = true
-
-[env.preview.observability.logs]
+# Persist Worker observability data at full sampling while the project is in
+# early development. Reduce this later if traffic volume makes full sampling
+# too noisy or expensive.
+#
+# Cloudflare persists Worker logs when observability is enabled. A sampling
+# value of 1 records every request.
+[observability]
 enabled = true
 head_sampling_rate = 1
-invocation_logs = true
-
-[env.preview.observability.traces]
-enabled = true
-head_sampling_rate = 1
-
-# Staging should remain highly observable, but does not need full trace volume.
-[env.staging]
-name = "aerealith-frontend-staging"
-
-[env.staging.vars]
-AEREALITH_ENV = "staging"
-
-[env.staging.observability]
-enabled = true
-
-[env.staging.observability.logs]
-enabled = true
-head_sampling_rate = 0.5
-invocation_logs = true
-
-[env.staging.observability.traces]
-enabled = true
-head_sampling_rate = 0.25
-
-# Production uses sampling so logs and traces remain useful without recording
-# every request indefinitely.
-[env.production]
-name = "aerealith-frontend"
-
-[env.production.vars]
-AEREALITH_ENV = "production"
-
-[env.production.observability]
-enabled = true
-
-[env.production.observability.logs]
-enabled = true
-head_sampling_rate = 0.1
-invocation_logs = true
-
-[env.production.observability.traces]
-enabled = true
-head_sampling_rate = 0.05

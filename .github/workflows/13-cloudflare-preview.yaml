@@ -1,6 +1,12 @@
 # .github/workflows/13-cloudflare-preview.yaml
 #
-# Deploys an isolated Cloudflare Workers preview for each internal pull request.
+# Uploads an isolated preview version for each internal pull request.
+#
+# All preview versions belong to the existing Cloudflare Worker:
+# - aerealith
+#
+# Preview aliases:
+# - pr-123-aerealith.<account-subdomain>.workers.dev
 #
 # Required GitHub repository secrets:
 # - CLOUDFLARE_API_TOKEN
@@ -9,20 +15,15 @@
 # Optional GitHub repository variable:
 # - CLOUDFLARE_WRANGLER_CONFIG_PATH
 #
-# Supported Wrangler configuration files discovered automatically:
+# Automatically discovered Wrangler configuration files:
 # - apps/frontend/wrangler.jsonc
 # - apps/frontend/wrangler.json
 # - apps/frontend/wrangler.toml
 #
-# If more than one standard configuration file exists, set
-# CLOUDFLARE_WRANGLER_CONFIG_PATH to the intended repository-relative path.
-#
-# Preview Worker name pattern:
-# - aerealith-preview-pr-<pull-request-number>
-#
 # This workflow intentionally does not:
-# - deploy to production routes
-# - change DNS records
+# - create a separate Worker service for each pull request
+# - promote a preview version to production
+# - change DNS records or custom-domain routes
 # - upload runtime Worker secrets
 # - deploy pull requests from external forks
 
@@ -43,7 +44,7 @@ on:
   workflow_dispatch:
     inputs:
       pull_request_number:
-        description: "Pull request number used to name the preview Worker."
+        description: "Pull request number used to create the preview alias."
         required: true
         type: string
 
@@ -75,12 +76,13 @@ env:
 
   NODE_VERSION: "25.9.0"
   PNPM_VERSION: "11.5.2"
-  WRANGLER_VERSION: "4"
 
   FRONTEND_PROJECT: "frontend"
   FRONTEND_DIRECTORY: "apps/frontend"
-  PREVIEW_ENVIRONMENT: "preview"
-  PREVIEW_WORKER_PREFIX: "aerealith-preview-pr"
+
+  WORKER_NAME: "aerealith"
+  PREVIEW_ALIAS_PREFIX: "pr"
+  HEALTH_PATH: "/__aerealith/health"
 
 jobs:
   preflight:
@@ -90,7 +92,7 @@ jobs:
 
     outputs:
       deploy_enabled: ${{ steps.validate.outputs.deploy_enabled }}
-      preview_worker_name: ${{ steps.validate.outputs.preview_worker_name }}
+      preview_alias: ${{ steps.validate.outputs.preview_alias }}
       wrangler_config_path: ${{ steps.validate.outputs.wrangler_config_path }}
       wrangler_config_format: ${{ steps.validate.outputs.wrangler_config_format }}
       configuration_source: ${{ steps.validate.outputs.configuration_source }}
@@ -103,7 +105,8 @@ jobs:
       PULL_REQUEST_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
       CURRENT_REPOSITORY: ${{ github.repository }}
 
-      WRANGLER_CONFIG_PATH_OVERRIDE: ${{ inputs.wrangler_config_path }}
+      WRANGLER_CONFIG_PATH_OVERRIDE: >-
+        ${{ inputs.wrangler_config_path || vars.CLOUDFLARE_WRANGLER_CONFIG_PATH }}
 
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -121,14 +124,23 @@ jobs:
           set -euo pipefail
 
           deploy_enabled='false'
-          skip_reason=''
-          preview_worker_name=''
+          preview_alias=''
           wrangler_config_path=''
           wrangler_config_format=''
           configuration_source=''
+          skip_reason=''
+
           internal_pull_request='true'
-          discovered_configurations='none'
-          wrangler_config_path_override="${WRANGLER_CONFIG_PATH_OVERRIDE:-}"
+          token_available='false'
+          account_id_available='false'
+
+          if [[ -n "${CLOUDFLARE_API_TOKEN:-}" ]]; then
+            token_available='true'
+          fi
+
+          if [[ -n "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
+            account_id_available='true'
+          fi
 
           resolve_config_path() {
             local requested_path="$1"
@@ -146,14 +158,10 @@ jobs:
               absolute_path="$(realpath -m "$GITHUB_WORKSPACE/$requested_path")"
             fi
 
-            case "$absolute_path" in
-              "$GITHUB_WORKSPACE"/*)
-                ;;
-              *)
-                echo "::error::Wrangler configuration must be inside the repository workspace: $requested_path"
-                exit 1
-                ;;
-            esac
+            if [[ "$absolute_path" != "$GITHUB_WORKSPACE/"* ]]; then
+              echo "::error::Wrangler configuration must be inside the repository workspace: $requested_path"
+              exit 1
+            fi
 
             if [[ ! -f "$absolute_path" ]]; then
               echo "::error::Wrangler configuration file was not found: $requested_path"
@@ -172,11 +180,6 @@ jobs:
                 ;;
             esac
 
-            if [[ "$relative_path" == *[[:space:]]* ]]; then
-              echo "::error::Wrangler configuration paths containing whitespace are not supported by this workflow: $relative_path"
-              exit 1
-            fi
-
             printf '%s\n' "$relative_path"
           }
 
@@ -190,31 +193,35 @@ jobs:
             skip_reason='Draft pull requests do not receive Cloudflare preview deployments.'
           elif [[ "$internal_pull_request" != 'true' ]]; then
             skip_reason='External fork pull requests do not receive deployment secrets.'
-          elif [[ ! "$PULL_REQUEST_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
-            echo '::error::A valid pull request number is required to create an isolated preview Worker.'
+          elif [[ ! "${PULL_REQUEST_NUMBER:-}" =~ ^[1-9][0-9]*$ ]]; then
+            echo '::error::A valid pull request number is required to create a preview alias.'
             exit 1
-          elif [[ -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
+          elif [[ "$token_available" != 'true' ]]; then
             echo '::error::CLOUDFLARE_API_TOKEN is not configured as a repository secret.'
             exit 1
-          elif [[ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
+          elif [[ "$account_id_available" != 'true' ]]; then
             echo '::error::CLOUDFLARE_ACCOUNT_ID is not configured as a repository secret.'
             exit 1
           else
-            preview_worker_name="${PREVIEW_WORKER_PREFIX}-${PULL_REQUEST_NUMBER}"
+            preview_alias="${PREVIEW_ALIAS_PREFIX}-${PULL_REQUEST_NUMBER}"
 
-            if [[ "${#preview_worker_name}" -gt 63 ]]; then
-              echo "::error::Preview Worker name exceeds Cloudflare's 63-character workers.dev limit: $preview_worker_name"
+            if [[ ! "$preview_alias" =~ ^[a-z][a-z0-9-]*$ ]]; then
+              echo "::error::Preview alias is invalid: $preview_alias"
               exit 1
             fi
 
-            if [[ ! "$preview_worker_name" =~ ^[a-z0-9][a-z0-9-]*[a-z0-9]$ ]]; then
-              echo "::error::Preview Worker name is invalid for workers.dev: $preview_worker_name"
+            maximum_alias_length=$((63 - 1 - ${#WORKER_NAME}))
+
+            if [[ "${#preview_alias}" -gt "$maximum_alias_length" ]]; then
+              echo "::error::Preview alias and Worker name exceed Cloudflare's 63-character DNS label limit."
+              echo "::error::Alias: $preview_alias"
+              echo "::error::Worker: $WORKER_NAME"
               exit 1
             fi
 
-            if [[ -n "$wrangler_config_path_override" ]]; then
+            if [[ -n "${WRANGLER_CONFIG_PATH_OVERRIDE:-}" ]]; then
               wrangler_config_path="$(
-                resolve_config_path "$wrangler_config_path_override"
+                resolve_config_path "$WRANGLER_CONFIG_PATH_OVERRIDE"
               )"
               configuration_source='explicit override'
             else
@@ -237,18 +244,18 @@ jobs:
               if [[ "${#found_configurations[@]}" -eq 0 ]]; then
                 echo '::error::No supported Wrangler configuration file was found for the frontend.'
                 echo "::error::Checked: ${config_candidates[*]}"
-                echo '::error::Create one supported config file or set CLOUDFLARE_WRANGLER_CONFIG_PATH.'
+                echo '::error::Create one config file or set CLOUDFLARE_WRANGLER_CONFIG_PATH.'
                 exit 1
               fi
 
               if [[ "${#found_configurations[@]}" -gt 1 ]]; then
-                printf '::error::Multiple Wrangler configuration files were found:\n' >&2
+                echo '::error::Multiple Wrangler configuration files were found.'
 
                 for configuration in "${found_configurations[@]}"; do
-                  printf '::error:: - %s\n' "$configuration" >&2
+                  echo "::error:: - $configuration"
                 done
 
-                echo '::error::Keep one config file or set CLOUDFLARE_WRANGLER_CONFIG_PATH to select the intended file.'
+                echo '::error::Keep one supported config file or set CLOUDFLARE_WRANGLER_CONFIG_PATH.'
                 exit 1
               fi
 
@@ -257,15 +264,13 @@ jobs:
             fi
 
             wrangler_config_format="${wrangler_config_path##*.}"
-            discovered_configurations="$wrangler_config_path"
-
             deploy_enabled='true'
-            skip_reason='Ready to build and deploy the Cloudflare preview.'
+            skip_reason='Ready to build and upload the Cloudflare preview version.'
           fi
 
           {
             echo "deploy_enabled=$deploy_enabled"
-            echo "preview_worker_name=$preview_worker_name"
+            echo "preview_alias=$preview_alias"
             echo "wrangler_config_path=$wrangler_config_path"
             echo "wrangler_config_format=$wrangler_config_format"
             echo "configuration_source=$configuration_source"
@@ -279,29 +284,30 @@ jobs:
             echo '| --- | --- |'
             echo "| Internal pull request | $internal_pull_request |"
             echo "| Pull request draft | ${PULL_REQUEST_DRAFT:-false} |"
-            echo "| Cloudflare API token available | $([[ -n "${CLOUDFLARE_API_TOKEN:-}" ]] && echo true || echo false) |"
-            echo "| Cloudflare account ID available | $([[ -n "${CLOUDFLARE_ACCOUNT_ID:-}" ]] && echo true || echo false) |"
+            echo "| Cloudflare API token available | $token_available |"
+            echo "| Cloudflare account ID available | $account_id_available |"
+            echo "| Worker service | $WORKER_NAME |"
+            echo "| Preview alias | ${preview_alias:-not-created} |"
             echo "| Wrangler configuration | ${wrangler_config_path:-not-selected} |"
             echo "| Wrangler configuration format | ${wrangler_config_format:-not-selected} |"
             echo "| Configuration selection | ${configuration_source:-not-selected} |"
-            echo "| Preview Worker | ${preview_worker_name:-not-created} |"
             echo "| Deployment enabled | $deploy_enabled |"
             echo "| Status | $skip_reason |"
           } >> "$GITHUB_STEP_SUMMARY"
 
   deploy:
-    name: Build and deploy preview
+    name: Build and upload preview version
     needs: preflight
     if: needs.preflight.outputs.deploy_enabled == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
     outputs:
-      deployment_url: ${{ steps.publish.outputs.deployment_url }}
-      deployment_mode: ${{ steps.deployment_config.outputs.deployment_mode }}
+      preview_url: ${{ steps.upload.outputs.preview_url }}
+      health_url: ${{ steps.verify.outputs.health_url }}
 
     env:
-      PREVIEW_WORKER_NAME: ${{ needs.preflight.outputs.preview_worker_name }}
+      PREVIEW_ALIAS: ${{ needs.preflight.outputs.preview_alias }}
       WRANGLER_CONFIG_PATH: ${{ needs.preflight.outputs.wrangler_config_path }}
 
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -327,7 +333,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
-      - name: Verify preview deployment files
+      - name: Verify deployment files
         run: |
           set -euo pipefail
 
@@ -340,7 +346,7 @@ jobs:
 
           for required_file in "${required_files[@]}"; do
             if [[ ! -f "$required_file" ]]; then
-              echo "::error::Required preview deployment file was not found: $required_file"
+              echo "::error::Required deployment file was not found: $required_file"
               exit 1
             fi
           done
@@ -356,14 +362,14 @@ jobs:
 
           printf 'Node.js: %s\n' "$(node --version)"
           printf 'pnpm: %s\n' "$(pnpm --version)"
-          printf 'Preview Worker: %s\n' "$PREVIEW_WORKER_NAME"
+          printf 'Preview alias: %s\n' "$PREVIEW_ALIAS"
           printf 'Wrangler config: %s\n' "$WRANGLER_CONFIG_PATH"
 
       - name: Install workspace dependencies
         run: |
           set -euo pipefail
 
-          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm install --frozen-lockfile
 
       - name: Verify frontend build target
         run: |
@@ -373,144 +379,132 @@ jobs:
 
           if ! jq -e '.targets.build != null' <<< "$project_json" >/dev/null; then
             echo "::error::The Nx project '$FRONTEND_PROJECT' does not define a build target."
-            echo '::error::Create the frontend build target before enabling Cloudflare preview deployments.'
             exit 1
           fi
 
       - name: Build frontend preview
-        env:
-          CLOUDFLARE_ENV: ${{ env.PREVIEW_ENVIRONMENT }}
         run: |
           set -euo pipefail
 
-          pnpm nx run "${FRONTEND_PROJECT}:build"
+          export CLOUDFLARE_VITE_WRANGLER_CONFIG_PATH="$GITHUB_WORKSPACE/$WRANGLER_CONFIG_PATH"
 
-      - name: Resolve deployment configuration
+          pnpm nx run "${FRONTEND_PROJECT}:build:preview"
+
+      - name: Verify generated Cloudflare deployment configuration
         id: deployment_config
         run: |
           set -euo pipefail
 
-          generated_config_candidates=(
-            "$FRONTEND_DIRECTORY/.wrangler/deploy/config.json"
-            ".wrangler/deploy/config.json"
-          )
+          deploy_redirect_path="$FRONTEND_DIRECTORY/.wrangler/deploy/config.json"
 
-          generated_configurations=()
-
-          for candidate in "${generated_config_candidates[@]}"; do
-            if [[ -f "$candidate" ]]; then
-              generated_configurations+=("$candidate")
-            fi
-          done
-
-          if [[ "${#generated_configurations[@]}" -gt 1 ]]; then
-            echo '::error::Multiple generated Wrangler deployment redirects were found.'
-
-            for configuration in "${generated_configurations[@]}"; do
-              echo "::error:: - $configuration"
-            done
-
-            echo '::error::Ensure only the frontend build creates .wrangler/deploy/config.json.'
+          if [[ ! -f "$deploy_redirect_path" ]]; then
+            echo '::error::The Cloudflare Vite plugin did not generate .wrangler/deploy/config.json.'
+            echo '::error::Verify that @cloudflare/vite-plugin is configured in apps/frontend/vite.config.ts.'
             exit 1
           fi
 
-          deployment_mode='source-config'
-          working_directory='.'
-          deploy_command=''
-          generated_config_path=''
+          generated_config_relative_path="$(
+            jq -er '.configPath | select(type == "string" and length > 0)' \
+              "$deploy_redirect_path"
+          )"
 
-          if [[ "${#generated_configurations[@]}" -eq 1 ]]; then
-            generated_config_path="${generated_configurations[0]}"
-            deployment_mode='generated-config'
+          if [[ "$generated_config_relative_path" == /* ]]; then
+            echo '::error::Generated Wrangler config paths must be relative to .wrangler/deploy/config.json.'
+            exit 1
+          fi
 
-            if [[ "$generated_config_path" == '.wrangler/deploy/config.json' ]]; then
-              working_directory='.'
-            else
-              working_directory="${generated_config_path%/.wrangler/deploy/config.json}"
-            fi
+          generated_config_absolute_path="$(
+            realpath -m \
+              "$(dirname "$deploy_redirect_path")/$generated_config_relative_path"
+          )"
 
-            deploy_command="deploy --name $PREVIEW_WORKER_NAME --workers-dev"
-          else
-            deploy_command="deploy --config $WRANGLER_CONFIG_PATH --env $PREVIEW_ENVIRONMENT --name $PREVIEW_WORKER_NAME --workers-dev"
+          if [[ "$generated_config_absolute_path" != "$GITHUB_WORKSPACE/"* ]]; then
+            echo '::error::Generated Wrangler configuration resolves outside the repository workspace.'
+            exit 1
+          fi
+
+          if [[ ! -f "$generated_config_absolute_path" ]]; then
+            echo "::error::Generated Wrangler configuration was not found: $generated_config_absolute_path"
+            exit 1
           fi
 
           {
-            echo "deployment_mode=$deployment_mode"
-            echo "working_directory=$working_directory"
-            echo "generated_config_path=$generated_config_path"
-            echo "deploy_command=$deploy_command"
+            echo "deploy_redirect_path=$deploy_redirect_path"
+            echo "generated_config_path=${generated_config_absolute_path#"$GITHUB_WORKSPACE"/}"
           } >> "$GITHUB_OUTPUT"
 
           {
-            echo '## Cloudflare Preview Deployment Configuration'
+            echo '## Generated Cloudflare Deployment Configuration'
             echo
             echo '| Setting | Value |'
             echo '| --- | --- |'
-            echo "| Deployment mode | $deployment_mode |"
             echo "| Source Wrangler config | $WRANGLER_CONFIG_PATH |"
-            echo "| Generated deployment redirect | ${generated_config_path:-not-generated} |"
-            echo "| Wrangler working directory | $working_directory |"
-            echo "| Preview environment | $PREVIEW_ENVIRONMENT |"
-            echo "| Preview Worker | $PREVIEW_WORKER_NAME |"
+            echo "| Deployment redirect | $deploy_redirect_path |"
+            echo "| Generated config | ${generated_config_absolute_path#"$GITHUB_WORKSPACE"/} |"
+            echo "| Preview alias | $PREVIEW_ALIAS |"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Validate Cloudflare preview deployment
-        env:
-          DEPLOYMENT_MODE: ${{ steps.deployment_config.outputs.deployment_mode }}
-          WORKING_DIRECTORY: ${{ steps.deployment_config.outputs.working_directory }}
+      - name: Validate preview upload configuration
         run: |
           set -euo pipefail
 
-          case "$DEPLOYMENT_MODE" in
-            generated-config)
-              (
-                cd "$WORKING_DIRECTORY"
+          (
+            cd "$FRONTEND_DIRECTORY"
 
-                pnpm exec wrangler deploy \
-                  --name "$PREVIEW_WORKER_NAME" \
-                  --workers-dev \
-                  --dry-run
-              )
-              ;;
-            source-config)
-              pnpm exec wrangler deploy \
-                --config "$WRANGLER_CONFIG_PATH" \
-                --env "$PREVIEW_ENVIRONMENT" \
-                --name "$PREVIEW_WORKER_NAME" \
-                --workers-dev \
-                --dry-run
-              ;;
-            *)
-              echo "::error::Unknown Cloudflare deployment mode: $DEPLOYMENT_MODE"
-              exit 1
-              ;;
-          esac
+            pnpm exec wrangler deploy --dry-run
+          )
 
-      - name: Deploy Cloudflare preview Worker
-        id: deploy
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: ${{ env.WRANGLER_VERSION }}
-          packageManager: pnpm
-          workingDirectory: ${{ steps.deployment_config.outputs.working_directory }}
-          preCommands: wrangler whoami
-          command: ${{ steps.deployment_config.outputs.deploy_command }}
-
-      - name: Verify deployed preview
-        id: publish
-        env:
-          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
+      - name: Upload Cloudflare preview version
+        id: upload
         run: |
           set -euo pipefail
 
-          deployment_url="$(printf '%s' "$DEPLOYMENT_URL" | tr -d '\r\n')"
+          output_file="$RUNNER_TEMP/cloudflare-preview-upload.txt"
 
-          if [[ "$deployment_url" != https://* ]]; then
-            echo '::error::Cloudflare did not return a valid deployment URL.'
+          (
+            cd "$FRONTEND_DIRECTORY"
+
+            pnpm exec wrangler versions upload \
+              --preview-alias "$PREVIEW_ALIAS"
+          ) 2>&1 | tee "$output_file"
+
+          preview_url="$(
+            grep -Eo \
+              "https://${PREVIEW_ALIAS}-[a-z0-9-]+(\.[a-z0-9-]+)+\.workers\.dev" \
+              "$output_file" \
+              | tail -n 1 \
+              || true
+          )"
+
+          if [[ -z "$preview_url" ]]; then
+            echo '::error::Cloudflare uploaded the preview version but did not return the aliased preview URL.'
+            echo '::error::Inspect the Wrangler output above and the Worker Deployments tab.'
             exit 1
           fi
+
+          echo "preview_url=$preview_url" >> "$GITHUB_OUTPUT"
+
+          {
+            echo '## Cloudflare Preview Version Uploaded'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo "| Worker service | $WORKER_NAME |"
+            echo "| Preview alias | $PREVIEW_ALIAS |"
+            echo "| Preview URL | [$preview_url]($preview_url) |"
+            echo '| Production promotion | not performed |'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "::notice title=Cloudflare preview version uploaded::$preview_url"
+
+      - name: Verify preview health endpoint
+        id: verify
+        env:
+          PREVIEW_URL: ${{ steps.upload.outputs.preview_url }}
+        run: |
+          set -euo pipefail
+
+          health_url="${PREVIEW_URL%/}${HEALTH_PATH}"
 
           curl \
             --fail \
@@ -521,26 +515,17 @@ jobs:
             --retry-delay 3 \
             --connect-timeout 15 \
             --max-time 60 \
-            --output /dev/null \
-            "$deployment_url"
+            "$health_url"
+
+          echo "health_url=$health_url" >> "$GITHUB_OUTPUT"
 
           {
-            echo "deployment_url=$deployment_url"
-          } >> "$GITHUB_OUTPUT"
-
-          {
-            echo '## Cloudflare Preview Deployment'
             echo
-            echo '| Setting | Value |'
-            echo '| --- | --- |'
-            echo "| Preview Worker | $PREVIEW_WORKER_NAME |"
-            echo "| Deployment URL | [$deployment_url]($deployment_url) |"
-            echo '| Deployment validation | passed |'
+            echo '### Health Check'
             echo
-            echo '> Preview deployment for this pull request is live.'
+            echo "| Endpoint | [$health_url]($health_url) |"
+            echo '| Result | passed |'
           } >> "$GITHUB_STEP_SUMMARY"
-
-          echo "::notice title=Cloudflare preview deployed::$deployment_url"
 
   summary:
     name: Publish preview result
@@ -552,16 +537,16 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Write preview deployment summary
+      - name: Write preview workflow summary
         env:
           DEPLOY_ENABLED: ${{ needs.preflight.outputs.deploy_enabled }}
-          PREVIEW_WORKER_NAME: ${{ needs.preflight.outputs.preview_worker_name }}
+          PREVIEW_ALIAS: ${{ needs.preflight.outputs.preview_alias }}
           WRANGLER_CONFIG_PATH: ${{ needs.preflight.outputs.wrangler_config_path }}
           WRANGLER_CONFIG_FORMAT: ${{ needs.preflight.outputs.wrangler_config_format }}
           CONFIGURATION_SOURCE: ${{ needs.preflight.outputs.configuration_source }}
           PREFLIGHT_STATUS: ${{ needs.preflight.outputs.skip_reason }}
-          DEPLOYMENT_URL: ${{ needs.deploy.outputs.deployment_url }}
-          DEPLOYMENT_MODE: ${{ needs.deploy.outputs.deployment_mode }}
+          PREVIEW_URL: ${{ needs.deploy.outputs.preview_url }}
+          HEALTH_URL: ${{ needs.deploy.outputs.health_url }}
           DEPLOY_RESULT: ${{ needs.deploy.result }}
         run: |
           set -euo pipefail
@@ -571,21 +556,30 @@ jobs:
             echo
             echo '| Check | Result |'
             echo '| --- | --- |'
+            echo "| Worker service | $WORKER_NAME |"
             echo "| Preview deployment enabled | ${DEPLOY_ENABLED:-false} |"
-            echo "| Preview Worker | ${PREVIEW_WORKER_NAME:-not-created} |"
+            echo "| Preview alias | ${PREVIEW_ALIAS:-not-created} |"
             echo "| Wrangler configuration | ${WRANGLER_CONFIG_PATH:-not-selected} |"
             echo "| Wrangler configuration format | ${WRANGLER_CONFIG_FORMAT:-not-selected} |"
             echo "| Configuration selection | ${CONFIGURATION_SOURCE:-not-selected} |"
-            echo "| Deployment mode | ${DEPLOYMENT_MODE:-not-run} |"
-            echo "| Deploy job result | ${DEPLOY_RESULT:-skipped} |"
+            echo "| Upload job result | ${DEPLOY_RESULT:-skipped} |"
             echo "| Preflight status | ${PREFLIGHT_STATUS:-unknown} |"
           } >> "$GITHUB_STEP_SUMMARY"
 
-          if [[ "${DEPLOYMENT_URL:-}" == https://* ]]; then
+          if [[ "${PREVIEW_URL:-}" == https://* ]]; then
             {
               echo
               echo '### Preview URL'
               echo
-              echo "[$DEPLOYMENT_URL]($DEPLOYMENT_URL)"
+              echo "[$PREVIEW_URL]($PREVIEW_URL)"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [[ "${HEALTH_URL:-}" == https://* ]]; then
+            {
+              echo
+              echo '### Verified Health Endpoint'
+              echo
+              echo "[$HEALTH_URL]($HEALTH_URL)"
             } >> "$GITHUB_STEP_SUMMARY"
           fi
