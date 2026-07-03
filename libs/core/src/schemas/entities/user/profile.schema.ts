@@ -3,6 +3,10 @@
 import { z } from 'zod'
 
 import {
+  UserProfileFields,
+  type UserProfileField,
+} from '../../../entities/user/profile.utils'
+import {
   Country,
   Gender,
   LanguageProficiency,
@@ -97,28 +101,12 @@ export const UserProfileLanguageSchema = z.object({
 /**
  * Individual profile fields that support visibility overrides.
  */
-export const UserProfileFieldSchema = z.enum([
-  'handle',
-  'displayName',
-  'givenName',
-  'middleName',
-  'familyName',
-  'pronouns',
-  'avatarUrl',
-  'bannerUrl',
-  'bio',
-  'locationLabel',
-  'country',
-  'gender',
-  'sex',
-  'sexuality',
-  'romanticOrientation',
-  'sexAttitude',
-  'languages',
-  'websiteUrl',
-  'links',
-  'createdAt',
-])
+const UserProfileFieldValues = [...UserProfileFields] as [
+  UserProfileField,
+  ...UserProfileField[],
+]
+
+export const UserProfileFieldSchema = z.enum(UserProfileFieldValues)
 
 /**
  * Per-field profile visibility overrides.

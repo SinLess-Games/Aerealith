@@ -1,17 +1,17 @@
 import { and, eq, isNull } from 'drizzle-orm'
 
 import type {
-  Country,
-  Gender,
   ProfileStatus,
-  RomanticOrientation,
-  Sex,
-  SexAttitude,
-  Sexuality,
   UserProfileContract,
-  UserProfileFieldVisibility,
-  UserProfileLanguage,
-  UserProfileLink,
+  UserProfileInput,
+  UserProfileUpdate,
+} from '@aerealith-ai/core'
+
+import {
+  normalizeUserProfileHandle,
+  normalizeUserProfileOptionalString,
+  UserProfilePersonalDetailFields,
+  UserProfileTextFields,
 } from '@aerealith-ai/core'
 
 import type { DatabaseClient } from '../../client'
@@ -21,71 +21,17 @@ import {
   userProfilesTable,
 } from '../../schema'
 
-export type CreateUserProfileInput = {
-  userId: string
-  handle: string
+export type CreateUserProfileInput = UserProfileInput
 
-  displayName?: string | null
-  givenName?: string | null
-  middleName?: string | null
-  familyName?: string | null
-  pronouns?: string | null
-
-  avatarUrl?: string | null
-  bannerUrl?: string | null
-  bio?: string | null
-
-  status?: ProfileStatus
-  fieldVisibility?: UserProfileFieldVisibility
-
-  locationLabel?: string | null
-  country?: Country | null
-
-  gender?: Gender | null
-  sex?: Sex | null
-  sexuality?: Sexuality | null
-  romanticOrientation?: RomanticOrientation | null
-  sexAttitude?: SexAttitude | null
-
-  languages?: UserProfileLanguage[]
-  websiteUrl?: string | null
-  links?: UserProfileLink[]
-}
-
-export type UpdateUserProfileInput = Omit<
-  Partial<CreateUserProfileInput>,
-  'userId'
->
-
-const optionalStringFields = [
-  'displayName',
-  'givenName',
-  'middleName',
-  'familyName',
-  'pronouns',
-  'avatarUrl',
-  'bannerUrl',
-  'bio',
-  'locationLabel',
-  'websiteUrl',
-] as const
+export type UpdateUserProfileInput = UserProfileUpdate
 
 const directUpdateFields = [
   'status',
   'fieldVisibility',
-  'country',
-  'gender',
-  'sex',
-  'sexuality',
-  'romanticOrientation',
-  'sexAttitude',
+  ...UserProfilePersonalDetailFields,
   'languages',
   'links',
 ] as const
-
-type OptionalStringField = (typeof optionalStringFields)[number]
-
-type DirectUpdateField = (typeof directUpdateFields)[number]
 
 /**
  * Drizzle persistence for user profiles.
@@ -101,12 +47,7 @@ export class DrizzleUserProfileRepository {
     const [row] = await this.database
       .select()
       .from(userProfilesTable)
-      .where(
-        and(
-          eq(userProfilesTable.userId, userId),
-          isNull(userProfilesTable.deletedAt),
-        ),
-      )
+      .where(activeProfilePredicate({ userId }))
       .limit(1)
 
     return row ? toUserProfileContract(row) : null
@@ -116,12 +57,7 @@ export class DrizzleUserProfileRepository {
     const [row] = await this.database
       .select()
       .from(userProfilesTable)
-      .where(
-        and(
-          eq(userProfilesTable.handle, normalizeHandle(handle)),
-          isNull(userProfilesTable.deletedAt),
-        ),
-      )
+      .where(activeProfilePredicate({ handle }))
       .limit(1)
 
     return row ? toUserProfileContract(row) : null
@@ -156,12 +92,7 @@ export class DrizzleUserProfileRepository {
         ...values,
         updatedAt: new Date(),
       })
-      .where(
-        and(
-          eq(userProfilesTable.userId, userId),
-          isNull(userProfilesTable.deletedAt),
-        ),
-      )
+      .where(activeProfilePredicate({ userId }))
       .returning()
 
     return row ? toUserProfileContract(row) : null
@@ -176,18 +107,33 @@ export class DrizzleUserProfileRepository {
         deletedAt: now,
         updatedAt: now,
       })
-      .where(
-        and(
-          eq(userProfilesTable.userId, userId),
-          isNull(userProfilesTable.deletedAt),
-        ),
-      )
+      .where(activeProfilePredicate({ userId }))
       .returning({
         id: userProfilesTable.id,
       })
 
     return row !== undefined
   }
+}
+
+function activeProfilePredicate({
+  userId,
+  handle,
+}: {
+  userId?: string
+  handle?: string
+}) {
+  const conditions = [isNull(userProfilesTable.deletedAt)]
+
+  if (userId !== undefined) {
+    conditions.push(eq(userProfilesTable.userId, userId))
+  }
+
+  if (handle !== undefined) {
+    conditions.push(eq(userProfilesTable.handle, normalizeHandle(handle)))
+  }
+
+  return conditions.length === 1 ? conditions[0] : and(...conditions)
 }
 
 function toNewUserProfileRow(input: CreateUserProfileInput): NewUserProfileRow {
@@ -239,12 +185,12 @@ function setOptionalStringUpdateValues(
   values: Partial<NewUserProfileRow>,
   input: UpdateUserProfileInput,
 ): void {
-  for (const field of optionalStringFields) {
-    const value = input[field]
+  for (const field of UserProfileTextFields) {
+    const value = input[field as keyof UpdateUserProfileInput]
 
     setDefinedValue(
       values,
-      field,
+      field as keyof NewUserProfileRow,
       value === undefined ? undefined : normalizeOptionalString(value),
     )
   }
@@ -255,7 +201,11 @@ function setDirectUpdateValues(
   input: UpdateUserProfileInput,
 ): void {
   for (const field of directUpdateFields) {
-    setDefinedValue(values, field, input[field])
+    setDefinedValue(
+      values,
+      field as keyof NewUserProfileRow,
+      input[field as keyof UpdateUserProfileInput],
+    )
   }
 }
 
@@ -308,7 +258,7 @@ function toUserProfileContract(row: UserProfileRow): UserProfileContract {
 }
 
 function normalizeHandle(handle: string): string {
-  return handle.trim().toLowerCase()
+  return normalizeUserProfileHandle(handle)
 }
 
 function normalizeUpdatedHandle(value: string | undefined): string | undefined {
@@ -318,7 +268,5 @@ function normalizeUpdatedHandle(value: string | undefined): string | undefined {
 function normalizeOptionalString(
   value: string | null | undefined,
 ): string | null {
-  const normalized = value?.trim()
-
-  return normalized || null
+  return normalizeUserProfileOptionalString(value)
 }

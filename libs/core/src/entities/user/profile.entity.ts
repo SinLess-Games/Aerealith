@@ -13,33 +13,17 @@ import type {
 } from '../../enumns'
 import { ProfileFieldVisibility, ProfileStatus } from '../../enumns'
 import { BaseEntity, type BaseEntityInput } from '../base.entity'
-
-const UserProfileTextFields = [
-  'displayName',
-  'givenName',
-  'middleName',
-  'familyName',
-  'pronouns',
-  'avatarUrl',
-  'bannerUrl',
-  'bio',
-  'locationLabel',
-  'websiteUrl',
-] as const
-
-type UserProfileTextField = (typeof UserProfileTextFields)[number]
-
-const UserProfilePersonalDetailFields = [
-  'country',
-  'gender',
-  'sex',
-  'sexuality',
-  'romanticOrientation',
-  'sexAttitude',
-] as const
-
-type UserProfilePersonalDetailField =
-  (typeof UserProfilePersonalDetailFields)[number]
+import {
+  normalizeUserProfileHandle,
+  normalizeUserProfileLanguages,
+  normalizeUserProfileLinks,
+  normalizeUserProfileOptionalString,
+  UserProfilePersonalDetailFields,
+  UserProfileTextFields,
+  type UserProfileField as SharedUserProfileField,
+  type UserProfilePersonalDetailField,
+  type UserProfileTextField,
+} from './profile.utils'
 
 /**
  * A link shown on a user's profile.
@@ -64,27 +48,7 @@ export type UserProfileLanguage = {
 /**
  * Fields that support their own visibility setting.
  */
-export type UserProfileField =
-  | 'handle'
-  | 'displayName'
-  | 'givenName'
-  | 'middleName'
-  | 'familyName'
-  | 'pronouns'
-  | 'avatarUrl'
-  | 'bannerUrl'
-  | 'bio'
-  | 'locationLabel'
-  | 'country'
-  | 'gender'
-  | 'sex'
-  | 'sexuality'
-  | 'romanticOrientation'
-  | 'sexAttitude'
-  | 'languages'
-  | 'websiteUrl'
-  | 'links'
-  | 'createdAt'
+export type UserProfileField = SharedUserProfileField
 
 /**
  * Visibility overrides for individual profile fields.
@@ -338,30 +302,20 @@ export class UserProfileEntity extends BaseEntity {
   }
 
   private normalizeHandle(handle: string): string {
-    return handle.trim().toLowerCase()
+    return normalizeUserProfileHandle(handle)
   }
 
   private normalizeOptionalString(value?: string | null): string | null {
-    const normalized = value?.trim()
-
-    return normalized || null
+    return normalizeUserProfileOptionalString(value)
   }
 
   private normalizeLanguages(
     languages: UserProfileLanguage[],
   ): UserProfileLanguage[] {
-    return languages.map((language) => ({
-      ...language,
-    }))
+    return normalizeUserProfileLanguages(languages)
   }
 
   private normalizeLinks(links: UserProfileLink[]): UserProfileLink[] {
-    return links
-      .map((link) => ({
-        platform: link.platform,
-        url: link.url.trim(),
-        label: this.normalizeOptionalString(link.label),
-      }))
-      .filter((link) => link.url.length > 0)
+    return normalizeUserProfileLinks(links)
   }
 }
