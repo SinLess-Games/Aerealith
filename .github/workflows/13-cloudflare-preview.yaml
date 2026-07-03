@@ -1,0 +1,344 @@
+# .github/workflows/13-cloudflare-preview.yaml
+#
+# Deploys an isolated Cloudflare Workers preview for each internal pull request.
+#
+# Required GitHub repository secrets:
+# - CLOUDFLARE_API_TOKEN
+# - CLOUDFLARE_ACCOUNT_ID
+#
+# Required repository configuration:
+# - apps/frontend/wrangler.jsonc
+# - an Nx frontend:build target
+# - a Wrangler preview environment named "preview"
+#
+# Preview Worker name pattern:
+# - aerealith-preview-pr-<pull-request-number>
+#
+# This workflow intentionally does not:
+# - deploy to production routes
+# - change DNS records
+# - upload runtime Worker secrets
+# - deploy pull requests from external forks
+
+name: 13 · Cloudflare Preview
+
+on:
+  pull_request:
+    branches:
+      - master
+      - staging
+      - production
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+
+  workflow_dispatch:
+    inputs:
+      pull_request_number:
+        description: "Pull request number used to name the preview Worker."
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: >-
+    cloudflare-preview-${{
+      github.event.pull_request.number ||
+      inputs.pull_request_number ||
+      github.run_id
+    }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CI: "true"
+  FORCE_COLOR: "1"
+  HUSKY: "0"
+
+  NODE_VERSION: "25.9.0"
+  PNPM_VERSION: "11.5.2"
+  WRANGLER_VERSION: "4"
+
+  FRONTEND_PROJECT: "frontend"
+  WRANGLER_CONFIG_PATH: "apps/frontend/wrangler.jsonc"
+  PREVIEW_WORKER_PREFIX: "aerealith-preview-pr"
+
+jobs:
+  preflight:
+    name: Validate preview deployment requirements
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    outputs:
+      deploy_enabled: ${{ steps.validate.outputs.deploy_enabled }}
+      preview_worker_name: ${{ steps.validate.outputs.preview_worker_name }}
+      skip_reason: ${{ steps.validate.outputs.skip_reason }}
+
+    env:
+      EVENT_NAME: ${{ github.event_name }}
+      PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number || inputs.pull_request_number }}
+      PULL_REQUEST_DRAFT: ${{ github.event.pull_request.draft }}
+      PULL_REQUEST_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+      CURRENT_REPOSITORY: ${{ github.repository }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - name: Validate preview deployment requirements
+        id: validate
+        run: |
+          set -euo pipefail
+
+          deploy_enabled='false'
+          skip_reason=''
+          preview_worker_name=''
+
+          if [[ "$EVENT_NAME" == 'pull_request' ]] &&
+            [[ "$PULL_REQUEST_DRAFT" == 'true' ]]; then
+            skip_reason='Draft pull requests do not receive Cloudflare preview deployments.'
+          elif [[ "$EVENT_NAME" == 'pull_request' ]] &&
+            [[ "$PULL_REQUEST_HEAD_REPOSITORY" != "$CURRENT_REPOSITORY" ]]; then
+            skip_reason='External fork pull requests do not receive deployment secrets.'
+          elif [[ ! "$PULL_REQUEST_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
+            echo '::error::A valid pull request number is required to create an isolated preview Worker.'
+            exit 1
+          elif [[ -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
+            echo '::error::CLOUDFLARE_API_TOKEN is not configured as a repository secret.'
+            exit 1
+          elif [[ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
+            echo '::error::CLOUDFLARE_ACCOUNT_ID is not configured as a repository secret.'
+            exit 1
+          else
+            preview_worker_name="${PREVIEW_WORKER_PREFIX}-${PULL_REQUEST_NUMBER}"
+            deploy_enabled='true'
+            skip_reason='Ready to build and deploy the Cloudflare preview.'
+          fi
+
+          {
+            echo "deploy_enabled=$deploy_enabled"
+            echo "preview_worker_name=$preview_worker_name"
+            echo "skip_reason=$skip_reason"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo '## Cloudflare Preview Preflight'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo '| Internal pull request | '"$(
+              [[ "$EVENT_NAME" != 'pull_request' ]] ||
+                [[ "$PULL_REQUEST_HEAD_REPOSITORY" == "$CURRENT_REPOSITORY" ]] &&
+                echo true ||
+                echo false
+            )"' |'
+            echo '| Pull request draft | '"${PULL_REQUEST_DRAFT:-false}"' |'
+            echo '| Cloudflare API token available | '"$(
+              [[ -n "${CLOUDFLARE_API_TOKEN:-}" ]] &&
+                echo true ||
+                echo false
+            )"' |'
+            echo '| Cloudflare account ID available | '"$(
+              [[ -n "${CLOUDFLARE_ACCOUNT_ID:-}" ]] &&
+                echo true ||
+                echo false
+            )"' |'
+            echo "| Preview Worker | ${preview_worker_name:-not-created} |"
+            echo "| Deployment enabled | $deploy_enabled |"
+            echo "| Status | $skip_reason |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    name: Build and deploy preview
+    needs: preflight
+    if: needs.preflight.outputs.deploy_enabled == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    outputs:
+      deployment_url: ${{ steps.publish.outputs.deployment_url }}
+
+    env:
+      PREVIEW_WORKER_NAME: ${{ needs.preflight.outputs.preview_worker_name }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - name: Check out pull request
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6.0.9
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Verify preview deployment files
+        run: |
+          set -euo pipefail
+
+          required_files=(
+            package.json
+            pnpm-lock.yaml
+            pnpm-workspace.yaml
+            "$WRANGLER_CONFIG_PATH"
+          )
+
+          for required_file in "${required_files[@]}"; do
+            if [[ ! -f "$required_file" ]]; then
+              echo "::error::Required preview deployment file was not found: $required_file"
+              exit 1
+            fi
+          done
+
+          printf 'Node.js: %s\n' "$(node --version)"
+          printf 'pnpm: %s\n' "$(pnpm --version)"
+          printf 'Preview Worker: %s\n' "$PREVIEW_WORKER_NAME"
+          printf 'Wrangler config: %s\n' "$WRANGLER_CONFIG_PATH"
+
+      - name: Install workspace dependencies
+        run: |
+          set -euo pipefail
+
+          pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Verify frontend build target
+        run: |
+          set -euo pipefail
+
+          project_json="$(pnpm nx show project "$FRONTEND_PROJECT" --json)"
+
+          if ! jq -e '.targets.build != null' <<< "$project_json" >/dev/null; then
+            echo "::error::The Nx project '$FRONTEND_PROJECT' does not define a build target."
+            echo '::error::Create the frontend build target before enabling Cloudflare preview deployments.'
+            exit 1
+          fi
+
+      - name: Build frontend
+        run: |
+          set -euo pipefail
+
+          pnpm nx run "${FRONTEND_PROJECT}:build"
+
+      - name: Validate Wrangler preview configuration
+        run: |
+          set -euo pipefail
+
+          pnpm exec wrangler deploy \
+            --config "$WRANGLER_CONFIG_PATH" \
+            --env preview \
+            --name "$PREVIEW_WORKER_NAME" \
+            --workers-dev \
+            --dry-run
+
+      - name: Deploy Cloudflare preview Worker
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: ${{ env.WRANGLER_VERSION }}
+          packageManager: pnpm
+          preCommands: wrangler whoami
+          command: >-
+            deploy
+            --config ${{ env.WRANGLER_CONFIG_PATH }}
+            --env preview
+            --name ${{ needs.preflight.outputs.preview_worker_name }}
+            --workers-dev
+
+      - name: Verify deployed preview
+        id: publish
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$DEPLOYMENT_URL" != https://* ]]; then
+            echo '::error::Cloudflare did not return a valid deployment URL.'
+            exit 1
+          fi
+
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --location \
+            --retry 3 \
+            --retry-delay 3 \
+            --output /dev/null \
+            "$DEPLOYMENT_URL"
+
+          {
+            echo "deployment_url=$DEPLOYMENT_URL"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo '## Cloudflare Preview Deployment'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo "| Preview Worker | $PREVIEW_WORKER_NAME |"
+            echo "| Deployment URL | [$DEPLOYMENT_URL]($DEPLOYMENT_URL) |"
+            echo '| Deployment validation | passed |'
+            echo
+            echo "> Preview deployment for this pull request is live."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "::notice title=Cloudflare preview deployed::$DEPLOYMENT_URL"
+
+  summary:
+    name: Publish preview result
+    needs:
+      - preflight
+      - deploy
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Write preview deployment summary
+        env:
+          DEPLOY_ENABLED: ${{ needs.preflight.outputs.deploy_enabled }}
+          PREVIEW_WORKER_NAME: ${{ needs.preflight.outputs.preview_worker_name }}
+          PREFLIGHT_STATUS: ${{ needs.preflight.outputs.skip_reason }}
+          DEPLOYMENT_URL: ${{ needs.deploy.outputs.deployment_url }}
+          DEPLOY_RESULT: ${{ needs.deploy.result }}
+        run: |
+          set -euo pipefail
+
+          {
+            echo '## Cloudflare Preview Workflow Result'
+            echo
+            echo '| Check | Result |'
+            echo '| --- | --- |'
+            echo "| Preview deployment enabled | ${DEPLOY_ENABLED:-false} |"
+            echo "| Preview Worker | ${PREVIEW_WORKER_NAME:-not-created} |"
+            echo "| Deploy job result | ${DEPLOY_RESULT:-skipped} |"
+            echo "| Preflight status | ${PREFLIGHT_STATUS:-unknown} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "${DEPLOYMENT_URL:-}" == https://* ]]; then
+            {
+              echo
+              echo "### Preview URL"
+              echo
+              echo "[$DEPLOYMENT_URL]($DEPLOYMENT_URL)"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
