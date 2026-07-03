@@ -4,18 +4,35 @@ import { cloudflare } from '@cloudflare/vite-plugin'
 import { codecovVitePlugin } from '@codecov/vite-plugin'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
-import tsconfigPaths from 'vite-tsconfig-paths'
 
 const FrontendSourceDirectory = 'src'
+const WorkerEnvironmentName = 'aerealith'
 
 export default defineConfig(({ mode }) => ({
   root: import.meta.dirname,
 
   cacheDir: '../../node_modules/.vite/apps/frontend',
 
+  // Vite 8 resolves tsconfig path aliases natively.
+  // Do not use vite-tsconfig-paths here.
+  resolve: {
+    tsconfigPaths: true,
+  },
+
+  // Nx loads this config while discovering Vitest targets. Vitest adds Node
+  // built-ins to resolve.external, but Cloudflare Workers must bundle Worker
+  // dependencies instead of externalizing them. Keep this Worker environment
+  // explicitly empty so the Cloudflare Vite plugin can validate it.
+  environments: {
+    [WorkerEnvironmentName]: {
+      resolve: {
+        external: [],
+      },
+    },
+  },
+
   plugins: [
     react(),
-    tsconfigPaths(),
     cloudflare(),
     codecovVitePlugin({
       enableBundleAnalysis: process.env.CODECOV_TOKEN !== undefined,
