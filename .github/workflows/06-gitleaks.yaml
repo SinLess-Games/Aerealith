@@ -68,7 +68,7 @@ jobs:
 
     steps:
       - name: Check out repository history
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           # For pull_request_target, scan the exact untrusted PR commit without
           # running any project code. For push, schedule, and manual runs,
