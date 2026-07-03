@@ -19,7 +19,8 @@
 # - Uploads analysis without failing immediately on a red quality gate.
 # - Polls SonarQube Cloud after upload completes.
 # - Writes exact failed gate conditions, actual metric values, thresholds,
-#   Compute Engine errors, and open Sonar issues into the GitHub summary.
+#   duplication hotspots, Compute Engine errors, and open Sonar issues into
+#   the GitHub summary.
 # - Fails only after the diagnostic summary and artifact are published.
 
 name: SonarQube Cloud
@@ -79,6 +80,7 @@ env:
   SONAR_ANALYSIS_TIMEOUT_SECONDS: "300"
   SONAR_ANALYSIS_POLL_SECONDS: "5"
   SONAR_SUMMARY_MAX_ISSUES: "50"
+  SONAR_DUPLICATION_SUMMARY_MAX_FILES: "50"
 
 jobs:
   preflight:
@@ -159,6 +161,7 @@ jobs:
       analysis_task_status: ${{ steps.sonar_diagnosis.outputs.analysis_task_status }}
       quality_gate_status: ${{ steps.sonar_diagnosis.outputs.quality_gate_status }}
       failed_condition_count: ${{ steps.sonar_diagnosis.outputs.failed_condition_count }}
+      duplication_hotspot_count: ${{ steps.sonar_diagnosis.outputs.duplication_hotspot_count }}
       issue_count: ${{ steps.sonar_diagnosis.outputs.issue_count }}
       diagnosis_status: ${{ steps.sonar_diagnosis.outputs.diagnosis_status }}
       dashboard_url: ${{ steps.sonar_diagnosis.outputs.dashboard_url }}
@@ -357,6 +360,7 @@ jobs:
             echo "| LCOV reports configured | $([[ -n "${LCOV_REPORTS:-}" ]] && echo true || echo false) |"
             echo '| Scanner quality-gate wait | false |'
             echo '| Detailed quality-gate diagnosis | enabled |'
+            echo '| Duplication hotspot reporting | enabled |'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Run SonarQube Cloud analysis
@@ -382,6 +386,7 @@ jobs:
           task_file="$SONAR_REPORT_DIRECTORY/compute-engine-task.json"
           gate_file="$SONAR_REPORT_DIRECTORY/quality-gate.json"
           issues_file="$SONAR_REPORT_DIRECTORY/issues.json"
+          duplication_file="$SONAR_REPORT_DIRECTORY/duplication-hotspots.json"
           errors_file="$SONAR_REPORT_DIRECTORY/diagnostic-errors.txt"
 
           mkdir -p "$SONAR_REPORT_DIRECTORY"
@@ -389,6 +394,7 @@ jobs:
           printf '{}\n' > "$task_file"
           printf '{}\n' > "$gate_file"
           printf '{}\n' > "$issues_file"
+          printf '{"components":[]}\n' > "$duplication_file"
           : > "$errors_file"
 
           sonar_curl() {
@@ -461,7 +467,7 @@ jobs:
                 )"
 
                 case "$analysis_task_status" in
-                  SUCCESS|FAILED|CANCELED)
+                  SUCCESS | FAILED | CANCELED)
                     break
                     ;;
                   *)
@@ -494,6 +500,37 @@ jobs:
             echo 'SonarQube Cloud canceled the uploaded analysis during Compute Engine processing.' >> "$errors_file"
           elif [[ "$report_task_found" == 'true' ]]; then
             echo 'Timed out while waiting for SonarQube Cloud to process the analysis.' >> "$errors_file"
+          fi
+
+          duplication_arguments=(
+            --get
+            "$SONAR_API_URL/api/measures/component_tree"
+            --data-urlencode "component=$SONAR_PROJECT_KEY"
+            --data-urlencode 'metricKeys=new_duplicated_lines,new_duplicated_lines_density'
+            --data-urlencode 'qualifiers=FIL'
+            --data-urlencode 'strategy=leaves'
+            --data-urlencode 'ps=500'
+          )
+
+          if [[ "$EVENT_NAME" == 'pull_request' ]] &&
+            [[ -n "${PULL_REQUEST_NUMBER:-}" ]]; then
+            duplication_arguments+=(
+              --data-urlencode
+              "pullRequest=$PULL_REQUEST_NUMBER"
+            )
+          elif [[ -n "${BRANCH_NAME:-}" ]]; then
+            duplication_arguments+=(
+              --data-urlencode
+              "branch=$BRANCH_NAME"
+            )
+          fi
+
+          if [[ "$analysis_task_status" == 'SUCCESS' ]]; then
+            sonar_curl \
+              "${duplication_arguments[@]}" \
+              --output "$duplication_file" \
+              2>>"$errors_file" \
+              || echo 'Unable to retrieve SonarQube Cloud duplication hotspot details.' >> "$errors_file"
           fi
 
           issue_arguments=(
@@ -530,6 +567,33 @@ jobs:
               "$gate_file"
           )"
 
+          duplication_hotspot_count="$(
+            jq '
+              [
+                .components[]?
+                | {
+                    path: (.path // .name // "unknown"),
+                    duplicated_lines: (
+                      [
+                        .measures[]?
+                        | select(.metric == "new_duplicated_lines")
+                        | .value
+                      ][0] // "0"
+                    ),
+                    density: (
+                      [
+                        .measures[]?
+                        | select(.metric == "new_duplicated_lines_density")
+                        | .value
+                      ][0] // "0"
+                    )
+                  }
+                | select(((.density | tonumber?) // 0) > 0)
+              ]
+              | length
+            ' "$duplication_file"
+          )"
+
           issue_count="$(
             jq -r '.total // 0' "$issues_file"
           )"
@@ -557,6 +621,7 @@ jobs:
             echo "| Compute Engine task status | $analysis_task_status |"
             echo "| Quality gate status | $quality_gate_status |"
             echo "| Failed quality-gate conditions | $failed_condition_count |"
+            echo "| New-code duplication hotspots | $duplication_hotspot_count |"
             echo "| Open Sonar issues | $issue_count |"
             echo "| Diagnostic state | $diagnosis_status |"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -619,6 +684,52 @@ jobs:
                 ) as $requirement
               | "| \($metric | clean) | \((.actualValue // "not measured") | clean) | \($requirement | clean) \((.errorThreshold // "not configured") | clean) | \((.status // "unknown") | clean) |"
             ' "$gate_file" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [[ "$duplication_hotspot_count" -gt 0 ]]; then
+            {
+              echo
+              echo '### New-Code Duplication Hotspots'
+              echo
+              echo '| File | Duplicated lines | New-code duplication density |'
+              echo '| --- | ---: | ---: |'
+            } >> "$GITHUB_STEP_SUMMARY"
+
+            jq -r \
+              --argjson maximum "$SONAR_DUPLICATION_SUMMARY_MAX_FILES" '
+                def clean:
+                  tostring
+                  | gsub("[\r\n]+"; " ")
+                  | gsub("[|]"; "&#124;");
+
+                def measure_value($metric):
+                  [
+                    .measures[]?
+                    | select(.metric == $metric)
+                    | .value
+                  ][0] // "0";
+
+                [
+                  .components[]?
+                  | {
+                      path: (.path // .name // "unknown"),
+                      duplicated_lines: measure_value("new_duplicated_lines"),
+                      density: measure_value("new_duplicated_lines_density")
+                    }
+                  | select(((.density | tonumber?) // 0) > 0)
+                ]
+                | sort_by(.density | tonumber)
+                | reverse
+                | .[0:$maximum][]
+                | "| \(.path | clean) | \(.duplicated_lines | clean) | \(.density | clean)% |"
+              ' "$duplication_file" >> "$GITHUB_STEP_SUMMARY"
+
+            if [[ "$duplication_hotspot_count" -gt "$SONAR_DUPLICATION_SUMMARY_MAX_FILES" ]]; then
+              {
+                echo
+                echo "> Sonar found $duplication_hotspot_count files with new-code duplication. This summary displays the first $SONAR_DUPLICATION_SUMMARY_MAX_FILES."
+              } >> "$GITHUB_STEP_SUMMARY"
+            fi
           fi
 
           if [[ "$issue_count" -gt 0 ]]; then
@@ -692,12 +803,13 @@ jobs:
 
           {
             echo
+
             case "$diagnosis_status" in
               quality-gate-passed)
                 echo '> SonarQube Cloud analysis completed and the quality gate passed.'
                 ;;
               quality-gate-failed)
-                echo '> The quality gate failed. The exact failed conditions are listed above.'
+                echo '> The quality gate failed. The exact failed conditions and duplication hotspots are listed above.'
                 ;;
               *)
                 echo '> SonarQube Cloud did not complete a clean quality-gate evaluation. Review the processing failure or diagnostic notes above.'
@@ -709,6 +821,7 @@ jobs:
             echo "analysis_task_status=$analysis_task_status"
             echo "quality_gate_status=$quality_gate_status"
             echo "failed_condition_count=$failed_condition_count"
+            echo "duplication_hotspot_count=$duplication_hotspot_count"
             echo "issue_count=$issue_count"
             echo "diagnosis_status=$diagnosis_status"
             echo "dashboard_url=$dashboard_url"
@@ -748,6 +861,7 @@ jobs:
           ANALYSIS_TASK_STATUS: ${{ steps.sonar_diagnosis.outputs.analysis_task_status }}
           QUALITY_GATE_STATUS: ${{ steps.sonar_diagnosis.outputs.quality_gate_status }}
           FAILED_CONDITION_COUNT: ${{ steps.sonar_diagnosis.outputs.failed_condition_count }}
+          DUPLICATION_HOTSPOT_COUNT: ${{ steps.sonar_diagnosis.outputs.duplication_hotspot_count }}
           DIAGNOSIS_STATUS: ${{ steps.sonar_diagnosis.outputs.diagnosis_status }}
         run: |
           set -euo pipefail
@@ -764,7 +878,7 @@ jobs:
           fi
 
           if [[ "$QUALITY_GATE_STATUS" != 'OK' ]]; then
-            echo "::error::SonarQube Cloud quality gate failed or could not be verified. Failed conditions: ${FAILED_CONDITION_COUNT:-unknown}. Diagnostic state: ${DIAGNOSIS_STATUS:-unknown}."
+            echo "::error::SonarQube Cloud quality gate failed or could not be verified. Failed conditions: ${FAILED_CONDITION_COUNT:-unknown}. Duplication hotspots: ${DUPLICATION_HOTSPOT_COUNT:-unknown}. Diagnostic state: ${DIAGNOSIS_STATUS:-unknown}."
             exit 1
           fi
 
@@ -791,6 +905,7 @@ jobs:
           ANALYSIS_TASK_STATUS: ${{ needs.analyze.outputs.analysis_task_status }}
           QUALITY_GATE_STATUS: ${{ needs.analyze.outputs.quality_gate_status }}
           FAILED_CONDITION_COUNT: ${{ needs.analyze.outputs.failed_condition_count }}
+          DUPLICATION_HOTSPOT_COUNT: ${{ needs.analyze.outputs.duplication_hotspot_count }}
           ISSUE_COUNT: ${{ needs.analyze.outputs.issue_count }}
           DIAGNOSIS_STATUS: ${{ needs.analyze.outputs.diagnosis_status }}
           DASHBOARD_URL: ${{ needs.analyze.outputs.dashboard_url }}
@@ -811,6 +926,7 @@ jobs:
             echo "| Compute Engine task | ${ANALYSIS_TASK_STATUS:-not-available} |"
             echo "| Quality gate | ${QUALITY_GATE_STATUS:-not-available} |"
             echo "| Failed quality-gate conditions | ${FAILED_CONDITION_COUNT:-0} |"
+            echo "| New-code duplication hotspots | ${DUPLICATION_HOTSPOT_COUNT:-0} |"
             echo "| Open Sonar issues | ${ISSUE_COUNT:-0} |"
             echo "| Diagnostic state | ${DIAGNOSIS_STATUS:-unknown} |"
             echo "| Workflow result | ${ANALYZE_RESULT:-skipped} |"
@@ -827,5 +943,5 @@ jobs:
           {
             echo
             echo 'The detailed SonarQube Cloud Exact Diagnosis section is in the Test, cover, analyze, and diagnose job summary.'
-            echo 'The sonar-diagnostics artifact contains raw task, quality-gate, issue, and coverage reports.'
+            echo 'The sonar-diagnostics artifact contains raw task, quality-gate, duplication, issue, and coverage reports.'
           } >> "$GITHUB_STEP_SUMMARY"
