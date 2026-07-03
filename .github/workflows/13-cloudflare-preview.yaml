@@ -103,7 +103,7 @@ jobs:
       PULL_REQUEST_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
       CURRENT_REPOSITORY: ${{ github.repository }}
 
-      WRANGLER_CONFIG_PATH_OVERRIDE: ${{ inputs.wrangler_config_path || vars.CLOUDFLARE_WRANGLER_CONFIG_PATH }}
+      WRANGLER_CONFIG_PATH_OVERRIDE: ${{ inputs.wrangler_config_path }}
 
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -128,6 +128,7 @@ jobs:
           configuration_source=''
           internal_pull_request='true'
           discovered_configurations='none'
+          wrangler_config_path_override="${WRANGLER_CONFIG_PATH_OVERRIDE:-}"
 
           resolve_config_path() {
             local requested_path="$1"
@@ -211,9 +212,9 @@ jobs:
               exit 1
             fi
 
-            if [[ -n "${WRANGLER_CONFIG_PATH_OVERRIDE:-}" ]]; then
+            if [[ -n "$wrangler_config_path_override" ]]; then
               wrangler_config_path="$(
-                resolve_config_path "$WRANGLER_CONFIG_PATH_OVERRIDE"
+                resolve_config_path "$wrangler_config_path_override"
               )"
               configuration_source='explicit override'
             else
