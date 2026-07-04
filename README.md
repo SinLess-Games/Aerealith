@@ -1,5 +1,3 @@
-#
-
 <div align="center">
   <h1>Aerealith AI</h1>
 
@@ -21,7 +19,7 @@
     <a href="https://github.com/SinLess-Games/Aerealith/actions/workflows/00-ci.yaml">
       <img
         src="https://img.shields.io/github/actions/workflow/status/SinLess-Games/Aerealith/00-ci.yaml?branch=master&amp;style=for-the-badge&amp;label=CI&amp;logo=githubactions&amp;logoColor=white"
-        alt="CI status"
+        alt="Continuous integration status"
       />
     </a>
     <a href="https://sonarcloud.io/summary/new_code?id=SinLess-Games_Aerealith">
@@ -33,7 +31,7 @@
     <a href="https://github.com/SinLess-Games/Aerealith/actions/workflows/08-codeql.yaml">
       <img
         src="https://img.shields.io/github/actions/workflow/status/SinLess-Games/Aerealith/08-codeql.yaml?branch=master&amp;style=for-the-badge&amp;label=CodeQL&amp;logo=githubactions&amp;logoColor=white"
-        alt="CodeQL status"
+        alt="CodeQL analysis status"
       />
     </a>
     <a href="https://github.com/SinLess-Games/Aerealith/actions/workflows/10-snyk.yaml">
@@ -49,7 +47,7 @@
     <br />
     <img
       src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=for-the-badge&amp;logo=typescript&amp;logoColor=white"
-      alt="TypeScript strict"
+      alt="TypeScript strict mode"
     />
     <img
       src="https://img.shields.io/badge/Node.js-25.9.0-339933?style=for-the-badge&amp;logo=nodedotjs&amp;logoColor=white"
@@ -62,43 +60,6 @@
     <img
       src="https://img.shields.io/badge/Nx-monorepo-143055?style=for-the-badge&amp;logo=nx&amp;logoColor=white"
       alt="Nx monorepo"
-    />
-  </p>
-
-  <p>
-    <strong>Repository</strong>
-    <br />
-    <img
-      src="https://img.shields.io/github/v/release/SinLess-Games/Aerealith?sort=semver&style=for-the-badge"
-      alt="Latest release"
-    />
-    <img
-      src="https://img.shields.io/github/repo-size/SinLess-Games/Aerealith?style=for-the-badge"
-      alt="Repository size"
-    />
-    <img
-      src="https://img.shields.io/github/last-commit/SinLess-Games/Aerealith?style=for-the-badge"
-      alt="Last commit"
-    />
-    <img
-      src="https://img.shields.io/github/contributors/SinLess-Games/Aerealith?style=for-the-badge"
-      alt="Contributors"
-    />
-    <img
-      src="https://img.shields.io/github/languages/top/SinLess-Games/Aerealith?style=for-the-badge"
-      alt="Top language"
-    />
-    <img
-      src="https://img.shields.io/github/stars/SinLess-Games/Aerealith?style=for-the-badge"
-      alt="GitHub stars"
-    />
-    <img
-      src="https://img.shields.io/github/forks/SinLess-Games/Aerealith?style=for-the-badge"
-      alt="GitHub forks"
-    />
-    <img
-      src="https://img.shields.io/github/watchers/SinLess-Games/Aerealith?style=for-the-badge"
-      alt="GitHub watchers"
     />
   </p>
 
