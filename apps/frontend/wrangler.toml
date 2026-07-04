@@ -15,7 +15,13 @@
 #   wrangler versions upload --preview-alias <alias>
 #
 # Do not place secrets in this file.
-# Use Cloudflare Worker secrets for runtime credentials.
+# Use Cloudflare Worker secrets or Secrets Store bindings for runtime credentials.
+#
+# Important:
+# - NODE_VERSION and PNPM_VERSION are build-image settings.
+# - Set them in Cloudflare:
+#   Settings > Build > Build Variables and Secrets
+# - Do not add them under [vars]; [vars] creates Worker runtime bindings.
 
 "$schema" = "../../node_modules/wrangler/config-schema.json"
 
@@ -32,7 +38,7 @@ workers_dev = false
 # is disabled for the production Worker URL.
 preview_urls = true
 
-# Preserve dashboard-managed plain-text runtime variables during deploys.
+# Preserve dashboard-managed runtime variables during deploys.
 #
 # Wrangler never deletes Worker secrets unless explicitly told to do so.
 keep_vars = true
@@ -76,3 +82,63 @@ enabled = true
 # Sample every request while the platform is being established.
 # Reduce this later if request volume makes full sampling unnecessary.
 head_sampling_rate = 1
+
+# ---------------------------------------------------------------------------
+# Feature flags
+# ---------------------------------------------------------------------------
+
+[[flagship]]
+binding = "FLAGS"
+app_id = "2a1ca9ba-b446-4cb8-b8eb-ab0f3985679f"
+
+# ---------------------------------------------------------------------------
+# Storage
+# ---------------------------------------------------------------------------
+
+[[r2_buckets]]
+# Aerealith's primary R2 bucket.
+binding = "AEREALITH_R2"
+bucket_name = "aerealith-ai"
+
+[[kv_namespaces]]
+# Shared platform-level KV namespace.
+#
+# Replace this with the actual 32-character namespace ID returned by:
+# pnpm exec wrangler kv namespace list
+binding = "PLATFORM_KV"
+id = "9873b606bf1346aca48de61c9bb96968"
+
+# ---------------------------------------------------------------------------
+# Cloudflare Secrets Store
+# ---------------------------------------------------------------------------
+#
+# Account-level Secrets Store ID:
+# ab6f1fdec6a246578177e0577e94f40b
+#
+# Each secret is retrieved asynchronously at runtime:
+# const value = await env.POSTGRES_URL.get()
+
+[[secrets_store_secrets]]
+binding = "POSTGRES_URL"
+store_id = "ab6f1fdec6a246578177e0577e94f40b"
+secret_name = "POSTGRES_URL"
+
+[[secrets_store_secrets]]
+binding = "PREVIEW_POSTGRES_URL"
+store_id = "ab6f1fdec6a246578177e0577e94f40b"
+secret_name = "PREVIEW_POSTGRES_URL"
+
+[[secrets_store_secrets]]
+binding = "STAGING_POSTGRES_URL"
+store_id = "ab6f1fdec6a246578177e0577e94f40b"
+secret_name = "STAGING_POSTGRES_URL"
+
+[[secrets_store_secrets]]
+binding = "PRODUCTION_POSTGRES_URL"
+store_id = "ab6f1fdec6a246578177e0577e94f40b"
+secret_name = "PRODUCTION_POSTGRES_URL"
+
+[[secrets_store_secrets]]
+binding = "RESEND_API_KEY"
+store_id = "ab6f1fdec6a246578177e0577e94f40b"
+secret_name = "RESEND_API_KEY"
