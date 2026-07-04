@@ -51,6 +51,11 @@ export default async function serviceGenerator(
   const frontendRoutesFile = `${frontendProjectPath}/app.tsx`
   if (tree.exists(frontendRoutesFile)) {
     const current = tree.read(frontendRoutesFile, 'utf-8')
+
+    if (current === null) {
+      throw new Error(`Unable to read ${frontendRoutesFile}`)
+    }
+
     const marker = "import { Routes, Route } from 'react-router-dom';"
     const serviceRoute = `import { ${className}Page } from '../services/${serviceName}/routes';`
     const serviceElement = `      <Route path="${routePrefix}" element={<${className}Page />} />`
@@ -67,6 +72,11 @@ export default async function serviceGenerator(
 
   const workspacePackageJsonPath = 'package.json'
   const workspacePackageJson = tree.read(workspacePackageJsonPath, 'utf-8')
+
+  if (workspacePackageJson === null) {
+    throw new Error(`Unable to read ${workspacePackageJsonPath}`)
+  }
+
   const packageJson = JSON.parse(workspacePackageJson)
   if (!packageJson.scripts?.['services:new']) {
     packageJson.scripts = {
@@ -103,7 +113,7 @@ export default async function serviceGenerator(
         },
       },
       test: {
-        executor: '@nx/vitest:vitest',
+        executor: '@nx/vitest:test',
         options: {
           passWithNoTests: true,
           configFile: `${projectRoot}/vitest.config.mts`,

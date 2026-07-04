@@ -93,14 +93,26 @@ jobs:
 
           nx_bin="$GITHUB_WORKSPACE/node_modules/.bin/nx"
           projects_file="$RUNNER_TEMP/coverage-projects.txt"
+          projects_json="$RUNNER_TEMP/coverage-projects.json"
 
           if [[ ! -x "$nx_bin" ]]; then
             echo "::error::Nx executable was not found at $nx_bin."
             exit 1
           fi
 
-          "$nx_bin" show projects --withTarget=test |
-            awk 'NF { print }' |
+          # Nx 23 emits a JSON array. Request that format explicitly and keep
+          # ANSI sequences out of the machine-readable output.
+          FORCE_COLOR=0 "$nx_bin" show projects --withTarget=test --json \
+            > "$projects_json"
+
+          if ! jq -e \
+            'type == "array" and all(.[]; type == "string")' \
+            "$projects_json" >/dev/null; then
+            echo '::error::Nx did not return a valid JSON array of test projects.'
+            exit 1
+          fi
+
+          jq -r '.[] | select(test("<%.*%>") | not)' "$projects_json" |
             sort -u > "$projects_file"
 
           if [[ ! -s "$projects_file" ]]; then
@@ -144,7 +156,8 @@ jobs:
               --coverage.reportOnFailure=true \
               --coverage.reportsDirectory="$reports_directory" \
               --coverage.reporter=text-summary \
-              --coverage.reporter=cobertura; then
+              --coverage.reporter=cobertura \
+              </dev/null; then
               failures=1
               echo "::error::Vitest failed for project: $project"
             fi

@@ -98,10 +98,20 @@ jobs:
 
           nx_bin="$GITHUB_WORKSPACE/node_modules/.bin/nx"
           projects_file="$RUNNER_TEMP/vitest-projects.txt"
+          projects_json="$RUNNER_TEMP/vitest-projects.json"
 
-          "$nx_bin" show projects --withTarget=test > "$projects_file"
+          FORCE_COLOR=0 "$nx_bin" show projects --withTarget=test --json \
+            > "$projects_json"
 
-          sed -i '/^[[:space:]]*$/d' "$projects_file"
+          if ! jq -e \
+            'type == "array" and all(.[]; type == "string")' \
+            "$projects_json" >/dev/null; then
+            echo '::error::Nx did not return a valid JSON array of test projects.'
+            exit 1
+          fi
+
+          jq -r '.[] | select(test("<%.*%>") | not)' "$projects_json" |
+            sort -u > "$projects_file"
 
           if [[ ! -s "$projects_file" ]]; then
             echo "::error::No Nx projects expose a test target."
@@ -146,7 +156,8 @@ jobs:
               --coverage.reporter=json \
               --reporter=default \
               --reporter=junit \
-              --outputFile.junit="$junit_file"; then
+              --outputFile.junit="$junit_file" \
+              </dev/null; then
               failures=1
               echo "::error::Vitest failed for project: $project"
             fi

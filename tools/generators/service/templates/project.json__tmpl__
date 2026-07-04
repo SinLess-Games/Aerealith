@@ -21,7 +21,7 @@
       }
     },
     "test": {
-      "executor": "@nx/vitest:vitest",
+      "executor": "@nx/vitest:test",
       "options": {
         "passWithNoTests": true,
         "configFile": "apps/services/<%= serviceName %>/vitest.config.mts"
