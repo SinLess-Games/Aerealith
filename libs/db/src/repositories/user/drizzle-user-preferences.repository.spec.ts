@@ -237,6 +237,53 @@ describe('DrizzleUserPreferencesRepository', () => {
     )
   })
 
+  it('updates every optional preference field', async () => {
+    const row = createUserPreferencesRow()
+    const databaseMock = createDatabaseMock({ updatedRows: [row] })
+    const repository = new DrizzleUserPreferencesRepository(
+      databaseMock.database,
+    )
+
+    await repository.update(row.userId, {
+      locale: row.locale,
+      timezone: row.timezone,
+      timezoneUtc: row.timezoneUtc,
+      timezoneGreenwich: row.timezoneGreenwich,
+      dateFormat: row.dateFormat,
+      timeFormat: row.timeFormat,
+      weekStartDay: row.weekStartDay,
+      nameDisplayOrder: row.nameDisplayOrder,
+      measurementSystem: row.measurementSystem,
+      contentMaturity: row.contentMaturity,
+    })
+
+    expect(databaseMock.updateSet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        timezoneUtc: row.timezoneUtc,
+        timezoneGreenwich: row.timezoneGreenwich,
+        dateFormat: row.dateFormat,
+        timeFormat: row.timeFormat,
+        weekStartDay: row.weekStartDay,
+        nameDisplayOrder: row.nameDisplayOrder,
+        measurementSystem: row.measurementSystem,
+        contentMaturity: row.contentMaturity,
+      }),
+    )
+  })
+
+  it('returns existing preferences when an update has no values', async () => {
+    const row = createUserPreferencesRow()
+    const databaseMock = createDatabaseMock({ selectedRows: [row] })
+    const repository = new DrizzleUserPreferencesRepository(
+      databaseMock.database,
+    )
+
+    await expect(repository.update(row.userId, {})).resolves.toEqual(
+      toExpectedContract(row),
+    )
+    expect(databaseMock.update).not.toHaveBeenCalled()
+  })
+
   it('returns null when updating preferences that do not exist', async () => {
     const databaseMock = createDatabaseMock()
 

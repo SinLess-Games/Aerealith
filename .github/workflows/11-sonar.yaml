@@ -346,9 +346,9 @@ jobs:
             echo "sonar.organization=$SONAR_ORGANIZATION"
             echo 'sonar.sourceEncoding=UTF-8'
 
-            echo 'sonar.sources=apps,libs'
+            echo 'sonar.sources=apps,libs,tools'
 
-            echo 'sonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/.nx/**,**/.vite/**,**/out-tsc/**,**/storybook-static/**,**/*.d.ts,**/*.test.*,**/*.spec.*,**/*.e2e.*,**/*.integration.*,**/*.stories.*,**/test/**,**/tests/**,**/spec/**,**/specs/**,**/e2e/**,**/e2e-tests/**,**/integration/**,**/integration-tests/**,**/__tests__/**,**/__mocks__/**,**/__fixtures__/**'
+            echo 'sonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/.nx/**,**/.vite/**,**/out-tsc/**,**/storybook-static/**,**/public/**,**/templates/**,**/*.d.ts,**/*.test.*,**/*.spec.*,**/*.e2e.*,**/*.integration.*,**/*.stories.*,**/test/**,**/tests/**,**/spec/**,**/specs/**,**/e2e/**,**/e2e-tests/**,**/integration/**,**/integration-tests/**,**/__tests__/**,**/__mocks__/**,**/__fixtures__/**'
 
             echo 'sonar.coverage.exclusions=**/*.test.*,**/*.spec.*,**/*.e2e.*,**/*.integration.*,**/*.stories.*,**/test/**,**/tests/**,**/spec/**,**/specs/**,**/e2e/**,**/e2e-tests/**,**/integration/**,**/integration-tests/**,**/__tests__/**,**/__mocks__/**,**/__fixtures__/**,**/*.d.ts'
 
@@ -373,7 +373,7 @@ jobs:
             echo '| Setting | Value |'
             echo '| --- | --- |'
             echo '| Platform | SonarQube Cloud |'
-            echo '| Source roots | apps, libs |'
+            echo '| Source roots | apps, libs, tools |'
             echo '| Test and E2E source excluded | true |'
             echo "| LCOV reports configured | $([[ -n "${LCOV_REPORTS:-}" ]] && echo true || echo false) |"
             echo '| Scanner quality-gate wait | false |'

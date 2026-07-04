@@ -40,9 +40,11 @@ function createUserSessionRow(
 function createDatabaseMock({
   selectedRows = [],
   insertedRows = [],
+  updatedRows = [],
 }: {
   selectedRows?: UserSessionRow[]
   insertedRows?: UserSessionRow[]
+  updatedRows?: UserSessionRow[] | Array<{ id: string }>
 } = {}) {
   const selectLimit = vi.fn().mockResolvedValue(selectedRows)
   const selectOrderBy = vi.fn()
@@ -80,9 +82,15 @@ function createDatabaseMock({
     values: insertValues,
   }))
 
+  const updateReturning = vi.fn().mockResolvedValue(updatedRows)
+  const updateWhere = vi.fn(() => ({ returning: updateReturning }))
+  const updateSet = vi.fn(() => ({ where: updateWhere }))
+  const update = vi.fn(() => ({ set: updateSet }))
+
   const database = {
     select,
     insert,
+    update,
   } as unknown as DatabaseClient
 
   return {
@@ -95,6 +103,10 @@ function createDatabaseMock({
     insert,
     insertValues,
     insertReturning,
+    update,
+    updateSet,
+    updateWhere,
+    updateReturning,
   }
 }
 
@@ -181,6 +193,27 @@ describe('DrizzleUserSessionRepository', () => {
     ])
   })
 
+  it('finds sessions by token hash and returns session history', async () => {
+    const row = createUserSessionRow()
+    const databaseMock = createDatabaseMock({ selectedRows: [row] })
+    const repository = new DrizzleUserSessionRepository(databaseMock.database)
+
+    await expect(repository.findByTokenHash(row.tokenHash)).resolves.toEqual(
+      toExpectedContract(row),
+    )
+    await expect(repository.findHistoryByUserId(row.userId)).resolves.toEqual([
+      toExpectedContract(row),
+    ])
+  })
+
+  it('returns null when a token hash does not match an active session', async () => {
+    const repository = new DrizzleUserSessionRepository(
+      createDatabaseMock().database,
+    )
+
+    await expect(repository.findByTokenHash('missing')).resolves.toBeNull()
+  })
+
   it('does not expose token hashes, user IDs, or exact GeoIP coordinates', async () => {
     const row = createUserSessionRow()
     const databaseMock = createDatabaseMock({
@@ -247,5 +280,49 @@ describe('DrizzleUserSessionRepository', () => {
         expiresAt: new Date('2026-06-27T00:00:00.000Z'),
       }),
     ).rejects.toThrow()
+  })
+
+  it('updates session activity and handles a missing session', async () => {
+    const row = createUserSessionRow()
+    const databaseMock = createDatabaseMock({ updatedRows: [row] })
+    const repository = new DrizzleUserSessionRepository(databaseMock.database)
+
+    await expect(repository.updateActivity(row.id)).resolves.toEqual(
+      toExpectedContract(row),
+    )
+    expect(databaseMock.updateSet).toHaveBeenCalledWith({
+      lastSeenAt: expect.any(Date),
+      updatedAt: expect.any(Date),
+    })
+
+    const missingRepository = new DrizzleUserSessionRepository(
+      createDatabaseMock().database,
+    )
+    await expect(
+      missingRepository.updateActivity('missing', {
+        lastSeenAt: row.lastSeenAt,
+      }),
+    ).resolves.toBeNull()
+  })
+
+  it('revokes one or all active sessions', async () => {
+    const row = createUserSessionRow()
+    const databaseMock = createDatabaseMock({
+      updatedRows: [{ id: row.id }, { id: 'session_456' }],
+    })
+    const repository = new DrizzleUserSessionRepository(databaseMock.database)
+
+    await expect(repository.revoke(row.id)).resolves.toBe(true)
+    await expect(
+      repository.revokeAllByUserId(row.userId, row.id),
+    ).resolves.toBe(2)
+
+    const missingRepository = new DrizzleUserSessionRepository(
+      createDatabaseMock().database,
+    )
+    await expect(missingRepository.revoke('missing')).resolves.toBe(false)
+    await expect(missingRepository.revokeAllByUserId(row.userId)).resolves.toBe(
+      0,
+    )
   })
 })
