@@ -40,7 +40,7 @@
 
 name: 15 · Assign Milestones
 
-on:
+on: # zizmor: ignore[dangerous-triggers] Required to assign milestones to external-fork pull requests; this workflow never checks out or executes pull request-controlled code.
   issues:
     types:
       - opened

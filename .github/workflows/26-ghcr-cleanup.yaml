@@ -41,7 +41,7 @@
 
 name: 26 · GHCR Cleanup
 
-on:
+on: # zizmor: ignore[dangerous-triggers] Intentional workflow_run gate: validation is read-only, consumes no artifacts, and authorizes package deletion only after a trusted successful same-repository release workflow.
   workflow_run:
     workflows:
       - "19 · Publish GHCR Images"

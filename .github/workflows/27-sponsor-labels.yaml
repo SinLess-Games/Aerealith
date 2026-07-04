@@ -15,7 +15,7 @@
 
 name: 27 · Sponsor Labels
 
-on:
+on: # zizmor: ignore[dangerous-triggers] Required to label sponsor pull requests from external forks; this workflow never checks out, downloads, caches, or executes pull-request-controlled code.
   issues:
     types:
       - opened
