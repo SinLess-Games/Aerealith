@@ -81,7 +81,7 @@ jobs:
 
       - name: Restore pnpm store cache
         id: cache_pnpm
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: ${{ env.PNPM_STORE_DIR }}
           key: pnpm-store-${{ runner.os }}-node-24-pnpm-10-${{ hashFiles('pnpm-lock.yaml') }}
