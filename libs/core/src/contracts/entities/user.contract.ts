@@ -17,13 +17,13 @@ import type {
   UserSecuritySettings,
   UserSessionGeoIp,
   UserSettingsMetadata,
-} from '../../entities';
+} from '../../entities'
 import type {
   ContentMaturity,
   Country,
   DateFormat,
   Gender,
-  Language,
+  Languages as Language,
   LanguageProficiency,
   MeasurementSystem,
   NameDisplayOrder,
@@ -40,23 +40,23 @@ import type {
   UserRole,
   UserTier,
   WeekStartDay,
-} from '../../enumns';
-import type { IsoDateString } from '../api.contract';
+} from '../../enumns'
+import type { IsoDateString } from '../api.contract'
 
 /**
  * Public account information safe to show in normal user responses.
  */
 export type UserContract = {
-  id: string;
-  username: string;
-  email: string;
-  emailVerified: boolean;
-  status: UserLifecycleStatus;
-  role: UserRole;
-  tier: UserTier;
-  createdAt: IsoDateString;
-  updatedAt: IsoDateString;
-};
+  id: string
+  username: string
+  email: string
+  emailVerified: boolean
+  status: UserLifecycleStatus
+  role: UserRole
+  tier: UserTier
+  createdAt: IsoDateString
+  updatedAt: IsoDateString
+}
 
 /**
  * Account data needed when an internal service creates a user.
@@ -64,10 +64,10 @@ export type UserContract = {
  * Role and tier are intentionally not included.
  */
 export type CreateUserContract = {
-  username: string;
-  email: string;
-  password?: string;
-};
+  username: string
+  email: string
+  password?: string
+}
 
 /**
  * Account data a user may update for themselves.
@@ -76,37 +76,37 @@ export type CreateUserContract = {
  * Role and tier changes require a protected admin or billing flow.
  */
 export type UpdateUserContract = {
-  username?: string;
-  email?: string;
-  metadata?: Record<string, unknown>;
-};
+  username?: string
+  email?: string
+  metadata?: Record<string, unknown>
+}
 
 /**
  * Protected administrative account changes.
  */
 export type UpdateUserAdminContract = {
-  status?: UserLifecycleStatus;
-  role?: UserRole;
-  tier?: UserTier;
-};
+  status?: UserLifecycleStatus
+  role?: UserRole
+  tier?: UserTier
+}
 
 /**
  * A public external link shown on a user profile.
  */
 export type UserProfileLinkContract = {
-  platform: ProfileLinkPlatform;
-  url: string;
-  label?: string | null;
-};
+  platform: ProfileLinkPlatform
+  url: string
+  label?: string | null
+}
 
 /**
  * A user language and optional proficiency.
  */
 export type UserProfileLanguageContract = {
-  language: Language;
-  proficiency?: LanguageProficiency;
-  isPrimary?: boolean;
-};
+  language: Language
+  proficiency?: LanguageProficiency
+  isPrimary?: boolean
+}
 
 /**
  * Public profile information.
@@ -114,131 +114,129 @@ export type UserProfileLanguageContract = {
  * Services must enforce field visibility before returning this contract.
  */
 export type PublicUserProfileContract = {
-  userId: string;
-  handle: string;
-  displayName: string | null;
-  pronouns: string | null;
-  avatarUrl: string | null;
-  bannerUrl: string | null;
-  bio: string | null;
-  locationLabel: string | null;
-  country: Country | null;
-  languages: UserProfileLanguageContract[];
-  websiteUrl: string | null;
-  links: UserProfileLinkContract[];
-  createdAt: IsoDateString;
-};
+  userId: string
+  handle: string
+  displayName: string | null
+  pronouns: string | null
+  avatarUrl: string | null
+  bannerUrl: string | null
+  bio: string | null
+  locationLabel: string | null
+  country: Country | null
+  languages: UserProfileLanguageContract[]
+  websiteUrl: string | null
+  links: UserProfileLinkContract[]
+  createdAt: IsoDateString
+}
 
 /**
  * Full profile data for the profile owner or an authorized administrator.
  */
 export type UserProfileContract = PublicUserProfileContract & {
-  id: string;
+  id: string
 
-  givenName: string | null;
-  middleName: string | null;
-  familyName: string | null;
+  givenName: string | null
+  middleName: string | null
+  familyName: string | null
 
-  status: ProfileStatus;
-  fieldVisibility: UserProfileFieldVisibility;
+  status: ProfileStatus
+  fieldVisibility: UserProfileFieldVisibility
 
-  gender: Gender | null;
-  sex: Sex | null;
-  sexuality: Sexuality | null;
-  romanticOrientation: RomanticOrientation | null;
-  sexAttitude: SexAttitude | null;
+  gender: Gender | null
+  sex: Sex | null
+  sexuality: Sexuality | null
+  romanticOrientation: RomanticOrientation | null
+  sexAttitude: SexAttitude | null
 
-  updatedAt: IsoDateString;
-};
+  updatedAt: IsoDateString
+}
 
 /**
  * Data allowed when creating a profile.
  */
 export type CreateUserProfileContract = {
-  handle: string;
-  displayName?: string | null;
-};
+  handle: string
+  displayName?: string | null
+}
 
 /**
  * Data allowed when updating a profile.
  */
 export type UpdateUserProfileContract = {
-  handle?: string;
+  handle?: string
 
-  displayName?: string | null;
-  givenName?: string | null;
-  middleName?: string | null;
-  familyName?: string | null;
-  pronouns?: string | null;
+  displayName?: string | null
+  givenName?: string | null
+  middleName?: string | null
+  familyName?: string | null
+  pronouns?: string | null
 
-  avatarUrl?: string | null;
-  bannerUrl?: string | null;
-  bio?: string | null;
+  avatarUrl?: string | null
+  bannerUrl?: string | null
+  bio?: string | null
 
-  fieldVisibility?: Partial<
-    Record<UserProfileField, ProfileFieldVisibility>
-  >;
+  fieldVisibility?: Partial<Record<UserProfileField, ProfileFieldVisibility>>
 
-  locationLabel?: string | null;
-  country?: Country | null;
+  locationLabel?: string | null
+  country?: Country | null
 
-  gender?: Gender | null;
-  sex?: Sex | null;
-  sexuality?: Sexuality | null;
-  romanticOrientation?: RomanticOrientation | null;
-  sexAttitude?: SexAttitude | null;
+  gender?: Gender | null
+  sex?: Sex | null
+  sexuality?: Sexuality | null
+  romanticOrientation?: RomanticOrientation | null
+  sexAttitude?: SexAttitude | null
 
-  languages?: UserProfileLanguage[];
-  websiteUrl?: string | null;
-  links?: UserProfileLink[];
-};
+  languages?: UserProfileLanguage[]
+  websiteUrl?: string | null
+  links?: UserProfileLink[]
+}
 
 /**
  * User locale, display, and content preferences.
  */
 export type UserPreferencesContract = {
-  id: string;
-  userId: string;
+  id: string
+  userId: string
 
-  locale: string | null;
-  timezone: string | null;
-  timezoneUtc: TimezoneUtc | null;
-  timezoneGreenwich: TimezoneGreenwich | null;
+  locale: string | null
+  timezone: string | null
+  timezoneUtc: TimezoneUtc | null
+  timezoneGreenwich: TimezoneGreenwich | null
 
-  dateFormat: DateFormat;
-  timeFormat: TimeFormat;
-  weekStartDay: WeekStartDay;
-  nameDisplayOrder: NameDisplayOrder;
-  measurementSystem: MeasurementSystem;
-  contentMaturity: ContentMaturity;
+  dateFormat: DateFormat
+  timeFormat: TimeFormat
+  weekStartDay: WeekStartDay
+  nameDisplayOrder: NameDisplayOrder
+  measurementSystem: MeasurementSystem
+  contentMaturity: ContentMaturity
 
-  createdAt: IsoDateString;
-  updatedAt: IsoDateString;
-};
+  createdAt: IsoDateString
+  updatedAt: IsoDateString
+}
 
 /**
  * Data allowed when updating user preferences.
  */
-export type UpdateUserPreferencesContract = UserPreferencesUpdate;
+export type UpdateUserPreferencesContract = UserPreferencesUpdate
 
 /**
  * User application settings.
  */
 export type UserSettingsContract = {
-  id: string;
-  userId: string;
+  id: string
+  userId: string
 
-  metadata: UserSettingsMetadata;
-  accessibility: UserAccessibilitySettings;
-  appearance: UserAppearanceSettings;
-  communication: UserCommunicationSettings;
-  notifications: UserNotificationSettings;
-  privacy: UserPrivacySettings;
-  security: UserSecuritySettings;
+  metadata: UserSettingsMetadata
+  accessibility: UserAccessibilitySettings
+  appearance: UserAppearanceSettings
+  communication: UserCommunicationSettings
+  notifications: UserNotificationSettings
+  privacy: UserPrivacySettings
+  security: UserSecuritySettings
 
-  createdAt: IsoDateString;
-  updatedAt: IsoDateString;
-};
+  createdAt: IsoDateString
+  updatedAt: IsoDateString
+}
 
 /**
  * Data allowed when updating user settings.
@@ -246,36 +244,36 @@ export type UserSettingsContract = {
  * Metadata is internal and is not updated through normal user settings routes.
  */
 export type UpdateUserSettingsContract = {
-  accessibility?: Partial<UserAccessibilitySettings>;
-  appearance?: Partial<UserAppearanceSettings>;
-  communication?: Partial<UserCommunicationSettings>;
-  notifications?: Partial<UserNotificationSettings>;
-  privacy?: Partial<UserPrivacySettings>;
-  security?: Partial<UserSecuritySettings>;
-};
+  accessibility?: Partial<UserAccessibilitySettings>
+  appearance?: Partial<UserAppearanceSettings>
+  communication?: Partial<UserCommunicationSettings>
+  notifications?: Partial<UserNotificationSettings>
+  privacy?: Partial<UserPrivacySettings>
+  security?: Partial<UserSecuritySettings>
+}
 
 /**
  * A user consent record.
  */
 export type UserConsentContract = {
-  id: string;
-  userId: string;
-  type: UserConsentType;
-  version: string | null;
-  grantedAt: IsoDateString | null;
-  revokedAt: IsoDateString | null;
-  createdAt: IsoDateString;
-  updatedAt: IsoDateString;
-};
+  id: string
+  userId: string
+  type: UserConsentType
+  version: string | null
+  grantedAt: IsoDateString | null
+  revokedAt: IsoDateString | null
+  createdAt: IsoDateString
+  updatedAt: IsoDateString
+}
 
 /**
  * Data used to record or revoke a consent decision.
  */
 export type UpdateUserConsentContract = {
-  type: UserConsentType;
-  version?: string | null;
-  granted: boolean;
-};
+  type: UserConsentType
+  version?: string | null
+  granted: boolean
+}
 
 /**
  * Linked external authentication or integration account.
@@ -283,15 +281,15 @@ export type UpdateUserConsentContract = {
  * The provider account ID remains internal and is intentionally omitted.
  */
 export type UserAccountContract = {
-  id: string;
-  provider: string;
-  displayName: string;
-  managementUrl: string | null;
-  status: UserAccountStatus;
-  connectedAt: IsoDateString;
-  createdAt: IsoDateString;
-  updatedAt: IsoDateString;
-};
+  id: string
+  provider: string
+  displayName: string
+  managementUrl: string | null
+  status: UserAccountStatus
+  connectedAt: IsoDateString
+  createdAt: IsoDateString
+  updatedAt: IsoDateString
+}
 
 /**
  * GeoIP data safe for the session-management screen.
@@ -301,7 +299,7 @@ export type UserAccountContract = {
 export type UserSessionGeoIpContract = Omit<
   UserSessionGeoIp,
   'latitude' | 'longitude'
->;
+>
 
 /**
  * A user session safe to show in account session management.
@@ -309,24 +307,24 @@ export type UserSessionGeoIpContract = Omit<
  * Never expose `tokenHash`.
  */
 export type UserSessionContract = {
-  id: string;
-  deviceName: string | null;
-  userAgent: string | null;
-  ipAddress: string | null;
-  geoIp: UserSessionGeoIpContract | null;
-  lastSeenAt: IsoDateString | null;
-  expiresAt: IsoDateString;
-  revokedAt: IsoDateString | null;
-  createdAt: IsoDateString;
-  updatedAt: IsoDateString;
-};
+  id: string
+  deviceName: string | null
+  userAgent: string | null
+  ipAddress: string | null
+  geoIp: UserSessionGeoIpContract | null
+  lastSeenAt: IsoDateString | null
+  expiresAt: IsoDateString
+  revokedAt: IsoDateString | null
+  createdAt: IsoDateString
+  updatedAt: IsoDateString
+}
 
 /**
  * Complete data returned to the authenticated user.
  */
 export type CurrentUserContract = {
-  user: UserContract;
-  profile: UserProfileContract | null;
-  preferences: UserPreferencesContract | null;
-  settings: UserSettingsContract | null;
-};
+  user: UserContract
+  profile: UserProfileContract | null
+  preferences: UserPreferencesContract | null
+  settings: UserSettingsContract | null
+}
