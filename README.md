@@ -26,7 +26,7 @@
     </a>
     <a href="https://sonarcloud.io/summary/new_code?id=SinLess-Games_Aerealith">
       <img
-        src="https://sonarcloud.io/api/project_badges/measure?project=SinLess-Games_Aerealith&metric=alert_status&token=a9ef6b53ca9fb505435cf83c4a712648479e946e&style=for-the-badge"
+        src="https://sonarcloud.io/api/project_badges/measure?project=SinLess-Games_Aerealith&metric=alert_status&token=a9ef6b53ca9fb505435cf83c4a712648479e946e&amp;style=for-the-badge"
         alt="SonarQube Cloud quality gate"
       />
     </a>
