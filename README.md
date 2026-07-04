@@ -25,7 +25,10 @@
       <img src="https://img.shields.io/github/actions/workflow/status/SinLess-Games/Aerealith/00-ci.yaml?branch=master&amp;style=for-the-badge&amp;label=CI&amp;logo=githubactions&amp;logoColor=white" alt="CI status" />
     </a>
     <a href="https://sonarcloud.io/summary/new_code?id=SinLess-Games_Aerealith">
-      <img src="https://img.shields.io/sonar/quality/gate/SinLess-Games_Aerealith?server=https%3A%2F%2Fsonarcloud.io&amp;style=for-the-badge&amp;label=Quality%20Gate&amp;logo=sonarcloud&amp;logoColor=white" alt="SonarQube Cloud quality gate" />
+      <img
+        src="https://img.shields.io/sonar/quality_gate/SinLess-Games_Aerealith?server=https%3A%2F%2Fsonarcloud.io&amp;style=for-the-badge&amp;label=Quality%20Gate&amp;logo=sonarcloud&amp;logoColor=white"
+        alt="SonarQube Cloud quality gate"
+      />
     </a>
     <a href="https://github.com/SinLess-Games/Aerealith/actions/workflows/08-codeql.yaml">
       <img src="https://img.shields.io/github/actions/workflow/status/SinLess-Games/Aerealith/08-codeql.yaml?branch=master&amp;style=for-the-badge&amp;label=CodeQL&amp;logo=githubactions&amp;logoColor=white" alt="CodeQL status" />
