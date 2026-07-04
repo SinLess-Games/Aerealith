@@ -102,7 +102,7 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           # Full history lets MegaLinter accurately determine PR diffs and
           # perform complete repository scans on protected branches.
@@ -163,7 +163,7 @@ jobs:
 
       - name: Run MegaLinter
         id: megalinter
-        uses: oxsecurity/megalinter@v9.5.0
+        uses: oxsecurity/megalinter@v9.6.0
         env:
           # Enables individual linter status checks when GitHub permits them.
           GITHUB_TOKEN: ${{ github.token }}
