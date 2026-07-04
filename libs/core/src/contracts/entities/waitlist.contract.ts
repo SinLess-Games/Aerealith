@@ -1,14 +1,12 @@
 // libs/core/src/contracts/entities/waitlist.contract.ts
 
-import type { IsoDateString } from '../api.contract'
-
 /**
  * A waitlist entry returned by the API.
  */
 export type WaitlistContract = {
   id: string
   email: string
-  createdAt: IsoDateString
+  createdAt: string
 }
 
 /**

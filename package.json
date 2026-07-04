@@ -7,6 +7,9 @@
     "node": "25.9.0",
     "pnpm": "11.5.2"
   },
+  "nx": {
+    "includedScripts": []
+  },
   "scripts": {
     "prepare": "husky",
     "nx": "nx",

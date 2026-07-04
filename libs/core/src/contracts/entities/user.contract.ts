@@ -41,7 +41,6 @@ import type {
   UserTier,
   WeekStartDay,
 } from '../../enumns'
-import type { IsoDateString } from '../api.contract'
 
 /**
  * Public account information safe to show in normal user responses.
@@ -54,8 +53,8 @@ export type UserContract = {
   status: UserLifecycleStatus
   role: UserRole
   tier: UserTier
-  createdAt: IsoDateString
-  updatedAt: IsoDateString
+  createdAt: string
+  updatedAt: string
 }
 
 /**
@@ -126,7 +125,7 @@ export type PublicUserProfileContract = {
   languages: UserProfileLanguageContract[]
   websiteUrl: string | null
   links: UserProfileLinkContract[]
-  createdAt: IsoDateString
+  createdAt: string
 }
 
 /**
@@ -148,7 +147,7 @@ export type UserProfileContract = PublicUserProfileContract & {
   romanticOrientation: RomanticOrientation | null
   sexAttitude: SexAttitude | null
 
-  updatedAt: IsoDateString
+  updatedAt: string
 }
 
 /**
@@ -210,8 +209,8 @@ export type UserPreferencesContract = {
   measurementSystem: MeasurementSystem
   contentMaturity: ContentMaturity
 
-  createdAt: IsoDateString
-  updatedAt: IsoDateString
+  createdAt: string
+  updatedAt: string
 }
 
 /**
@@ -234,8 +233,8 @@ export type UserSettingsContract = {
   privacy: UserPrivacySettings
   security: UserSecuritySettings
 
-  createdAt: IsoDateString
-  updatedAt: IsoDateString
+  createdAt: string
+  updatedAt: string
 }
 
 /**
@@ -260,10 +259,10 @@ export type UserConsentContract = {
   userId: string
   type: UserConsentType
   version: string | null
-  grantedAt: IsoDateString | null
-  revokedAt: IsoDateString | null
-  createdAt: IsoDateString
-  updatedAt: IsoDateString
+  grantedAt: string | null
+  revokedAt: string | null
+  createdAt: string
+  updatedAt: string
 }
 
 /**
@@ -286,9 +285,9 @@ export type UserAccountContract = {
   displayName: string
   managementUrl: string | null
   status: UserAccountStatus
-  connectedAt: IsoDateString
-  createdAt: IsoDateString
-  updatedAt: IsoDateString
+  connectedAt: string
+  createdAt: string
+  updatedAt: string
 }
 
 /**
@@ -312,11 +311,11 @@ export type UserSessionContract = {
   userAgent: string | null
   ipAddress: string | null
   geoIp: UserSessionGeoIpContract | null
-  lastSeenAt: IsoDateString | null
-  expiresAt: IsoDateString
-  revokedAt: IsoDateString | null
-  createdAt: IsoDateString
-  updatedAt: IsoDateString
+  lastSeenAt: string | null
+  expiresAt: string
+  revokedAt: string | null
+  createdAt: string
+  updatedAt: string
 }
 
 /**

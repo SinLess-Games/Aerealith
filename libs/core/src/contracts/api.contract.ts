@@ -53,5 +53,3 @@ export type PaginatedResponse<
   TItem,
   TCode extends string = string,
 > = ApiResponse<PaginatedData<TItem>, TCode>
-
-export type IsoDateString = string

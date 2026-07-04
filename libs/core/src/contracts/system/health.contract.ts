@@ -1,7 +1,5 @@
 // libs/core/src/contracts/system/health.contract.ts
 
-import type { IsoDateString } from '../api.contract'
-
 /**
  * Service health states.
  */
@@ -20,7 +18,7 @@ export type ServiceHealthStatus =
 export type HealthContract = {
   status: ServiceHealthStatus
   service: string
-  timestamp: IsoDateString
+  timestamp: string
 }
 
 /**
