@@ -5,6 +5,7 @@ dist
 tmp
 out-tsc
 notes.md
+reports
 
 # dependencies
 node_modules

@@ -38,8 +38,7 @@
 
 name: 22 · Datadog CI Observability
 
-# zizmor: ignore[dangerous-triggers] workflow_run is intentional: this workflow validates allowlisted, successful same-repository upstream runs before exposing DATADOG_API_KEY, and never checks out or consumes upstream artifacts.
-on:
+on: # zizmor: ignore[dangerous-triggers] Intentional workflow_run gate: validation is read-only, consumes no artifacts, and authorizes Datadog API-key use only after a trusted successful same-repository upstream workflow.
   workflow_run:
     workflows:
       - "19 · Publish GHCR Images"
