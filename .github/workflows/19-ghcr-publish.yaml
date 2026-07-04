@@ -1,0 +1,356 @@
+# .github/workflows/15-ghcr-publish.yaml
+#
+# Discovers Dockerfiles beneath apps/ and publishes one GHCR image per Dockerfile
+# when a GitHub release is published.
+#
+# Image naming:
+# - apps/frontend/Dockerfile
+#   -> ghcr.io/sinless-games/aerealith-frontend:<release-tag>
+#
+# - apps/api/auth/Dockerfile
+#   -> ghcr.io/sinless-games/aerealith-api-auth:<release-tag>
+#
+# - apps/api/Dockerfile.production
+#   -> ghcr.io/sinless-games/aerealith-api-production:<release-tag>
+#
+# Each Dockerfile uses the repository root as its build context. This lets app
+# images copy workspace files, pnpm-lock.yaml, and shared Nx libraries.
+#
+# Required repository setting:
+# - GitHub Actions workflow permissions must allow packages: write.
+#
+# This workflow intentionally:
+# - runs only for published GitHub releases
+# - publishes release-tag and sha tags for every discovered app image
+# - publishes latest only for stable releases
+# - skips publishing cleanly when no Dockerfiles are found under apps/
+# - does not build Dockerfiles outside apps/
+
+name: 15 · Publish GHCR Images
+
+on:
+  release:
+    types:
+      - published
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: ghcr-release-${{ github.event.release.id }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  REGISTRY: ghcr.io
+  APP_DIRECTORY: apps
+  PLATFORMS: linux/amd64
+
+jobs:
+  discover:
+    name: Discover application Dockerfiles
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    outputs:
+      dockerfile_count: ${{ steps.discover.outputs.dockerfile_count }}
+      has_dockerfiles: ${{ steps.discover.outputs.has_dockerfiles }}
+      matrix: ${{ steps.discover.outputs.matrix }}
+
+    steps:
+      - name: Check out release source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Discover Dockerfiles under apps
+        id: discover
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${RELEASE_TAG:-}" ]]; then
+            echo '::error::The published release does not have a tag name.'
+            exit 1
+          fi
+
+          entries_file="$RUNNER_TEMP/ghcr-image-matrix.ndjson"
+
+          rm -f "$entries_file"
+          touch "$entries_file"
+
+          if [[ ! -d "$APP_DIRECTORY" ]]; then
+            echo "::notice::No '$APP_DIRECTORY' directory exists. No Docker images will be published."
+          else
+            while IFS= read -r -d '' dockerfile_path; do
+              relative_path="${dockerfile_path#"$APP_DIRECTORY"/}"
+              dockerfile_name="$(basename "$relative_path")"
+              dockerfile_directory="$(dirname "$relative_path")"
+
+              if [[ "$dockerfile_directory" == '.' ]]; then
+                dockerfile_directory='root'
+              fi
+
+              dockerfile_variant=''
+
+              case "$dockerfile_name" in
+                Dockerfile)
+                  ;;
+                Dockerfile.*)
+                  dockerfile_variant="${dockerfile_name#Dockerfile.}"
+                  ;;
+                *.Dockerfile)
+                  dockerfile_variant="${dockerfile_name%.Dockerfile}"
+                  ;;
+                *)
+                  echo "::error::Unsupported Dockerfile name: $dockerfile_path"
+                  exit 1
+                  ;;
+              esac
+
+              service_name="$dockerfile_directory"
+
+              if [[ -n "$dockerfile_variant" ]]; then
+                service_name="${service_name}-${dockerfile_variant}"
+              fi
+
+              service_name="$(
+                printf '%s' "$service_name" \
+                  | tr '[:upper:]' '[:lower:]' \
+                  | sed -E \
+                    -e 's#/#-#g' \
+                    -e 's#[^a-z0-9._-]+#-#g' \
+                    -e 's#^[._-]+##' \
+                    -e 's#[._-]+$##'
+              )"
+
+              if [[ -z "$service_name" ]]; then
+                echo "::error::Could not derive a valid GHCR image name from: $dockerfile_path"
+                exit 1
+              fi
+
+              repository_owner="${GITHUB_REPOSITORY_OWNER,,}"
+              repository_name="${GITHUB_REPOSITORY#*/}"
+              repository_name="${repository_name,,}"
+
+              image_name="$REGISTRY/$repository_owner/$repository_name-$service_name"
+              cache_scope="ghcr-$service_name"
+
+              jq -cn \
+                --arg dockerfile "$dockerfile_path" \
+                --arg image "$image_name" \
+                --arg service_name "$service_name" \
+                --arg cache_scope "$cache_scope" \
+                '{
+                  dockerfile: $dockerfile,
+                  image: $image,
+                  service_name: $service_name,
+                  cache_scope: $cache_scope
+                }' >> "$entries_file"
+
+              printf '\n' >> "$entries_file"
+            done < <(
+              find "$APP_DIRECTORY" \
+                -type d \
+                \( \
+                  -name .git \
+                  -o -name node_modules \
+                  -o -name dist \
+                  -o -name coverage \
+                \) \
+                -prune \
+                -o \
+                -type f \
+                \( \
+                  -iname 'Dockerfile' \
+                  -o -iname 'Dockerfile.*' \
+                  -o -iname '*.Dockerfile' \
+                \) \
+                -print0 \
+                | sort -z
+            )
+          fi
+
+          matrix="$(jq -cs . "$entries_file")"
+          dockerfile_count="$(jq 'length' <<< "$matrix")"
+
+          has_dockerfiles='false'
+
+          if [[ "$dockerfile_count" -gt 0 ]]; then
+            has_dockerfiles='true'
+          fi
+
+          {
+            echo "dockerfile_count=$dockerfile_count"
+            echo "has_dockerfiles=$has_dockerfiles"
+            echo "matrix=$matrix"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo '## GHCR Dockerfile Discovery'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo "| Release tag | $RELEASE_TAG |"
+            echo "| App directory | $APP_DIRECTORY |"
+            echo "| Dockerfiles found | $dockerfile_count |"
+            echo "| Publish enabled | $has_dockerfiles |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "$dockerfile_count" -eq 0 ]]; then
+            {
+              echo
+              echo 'No Dockerfiles were found under `apps/`. Nothing will be published.'
+            } >> "$GITHUB_STEP_SUMMARY"
+
+            exit 0
+          fi
+
+          {
+            echo
+            echo '### Discovered Images'
+            echo
+            echo '| Dockerfile | GHCR image |'
+            echo '| --- | --- |'
+
+            jq -r '.[] | "| `\(.dockerfile)` | `\(.image)` |"' \
+              <<< "$matrix"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  publish:
+    name: Publish ${{ matrix.service_name }}
+    needs: discover
+    if: needs.discover.outputs.has_dockerfiles == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.discover.outputs.matrix) }}
+
+    steps:
+      - name: Check out release source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate image metadata
+        id: metadata
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ matrix.image }}
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=${{ github.event.release.tag_name }}
+            type=raw,value=sha-${{ github.sha }}
+            type=raw,value=latest,enable=${{ github.event.release.prerelease == false }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.title=${{ matrix.service_name }}
+            org.opencontainers.image.description=Aerealith application container image for ${{ matrix.service_name }}
+            org.opencontainers.image.version=${{ github.event.release.tag_name }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=MIT
+
+      - name: Build and publish image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: ${{ env.PLATFORMS }}
+          push: true
+          pull: true
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.cache_scope }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.cache_scope }}
+          provenance: mode=max
+          sbom: true
+
+      - name: Publish image summary
+        env:
+          IMAGE_NAME: ${{ matrix.image }}
+          SERVICE_NAME: ${{ matrix.service_name }}
+          DOCKERFILE_PATH: ${{ matrix.dockerfile }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          IS_PRERELEASE: ${{ github.event.release.prerelease }}
+        run: |
+          set -euo pipefail
+
+          {
+            echo '## GHCR Image Published'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo "| Service | $SERVICE_NAME |"
+            echo "| Dockerfile | \`$DOCKERFILE_PATH\` |"
+            echo "| Image | \`$IMAGE_NAME\` |"
+            echo "| Release tag | \`$RELEASE_TAG\` |"
+            echo "| Immutable SHA tag | \`sha-${GITHUB_SHA}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "$IS_PRERELEASE" == 'false' ]]; then
+            {
+              echo '| Latest tag | `latest` |'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  summary:
+    name: Publish release summary
+    needs:
+      - discover
+      - publish
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Write release image summary
+        env:
+          DOCKERFILE_COUNT: ${{ needs.discover.outputs.dockerfile_count }}
+          HAS_DOCKERFILES: ${{ needs.discover.outputs.has_dockerfiles }}
+          PUBLISH_RESULT: ${{ needs.publish.result }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          IS_PRERELEASE: ${{ github.event.release.prerelease }}
+        run: |
+          set -euo pipefail
+
+          {
+            echo '## GHCR Release Publication Result'
+            echo
+            echo '| Check | Result |'
+            echo '| --- | --- |'
+            echo "| Release tag | $RELEASE_TAG |"
+            echo "| Pre-release | $IS_PRERELEASE |"
+            echo "| Dockerfiles discovered | ${DOCKERFILE_COUNT:-0} |"
+            echo "| Images published | ${HAS_DOCKERFILES:-false} |"
+            echo "| Publish job result | ${PUBLISH_RESULT:-skipped} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "${HAS_DOCKERFILES:-false}" != 'true' ]]; then
+            {
+              echo
+              echo 'No app Dockerfiles were present, so GHCR publishing was skipped.'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi

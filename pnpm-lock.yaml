@@ -74,6 +74,9 @@ importers:
         specifier: ^4.4.3
         version: 4.4.3
     devDependencies:
+      "@alwaysmeticulous/recorder-plugin":
+        specifier: ^2.293.0
+        version: 2.293.0(@rspack/core@1.6.8(@swc/helpers@0.5.23))(esbuild@0.28.1)(rolldown@1.0.3)(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.1)(jiti@2.4.2)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))(webpack@5.105.2(@swc/core@1.15.41(@swc/helpers@0.5.23))(esbuild@0.28.1)(postcss@8.5.15))
       "@babel/core":
         specifier: ^7.14.5
         version: 7.29.7
@@ -306,6 +309,30 @@ packages:
       {
         integrity: sha512-nRBchcMM+QK1pdjO7/idu86rbJI5YHUKCvKs0KxnSYbVe3F51UfGxuZX4Qy/fWlp6l7gWFwIkrOzN+oUK03kfw==,
       }
+
+  "@alwaysmeticulous/recorder-plugin@2.293.0":
+    resolution:
+      {
+        integrity: sha512-9KSXa9WJydvlS7hiesi6hhMmtmLJ6OafxVfH0jrGikvAZKIvWKohuf1yIZlWVL47Zoh+wogJef2j1aGbhZm93g==,
+      }
+    engines: { node: ">=20.19.0" }
+    peerDependencies:
+      "@nuxt/kit": ^3
+      "@rsbuild/core": ^1
+      "@rspack/core": ^1
+      vite: ">=5"
+      webpack: ^5
+    peerDependenciesMeta:
+      "@nuxt/kit":
+        optional: true
+      "@rsbuild/core":
+        optional: true
+      "@rspack/core":
+        optional: true
+      vite:
+        optional: true
+      webpack:
+        optional: true
 
   "@asamuzakjp/css-color@4.1.2":
     resolution:
@@ -10852,6 +10879,42 @@ packages:
       }
     engines: { node: ">=14.0.0" }
 
+  unplugin@3.3.0:
+    resolution:
+      {
+        integrity: sha512-qa66K+crbfyE6JK10GjvbJeRrOsuC/JpbnHctfyp/i4oBTxWOzJfRZyDiOk1PtErMFRu8JhsU/wPvOdBNWe5Rg==,
+      }
+    engines: { node: ^20.19.0 || >=22.12.0 }
+    peerDependencies:
+      "@farmfe/core": "*"
+      "@rspack/core": "*"
+      bun-types-no-globals: "*"
+      esbuild: "*"
+      rolldown: "*"
+      rollup: "*"
+      unloader: "*"
+      vite: "*"
+      webpack: "*"
+    peerDependenciesMeta:
+      "@farmfe/core":
+        optional: true
+      "@rspack/core":
+        optional: true
+      bun-types-no-globals:
+        optional: true
+      esbuild:
+        optional: true
+      rolldown:
+        optional: true
+      rollup:
+        optional: true
+      unloader:
+        optional: true
+      vite:
+        optional: true
+      webpack:
+        optional: true
+
   update-browserslist-db@1.2.3:
     resolution:
       {
@@ -11395,6 +11458,21 @@ snapshots:
       undici: 6.27.0
 
   "@actions/io@3.0.2": {}
+
+  "@alwaysmeticulous/recorder-plugin@2.293.0(@rspack/core@1.6.8(@swc/helpers@0.5.23))(esbuild@0.28.1)(rolldown@1.0.3)(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.1)(jiti@2.4.2)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))(webpack@5.105.2(@swc/core@1.15.41(@swc/helpers@0.5.23))(esbuild@0.28.1)(postcss@8.5.15))":
+    dependencies:
+      unplugin: 3.3.0(@rspack/core@1.6.8(@swc/helpers@0.5.23))(esbuild@0.28.1)(rolldown@1.0.3)(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.1)(jiti@2.4.2)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))(webpack@5.105.2(@swc/core@1.15.41(@swc/helpers@0.5.23))(esbuild@0.28.1)(postcss@8.5.15))
+    optionalDependencies:
+      "@rspack/core": 1.6.8(@swc/helpers@0.5.23)
+      vite: 8.0.16(@types/node@25.9.3)(esbuild@0.28.1)(jiti@2.4.2)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
+      webpack: 5.105.2(@swc/core@1.15.41(@swc/helpers@0.5.23))(esbuild@0.28.1)(postcss@8.5.15)
+    transitivePeerDependencies:
+      - "@farmfe/core"
+      - bun-types-no-globals
+      - esbuild
+      - rolldown
+      - rollup
+      - unloader
 
   "@asamuzakjp/css-color@4.1.2":
     dependencies:
@@ -18350,6 +18428,18 @@ snapshots:
     dependencies:
       acorn: 8.17.0
       webpack-virtual-modules: 0.6.2
+
+  unplugin@3.3.0(@rspack/core@1.6.8(@swc/helpers@0.5.23))(esbuild@0.28.1)(rolldown@1.0.3)(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.1)(jiti@2.4.2)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))(webpack@5.105.2(@swc/core@1.15.41(@swc/helpers@0.5.23))(esbuild@0.28.1)(postcss@8.5.15)):
+    dependencies:
+      "@jridgewell/remapping": 2.3.5
+      picomatch: 4.0.4
+      webpack-virtual-modules: 0.6.2
+    optionalDependencies:
+      "@rspack/core": 1.6.8(@swc/helpers@0.5.23)
+      esbuild: 0.28.1
+      rolldown: 1.0.3
+      vite: 8.0.16(@types/node@25.9.3)(esbuild@0.28.1)(jiti@2.4.2)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
+      webpack: 5.105.2(@swc/core@1.15.41(@swc/helpers@0.5.23))(esbuild@0.28.1)(postcss@8.5.15)
 
   update-browserslist-db@1.2.3(browserslist@4.28.2):
     dependencies:

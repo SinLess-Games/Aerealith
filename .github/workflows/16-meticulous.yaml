@@ -1,0 +1,72 @@
+# .github/workflows/meticulous.yaml
+#
+# Builds the Aerealith frontend and runs Meticulous visual regression tests.
+#
+# Required repository secret:
+#   METICULOUS_API_TOKEN
+
+name: Meticulous
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+  issues: write
+  pull-requests: write
+  statuses: read
+
+concurrency:
+  group: meticulous-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  meticulous:
+    name: Meticulous Visual Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6.0.9
+        with:
+          version: 10
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build frontend
+        run: pnpm nx run frontend:build
+        env:
+          NODE_ENV: production
+          METICULOUS_BUILD: "true"
+          METICULOUS_API_TOKEN: ${{ secrets.METICULOUS_API_TOKEN }}
+
+      - name: Upload frontend assets and run Meticulous tests
+        uses: alwaysmeticulous/report-diffs-action/upload-assets@v1
+        with:
+          api-token: ${{ secrets.METICULOUS_API_TOKEN }}
+          app-directory: dist/apps/frontend
+          rewrites: |
+            [
+              {
+                "source": "/(.*)",
+                "destination": "/index.html"
+              }
+            ]

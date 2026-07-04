@@ -1,0 +1,682 @@
+# .github/workflows/discord-notify.yaml
+#
+# Sends high-signal Aerealith workflow notifications to Discord.
+#
+# This workflow is reusable from staging, production, release, and security
+# workflows. It intentionally avoids routine CI chatter:
+#
+# - Staging:
+#   - Sends failures, cancellations, and warnings.
+#   - Skips successful deployments unless notify_on_success is true.
+#
+# - Production:
+#   - Sends successful deployments, failures, cancellations, and warnings.
+#
+# - Releases:
+#   - Sends successful releases, failures, cancellations, and warnings.
+#
+# - Security:
+#   - Sends failures.
+#   - Sends warnings only when severity is high or critical.
+#   - Skips successful informational security checks unless explicitly enabled.
+#
+# Required repository secret:
+# - DISCORD_WEBHOOK
+#
+# This workflow:
+# - never exposes the webhook URL
+# - disables Discord mentions to prevent accidental @everyone/@here/user pings
+# - does not block deployments or releases when Discord delivery fails
+# - supports manual testing through workflow_dispatch
+
+name: 20 · Discord Notify
+
+on:
+  workflow_call:
+    inputs:
+      event_type:
+        description: "Notification category: staging, production, release, or security."
+        required: true
+        type: string
+
+      status:
+        description: "Outcome: success, failure, cancelled, warning, or info."
+        required: true
+        type: string
+
+      title:
+        description: "Short notification title."
+        required: false
+        default: ""
+        type: string
+
+      summary:
+        description: "Readable summary of the event."
+        required: false
+        default: ""
+        type: string
+
+      environment:
+        description: "Deployment environment, such as staging or production."
+        required: false
+        default: ""
+        type: string
+
+      release_tag:
+        description: "Release tag associated with the notification."
+        required: false
+        default: ""
+        type: string
+
+      deployment_url:
+        description: "Deployed application, preview, or release URL."
+        required: false
+        default: ""
+        type: string
+
+      health_url:
+        description: "Health endpoint checked by the workflow."
+        required: false
+        default: ""
+        type: string
+
+      source_url:
+        description: "Optional GitHub Actions, release, security report, or deployment URL."
+        required: false
+        default: ""
+        type: string
+
+      severity:
+        description: "Security severity: none, info, low, medium, high, or critical."
+        required: false
+        default: "none"
+        type: string
+
+      details:
+        description: "Optional concise technical details or scan summary."
+        required: false
+        default: ""
+        type: string
+
+      notify_on_success:
+        description: "Send low-priority successful staging or security notifications."
+        required: false
+        default: false
+        type: boolean
+
+      force:
+        description: "Send the notification even when normal noise-reduction rules skip it."
+        required: false
+        default: false
+        type: boolean
+
+    secrets:
+      DISCORD_WEBHOOK:
+        description: "Discord webhook URL used to deliver the notification."
+        required: false
+
+    outputs:
+      notification_sent:
+        description: "Whether a Discord message was successfully delivered."
+        value: ${{ jobs.notify.outputs.notification_sent }}
+
+      notification_reason:
+        description: "Why the notification was sent, skipped, or could not be delivered."
+        value: ${{ jobs.notify.outputs.notification_reason }}
+
+      discord_message_id:
+        description: "Discord message ID when Discord returns one."
+        value: ${{ jobs.notify.outputs.discord_message_id }}
+
+  workflow_dispatch:
+    inputs:
+      event_type:
+        description: "Notification category."
+        required: true
+        default: "release"
+        type: choice
+        options:
+          - staging
+          - production
+          - release
+          - security
+
+      status:
+        description: "Outcome."
+        required: true
+        default: "success"
+        type: choice
+        options:
+          - success
+          - failure
+          - cancelled
+          - warning
+          - info
+
+      title:
+        description: "Short notification title."
+        required: false
+        default: "Aerealith Discord notification test"
+        type: string
+
+      summary:
+        description: "Readable summary."
+        required: false
+        default: "Manual Discord notification test from GitHub Actions."
+        type: string
+
+      environment:
+        description: "Environment name."
+        required: false
+        default: ""
+        type: string
+
+      release_tag:
+        description: "Optional release tag."
+        required: false
+        default: ""
+        type: string
+
+      deployment_url:
+        description: "Optional deployment URL."
+        required: false
+        default: ""
+        type: string
+
+      health_url:
+        description: "Optional health endpoint URL."
+        required: false
+        default: ""
+        type: string
+
+      source_url:
+        description: "Optional GitHub release, workflow, or report URL."
+        required: false
+        default: ""
+        type: string
+
+      severity:
+        description: "Security severity."
+        required: true
+        default: "none"
+        type: choice
+        options:
+          - none
+          - info
+          - low
+          - medium
+          - high
+          - critical
+
+      details:
+        description: "Optional concise technical details."
+        required: false
+        default: ""
+        type: string
+
+      notify_on_success:
+        description: "Send successful low-priority notifications."
+        required: true
+        default: true
+        type: boolean
+
+      force:
+        description: "Always send this manual notification."
+        required: true
+        default: true
+        type: boolean
+
+permissions: {}
+
+concurrency:
+  group: discord-notify-${{ github.repository }}-${{ inputs.event_type }}-${{ github.run_id }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  notify:
+    name: Send high-signal Discord notification
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    outputs:
+      notification_sent: ${{ steps.send.outputs.sent || 'false' }}
+      notification_reason: >-
+        ${{ steps.send.outputs.reason || steps.decision.outputs.reason }}
+      discord_message_id: ${{ steps.send.outputs.message_id || '' }}
+
+    env:
+      NOTIFY_EVENT_TYPE: ${{ inputs.event_type }}
+      NOTIFY_STATUS: ${{ inputs.status }}
+      NOTIFY_TITLE: ${{ inputs.title }}
+      NOTIFY_SUMMARY: ${{ inputs.summary }}
+      NOTIFY_ENVIRONMENT: ${{ inputs.environment }}
+      NOTIFY_RELEASE_TAG: ${{ inputs.release_tag }}
+      NOTIFY_DEPLOYMENT_URL: ${{ inputs.deployment_url }}
+      NOTIFY_HEALTH_URL: ${{ inputs.health_url }}
+      NOTIFY_SOURCE_URL: ${{ inputs.source_url }}
+      NOTIFY_SEVERITY: ${{ inputs.severity }}
+      NOTIFY_DETAILS: ${{ inputs.details }}
+      NOTIFY_ON_SUCCESS: ${{ inputs.notify_on_success }}
+      NOTIFY_FORCE: ${{ inputs.force }}
+
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+
+    steps:
+      - name: Validate notification and apply noise policy
+        id: decision
+        run: |
+          set -euo pipefail
+
+          event_type="${NOTIFY_EVENT_TYPE,,}"
+          status="${NOTIFY_STATUS,,}"
+          severity="${NOTIFY_SEVERITY,,}"
+          notify_on_success="${NOTIFY_ON_SUCCESS,,}"
+          force="${NOTIFY_FORCE,,}"
+
+          case "$event_type" in
+            staging | production | release | security)
+              ;;
+            *)
+              echo "::error::Unsupported event_type: $NOTIFY_EVENT_TYPE"
+              echo '::error::Supported values: staging, production, release, security.'
+              exit 1
+              ;;
+          esac
+
+          case "$status" in
+            success | failure | cancelled | warning | info)
+              ;;
+            *)
+              echo "::error::Unsupported status: $NOTIFY_STATUS"
+              echo '::error::Supported values: success, failure, cancelled, warning, info.'
+              exit 1
+              ;;
+          esac
+
+          case "$severity" in
+            none | info | low | medium | high | critical)
+              ;;
+            *)
+              echo "::error::Unsupported severity: $NOTIFY_SEVERITY"
+              echo '::error::Supported values: none, info, low, medium, high, critical.'
+              exit 1
+              ;;
+          esac
+
+          case "$notify_on_success" in
+            true | false)
+              ;;
+            *)
+              echo "::error::notify_on_success must be true or false."
+              exit 1
+              ;;
+          esac
+
+          case "$force" in
+            true | false)
+              ;;
+            *)
+              echo "::error::force must be true or false."
+              exit 1
+              ;;
+          esac
+
+          should_notify='false'
+          reason=''
+
+          if [[ -z "${DISCORD_WEBHOOK:-}" ]]; then
+            reason='Skipped because DISCORD_WEBHOOK is not configured.'
+          elif [[ "$force" == 'true' ]]; then
+            should_notify='true'
+            reason='Sent because force was enabled.'
+          elif [[ "$status" == 'failure' || "$status" == 'cancelled' ]]; then
+            should_notify='true'
+            reason='Sent because the workflow did not complete successfully.'
+          else
+            case "$event_type" in
+              production | release)
+                if [[ "$status" == 'success' || "$status" == 'warning' ]]; then
+                  should_notify='true'
+                  reason='Sent because production and release outcomes are high-signal events.'
+                else
+                  reason='Skipped because this production or release event is informational.'
+                fi
+                ;;
+
+              staging)
+                if [[ "$status" == 'warning' ]]; then
+                  should_notify='true'
+                  reason='Sent because the staging deployment produced a warning.'
+                elif [[ "$status" == 'success' && "$notify_on_success" == 'true' ]]; then
+                  should_notify='true'
+                  reason='Sent because successful staging notifications were explicitly enabled.'
+                else
+                  reason='Skipped routine staging notification to avoid Discord CI chatter.'
+                fi
+                ;;
+
+              security)
+                if [[ "$status" == 'warning' ]] &&
+                  [[ "$severity" == 'high' || "$severity" == 'critical' ]]; then
+                  should_notify='true'
+                  reason='Sent because a high-severity or critical security finding requires attention.'
+                elif [[ "$status" == 'success' && "$notify_on_success" == 'true' ]]; then
+                  should_notify='true'
+                  reason='Sent because successful security notifications were explicitly enabled.'
+                else
+                  reason='Skipped low-priority security notification to avoid Discord CI chatter.'
+                fi
+                ;;
+            esac
+          fi
+
+          {
+            echo "should_notify=$should_notify"
+            echo "reason=$reason"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo '## Discord Notification Decision'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo "| Event type | $event_type |"
+            echo "| Status | $status |"
+            echo "| Severity | $severity |"
+            echo "| Force notification | $force |"
+            echo "| Notify on success | $notify_on_success |"
+            echo "| Decision | $should_notify |"
+            echo "| Reason | $reason |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Send Discord webhook message
+        id: send
+        if: steps.decision.outputs.should_notify == 'true'
+        run: |
+          set -euo pipefail
+
+          event_type="${NOTIFY_EVENT_TYPE,,}"
+          status="${NOTIFY_STATUS,,}"
+          severity="${NOTIFY_SEVERITY,,}"
+
+          source_url="${NOTIFY_SOURCE_URL:-}"
+
+          if [[ -z "$source_url" ]]; then
+            source_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          fi
+
+          title="${NOTIFY_TITLE:-}"
+
+          if [[ -z "$title" ]]; then
+            title="Aerealith ${event_type} ${status}"
+          fi
+
+          summary="${NOTIFY_SUMMARY:-}"
+
+          if [[ -z "$summary" ]]; then
+            summary="GitHub Actions reported a ${status} ${event_type} event."
+          fi
+
+          status_icon='ℹ️'
+          embed_color='5793266'
+
+          case "$status" in
+            success)
+              status_icon='✅'
+              embed_color='3066993'
+              ;;
+            failure)
+              status_icon='❌'
+              embed_color='15158332'
+              ;;
+            cancelled)
+              status_icon='⏹️'
+              embed_color='9807270'
+              ;;
+            warning)
+              status_icon='⚠️'
+              embed_color='16705372'
+              ;;
+            info)
+              status_icon='ℹ️'
+              embed_color='5793266'
+              ;;
+          esac
+
+          payload_file="$RUNNER_TEMP/discord-notification.json"
+          response_file="$RUNNER_TEMP/discord-notification-response.json"
+
+          jq -n \
+            --arg title "$title" \
+            --arg summary "$summary" \
+            --arg event_type "$event_type" \
+            --arg status "$status" \
+            --arg severity "$severity" \
+            --arg environment "${NOTIFY_ENVIRONMENT:-}" \
+            --arg release_tag "${NOTIFY_RELEASE_TAG:-}" \
+            --arg deployment_url "${NOTIFY_DEPLOYMENT_URL:-}" \
+            --arg health_url "${NOTIFY_HEALTH_URL:-}" \
+            --arg source_url "$source_url" \
+            --arg details "${NOTIFY_DETAILS:-}" \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg workflow "$GITHUB_WORKFLOW" \
+            --arg run_number "$GITHUB_RUN_NUMBER" \
+            --arg commit_sha "${GITHUB_SHA:0:7}" \
+            --arg status_icon "$status_icon" \
+            --arg timestamp "$(date --utc +'%Y-%m-%dT%H:%M:%SZ')" \
+            --argjson embed_color "$embed_color" \
+            '
+              def truncate($maximum):
+                if length > $maximum then
+                  .[0:($maximum - 1)] + "…"
+                else
+                  .
+                end;
+
+              def field($name; $value; $inline):
+                {
+                  name: ($name | truncate(256)),
+                  value: ($value | truncate(1024)),
+                  inline: $inline
+                };
+
+              {
+                username: "Aerealith Automation",
+                allowed_mentions: {
+                  parse: []
+                },
+                embeds: [
+                  (
+                    {
+                      title: (
+                        ($status_icon + " " + $title)
+                        | truncate(256)
+                      ),
+                      description: ($summary | truncate(4000)),
+                      color: $embed_color,
+                      timestamp: $timestamp,
+                      footer: {
+                        text: (
+                          $repository
+                          + " • "
+                          + $workflow
+                          + " #"
+                          + $run_number
+                          + " • "
+                          + $commit_sha
+                        )
+                      },
+                      fields: (
+                        [
+                          field("Event"; $event_type; true),
+                          field("Status"; $status; true),
+                          field("Severity"; $severity; true)
+                        ]
+                        + (
+                          if $environment != "" then
+                            [field("Environment"; $environment; true)]
+                          else
+                            []
+                          end
+                        )
+                        + (
+                          if $release_tag != "" then
+                            [field("Release"; ("`" + $release_tag + "`"); true)]
+                          else
+                            []
+                          end
+                        )
+                        + (
+                          if $deployment_url != "" then
+                            [
+                              field(
+                                "Deployment";
+                                ("[Open deployment](" + $deployment_url + ")");
+                                false
+                              )
+                            ]
+                          else
+                            []
+                          end
+                        )
+                        + (
+                          if $health_url != "" then
+                            [
+                              field(
+                                "Health check";
+                                ("[Open health endpoint](" + $health_url + ")");
+                                false
+                              )
+                            ]
+                          else
+                            []
+                          end
+                        )
+                        + (
+                          if $details != "" then
+                            [field("Details"; $details; false)]
+                          else
+                            []
+                          end
+                        )
+                      ]
+                    }
+                    + (
+                      if $source_url | test("^https://") then
+                        {
+                          url: $source_url
+                        }
+                      else
+                        {}
+                      end
+                    )
+                  )
+                ]
+              }
+            ' > "$payload_file"
+
+          webhook_url="$DISCORD_WEBHOOK"
+
+          if [[ "$webhook_url" == *\?* ]]; then
+            webhook_url="${webhook_url}&wait=true"
+          else
+            webhook_url="${webhook_url}?wait=true"
+          fi
+
+          rm -f "$response_file"
+
+          set +e
+
+          http_status="$(
+            curl \
+              --silent \
+              --show-error \
+              --location \
+              --retry 3 \
+              --retry-all-errors \
+              --connect-timeout 15 \
+              --max-time 60 \
+              --request POST \
+              --header 'Content-Type: application/json' \
+              --data @"$payload_file" \
+              --output "$response_file" \
+              --write-out '%{http_code}' \
+              "$webhook_url"
+          )"
+
+          curl_exit_code=$?
+
+          set -e
+
+          if [[ "$curl_exit_code" -ne 0 ]] ||
+            [[ ! "$http_status" =~ ^2[0-9][0-9]$ ]]; then
+            response_summary="$(
+              jq -c \
+                '{message: (.message // "unknown Discord API response"), code: (.code // null)}' \
+                "$response_file" \
+                2>/dev/null \
+                || printf '%s' 'Discord did not return a readable JSON error response.'
+            )"
+
+            echo "::warning::Discord notification could not be delivered. HTTP status: $http_status. Response: $response_summary"
+
+            {
+              echo 'sent=false'
+              echo 'reason=Discord webhook delivery failed. The source workflow was not blocked.'
+              echo 'message_id='
+            } >> "$GITHUB_OUTPUT"
+
+            {
+              echo
+              echo '## Discord Delivery Result'
+              echo
+              echo '| Setting | Value |'
+              echo '| --- | --- |'
+              echo '| Delivered | false |'
+              echo "| HTTP status | ${http_status:-unknown} |"
+              echo '| Workflow impact | notification failure did not block the source workflow |'
+            } >> "$GITHUB_STEP_SUMMARY"
+
+            exit 0
+          fi
+
+          discord_message_id="$(
+            jq -r '.id // empty' "$response_file"
+          )"
+
+          {
+            echo 'sent=true'
+            echo 'reason=Discord notification delivered successfully.'
+            echo "message_id=$discord_message_id"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo
+            echo '## Discord Delivery Result'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo '| Delivered | true |'
+            echo "| HTTP status | $http_status |"
+            echo "| Discord message ID | ${discord_message_id:-not-returned} |"
+            echo '| Mentions | disabled |'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish skipped notification result
+        if: steps.decision.outputs.should_notify != 'true'
+        run: |
+          set -euo pipefail
+
+          {
+            echo
+            echo '## Discord Delivery Result'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo '| Delivered | false |'
+            echo "| Reason | ${{ steps.decision.outputs.reason }} |"
+          } >> "$GITHUB_STEP_SUMMARY"

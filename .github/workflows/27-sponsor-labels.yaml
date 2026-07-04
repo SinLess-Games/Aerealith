@@ -1,0 +1,44 @@
+# .github/workflows/sponsor-labels.yaml
+#
+# Applies the existing "sponsor" label when the issue or PR author sponsors
+# the owner of this repository through GitHub Sponsors.
+#
+# Security notes:
+# - Uses pull_request_target only to label external-fork PRs.
+# - Does not check out repository or pull-request code.
+# - Does not run shell commands or expose repository secrets.
+# - Grants only label-management permissions.
+
+name: Sponsor Labels
+
+on:
+  issues:
+    types:
+      - opened
+  pull_request_target:
+    types:
+      - opened
+
+permissions: {}
+
+concurrency:
+  group: sponsor-labels-${{ github.event.issue.number || github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  label-sponsor:
+    name: Label Sponsor
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Sponsor Labels
+        uses: JasonEtco/is-sponsor-label-action@565f3cb67b3518a8aae36c3f0bce9e8513430e84 # v2.0.0
+        with:
+          label: sponsor
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

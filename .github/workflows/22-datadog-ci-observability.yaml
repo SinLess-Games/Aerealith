@@ -1,0 +1,1051 @@
+# .github/workflows/datadog-ci-observability.yaml
+#
+# Central Datadog observability for Aerealith CI, releases, and deployments.
+#
+# Automatic collection:
+# - Watches completed core workflows with workflow_run.
+# - Records workflow duration, completion, failure, and per-run failure rate.
+# - Records deployment result metrics for preview, staging, and production.
+# - Verifies the production health endpoint after production workflow runs.
+# - Sends GitHub workflow events to Datadog Events.
+# - Sends successful healthy production deployments to Datadog DORA Metrics.
+#
+# Reusable collection:
+# - Security workflows and future workflows can call this workflow directly
+#   through workflow_call without adding their names to workflow_run.
+#
+# Required repository secret:
+# - DATADOG_API_KEY
+#
+# Datadog setup required:
+# - Configure CI Visibility through the Datadog GitHub App for native
+#   pipeline and job visibility.
+# - Enable "datadog-ci CLI / API" as a DORA deployment data source before
+#   relying on DORA Metrics dashboards.
+#
+# This workflow intentionally:
+# - never checks out source code from observed workflow runs
+# - never downloads or executes artifacts from observed workflow runs
+# - skips telemetry for external fork workflow runs
+# - does not block the source workflow because workflow_run runs separately
+# - keeps metric tag cardinality low by excluding commit SHA and run ID tags
+
+name: Datadog CI Observability
+
+on:
+  workflow_run:
+    workflows:
+      - "13 · Cloudflare Preview"
+      - "14 · Cloudflare Staging"
+      - "15 · Publish GHCR Images"
+      - "16 · Create Release"
+      - "Cloudflare Production"
+      - "GHCR Cleanup"
+    types:
+      - completed
+
+  workflow_call:
+    inputs:
+      workflow_name:
+        description: "Human-readable workflow name."
+        required: true
+        type: string
+
+      conclusion:
+        description: "Workflow result, such as success, failure, or cancelled."
+        required: true
+        type: string
+
+      category:
+        description: "Workflow category: auto, ci, deployment, release, security, or maintenance."
+        required: false
+        default: "auto"
+        type: string
+
+      deployment_environment:
+        description: "Deployment environment, such as preview, staging, or production."
+        required: false
+        default: ""
+        type: string
+
+      started_at:
+        description: "ISO 8601 UTC workflow start time. Defaults to now when omitted."
+        required: false
+        default: ""
+        type: string
+
+      finished_at:
+        description: "ISO 8601 UTC workflow completion time. Defaults to now when omitted."
+        required: false
+        default: ""
+        type: string
+
+      run_url:
+        description: "GitHub Actions run, deployment, release, or security report URL."
+        required: false
+        default: ""
+        type: string
+
+      commit_sha:
+        description: "Commit SHA associated with the workflow result."
+        required: false
+        default: ""
+        type: string
+
+      release_tag:
+        description: "Optional release tag."
+        required: false
+        default: ""
+        type: string
+
+      health_url:
+        description: "Optional health endpoint to verify for production workflows."
+        required: false
+        default: ""
+        type: string
+
+      details:
+        description: "Optional concise scan, deployment, or release details."
+        required: false
+        default: ""
+        type: string
+
+    secrets:
+      DATADOG_API_KEY:
+        description: "Datadog API key used for metrics, events, and DORA deployment ingestion."
+        required: false
+
+  workflow_dispatch:
+    inputs:
+      workflow_name:
+        description: "Workflow name represented by this telemetry event."
+        required: true
+        default: "Manual observability test"
+        type: string
+
+      conclusion:
+        description: "Workflow result."
+        required: true
+        default: "success"
+        type: choice
+        options:
+          - success
+          - failure
+          - cancelled
+          - skipped
+          - timed_out
+          - action_required
+          - neutral
+
+      category:
+        description: "Workflow category."
+        required: true
+        default: "ci"
+        type: choice
+        options:
+          - auto
+          - ci
+          - deployment
+          - release
+          - security
+          - maintenance
+
+      deployment_environment:
+        description: "Optional deployment environment."
+        required: false
+        default: ""
+        type: string
+
+      release_tag:
+        description: "Optional release tag."
+        required: false
+        default: ""
+        type: string
+
+      health_url:
+        description: "Optional production health endpoint to verify."
+        required: false
+        default: ""
+        type: string
+
+      details:
+        description: "Optional concise technical details."
+        required: false
+        default: "Manual Datadog observability workflow test."
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: datadog-ci-observability-${{ github.run_id }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  # Change this only when your Datadog organization uses another site.
+  #
+  # Examples:
+  # - datadoghq.com
+  # - datadoghq.eu
+  # - us3.datadoghq.com
+  # - us5.datadoghq.com
+  DATADOG_SITE: "datadoghq.com"
+
+  # Keep this stable. It becomes the primary Datadog service tag.
+  DATADOG_SERVICE: "aerealith-frontend"
+
+  # Used by Datadog DORA deployment events.
+  DATADOG_TEAM: "sinless-games"
+
+  # Set false only when you want normal metrics/events but do not want DORA
+  # deployment ingestion for successful production deployments.
+  ENABLE_DORA_DEPLOYMENTS: "true"
+
+  PRODUCTION_HEALTH_URL: "https://aerealith.com/__aerealith/health"
+
+jobs:
+  observe:
+    name: Send workflow observability to Datadog
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      EVENT_NAME: ${{ github.event_name }}
+
+      INPUT_WORKFLOW_NAME: ${{ inputs.workflow_name }}
+      INPUT_CONCLUSION: ${{ inputs.conclusion }}
+      INPUT_CATEGORY: ${{ inputs.category }}
+      INPUT_DEPLOYMENT_ENVIRONMENT: ${{ inputs.deployment_environment }}
+      INPUT_STARTED_AT: ${{ inputs.started_at }}
+      INPUT_FINISHED_AT: ${{ inputs.finished_at }}
+      INPUT_RUN_URL: ${{ inputs.run_url }}
+      INPUT_COMMIT_SHA: ${{ inputs.commit_sha }}
+      INPUT_RELEASE_TAG: ${{ inputs.release_tag }}
+      INPUT_HEALTH_URL: ${{ inputs.health_url }}
+      INPUT_DETAILS: ${{ inputs.details }}
+
+      DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+
+    steps:
+      - name: Collect workflow result and derive observability context
+        id: collect
+        run: |
+          set -euo pipefail
+
+          context_file="$RUNNER_TEMP/datadog-observability-context.json"
+
+          workflow_name=''
+          conclusion=''
+          category='auto'
+          deployment_environment=''
+          started_at=''
+          finished_at=''
+          run_url=''
+          commit_sha=''
+          release_tag=''
+          health_url=''
+          details=''
+          trigger=''
+          external_fork='false'
+          source_run_id=''
+
+          if [[ "$EVENT_NAME" == 'workflow_run' ]]; then
+            workflow_name="$(
+              jq -r '.workflow_run.name // empty' "$GITHUB_EVENT_PATH"
+            )"
+
+            conclusion="$(
+              jq -r '.workflow_run.conclusion // "unknown"' "$GITHUB_EVENT_PATH"
+            )"
+
+            started_at="$(
+              jq -r '
+                .workflow_run.run_started_at //
+                .workflow_run.created_at //
+                empty
+              ' "$GITHUB_EVENT_PATH"
+            )"
+
+            finished_at="$(
+              jq -r '
+                .workflow_run.updated_at //
+                empty
+              ' "$GITHUB_EVENT_PATH"
+            )"
+
+            run_url="$(
+              jq -r '.workflow_run.html_url // empty' "$GITHUB_EVENT_PATH"
+            )"
+
+            commit_sha="$(
+              jq -r '.workflow_run.head_sha // empty' "$GITHUB_EVENT_PATH"
+            )"
+
+            trigger="$(
+              jq -r '.workflow_run.event // empty' "$GITHUB_EVENT_PATH"
+            )"
+
+            source_run_id="$(
+              jq -r '.workflow_run.id // empty' "$GITHUB_EVENT_PATH"
+            )"
+
+            head_repository="$(
+              jq -r '.workflow_run.head_repository.full_name // empty' \
+                "$GITHUB_EVENT_PATH"
+            )"
+
+            current_repository="$(
+              jq -r '.repository.full_name // empty' "$GITHUB_EVENT_PATH"
+            )"
+
+            if [[ -n "$head_repository" ]] &&
+              [[ -n "$current_repository" ]] &&
+              [[ "$head_repository" != "$current_repository" ]]; then
+              external_fork='true'
+            fi
+          else
+            workflow_name="$INPUT_WORKFLOW_NAME"
+            conclusion="$INPUT_CONCLUSION"
+            category="$INPUT_CATEGORY"
+            deployment_environment="$INPUT_DEPLOYMENT_ENVIRONMENT"
+            started_at="$INPUT_STARTED_AT"
+            finished_at="$INPUT_FINISHED_AT"
+            run_url="$INPUT_RUN_URL"
+            commit_sha="$INPUT_COMMIT_SHA"
+            release_tag="$INPUT_RELEASE_TAG"
+            health_url="$INPUT_HEALTH_URL"
+            details="$INPUT_DETAILS"
+            trigger="$EVENT_NAME"
+            source_run_id="$GITHUB_RUN_ID"
+          fi
+
+          if [[ -z "$workflow_name" ]]; then
+            echo '::error::A workflow name is required for Datadog observability.'
+            exit 1
+          fi
+
+          if [[ -z "$conclusion" ]]; then
+            conclusion='unknown'
+          fi
+
+          normalize_lowercase() {
+            printf '%s' "$1" | tr '[:upper:]' '[:lower:]'
+          }
+
+          conclusion="$(normalize_lowercase "$conclusion")"
+          category="$(normalize_lowercase "$category")"
+          deployment_environment="$(normalize_lowercase "$deployment_environment")"
+
+          case "$conclusion" in
+            success | failure | cancelled | skipped | timed_out | action_required | neutral | startup_failure | unknown)
+              ;;
+            *)
+              conclusion='unknown'
+              ;;
+          esac
+
+          if [[ "$category" == 'auto' || -z "$category" ]]; then
+            case "$workflow_name" in
+              '13 · Cloudflare Preview')
+                category='deployment'
+                deployment_environment='preview'
+                ;;
+              '14 · Cloudflare Staging')
+                category='deployment'
+                deployment_environment='staging'
+                ;;
+              'Cloudflare Production')
+                category='deployment'
+                deployment_environment='production'
+                ;;
+              '15 · Publish GHCR Images')
+                category='release'
+                ;;
+              '16 · Create Release')
+                category='release'
+                ;;
+              'GHCR Cleanup')
+                category='maintenance'
+                ;;
+              *[Ss]ecurity* | *Gitleaks* | *CodeQL* | *Snyk* | *Sonar* | *Dependency*)
+                category='security'
+                ;;
+              *)
+                category='ci'
+                ;;
+            esac
+          fi
+
+          case "$category" in
+            ci | deployment | release | security | maintenance)
+              ;;
+            *)
+              echo "::error::Unsupported Datadog workflow category: $category"
+              exit 1
+              ;;
+          esac
+
+          to_epoch() {
+            local timestamp="$1"
+
+            if [[ -z "$timestamp" ]]; then
+              date --utc +%s
+              return
+            fi
+
+            date --utc --date="$timestamp" +%s 2>/dev/null || date --utc +%s
+          }
+
+          started_at_epoch="$(to_epoch "$started_at")"
+          finished_at_epoch="$(to_epoch "$finished_at")"
+
+          if [[ "$finished_at_epoch" -lt "$started_at_epoch" ]]; then
+            finished_at_epoch="$started_at_epoch"
+          fi
+
+          duration_seconds="$((finished_at_epoch - started_at_epoch))"
+
+          if [[ -z "$started_at" ]]; then
+            started_at="$(date --utc --date="@$started_at_epoch" +'%Y-%m-%dT%H:%M:%SZ')"
+          fi
+
+          if [[ -z "$finished_at" ]]; then
+            finished_at="$(date --utc --date="@$finished_at_epoch" +'%Y-%m-%dT%H:%M:%SZ')"
+          fi
+
+          success_value='0'
+          failure_value='0'
+          alert_type='info'
+
+          case "$conclusion" in
+            success)
+              success_value='1'
+              alert_type='success'
+              ;;
+            failure | timed_out | action_required | startup_failure)
+              failure_value='1'
+              alert_type='error'
+              ;;
+            cancelled)
+              alert_type='warning'
+              ;;
+            skipped | neutral)
+              alert_type='info'
+              ;;
+            *)
+              alert_type='warning'
+              ;;
+          esac
+
+          workflow_slug="$(
+            printf '%s' "$workflow_name" \
+              | tr '[:upper:]' '[:lower:]' \
+              | sed -E \
+                -e 's/[^a-z0-9]+/-/g' \
+                -e 's/^-+//' \
+                -e 's/-+$//'
+          )"
+
+          if [[ -z "$workflow_slug" ]]; then
+            workflow_slug='unknown-workflow'
+          fi
+
+          branch_kind='detached'
+
+          if [[ "$EVENT_NAME" == 'workflow_run' ]]; then
+            head_branch="$(
+              jq -r '.workflow_run.head_branch // empty' "$GITHUB_EVENT_PATH"
+            )"
+
+            case "$head_branch" in
+              master | main)
+                branch_kind='default'
+                ;;
+              staging)
+                branch_kind='staging'
+                ;;
+              production)
+                branch_kind='production'
+                ;;
+              '')
+                branch_kind='detached'
+                ;;
+              *)
+                branch_kind='other'
+                ;;
+            esac
+          fi
+
+          is_deployment='false'
+          is_release='false'
+          is_production='false'
+
+          if [[ "$category" == 'deployment' ]]; then
+            is_deployment='true'
+          fi
+
+          if [[ "$category" == 'release' ]]; then
+            is_release='true'
+          fi
+
+          if [[ "$deployment_environment" == 'production' ]]; then
+            is_production='true'
+          fi
+
+          if [[ "$is_production" == 'true' && -z "$health_url" ]]; then
+            health_url="$PRODUCTION_HEALTH_URL"
+          fi
+
+          endpoint_healthy='0'
+          endpoint_health_status='not_checked'
+          endpoint_response=''
+
+          if [[ "$is_production" == 'true' ]] &&
+            [[ -n "$health_url" ]]; then
+            set +e
+
+            endpoint_response="$(
+              curl \
+                --fail \
+                --silent \
+                --show-error \
+                --location \
+                --connect-timeout 15 \
+                --max-time 60 \
+                "$health_url" \
+                2>&1
+            )"
+
+            curl_exit_code=$?
+
+            set -e
+
+            if [[ "$curl_exit_code" -eq 0 ]] &&
+              jq -e '.status == "ok"' \
+                <<< "$endpoint_response" \
+                >/dev/null 2>&1; then
+              endpoint_healthy='1'
+              endpoint_health_status='healthy'
+            else
+              endpoint_health_status='unhealthy'
+            fi
+          fi
+
+          release_health='0'
+
+          if [[ "$is_production" == 'true' ]] &&
+            [[ "$success_value" == '1' ]] &&
+            [[ "$endpoint_healthy" == '1' ]]; then
+            release_health='1'
+          fi
+
+          if [[ -z "$run_url" ]]; then
+            run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          fi
+
+          commit_sha_short=''
+
+          if [[ -n "$commit_sha" ]]; then
+            commit_sha_short="${commit_sha:0:7}"
+          fi
+
+          if [[ -z "$details" ]]; then
+            details="Workflow completed with conclusion: $conclusion."
+          fi
+
+          details="${details:0:1500}"
+
+          should_send='true'
+          skip_reason=''
+
+          if [[ -z "${DATADOG_API_KEY:-}" ]]; then
+            should_send='false'
+            skip_reason='DATADOG_API_KEY is not configured.'
+          elif [[ "$external_fork" == 'true' ]]; then
+            should_send='false'
+            skip_reason='External fork workflow runs are intentionally excluded from Datadog telemetry.'
+          fi
+
+          jq -n \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg workflow_name "$workflow_name" \
+            --arg workflow_slug "$workflow_slug" \
+            --arg category "$category" \
+            --arg deployment_environment "$deployment_environment" \
+            --arg conclusion "$conclusion" \
+            --arg alert_type "$alert_type" \
+            --arg trigger "$trigger" \
+            --arg run_url "$run_url" \
+            --arg commit_sha "$commit_sha" \
+            --arg commit_sha_short "$commit_sha_short" \
+            --arg release_tag "$release_tag" \
+            --arg details "$details" \
+            --arg health_url "$health_url" \
+            --arg endpoint_health_status "$endpoint_health_status" \
+            --arg source_run_id "$source_run_id" \
+            --arg branch_kind "$branch_kind" \
+            --arg started_at "$started_at" \
+            --arg finished_at "$finished_at" \
+            --argjson started_at_epoch "$started_at_epoch" \
+            --argjson finished_at_epoch "$finished_at_epoch" \
+            --argjson duration_seconds "$duration_seconds" \
+            --argjson success_value "$success_value" \
+            --argjson failure_value "$failure_value" \
+            --argjson endpoint_healthy "$endpoint_healthy" \
+            --argjson release_health "$release_health" \
+            --argjson is_deployment "$is_deployment" \
+            --argjson is_release "$is_release" \
+            --argjson is_production "$is_production" \
+            --argjson should_send "$should_send" \
+            --arg skip_reason "$skip_reason" \
+            '{
+              repository: $repository,
+              workflow_name: $workflow_name,
+              workflow_slug: $workflow_slug,
+              category: $category,
+              deployment_environment: $deployment_environment,
+              conclusion: $conclusion,
+              alert_type: $alert_type,
+              trigger: $trigger,
+              run_url: $run_url,
+              commit_sha: $commit_sha,
+              commit_sha_short: $commit_sha_short,
+              release_tag: $release_tag,
+              details: $details,
+              health_url: $health_url,
+              endpoint_health_status: $endpoint_health_status,
+              source_run_id: $source_run_id,
+              branch_kind: $branch_kind,
+              started_at: $started_at,
+              finished_at: $finished_at,
+              started_at_epoch: $started_at_epoch,
+              finished_at_epoch: $finished_at_epoch,
+              duration_seconds: $duration_seconds,
+              success_value: $success_value,
+              failure_value: $failure_value,
+              endpoint_healthy: $endpoint_healthy,
+              release_health: $release_health,
+              is_deployment: $is_deployment,
+              is_release: $is_release,
+              is_production: $is_production,
+              should_send: $should_send,
+              skip_reason: $skip_reason
+            }' > "$context_file"
+
+          {
+            echo "should_send=$should_send"
+            echo "context_file=$context_file"
+            echo "category=$category"
+            echo "deployment_environment=$deployment_environment"
+            echo "is_production=$is_production"
+            echo "is_deployment=$is_deployment"
+            echo "release_health=$release_health"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo '## Datadog Observability Context'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo "| Workflow | $workflow_name |"
+            echo "| Category | $category |"
+            echo "| Conclusion | $conclusion |"
+            echo "| Duration | ${duration_seconds}s |"
+            echo "| Deployment environment | ${deployment_environment:-not-applicable} |"
+            echo "| Production endpoint health | $endpoint_health_status |"
+            echo "| Release health | $release_health |"
+            echo "| Telemetry enabled | $should_send |"
+            echo "| Skip reason | ${skip_reason:-not-applicable} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Submit workflow metrics
+        if: steps.collect.outputs.should_send == 'true'
+        run: |
+          set -euo pipefail
+
+          context_file="${{ steps.collect.outputs.context_file }}"
+          metrics_payload="$RUNNER_TEMP/datadog-ci-metrics.json"
+
+          jq -n \
+            --arg service "$DATADOG_SERVICE" \
+            --arg team "$DATADOG_TEAM" \
+            --argjson context "$(cat "$context_file")" \
+            '
+              def metric($name; $value; $tags):
+                {
+                  metric: $name,
+                  type: 3,
+                  points: [
+                    {
+                      timestamp: $context.finished_at_epoch,
+                      value: $value
+                    }
+                  ],
+                  resources: [
+                    {
+                      name: $service,
+                      type: "service"
+                    }
+                  ],
+                  tags: $tags
+                };
+
+              (
+                [
+                  "service:" + $service,
+                  "team:" + $team,
+                  "repository:" + $context.repository,
+                  "workflow:" + $context.workflow_slug,
+                  "workflow_category:" + $context.category,
+                  "workflow_conclusion:" + $context.conclusion,
+                  "trigger:" + $context.trigger,
+                  "branch_kind:" + $context.branch_kind
+                ]
+                + (
+                  if $context.deployment_environment != "" then
+                    ["env:" + $context.deployment_environment]
+                  else
+                    []
+                  end
+                )
+              ) as $tags
+              |
+              {
+                series:
+                  [
+                    metric(
+                      "aerealith.ci.workflow.duration_seconds";
+                      $context.duration_seconds;
+                      $tags
+                    ),
+                    metric(
+                      "aerealith.ci.workflow.completed";
+                      1;
+                      $tags
+                    ),
+                    metric(
+                      "aerealith.ci.workflow.failed";
+                      $context.failure_value;
+                      $tags
+                    ),
+                    metric(
+                      "aerealith.ci.workflow.failure_rate";
+                      $context.failure_value;
+                      $tags
+                    )
+                  ]
+                  + (
+                    if $context.is_deployment then
+                      [
+                        metric(
+                          "aerealith.delivery.deployment.status";
+                          $context.success_value;
+                          $tags
+                        )
+                      ]
+                    else
+                      []
+                    end
+                  )
+                  + (
+                    if $context.is_release then
+                      [
+                        metric(
+                          "aerealith.delivery.release.status";
+                          $context.success_value;
+                          $tags
+                        )
+                      ]
+                    else
+                      []
+                    end
+                  )
+                  + (
+                    if $context.is_production then
+                      [
+                        metric(
+                          "aerealith.delivery.production.endpoint_healthy";
+                          $context.endpoint_healthy;
+                          $tags
+                        ),
+                        metric(
+                          "aerealith.delivery.release.health";
+                          $context.release_health;
+                          $tags
+                        )
+                      ]
+                    else
+                      []
+                    end
+                  )
+              }
+            ' > "$metrics_payload"
+
+          curl \
+            --fail-with-body \
+            --location \
+            --retry 3 \
+            --retry-all-errors \
+            --silent \
+            --show-error \
+            --request POST \
+            --header 'Accept: application/json' \
+            --header 'Content-Type: application/json' \
+            --header "DD-API-KEY: $DATADOG_API_KEY" \
+            --data @"$metrics_payload" \
+            "https://api.${DATADOG_SITE}/api/v2/series"
+
+          {
+            echo
+            echo '## Datadog Metrics'
+            echo
+            echo '| Metric group | Result |'
+            echo '| --- | --- |'
+            echo '| CI duration and completion metrics | submitted |'
+            echo '| Workflow failure-rate metric | submitted |'
+            echo '| Deployment and release metrics | submitted when applicable |'
+            echo '| Production health metrics | submitted when applicable |'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Submit Datadog workflow event
+        if: steps.collect.outputs.should_send == 'true'
+        run: |
+          set -euo pipefail
+
+          context_file="${{ steps.collect.outputs.context_file }}"
+          event_payload="$RUNNER_TEMP/datadog-workflow-event.json"
+
+          jq -n \
+            --arg service "$DATADOG_SERVICE" \
+            --arg team "$DATADOG_TEAM" \
+            --argjson context "$(cat "$context_file")" \
+            '
+              (
+                [
+                  "service:" + $service,
+                  "team:" + $team,
+                  "repository:" + $context.repository,
+                  "workflow:" + $context.workflow_slug,
+                  "workflow_category:" + $context.category,
+                  "workflow_conclusion:" + $context.conclusion,
+                  "trigger:" + $context.trigger,
+                  "branch_kind:" + $context.branch_kind,
+                  "source:github_actions"
+                ]
+                + (
+                  if $context.deployment_environment != "" then
+                    ["env:" + $context.deployment_environment]
+                  else
+                    []
+                  end
+                )
+              ) as $tags
+              |
+              {
+                title: (
+                  "Aerealith "
+                  + $context.category
+                  + " workflow "
+                  + $context.conclusion
+                  + ": "
+                  + $context.workflow_name
+                ),
+                text: (
+                  "%%%\n"
+                  + "### Workflow Result\n"
+                  + "- **Workflow:** " + $context.workflow_name + "\n"
+                  + "- **Conclusion:** " + $context.conclusion + "\n"
+                  + "- **Duration:** " + ($context.duration_seconds | tostring) + " seconds\n"
+                  + "- **Trigger:** " + $context.trigger + "\n"
+                  + "- **Run:** [Open GitHub Actions run](" + $context.run_url + ")\n"
+                  + (
+                    if $context.commit_sha_short != "" then
+                      "- **Commit:** `" + $context.commit_sha_short + "`\n"
+                    else
+                      ""
+                    end
+                  )
+                  + (
+                    if $context.release_tag != "" then
+                      "- **Release:** `" + $context.release_tag + "`\n"
+                    else
+                      ""
+                    end
+                  )
+                  + (
+                    if $context.deployment_environment != "" then
+                      "- **Environment:** " + $context.deployment_environment + "\n"
+                    else
+                      ""
+                    end
+                  )
+                  + (
+                    if $context.health_url != "" then
+                      "- **Health endpoint:** "
+                      + $context.endpoint_health_status
+                      + " — [Open endpoint]("
+                      + $context.health_url
+                      + ")\n"
+                    else
+                      ""
+                    end
+                  )
+                  + "\n### Details\n"
+                  + $context.details
+                  + "\n%%%"
+                ),
+                alert_type: $context.alert_type,
+                priority: "normal",
+                source_type_name: "github_actions",
+                aggregation_key: (
+                  "aerealith:"
+                  + $context.workflow_slug
+                  + ":"
+                  + (
+                    if $context.deployment_environment != "" then
+                      $context.deployment_environment
+                    else
+                      "none"
+                    end
+                  )
+                ),
+                tags: $tags
+              }
+            ' > "$event_payload"
+
+          curl \
+            --fail-with-body \
+            --location \
+            --retry 3 \
+            --retry-all-errors \
+            --silent \
+            --show-error \
+            --request POST \
+            --header 'Accept: application/json' \
+            --header 'Content-Type: application/json' \
+            --header "DD-API-KEY: $DATADOG_API_KEY" \
+            --data @"$event_payload" \
+            "https://api.${DATADOG_SITE}/api/v1/events"
+
+          {
+            echo
+            echo '## Datadog Event'
+            echo
+            echo '| Event type | Result |'
+            echo '| --- | --- |'
+            echo '| GitHub workflow event | submitted |'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Submit healthy production deployment to Datadog DORA Metrics
+        if: >-
+          steps.collect.outputs.should_send == 'true' &&
+          steps.collect.outputs.is_production == 'true' &&
+          steps.collect.outputs.is_deployment == 'true' &&
+          steps.collect.outputs.release_health == '1' &&
+          env.ENABLE_DORA_DEPLOYMENTS == 'true'
+        run: |
+          set -euo pipefail
+
+          context_file="${{ steps.collect.outputs.context_file }}"
+          dora_payload="$RUNNER_TEMP/datadog-dora-deployment.json"
+
+          jq -n \
+            --arg service "$DATADOG_SERVICE" \
+            --arg team "$DATADOG_TEAM" \
+            --arg repository_url "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" \
+            --argjson context "$(cat "$context_file")" \
+            '
+              {
+                data: {
+                  attributes: {
+                    id: (
+                      "github-actions-"
+                      + (
+                        if $context.source_run_id != "" then
+                          $context.source_run_id
+                        else
+                          ($context.finished_at_epoch | tostring)
+                        end
+                      )
+                    ),
+                    service: $service,
+                    team: $team,
+                    env: "production",
+                    version: (
+                      if $context.release_tag != "" then
+                        $context.release_tag
+                      elif $context.commit_sha_short != "" then
+                        $context.commit_sha_short
+                      else
+                        "unknown"
+                      end
+                    ),
+                    started_at: (
+                      $context.started_at_epoch * 1000000000
+                    ),
+                    finished_at: (
+                      $context.finished_at_epoch * 1000000000
+                    ),
+                    git: {
+                      repository_url: $repository_url,
+                      commit_sha: $context.commit_sha
+                    },
+                    custom_tags: [
+                      "repository:" + $context.repository,
+                      "workflow:" + $context.workflow_slug,
+                      "trigger:" + $context.trigger,
+                      "release_health:healthy"
+                    ]
+                  }
+                }
+              }
+            ' > "$dora_payload"
+
+          curl \
+            --fail-with-body \
+            --location \
+            --retry 3 \
+            --retry-all-errors \
+            --silent \
+            --show-error \
+            --request POST \
+            --header 'Accept: application/json' \
+            --header 'Content-Type: application/json' \
+            --header "DD-API-KEY: $DATADOG_API_KEY" \
+            --data @"$dora_payload" \
+            "https://api.${DATADOG_SITE}/api/v2/dora/deployment"
+
+          {
+            echo
+            echo '## Datadog DORA Deployment'
+            echo
+            echo '| Deployment signal | Result |'
+            echo '| --- | --- |'
+            echo '| Production deployment event | submitted |'
+            echo '| Environment | production |'
+            echo '| Release health | healthy |'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish skipped observability result
+        if: steps.collect.outputs.should_send != 'true'
+        run: |
+          set -euo pipefail
+
+          context_file="${{ steps.collect.outputs.context_file }}"
+
+          skip_reason="$(
+            jq -r '.skip_reason // "Telemetry was skipped."' "$context_file"
+          )"
+
+          {
+            echo
+            echo '## Datadog Observability Result'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo '| Telemetry submitted | false |'
+            echo "| Reason | $skip_reason |"
+          } >> "$GITHUB_STEP_SUMMARY"

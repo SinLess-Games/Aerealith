@@ -1,0 +1,124 @@
+# .github/workflows/dependabot-auto-merge.yaml
+#
+# Conservative Dependabot auto-merge policy.
+#
+# A PR is eligible only when all of the following are true:
+# - It was opened by Dependabot.
+# - It targets main.
+# - It has the exact "automerge:low-risk" label.
+# - Its highest update type is a SemVer patch update.
+# - It is not a grouped update.
+# - Dependabot reports no maintainer changes.
+#
+# This workflow never approves a pull request. It only enables GitHub's
+# native auto-merge, which still waits for every required review and required
+# status check configured in your branch protection rules or rulesets.
+#
+# Do not make this workflow itself a required check.
+
+name: Dependabot Auto-Merge
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - labeled
+      - unlabeled
+      - reopened
+      - ready_for_review
+      - synchronize
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: dependabot-auto-merge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  AUTO_MERGE_LABEL: automerge:low-risk
+
+jobs:
+  reconcile:
+    name: Reconcile Dependabot Auto-Merge
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    if: >-
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.base.ref == 'main' &&
+      !github.event.pull_request.draft
+
+    steps:
+      - name: Read Dependabot metadata
+        id: dependabot-metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable or disable native auto-merge
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_LABELS_JSON: ${{ toJson(github.event.pull_request.labels) }}
+          UPDATE_TYPE: ${{ steps.dependabot-metadata.outputs.update-type }}
+          DEPENDENCY_GROUP: ${{ steps.dependabot-metadata.outputs.dependency-group }}
+          MAINTAINER_CHANGES: ${{ steps.dependabot-metadata.outputs.maintainer-changes }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -Eeuo pipefail
+
+          has_low_risk_label='false'
+
+          if jq --exit-status \
+            --arg label "$AUTO_MERGE_LABEL" \
+            'any(.[]; .name == $label)' \
+            <<< "$PR_LABELS_JSON" >/dev/null; then
+            has_low_risk_label='true'
+          fi
+
+          eligible='false'
+
+          if [[ "$has_low_risk_label" == 'true' ]] \
+            && [[ "$UPDATE_TYPE" == 'version-update:semver-patch' ]] \
+            && [[ -z "$DEPENDENCY_GROUP" ]] \
+            && [[ "$MAINTAINER_CHANGES" != 'true' ]]; then
+            eligible='true'
+          fi
+
+          auto_merge_enabled="$(
+            gh pr view "$PR_URL" \
+              --json autoMergeRequest \
+              --jq 'if .autoMergeRequest == null then "false" else "true" end'
+          )"
+
+          echo "Dependabot update type: ${UPDATE_TYPE:-unknown}"
+          echo "Has ${AUTO_MERGE_LABEL} label: ${has_low_risk_label}"
+          echo "Grouped update: ${DEPENDENCY_GROUP:-no}"
+          echo "Maintainer changes: ${MAINTAINER_CHANGES:-false}"
+          echo "Eligible for auto-merge: ${eligible}"
+
+          if [[ "$eligible" == 'true' ]]; then
+            if [[ "$auto_merge_enabled" == 'true' ]]; then
+              echo "Auto-merge is already enabled."
+              exit 0
+            fi
+
+            gh pr merge "$PR_URL" \
+              --auto \
+              --squash \
+              --match-head-commit "$PR_HEAD_SHA"
+
+            echo "Enabled native auto-merge."
+            exit 0
+          fi
+
+          if [[ "$auto_merge_enabled" == 'true' ]]; then
+            gh pr merge "$PR_URL" --disable-auto
+            echo "Disabled auto-merge because the PR is no longer eligible."
+            exit 0
+          fi
+
+          echo "PR is not eligible for auto-merge."

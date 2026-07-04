@@ -1,0 +1,448 @@
+# .github/workflows/ghcr-cleanup.yaml
+#
+# Cleans old GitHub Container Registry versions after the Aerealith GHCR
+# publishing workflow completes successfully.
+#
+# Retention policy:
+# - Keeps the 20 newest active versions of every managed image.
+# - Deletes active versions older than the newest 20.
+# - Old untagged and superseded versions are therefore removed naturally.
+# - Never deletes images outside the configured package-name prefix.
+#
+# Managed GHCR image names:
+# - ghcr.io/sinless-games/aerealith-*
+#
+# Automatic trigger:
+# - Runs after "15 · Publish GHCR Images" completes successfully.
+#
+# Manual trigger:
+# - Defaults to a dry run.
+# - Set dry_run to false to perform deletion manually.
+#
+# Required GitHub permissions:
+# - packages: write
+#
+# Important:
+# - GHCR packages must remain linked to this repository or grant this
+#   repository's GitHub Actions token admin access.
+# - Deleted package versions can generally be restored from GitHub Packages
+#   for a limited retention period, but do not rely on cleanup as a backup.
+
+name: GHCR Cleanup
+
+on:
+  workflow_run:
+    workflows:
+      - "15 · Publish GHCR Images"
+    types:
+      - completed
+
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Preview deletions without removing package versions."
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: ghcr-cleanup
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  PACKAGE_TYPE: "container"
+  PACKAGE_NAME_PREFIX: "aerealith-"
+  KEEP_VERSION_COUNT: "20"
+
+jobs:
+  cleanup:
+    name: Retain newest GHCR image versions
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'workflow_run' &&
+        github.event.workflow_run.conclusion == 'success'
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+      PACKAGE_OWNER: ${{ github.repository_owner }}
+
+      DRY_RUN: >-
+        ${{
+          github.event_name == 'workflow_dispatch' &&
+          inputs.dry_run ||
+          'false'
+        }}
+
+      SOURCE_WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+      SOURCE_WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
+      SOURCE_WORKFLOW_RUN_URL: ${{ github.event.workflow_run.html_url }}
+
+    steps:
+      - name: Validate cleanup configuration
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${GH_TOKEN:-}" ]]; then
+            echo '::error::GitHub token is unavailable.'
+            exit 1
+          fi
+
+          if [[ -z "${PACKAGE_OWNER:-}" ]]; then
+            echo '::error::Package owner is unavailable.'
+            exit 1
+          fi
+
+          if [[ ! "$KEEP_VERSION_COUNT" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::KEEP_VERSION_COUNT must be a positive integer. Received: $KEEP_VERSION_COUNT"
+            exit 1
+          fi
+
+          if [[ -z "${PACKAGE_NAME_PREFIX:-}" ]]; then
+            echo '::error::PACKAGE_NAME_PREFIX cannot be empty.'
+            exit 1
+          fi
+
+          if [[ "$DRY_RUN" != 'true' && "$DRY_RUN" != 'false' ]]; then
+            echo "::error::DRY_RUN must be true or false. Received: $DRY_RUN"
+            exit 1
+          fi
+
+          owner_type="$(
+            gh api "/users/$PACKAGE_OWNER" \
+              --jq '.type'
+          )"
+
+          case "$owner_type" in
+            Organization)
+              packages_endpoint="/orgs/$PACKAGE_OWNER/packages"
+              ;;
+            User)
+              packages_endpoint="/users/$PACKAGE_OWNER/packages"
+              ;;
+            *)
+              echo "::error::Unsupported GitHub package owner type: $owner_type"
+              exit 1
+              ;;
+          esac
+
+          {
+            echo "OWNER_TYPE=$owner_type"
+            echo "PACKAGES_ENDPOINT=$packages_endpoint"
+          } >> "$GITHUB_ENV"
+
+          {
+            echo '## GHCR Cleanup Preflight'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo "| Package owner | $PACKAGE_OWNER |"
+            echo "| Owner type | $owner_type |"
+            echo "| Package type | $PACKAGE_TYPE |"
+            echo "| Managed image prefix | \`$PACKAGE_NAME_PREFIX\` |"
+            echo "| Versions retained per image | $KEEP_VERSION_COUNT |"
+            echo "| Dry run | $DRY_RUN |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "${SOURCE_WORKFLOW_RUN_URL:-}" == https://* ]]; then
+            {
+              echo "| Triggering workflow | [$SOURCE_WORKFLOW_NAME]($SOURCE_WORKFLOW_RUN_URL) |"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Discover managed GHCR container packages
+        run: |
+          set -euo pipefail
+
+          package_pages_file="$RUNNER_TEMP/ghcr-package-pages.json"
+          package_names_file="$RUNNER_TEMP/ghcr-managed-packages.txt"
+
+          rm -f "$package_pages_file" "$package_names_file"
+
+          gh api \
+            --paginate \
+            --slurp \
+            "${PACKAGES_ENDPOINT}?package_type=${PACKAGE_TYPE}&per_page=100" \
+            > "$package_pages_file"
+
+          jq -r \
+            --arg prefix "$PACKAGE_NAME_PREFIX" \
+            '
+              [
+                .[][]?
+                | select(.name | startswith($prefix))
+                | .name
+              ]
+              | unique
+              | .[]
+            ' \
+            "$package_pages_file" \
+            > "$package_names_file"
+
+          managed_package_count="$(
+            wc -l < "$package_names_file" | tr -d ' '
+          )"
+
+          {
+            echo "PACKAGE_NAMES_FILE=$package_names_file"
+            echo "MANAGED_PACKAGE_COUNT=$managed_package_count"
+          } >> "$GITHUB_ENV"
+
+          {
+            echo '## Managed GHCR Packages'
+            echo
+            echo '| Metric | Result |'
+            echo '| --- | --- |'
+            echo "| Matching packages | $managed_package_count |"
+            echo "| Package prefix | \`$PACKAGE_NAME_PREFIX\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "$managed_package_count" -eq 0 ]]; then
+            {
+              echo
+              echo 'No managed GHCR container packages were found. Nothing needs cleanup.'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Retain newest package versions and remove old versions
+        id: cleanup
+        run: |
+          set -euo pipefail
+
+          total_packages=0
+          total_versions=0
+          total_versions_kept=0
+          total_versions_deleted=0
+          total_untagged_deleted=0
+          total_delete_failures=0
+
+          cleanup_summary_file="$RUNNER_TEMP/ghcr-cleanup-summary.md"
+
+          {
+            echo '## GHCR Cleanup Results'
+            echo
+            echo '| Container package | Active versions | Versions retained | Versions removed | Untagged removed | Result |'
+            echo '| --- | ---: | ---: | ---: | ---: | --- |'
+          } > "$cleanup_summary_file"
+
+          if [[ ! -s "$PACKAGE_NAMES_FILE" ]]; then
+            {
+              echo "| _No matching packages_ | 0 | 0 | 0 | 0 | No action |"
+            } >> "$cleanup_summary_file"
+          fi
+
+          while IFS= read -r package_name; do
+            [[ -z "$package_name" ]] && continue
+
+            total_packages=$((total_packages + 1))
+
+            package_name_uri="$(
+              jq -nr \
+                --arg package_name "$package_name" \
+                '$package_name | @uri'
+            )"
+
+            safe_package_name="$(
+              printf '%s' "$package_name" \
+                | tr '/:' '--' \
+                | tr -cd '[:alnum:]._-'
+            )"
+
+            version_pages_file="$RUNNER_TEMP/${safe_package_name}-version-pages.json"
+            versions_file="$RUNNER_TEMP/${safe_package_name}-versions.json"
+            cleanup_plan_file="$RUNNER_TEMP/${safe_package_name}-cleanup-plan.json"
+
+            rm -f \
+              "$version_pages_file" \
+              "$versions_file" \
+              "$cleanup_plan_file"
+
+            gh api \
+              --paginate \
+              --slurp \
+              "${PACKAGES_ENDPOINT}/${PACKAGE_TYPE}/${package_name_uri}/versions?state=active&per_page=100" \
+              > "$version_pages_file"
+
+            jq '
+              [
+                .[][]?
+                | select(
+                    (.id | type) == "number" and
+                    (.created_at | type) == "string"
+                  )
+              ]
+              | sort_by(.created_at)
+              | reverse
+            ' "$version_pages_file" > "$versions_file"
+
+            active_version_count="$(
+              jq 'length' "$versions_file"
+            )"
+
+            total_versions=$((total_versions + active_version_count))
+
+            jq \
+              --argjson keep_count "$KEEP_VERSION_COUNT" \
+              '
+                {
+                  keep: .[:$keep_count],
+                  delete: .[$keep_count:]
+                }
+              ' \
+              "$versions_file" \
+              > "$cleanup_plan_file"
+
+            retained_version_count="$(
+              jq '.keep | length' "$cleanup_plan_file"
+            )"
+
+            delete_version_count="$(
+              jq '.delete | length' "$cleanup_plan_file"
+            )"
+
+            untagged_delete_count="$(
+              jq '
+                [
+                  .delete[]
+                  | select(
+                      (.metadata.container.tags // [])
+                      | length == 0
+                    )
+                ]
+                | length
+              ' "$cleanup_plan_file"
+            )"
+
+            package_deleted_count=0
+            package_delete_failures=0
+
+            while IFS=$'\t' read -r version_id created_at tags; do
+              [[ -z "$version_id" ]] && continue
+
+              if [[ "$DRY_RUN" == 'true' ]]; then
+                echo "::notice::Dry run: would delete package '$package_name' version '$version_id' created '$created_at' with tags '${tags:-<untagged>}'"
+                package_deleted_count=$((package_deleted_count + 1))
+                continue
+              fi
+
+              delete_endpoint="${PACKAGES_ENDPOINT}/${PACKAGE_TYPE}/${package_name_uri}/versions/${version_id}"
+
+              if gh api \
+                --method DELETE \
+                "$delete_endpoint" \
+                >/dev/null; then
+                echo "::notice::Deleted package '$package_name' version '$version_id' created '$created_at' with tags '${tags:-<untagged>}'"
+                package_deleted_count=$((package_deleted_count + 1))
+              else
+                echo "::error::Failed to delete package '$package_name' version '$version_id'."
+                package_delete_failures=$((package_delete_failures + 1))
+              fi
+            done < <(
+              jq -r '
+                .delete[]
+                | [
+                    (.id | tostring),
+                    .created_at,
+                    ((.metadata.container.tags // []) | join(","))
+                  ]
+                | @tsv
+              ' "$cleanup_plan_file"
+            )
+
+            total_versions_kept=$((total_versions_kept + retained_version_count))
+            total_versions_deleted=$((total_versions_deleted + package_deleted_count))
+            total_untagged_deleted=$((total_untagged_deleted + untagged_delete_count))
+            total_delete_failures=$((total_delete_failures + package_delete_failures))
+
+            package_result='No cleanup needed'
+
+            if [[ "$delete_version_count" -gt 0 && "$DRY_RUN" == 'true' ]]; then
+              package_result='Dry run complete'
+            elif [[ "$delete_version_count" -gt 0 && "$package_delete_failures" -eq 0 ]]; then
+              package_result='Cleanup complete'
+            elif [[ "$package_delete_failures" -gt 0 ]]; then
+              package_result='Cleanup failed'
+            fi
+
+            {
+              echo "| \`$package_name\` | $active_version_count | $retained_version_count | $package_deleted_count | $untagged_delete_count | $package_result |"
+            } >> "$cleanup_summary_file"
+          done < "$PACKAGE_NAMES_FILE"
+
+          {
+            echo "total_packages=$total_packages"
+            echo "total_versions=$total_versions"
+            echo "total_versions_kept=$total_versions_kept"
+            echo "total_versions_deleted=$total_versions_deleted"
+            echo "total_untagged_deleted=$total_untagged_deleted"
+            echo "total_delete_failures=$total_delete_failures"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo
+            echo '### Totals'
+            echo
+            echo '| Metric | Result |'
+            echo '| --- | ---: |'
+            echo "| Managed packages | $total_packages |"
+            echo "| Active versions scanned | $total_versions |"
+            echo "| Versions retained | $total_versions_kept |"
+            echo "| Versions removed | $total_versions_deleted |"
+            echo "| Untagged versions removed | $total_untagged_deleted |"
+            echo "| Delete failures | $total_delete_failures |"
+            echo "| Dry run | $DRY_RUN |"
+          } >> "$cleanup_summary_file"
+
+          cat "$cleanup_summary_file" >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "$total_delete_failures" -gt 0 ]]; then
+            echo "::error::One or more GHCR package versions could not be deleted."
+            exit 1
+          fi
+
+      - name: Publish cleanup result
+        env:
+          TOTAL_PACKAGES: ${{ steps.cleanup.outputs.total_packages }}
+          TOTAL_VERSIONS: ${{ steps.cleanup.outputs.total_versions }}
+          TOTAL_KEPT: ${{ steps.cleanup.outputs.total_versions_kept }}
+          TOTAL_DELETED: ${{ steps.cleanup.outputs.total_versions_deleted }}
+          TOTAL_UNTAGGED_DELETED: ${{ steps.cleanup.outputs.total_untagged_deleted }}
+          DELETE_FAILURES: ${{ steps.cleanup.outputs.total_delete_failures }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$DRY_RUN" == 'true' ]]; then
+            echo "::notice title=GHCR cleanup dry run complete::Would remove ${TOTAL_DELETED:-0} old package versions while retaining ${KEEP_VERSION_COUNT} newest versions per image."
+          else
+            echo "::notice title=GHCR cleanup complete::Removed ${TOTAL_DELETED:-0} old package versions while retaining ${KEEP_VERSION_COUNT} newest versions per image."
+          fi
+
+          {
+            echo
+            echo '## GHCR Cleanup Workflow Result'
+            echo
+            echo '| Check | Result |'
+            echo '| --- | --- |'
+            echo "| Package owner | $PACKAGE_OWNER |"
+            echo "| Managed image prefix | \`$PACKAGE_NAME_PREFIX\` |"
+            echo "| Retention policy | keep newest $KEEP_VERSION_COUNT versions per image |"
+            echo "| Managed packages | ${TOTAL_PACKAGES:-0} |"
+            echo "| Active versions scanned | ${TOTAL_VERSIONS:-0} |"
+            echo "| Versions retained | ${TOTAL_KEPT:-0} |"
+            echo "| Versions removed | ${TOTAL_DELETED:-0} |"
+            echo "| Untagged versions removed | ${TOTAL_UNTAGGED_DELETED:-0} |"
+            echo "| Delete failures | ${DELETE_FAILURES:-0} |"
+            echo "| Dry run | $DRY_RUN |"
+          } >> "$GITHUB_STEP_SUMMARY"

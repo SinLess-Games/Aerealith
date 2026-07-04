@@ -1,0 +1,65 @@
+# .github/workflows/hercules-insights.yaml
+#
+# Monthly Git-history reporting for repository ownership, churn, coupling,
+# contributor activity, and structural hotspots.
+#
+# This is intentionally informational only:
+# - no pull-request status
+# - no issue/PR mutation
+# - no deployment or release authority
+#
+# Run manually at first. Keep the scheduled run enabled only after the
+# repository has enough stable history for the reports to be useful.
+
+name: Hercules Insights
+
+on:
+  schedule:
+    # First day of each month at 15:17 UTC.
+    # America/Boise: 9:17 AM during MDT, 8:17 AM during MST.
+    - cron: "17 15 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hercules-insights
+  cancel-in-progress: false
+
+jobs:
+  analyze-history:
+    name: Generate Git History Insights
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out complete repository history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Generate Hercules reports
+        uses: src-d/hercules@v10.7.2
+        with:
+          # Produces the data needed for project burndown, contributor churn,
+          # ownership, file coupling, contributor activity, and code hotspots.
+          #
+          # Do not add --burndown-files unless you specifically want a chart
+          # per file; that can make artifacts extremely large as the repo grows.
+          args: >-
+            --burndown
+            --burndown-people
+            --devs
+            --couples
+            --shotness
+
+      - name: Upload Hercules reports
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: hercules-insights-${{ github.run_number }}
+          path: hercules_charts.tar
+          if-no-files-found: error
+          retention-days: 90

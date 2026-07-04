@@ -1,8 +1,9 @@
 /// <reference types="vitest" />
 
-import { codecovVitePlugin } from '@codecov/vite-plugin'
-import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import meticulous from "@alwaysmeticulous/recorder-plugin/vite";
+import { codecovVitePlugin } from '@codecov/vite-plugin';
+import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
 
 
 export default defineConfig(({ mode }) => ({
@@ -20,6 +21,9 @@ export default defineConfig(({ mode }) => ({
       enableBundleAnalysis: process.env.CODECOV_TOKEN !== undefined,
       bundleName: `aerealith-frontend-${mode}`,
       uploadToken: process.env.CODECOV_TOKEN,
+    }),
+    meticulous({
+      recordingToken: process.env.METICULOUS_API_TOKEN as string,
     }),
   ],
 

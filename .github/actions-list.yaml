@@ -30,9 +30,9 @@
   uses: actions/upload-artifact@v7.0.1
   url: https://github.com/marketplace/actions/upload-a-build-artifact
 
-- name: Download build artifact
-  uses: actions/download-artifact@v8
-  url: https://github.com/marketplace/actions/download-a-build-artifact
+- name: GitHub Script
+  uses: actions/github-script@v8
+  url: https://github.com/marketplace/actions/github-script
 
 - name: Labeler
   uses: actions/labeler@v6.1.0
@@ -43,7 +43,7 @@
   url: https://github.com/marketplace/actions/dependency-review
 
 # -----------------------------------------------------------------------------
-# CI, Testing, Coverage, and Quality
+# CI, Testing, Coverage, and Repository Quality
 # -----------------------------------------------------------------------------
 
 - name: MegaLinter
@@ -71,15 +71,31 @@
   url: https://github.com/marketplace/actions/run-meticulous-tests
 
 # -----------------------------------------------------------------------------
+# Repository Labels, Pull Requests, and Dependency Automation
+# -----------------------------------------------------------------------------
+
+- name: Synchronize Labels
+  uses: EndBug/label-sync@v2.3.3
+  url: https://github.com/marketplace/actions/label-sync
+
+- name: Read Dependabot Pull Request Metadata
+  uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98
+  url: https://github.com/marketplace/actions/fetch-metadata-from-dependabot-prs
+
+- name: Codeball AI Code Review
+  uses: sturdy-dev/codeball-action@102067b9f537482cee112577655c85fda56d8926
+  url: https://github.com/marketplace/actions/codeball-ai-code-review
+
+- name: Sponsor Labels
+  uses: JasonEtco/is-sponsor-label-action@565f3cb67b3518a8aae36c3f0bce9e8513430e84
+  url: https://github.com/marketplace/actions/sponsor-labels
+
+# -----------------------------------------------------------------------------
 # Security and Supply Chain
 # -----------------------------------------------------------------------------
 
 - name: GitHub CodeQL Initialize
   uses: github/codeql-action/init@v4
-  url: https://github.com/marketplace/actions/github-codeql-action
-
-- name: GitHub CodeQL Autobuild
-  uses: github/codeql-action/autobuild@v4
   url: https://github.com/marketplace/actions/github-codeql-action
 
 - name: GitHub CodeQL Analyze
@@ -95,15 +111,11 @@
   url: https://github.com/marketplace/actions/gitleaks
 
 - name: Trivy Security Scan
-  uses: aquasecurity/trivy-action@0.33.1
+  uses: aquasecurity/trivy-action@v0.36.0
   url: https://github.com/marketplace/actions/aqua-security-trivy
 
-- name: Snyk Node.js Scan
-  uses: snyk/actions/node@v1.0.0
-  url: https://github.com/marketplace/actions/snyk
-
-- name: Snyk Container Scan
-  uses: snyk/actions/docker@v1.0.0
+- name: Set Up Snyk CLI
+  uses: snyk/actions/setup@v1.0.0
   url: https://github.com/marketplace/actions/snyk
 
 - name: Official SonarQube Scan
@@ -111,72 +123,28 @@
   url: https://github.com/marketplace/actions/official-sonarqube-scan
 
 # -----------------------------------------------------------------------------
-# Pull Request, Issue, Dependency, and AI Automation
+# Containers and GitHub Container Registry
 # -----------------------------------------------------------------------------
-
-- name: Dependabot Auto Merge
-  uses: ahmadnassri/action-dependabot-auto-merge@v2.6.6
-  url: https://github.com/marketplace/actions/dependabot-auto-merge
-
-- name: OpenCommit — Improve Commits with AI
-  uses: di-sukharev/opencommit@github-action-v1.0.2
-  url: https://github.com/marketplace/actions/opencommit
-
-- name: Codeball AI Code Review
-  uses: sturdy-dev/codeball-action@v2.6.0
-  url: https://github.com/marketplace/actions/codeball-ai-code-review
-
-- name: Auto-assign Issue
-  uses: pozil/auto-assign-issue@v4.0.1
-  url: https://github.com/marketplace/actions/auto-assign-issue
-
-- name: Sponsor Labels
-  uses: JasonEtco/is-sponsor-label-action@v2.0.0
-  url: https://github.com/marketplace/actions/sponsor-labels
-
-# -----------------------------------------------------------------------------
-# Cloudflare, Containers, Releases, and Package Publishing
-# -----------------------------------------------------------------------------
-
-- name: Deploy to Cloudflare Workers with Wrangler
-  uses: cloudflare/wrangler-action@v4.0.0
-  url: https://github.com/marketplace/actions/deploy-to-cloudflare-workers-with-wrangler
 
 - name: Set up Docker Buildx
-  uses: docker/setup-buildx-action@v3
+  uses: docker/setup-buildx-action@v4
   url: https://github.com/marketplace/actions/set-up-docker-buildx
 
-- name: Docker Login
-  uses: docker/login-action@v3
+- name: Log in to GitHub Container Registry
+  uses: docker/login-action@v4
   url: https://github.com/marketplace/actions/docker-login
 
-- name: Build and Push Docker Image
-  uses: docker/build-push-action@v6
+- name: Generate Docker image metadata
+  uses: docker/metadata-action@v6
+  url: https://github.com/marketplace/actions/docker-metadata-action
+
+- name: Build and publish Docker image
+  uses: docker/build-push-action@v7
   url: https://github.com/marketplace/actions/build-and-push-docker-images
 
-- name: Attest Build Provenance
-  uses: actions/attest-build-provenance@v2
-  url: https://github.com/marketplace/actions/attest-build-provenance
-
-- name: Create GitHub Release
-  uses: softprops/action-gh-release@v2
-  url: https://github.com/marketplace/actions/gh-release
-
-- name: GHCR Cleanup
-  uses: softo-develop/ghcr-prune@v0.0.2
-  url: https://github.com/marketplace/actions/ghcr-cleanup
-
 # -----------------------------------------------------------------------------
-# Notifications, Observability, and Repository Insights
+# Repository Insights
 # -----------------------------------------------------------------------------
-
-- name: Discord Webhook Notify
-  uses: rjstone/discord-webhook-notify@v2.2.1
-  url: https://github.com/marketplace/actions/discord-webhook-notify
-
-- name: Datadog Action
-  uses: masci/datadog@v2.0.3
-  url: https://github.com/marketplace/actions/datadog-action
 
 - name: Hercules Insights
   uses: src-d/hercules@v10.7.2

@@ -1,0 +1,574 @@
+# .github/workflows/14-cloudflare-staging.yaml
+#
+# Uploads the current staging branch as a version of the existing Cloudflare
+# Worker and assigns it the persistent `staging` preview alias.
+#
+# Cloudflare Worker:
+# - aerealith
+#
+# Staging preview alias:
+# - staging-aerealith.<account-subdomain>.workers.dev
+#
+# Deployment flow:
+# 1. A push reaches the staging branch.
+# 2. Nx and Vite build the frontend into dist/apps/frontend.
+# 3. Wrangler bundles apps/frontend/src/worker.ts.
+# 4. Wrangler uploads dist/apps/frontend as Cloudflare Static Assets.
+# 5. Wrangler uploads a Worker version with the `staging` preview alias.
+# 6. The workflow verifies /__aerealith/health on the returned staging URL.
+#
+# Required GitHub repository secrets:
+# - CLOUDFLARE_API_TOKEN
+# - CLOUDFLARE_ACCOUNT_ID
+#
+# Optional GitHub repository variable:
+# - CLOUDFLARE_WRANGLER_CONFIG_PATH
+#
+# Automatically discovered Wrangler configuration files:
+# - apps/frontend/wrangler.jsonc
+# - apps/frontend/wrangler.json
+# - apps/frontend/wrangler.toml
+#
+# This workflow intentionally does not:
+# - create a separate Worker service
+# - route traffic to production
+# - change DNS records or custom-domain routes
+# - upload runtime Worker secrets
+# - deploy from branches other than staging
+
+name: 14 · Cloudflare Staging
+
+on:
+  push:
+    branches:
+      - staging
+
+  workflow_dispatch:
+    inputs:
+      wrangler_config_path:
+        description: "Optional repository-relative Wrangler config path override."
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudflare-staging
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CI: "true"
+  FORCE_COLOR: "1"
+  HUSKY: "0"
+
+  NODE_VERSION: "25.9.0"
+  PNPM_VERSION: "11.5.2"
+
+  FRONTEND_PROJECT: "frontend"
+  FRONTEND_DIRECTORY: "apps/frontend"
+
+  STAGING_BRANCH: "staging"
+  STAGING_ALIAS: "staging"
+
+  WORKER_NAME: "aerealith"
+  HEALTH_PATH: "/__aerealith/health"
+
+jobs:
+  preflight:
+    name: Validate staging deployment requirements
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    outputs:
+      wrangler_config_path: ${{ steps.validate.outputs.wrangler_config_path }}
+      wrangler_config_format: ${{ steps.validate.outputs.wrangler_config_format }}
+      configuration_source: ${{ steps.validate.outputs.configuration_source }}
+
+    env:
+      SOURCE_BRANCH: ${{ github.ref_name }}
+
+      WRANGLER_CONFIG_PATH_OVERRIDE: >-
+        ${{ inputs.wrangler_config_path || vars.CLOUDFLARE_WRANGLER_CONFIG_PATH }}
+
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Validate staging deployment requirements
+        id: validate
+        run: |
+          set -euo pipefail
+
+          wrangler_config_path=''
+          wrangler_config_format=''
+          configuration_source=''
+
+          token_available='false'
+          account_id_available='false'
+
+          if [[ -n "${CLOUDFLARE_API_TOKEN:-}" ]]; then
+            token_available='true'
+          fi
+
+          if [[ -n "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
+            account_id_available='true'
+          fi
+
+          resolve_config_path() {
+            local requested_path="$1"
+            local absolute_path=''
+            local relative_path=''
+
+            if [[ -z "$requested_path" ]]; then
+              echo '::error::Wrangler configuration path cannot be empty.'
+              exit 1
+            fi
+
+            if [[ "$requested_path" == /* ]]; then
+              absolute_path="$(realpath -m "$requested_path")"
+            else
+              absolute_path="$(realpath -m "$GITHUB_WORKSPACE/$requested_path")"
+            fi
+
+            if [[ "$absolute_path" != "$GITHUB_WORKSPACE/"* ]]; then
+              echo "::error::Wrangler configuration must be inside the repository workspace: $requested_path"
+              exit 1
+            fi
+
+            if [[ ! -f "$absolute_path" ]]; then
+              echo "::error::Wrangler configuration file was not found: $requested_path"
+              exit 1
+            fi
+
+            relative_path="${absolute_path#"$GITHUB_WORKSPACE"/}"
+
+            case "$relative_path" in
+              *.jsonc | *.json | *.toml)
+                ;;
+              *)
+                echo "::error::Unsupported Wrangler configuration extension: $relative_path"
+                echo '::error::Supported extensions are .jsonc, .json, and .toml.'
+                exit 1
+                ;;
+            esac
+
+            printf '%s\n' "$relative_path"
+          }
+
+          if [[ "$SOURCE_BRANCH" != "$STAGING_BRANCH" ]]; then
+            echo "::error::Staging deployments must run from the '$STAGING_BRANCH' branch."
+            echo "::error::Current branch: $SOURCE_BRANCH"
+            exit 1
+          fi
+
+          if [[ "$token_available" != 'true' ]]; then
+            echo '::error::CLOUDFLARE_API_TOKEN is not configured as a repository secret.'
+            exit 1
+          fi
+
+          if [[ "$account_id_available" != 'true' ]]; then
+            echo '::error::CLOUDFLARE_ACCOUNT_ID is not configured as a repository secret.'
+            exit 1
+          fi
+
+          if [[ -n "${WRANGLER_CONFIG_PATH_OVERRIDE:-}" ]]; then
+            wrangler_config_path="$(
+              resolve_config_path "$WRANGLER_CONFIG_PATH_OVERRIDE"
+            )"
+            configuration_source='explicit override'
+          else
+            config_candidates=(
+              "$FRONTEND_DIRECTORY/wrangler.jsonc"
+              "$FRONTEND_DIRECTORY/wrangler.json"
+              "$FRONTEND_DIRECTORY/wrangler.toml"
+            )
+
+            found_configurations=()
+
+            for candidate in "${config_candidates[@]}"; do
+              if [[ -f "$candidate" ]]; then
+                found_configurations+=(
+                  "$(resolve_config_path "$candidate")"
+                )
+              fi
+            done
+
+            if [[ "${#found_configurations[@]}" -eq 0 ]]; then
+              echo '::error::No supported Wrangler configuration file was found for the frontend.'
+              echo "::error::Checked: ${config_candidates[*]}"
+              echo '::error::Create one config file or set CLOUDFLARE_WRANGLER_CONFIG_PATH.'
+              exit 1
+            fi
+
+            if [[ "${#found_configurations[@]}" -gt 1 ]]; then
+              echo '::error::Multiple Wrangler configuration files were found.'
+
+              for configuration in "${found_configurations[@]}"; do
+                echo "::error:: - $configuration"
+              done
+
+              echo '::error::Keep one supported config file or set CLOUDFLARE_WRANGLER_CONFIG_PATH.'
+              exit 1
+            fi
+
+            wrangler_config_path="${found_configurations[0]}"
+            configuration_source='automatic discovery'
+          fi
+
+          wrangler_config_format="${wrangler_config_path##*.}"
+
+          {
+            echo "wrangler_config_path=$wrangler_config_path"
+            echo "wrangler_config_format=$wrangler_config_format"
+            echo "configuration_source=$configuration_source"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo '## Cloudflare Staging Preflight'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo "| Source branch | $SOURCE_BRANCH |"
+            echo "| Required branch | $STAGING_BRANCH |"
+            echo "| Cloudflare API token available | $token_available |"
+            echo "| Cloudflare account ID available | $account_id_available |"
+            echo "| Worker service | $WORKER_NAME |"
+            echo "| Staging alias | $STAGING_ALIAS |"
+            echo "| Wrangler configuration | $wrangler_config_path |"
+            echo "| Wrangler configuration format | $wrangler_config_format |"
+            echo "| Configuration selection | $configuration_source |"
+            echo '| Status | ready to build and upload staging version |'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    name: Build and upload staging version
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    outputs:
+      preview_url: ${{ steps.upload.outputs.preview_url }}
+      version_id: ${{ steps.upload.outputs.version_id }}
+      health_url: ${{ steps.verify.outputs.health_url }}
+
+    env:
+      WRANGLER_CONFIG_PATH: ${{ needs.preflight.outputs.wrangler_config_path }}
+
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - name: Check out staging branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6.0.9
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Verify deployment files
+        run: |
+          set -euo pipefail
+
+          required_files=(
+            package.json
+            pnpm-lock.yaml
+            pnpm-workspace.yaml
+            "$WRANGLER_CONFIG_PATH"
+          )
+
+          for required_file in "${required_files[@]}"; do
+            if [[ ! -f "$required_file" ]]; then
+              echo "::error::Required deployment file was not found: $required_file"
+              exit 1
+            fi
+          done
+
+          case "$WRANGLER_CONFIG_PATH" in
+            *.jsonc | *.json | *.toml)
+              ;;
+            *)
+              echo "::error::Unsupported Wrangler configuration file: $WRANGLER_CONFIG_PATH"
+              exit 1
+              ;;
+          esac
+
+          printf 'Node.js: %s\n' "$(node --version)"
+          printf 'pnpm: %s\n' "$(pnpm --version)"
+          printf 'Worker service: %s\n' "$WORKER_NAME"
+          printf 'Staging alias: %s\n' "$STAGING_ALIAS"
+          printf 'Wrangler config: %s\n' "$WRANGLER_CONFIG_PATH"
+
+      - name: Install workspace dependencies
+        run: |
+          set -euo pipefail
+
+          pnpm install --frozen-lockfile
+
+      - name: Verify frontend build target
+        run: |
+          set -euo pipefail
+
+          project_json="$(
+            ./node_modules/.bin/nx show project "$FRONTEND_PROJECT" --json
+          )"
+
+          if ! jq -e '.targets.build != null' <<< "$project_json" >/dev/null; then
+            echo "::error::The Nx project '$FRONTEND_PROJECT' does not define a build target."
+            exit 1
+          fi
+
+          if ! jq -e '.targets.build.configurations.staging != null' <<< "$project_json" >/dev/null; then
+            echo "::error::The Nx project '$FRONTEND_PROJECT' does not define a staging build configuration."
+            exit 1
+          fi
+
+          echo 'Frontend staging build target was found.'
+
+      - name: Build frontend staging bundle
+        run: |
+          set -euo pipefail
+
+          pnpm exec nx run "${FRONTEND_PROJECT}:build:staging"
+
+      - name: Verify frontend asset output
+        run: |
+          set -euo pipefail
+
+          asset_directory='dist/apps/frontend'
+          index_file="$asset_directory/index.html"
+
+          if [[ ! -d "$asset_directory" ]]; then
+            echo "::error::Frontend asset directory was not created: $asset_directory"
+            exit 1
+          fi
+
+          if [[ ! -f "$index_file" ]]; then
+            echo "::error::Frontend index file was not created: $index_file"
+            exit 1
+          fi
+
+          {
+            echo '## Frontend Staging Build Output'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo "| Asset directory | $asset_directory |"
+            echo "| Entry document | $index_file |"
+            echo '| Build validation | passed |'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Validate Cloudflare staging upload configuration
+        run: |
+          set -euo pipefail
+
+          pnpm exec wrangler deploy \
+            --config "$WRANGLER_CONFIG_PATH" \
+            --dry-run
+
+      - name: Upload Cloudflare staging version
+        id: upload
+        run: |
+          set -euo pipefail
+
+          output_file="$RUNNER_TEMP/cloudflare-staging-output.json"
+
+          rm -f "$output_file"
+
+          WRANGLER_OUTPUT_FILE_PATH="$output_file" \
+            pnpm exec wrangler versions upload \
+              --config "$WRANGLER_CONFIG_PATH" \
+              --preview-alias "$STAGING_ALIAS"
+
+          if [[ ! -s "$output_file" ]]; then
+            echo '::error::Wrangler did not write structured deployment output.'
+            echo '::error::Cannot safely determine the Cloudflare staging alias URL.'
+            exit 1
+          fi
+
+          version_upload="$(
+            jq -sc '
+              map(select(.type == "version-upload"))
+              | .[-1] // empty
+            ' "$output_file"
+          )"
+
+          if [[ -z "$version_upload" ]]; then
+            echo '::error::Wrangler did not report a version-upload result.'
+            echo '::group::Wrangler structured output'
+            cat "$output_file"
+            echo '::endgroup::'
+            exit 1
+          fi
+
+          preview_url="$(
+            jq -r '.preview_alias_url // empty' <<< "$version_upload"
+          )"
+
+          version_id="$(
+            jq -r '.version_id // empty' <<< "$version_upload"
+          )"
+
+          if [[ "$preview_url" != https://* ]]; then
+            echo '::error::Cloudflare uploaded the Worker version but did not return a staging alias URL.'
+            echo '::error::Confirm preview_urls = true is committed in apps/frontend/wrangler.toml.'
+            echo '::error::Confirm Preview URLs are enabled in Cloudflare → Worker → Settings → Domains & Routes.'
+            echo '::group::Wrangler structured output'
+            cat "$output_file"
+            echo '::endgroup::'
+            exit 1
+          fi
+
+          if [[ -z "$version_id" ]]; then
+            echo '::error::Cloudflare did not return a Worker version ID.'
+            echo '::group::Wrangler structured output'
+            cat "$output_file"
+            echo '::endgroup::'
+            exit 1
+          fi
+
+          {
+            echo "preview_url=$preview_url"
+            echo "version_id=$version_id"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo '## Cloudflare Staging Version Uploaded'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo "| Worker service | $WORKER_NAME |"
+            echo "| Worker version ID | $version_id |"
+            echo "| Staging alias | $STAGING_ALIAS |"
+            echo "| Staging URL | [$preview_url]($preview_url) |"
+            echo '| Production promotion | not performed |'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "::notice title=Cloudflare staging version uploaded::$preview_url"
+
+      - name: Verify staging health endpoint
+        id: verify
+        env:
+          PREVIEW_URL: ${{ steps.upload.outputs.preview_url }}
+        run: |
+          set -euo pipefail
+
+          health_url="${PREVIEW_URL%/}${HEALTH_PATH}"
+
+          for attempt in {1..12}; do
+            health_response=''
+
+            if health_response="$(
+              curl \
+                --fail \
+                --silent \
+                --show-error \
+                --location \
+                --connect-timeout 15 \
+                --max-time 60 \
+                "$health_url"
+            )"; then
+              if jq -e '.status == "ok"' <<< "$health_response" >/dev/null; then
+                echo "health_url=$health_url" >> "$GITHUB_OUTPUT"
+
+                {
+                  echo
+                  echo '### Staging Health Check'
+                  echo
+                  echo "| Endpoint | [$health_url]($health_url) |"
+                  echo '| Expected response | `{"status":"ok"}` |'
+                  echo '| Result | passed |'
+                } >> "$GITHUB_STEP_SUMMARY"
+
+                exit 0
+              fi
+
+              echo 'Staging health endpoint returned an unexpected response.'
+              printf '%s\n' "$health_response"
+            fi
+
+            echo "Staging URL is not ready yet. Retry ${attempt}/12..."
+            sleep 5
+          done
+
+          echo "::error::Staging health endpoint did not become reachable: $health_url"
+          echo '::error::Confirm preview_urls = true is committed in apps/frontend/wrangler.toml.'
+          echo '::error::Confirm Preview URLs are enabled in Cloudflare → Worker → Settings → Domains & Routes.'
+          exit 1
+
+  summary:
+    name: Publish staging result
+    needs:
+      - preflight
+      - deploy
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Write staging workflow summary
+        env:
+          WRANGLER_CONFIG_PATH: ${{ needs.preflight.outputs.wrangler_config_path }}
+          WRANGLER_CONFIG_FORMAT: ${{ needs.preflight.outputs.wrangler_config_format }}
+          CONFIGURATION_SOURCE: ${{ needs.preflight.outputs.configuration_source }}
+
+          PREVIEW_URL: ${{ needs.deploy.outputs.preview_url }}
+          VERSION_ID: ${{ needs.deploy.outputs.version_id }}
+          HEALTH_URL: ${{ needs.deploy.outputs.health_url }}
+          DEPLOY_RESULT: ${{ needs.deploy.result }}
+        run: |
+          set -euo pipefail
+
+          {
+            echo '## Cloudflare Staging Workflow Result'
+            echo
+            echo '| Check | Result |'
+            echo '| --- | --- |'
+            echo "| Worker service | $WORKER_NAME |"
+            echo "| Staging alias | $STAGING_ALIAS |"
+            echo "| Worker version ID | ${VERSION_ID:-not-created} |"
+            echo "| Wrangler configuration | ${WRANGLER_CONFIG_PATH:-not-selected} |"
+            echo "| Wrangler configuration format | ${WRANGLER_CONFIG_FORMAT:-not-selected} |"
+            echo "| Configuration selection | ${CONFIGURATION_SOURCE:-not-selected} |"
+            echo "| Upload job result | ${DEPLOY_RESULT:-skipped} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "${PREVIEW_URL:-}" == https://* ]]; then
+            {
+              echo
+              echo '### Staging URL'
+              echo
+              echo "[$PREVIEW_URL]($PREVIEW_URL)"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [[ "${HEALTH_URL:-}" == https://* ]]; then
+            {
+              echo
+              echo '### Verified Health Endpoint'
+              echo
+              echo "[$HEALTH_URL]($HEALTH_URL)"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi

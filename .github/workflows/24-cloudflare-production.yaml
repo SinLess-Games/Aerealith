@@ -1,0 +1,717 @@
+# .github/workflows/cloudflare-production.yaml
+#
+# Deploys a stable published GitHub release to the existing Aerealith
+# Cloudflare Worker production deployment.
+#
+# Deployment flow:
+# 1. A stable GitHub release is published.
+# 2. The workflow checks out the exact release tag.
+# 3. Nx builds the production frontend into dist/apps/frontend.
+# 4. Wrangler uploads an undeployed Worker version and static assets.
+# 5. The candidate version is verified through its Cloudflare preview URL.
+# 6. The candidate version receives 100% production traffic.
+# 7. The production custom-domain health endpoint is verified.
+# 8. If production health fails, the prior Worker traffic split is restored.
+#
+# Cloudflare Worker:
+# - aerealith
+#
+# Production URL:
+# - https://aerealith.com
+#
+# Required GitHub repository secrets:
+# - CLOUDFLARE_API_TOKEN
+# - CLOUDFLARE_ACCOUNT_ID
+#
+# Optional GitHub repository variable:
+# - CLOUDFLARE_WRANGLER_CONFIG_PATH
+#
+# Important:
+# - Configure the GitHub `production` environment with required reviewers
+#   before relying on this workflow for protected production deployments.
+# - Cloudflare Preview URLs must be enabled because the workflow verifies the
+#   candidate version before routing it to production traffic.
+# - This workflow intentionally does not run `wrangler triggers deploy`.
+#   Custom domains, routes, and other dashboard-managed triggers stay intact.
+
+name: Cloudflare Production
+
+on:
+  release:
+    types:
+      - published
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudflare-production
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CI: "true"
+  FORCE_COLOR: "1"
+  HUSKY: "0"
+
+  NODE_VERSION: "25.9.0"
+  PNPM_VERSION: "11.5.2"
+
+  FRONTEND_PROJECT: "frontend"
+  FRONTEND_DIRECTORY: "apps/frontend"
+
+  WORKER_NAME: "aerealith"
+  WRANGLER_CONFIG_PATH: "apps/frontend/wrangler.toml"
+
+  PRODUCTION_URL: "https://aerealith.com"
+  HEALTH_PATH: "/__aerealith/health"
+
+jobs:
+  deploy:
+    name: Deploy stable release to production
+    if: >-
+      github.event.release.draft == false &&
+      github.event.release.prerelease == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    environment:
+      name: ${{ 'production' }}
+      url: ${{ 'https://aerealith.com' }}
+
+    outputs:
+      candidate_version_id: ${{ steps.upload_candidate.outputs.candidate_version_id }}
+      candidate_preview_url: ${{ steps.upload_candidate.outputs.candidate_preview_url }}
+      production_deployment_id: ${{ steps.deploy_production.outputs.production_deployment_id }}
+      production_health_url: ${{ steps.verify_production.outputs.production_health_url }}
+      rollback_attempted: ${{ steps.verify_production.outputs.rollback_attempted }}
+      rollback_deployment_id: ${{ steps.verify_production.outputs.rollback_deployment_id }}
+
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name }}
+      RELEASE_NAME: ${{ github.event.release.name }}
+      RELEASE_URL: ${{ github.event.release.html_url }}
+
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6.0.9
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Validate release event and deployment inputs
+        id: preflight
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
+            echo '::error::CLOUDFLARE_API_TOKEN is not configured as a repository secret.'
+            exit 1
+          fi
+
+          if [[ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
+            echo '::error::CLOUDFLARE_ACCOUNT_ID is not configured as a repository secret.'
+            exit 1
+          fi
+
+          if [[ -z "${RELEASE_TAG:-}" ]]; then
+            echo '::error::The published release does not contain a release tag.'
+            exit 1
+          fi
+
+          if [[ ! "$RELEASE_TAG" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+            echo '::error::Production releases must use semantic-version-like tags.'
+            echo "::error::Received release tag: $RELEASE_TAG"
+            exit 1
+          fi
+
+          if [[ ! -f "$WRANGLER_CONFIG_PATH" ]]; then
+            echo "::error::Wrangler configuration file was not found: $WRANGLER_CONFIG_PATH"
+            exit 1
+          fi
+
+          if [[ ! -f "$FRONTEND_DIRECTORY/src/worker.ts" ]]; then
+            echo "::error::Cloudflare Worker entry file was not found: $FRONTEND_DIRECTORY/src/worker.ts"
+            exit 1
+          fi
+
+          git fetch origin --tags --force
+
+          target_sha="$(git rev-parse "${RELEASE_TAG}^{commit}")"
+          target_sha_short="${target_sha:0:7}"
+
+          if [[ -z "${RELEASE_NAME:-}" ]]; then
+            release_name="Aerealith $RELEASE_TAG"
+          else
+            release_name="$RELEASE_NAME"
+          fi
+
+          {
+            echo "TARGET_SHA=$target_sha"
+            echo "TARGET_SHA_SHORT=$target_sha_short"
+            echo "RELEASE_DISPLAY_NAME=$release_name"
+          } >> "$GITHUB_ENV"
+
+          {
+            echo "target_sha=$target_sha"
+            echo "target_sha_short=$target_sha_short"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo '## Cloudflare Production Preflight'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo "| Release | [$release_name]($RELEASE_URL) |"
+            echo "| Release tag | \`$RELEASE_TAG\` |"
+            echo "| Target commit | \`$target_sha_short\` |"
+            echo "| Worker service | $WORKER_NAME |"
+            echo "| Wrangler configuration | \`$WRANGLER_CONFIG_PATH\` |"
+            echo "| Production URL | [$PRODUCTION_URL]($PRODUCTION_URL) |"
+            echo '| Release type | stable |'
+            echo '| Status | ready to build and deploy |'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Install workspace dependencies
+        run: |
+          set -euo pipefail
+
+          pnpm install --frozen-lockfile
+
+      - name: Verify frontend production build target
+        run: |
+          set -euo pipefail
+
+          project_json="$(
+            ./node_modules/.bin/nx show project "$FRONTEND_PROJECT" --json
+          )"
+
+          if ! jq -e '.targets.build != null' <<< "$project_json" >/dev/null; then
+            echo "::error::The Nx project '$FRONTEND_PROJECT' does not define a build target."
+            exit 1
+          fi
+
+          if ! jq -e '.targets.build.configurations.production != null' \
+            <<< "$project_json" \
+            >/dev/null; then
+            echo "::error::The Nx project '$FRONTEND_PROJECT' does not define a production build configuration."
+            exit 1
+          fi
+
+          echo 'Frontend production build target was found.'
+
+      - name: Build frontend production bundle
+        run: |
+          set -euo pipefail
+
+          pnpm exec nx run "${FRONTEND_PROJECT}:build:production"
+
+      - name: Verify frontend asset output
+        run: |
+          set -euo pipefail
+
+          asset_directory='dist/apps/frontend'
+          index_file="$asset_directory/index.html"
+
+          if [[ ! -d "$asset_directory" ]]; then
+            echo "::error::Frontend asset directory was not created: $asset_directory"
+            exit 1
+          fi
+
+          if [[ ! -f "$index_file" ]]; then
+            echo "::error::Frontend index file was not created: $index_file"
+            exit 1
+          fi
+
+          {
+            echo '## Frontend Production Build'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo "| Asset directory | \`$asset_directory\` |"
+            echo "| Entry document | \`$index_file\` |"
+            echo '| Build validation | passed |'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Validate Wrangler production deployment configuration
+        run: |
+          set -euo pipefail
+
+          pnpm exec wrangler deploy \
+            --config "$WRANGLER_CONFIG_PATH" \
+            --dry-run
+
+      - name: Snapshot current production deployment
+        id: snapshot
+        run: |
+          set -euo pipefail
+
+          deployment_snapshot="$RUNNER_TEMP/cloudflare-current-production-deployment.json"
+
+          pnpm exec wrangler versions deployments list \
+            --config "$WRANGLER_CONFIG_PATH" \
+            --json \
+            > "$deployment_snapshot"
+
+          if ! jq -e 'type == "array"' "$deployment_snapshot" >/dev/null; then
+            echo '::error::Cloudflare did not return a valid production deployment list.'
+            echo '::group::Cloudflare deployment list'
+            cat "$deployment_snapshot"
+            echo '::endgroup::'
+            exit 1
+          fi
+
+          has_previous_deployment='false'
+          previous_version_count='0'
+
+          if jq -e 'length > 0 and (.[-1].versions | length > 0)' \
+            "$deployment_snapshot" \
+            >/dev/null; then
+            has_previous_deployment='true'
+
+            previous_version_count="$(
+              jq '.[-1].versions | length' "$deployment_snapshot"
+            )"
+          fi
+
+          {
+            echo "CURRENT_DEPLOYMENT_SNAPSHOT=$deployment_snapshot"
+            echo "HAS_PREVIOUS_DEPLOYMENT=$has_previous_deployment"
+          } >> "$GITHUB_ENV"
+
+          {
+            echo "has_previous_deployment=$has_previous_deployment"
+            echo "previous_version_count=$previous_version_count"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo '## Current Production Deployment Snapshot'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo "| Existing deployment found | $has_previous_deployment |"
+            echo "| Existing Worker versions | $previous_version_count |"
+            echo '| Rollback capability | available when an existing deployment is present |'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload production candidate version
+        id: upload_candidate
+        run: |
+          set -euo pipefail
+
+          output_file="$RUNNER_TEMP/cloudflare-production-candidate-output.json"
+
+          rm -f "$output_file"
+
+          WRANGLER_OUTPUT_FILE_PATH="$output_file" \
+            pnpm exec wrangler versions upload \
+              --config "$WRANGLER_CONFIG_PATH"
+
+          if [[ ! -s "$output_file" ]]; then
+            echo '::error::Wrangler did not write structured output for the candidate version upload.'
+            exit 1
+          fi
+
+          version_upload="$(
+            jq -sc '
+              map(select(.type == "version-upload"))
+              | .[-1] // empty
+            ' "$output_file"
+          )"
+
+          if [[ -z "$version_upload" || "$version_upload" == 'null' ]]; then
+            echo '::error::Wrangler did not report a version-upload result.'
+            echo '::group::Wrangler structured output'
+            cat "$output_file"
+            echo '::endgroup::'
+            exit 1
+          fi
+
+          candidate_version_id="$(
+            jq -r '.version_id // empty' <<< "$version_upload"
+          )"
+
+          candidate_preview_url="$(
+            jq -r '.preview_url // empty' <<< "$version_upload"
+          )"
+
+          if [[ -z "$candidate_version_id" ]]; then
+            echo '::error::Cloudflare did not return a candidate Worker version ID.'
+            exit 1
+          fi
+
+          if [[ "$candidate_preview_url" != https://* ]]; then
+            echo '::error::Cloudflare did not return a candidate preview URL.'
+            echo '::error::Enable Preview URLs for the aerealith Worker before production deployment.'
+            echo '::group::Wrangler structured output'
+            cat "$output_file"
+            echo '::endgroup::'
+            exit 1
+          fi
+
+          {
+            echo "candidate_version_id=$candidate_version_id"
+            echo "candidate_preview_url=$candidate_preview_url"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo '## Production Candidate Uploaded'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo "| Worker service | $WORKER_NAME |"
+            echo "| Candidate version | \`$candidate_version_id\` |"
+            echo "| Candidate preview URL | [$candidate_preview_url]($candidate_preview_url) |"
+            echo '| Production traffic | not changed yet |'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify candidate health endpoint
+        env:
+          CANDIDATE_PREVIEW_URL: ${{ steps.upload_candidate.outputs.candidate_preview_url }}
+        run: |
+          set -euo pipefail
+
+          candidate_health_url="${CANDIDATE_PREVIEW_URL%/}${HEALTH_PATH}"
+
+          for attempt in {1..12}; do
+            health_response=''
+
+            if health_response="$(
+              curl \
+                --fail \
+                --silent \
+                --show-error \
+                --location \
+                --connect-timeout 15 \
+                --max-time 60 \
+                "$candidate_health_url"
+            )"; then
+              if jq -e '.status == "ok"' <<< "$health_response" >/dev/null; then
+                {
+                  echo '## Candidate Health Check'
+                  echo
+                  echo '| Setting | Value |'
+                  echo '| --- | --- |'
+                  echo "| Endpoint | [$candidate_health_url]($candidate_health_url) |"
+                  echo '| Expected response | `{"status":"ok"}` |'
+                  echo '| Result | passed |'
+                } >> "$GITHUB_STEP_SUMMARY"
+
+                exit 0
+              fi
+
+              echo 'Candidate health endpoint returned an unexpected response.'
+              printf '%s\n' "$health_response"
+            fi
+
+            echo "Candidate preview URL is not ready yet. Retry ${attempt}/12..."
+            sleep 5
+          done
+
+          echo "::error::Candidate health endpoint did not become reachable: $candidate_health_url"
+          echo '::error::Production traffic has not been changed.'
+          exit 1
+
+      - name: Deploy candidate version to production
+        id: deploy_production
+        env:
+          CANDIDATE_VERSION_ID: ${{ steps.upload_candidate.outputs.candidate_version_id }}
+        run: |
+          set -euo pipefail
+
+          output_file="$RUNNER_TEMP/cloudflare-production-deployment-output.json"
+
+          rm -f "$output_file"
+
+          WRANGLER_OUTPUT_FILE_PATH="$output_file" \
+            pnpm exec wrangler versions deploy \
+              "${CANDIDATE_VERSION_ID}@100" \
+              --config "$WRANGLER_CONFIG_PATH" \
+              --message "Production release ${RELEASE_TAG} (${TARGET_SHA_SHORT})"
+
+          if [[ ! -s "$output_file" ]]; then
+            echo '::error::Wrangler did not write structured output for the production deployment.'
+            exit 1
+          fi
+
+          deployment_record="$(
+            jq -sc '
+              map(select(.type == "version-deploy"))
+              | .[-1] // empty
+            ' "$output_file"
+          )"
+
+          if [[ -z "$deployment_record" || "$deployment_record" == 'null' ]]; then
+            echo '::error::Wrangler did not report a version-deploy result.'
+            echo '::group::Wrangler structured output'
+            cat "$output_file"
+            echo '::endgroup::'
+            exit 1
+          fi
+
+          production_deployment_id="$(
+            jq -r '.deployment_id // empty' <<< "$deployment_record"
+          )"
+
+          if [[ -z "$production_deployment_id" ]]; then
+            echo '::error::Cloudflare did not return a production deployment ID.'
+            exit 1
+          fi
+
+          echo "production_deployment_id=$production_deployment_id" >> "$GITHUB_OUTPUT"
+
+          {
+            echo '## Production Traffic Updated'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo "| Worker service | $WORKER_NAME |"
+            echo "| Candidate version | \`$CANDIDATE_VERSION_ID\` |"
+            echo "| Production deployment ID | \`$production_deployment_id\` |"
+            echo '| Candidate traffic | 100% |'
+            echo '| Previous traffic split | retained for automatic rollback if health verification fails |'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify production health endpoint and rollback on failure
+        id: verify_production
+        run: |
+          set -euo pipefail
+
+          production_health_url="${PRODUCTION_URL%/}${HEALTH_PATH}"
+          rollback_attempted='false'
+          rollback_deployment_id=''
+
+          verify_health() {
+            local health_response=''
+
+            if health_response="$(
+              curl \
+                --fail \
+                --silent \
+                --show-error \
+                --location \
+                --connect-timeout 15 \
+                --max-time 60 \
+                "$production_health_url"
+            )"; then
+              jq -e '.status == "ok"' <<< "$health_response" >/dev/null
+              return $?
+            fi
+
+            return 1
+          }
+
+          for attempt in {1..12}; do
+            if verify_health; then
+              {
+                echo "production_health_url=$production_health_url"
+                echo "rollback_attempted=$rollback_attempted"
+                echo "rollback_deployment_id=$rollback_deployment_id"
+              } >> "$GITHUB_OUTPUT"
+
+              {
+                echo '## Production Health Check'
+                echo
+                echo '| Setting | Value |'
+                echo '| --- | --- |'
+                echo "| Endpoint | [$production_health_url]($production_health_url) |"
+                echo '| Expected response | `{"status":"ok"}` |'
+                echo '| Result | passed |'
+                echo '| Automatic rollback | not needed |'
+              } >> "$GITHUB_STEP_SUMMARY"
+
+              exit 0
+            fi
+
+            echo "Production health endpoint is not ready yet. Retry ${attempt}/12..."
+            sleep 5
+          done
+
+          echo "::error::Production health endpoint did not become reachable: $production_health_url"
+
+          if [[ "$HAS_PREVIOUS_DEPLOYMENT" != 'true' ]]; then
+            echo '::error::No previous production deployment exists, so automatic rollback is unavailable.'
+
+            {
+              echo "production_health_url=$production_health_url"
+              echo "rollback_attempted=$rollback_attempted"
+              echo "rollback_deployment_id=$rollback_deployment_id"
+            } >> "$GITHUB_OUTPUT"
+
+            exit 1
+          fi
+
+          mapfile -t previous_version_specs < <(
+            jq -r '
+              .[-1].versions[]
+              | select(
+                  (.version_id | type) == "string" and
+                  (.percentage | type) == "number"
+                )
+              | "\(.version_id)@\(.percentage)"
+            ' "$CURRENT_DEPLOYMENT_SNAPSHOT"
+          )
+
+          if [[ "${#previous_version_specs[@]}" -eq 0 ]]; then
+            echo '::error::No prior Worker version traffic split could be recovered from the deployment snapshot.'
+
+            {
+              echo "production_health_url=$production_health_url"
+              echo "rollback_attempted=$rollback_attempted"
+              echo "rollback_deployment_id=$rollback_deployment_id"
+            } >> "$GITHUB_OUTPUT"
+
+            exit 1
+          fi
+
+          rollback_attempted='true'
+          rollback_output_file="$RUNNER_TEMP/cloudflare-production-rollback-output.json"
+
+          rm -f "$rollback_output_file"
+
+          echo '::warning::Production health verification failed. Restoring the previous Cloudflare Worker traffic split.'
+
+          if ! WRANGLER_OUTPUT_FILE_PATH="$rollback_output_file" \
+            pnpm exec wrangler versions deploy \
+              "${previous_version_specs[@]}" \
+              --config "$WRANGLER_CONFIG_PATH" \
+              --message "Automatic rollback after failed health check for ${RELEASE_TAG}"; then
+            echo '::error::Automatic rollback command failed.'
+
+            {
+              echo "production_health_url=$production_health_url"
+              echo "rollback_attempted=$rollback_attempted"
+              echo "rollback_deployment_id=$rollback_deployment_id"
+            } >> "$GITHUB_OUTPUT"
+
+            exit 1
+          fi
+
+          rollback_record="$(
+            jq -sc '
+              map(select(.type == "version-deploy"))
+              | .[-1] // empty
+            ' "$rollback_output_file"
+          )"
+
+          rollback_deployment_id="$(
+            jq -r '.deployment_id // empty' <<< "$rollback_record"
+          )"
+
+          if [[ -z "$rollback_deployment_id" ]]; then
+            echo '::error::Automatic rollback completed without returning a deployment ID.'
+
+            {
+              echo "production_health_url=$production_health_url"
+              echo "rollback_attempted=$rollback_attempted"
+              echo "rollback_deployment_id=$rollback_deployment_id"
+            } >> "$GITHUB_OUTPUT"
+
+            exit 1
+          fi
+
+          {
+            echo "production_health_url=$production_health_url"
+            echo "rollback_attempted=$rollback_attempted"
+            echo "rollback_deployment_id=$rollback_deployment_id"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo '## Automatic Production Rollback'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo "| Failed health endpoint | [$production_health_url]($production_health_url) |"
+            echo "| Rollback deployment ID | \`$rollback_deployment_id\` |"
+            echo '| Restored traffic split | previous production deployment |'
+            echo '| Workflow result | failed intentionally after rollback |'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo '::error::Production deployment failed health verification and was automatically rolled back.'
+          exit 1
+
+  summary:
+    name: Publish production deployment result
+    needs:
+      - deploy
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name }}
+      RELEASE_URL: ${{ github.event.release.html_url }}
+      IS_PRERELEASE: ${{ github.event.release.prerelease }}
+
+      CANDIDATE_VERSION_ID: ${{ needs.deploy.outputs.candidate_version_id }}
+      CANDIDATE_PREVIEW_URL: ${{ needs.deploy.outputs.candidate_preview_url }}
+      PRODUCTION_DEPLOYMENT_ID: ${{ needs.deploy.outputs.production_deployment_id }}
+      PRODUCTION_HEALTH_URL: ${{ needs.deploy.outputs.production_health_url }}
+      ROLLBACK_ATTEMPTED: ${{ needs.deploy.outputs.rollback_attempted }}
+      ROLLBACK_DEPLOYMENT_ID: ${{ needs.deploy.outputs.rollback_deployment_id }}
+      DEPLOY_RESULT: ${{ needs.deploy.result }}
+
+    steps:
+      - name: Write production deployment summary
+        run: |
+          set -euo pipefail
+
+          {
+            echo '## Cloudflare Production Deployment Result'
+            echo
+            echo '| Check | Result |'
+            echo '| --- | --- |'
+            echo "| Release | [$RELEASE_TAG]($RELEASE_URL) |"
+            echo "| Release type | $([[ "$IS_PRERELEASE" == 'true' ]] && echo 'pre-release' || echo 'stable') |"
+            echo "| Worker service | $WORKER_NAME |"
+            echo "| Deploy job result | ${DEPLOY_RESULT:-skipped} |"
+            echo "| Candidate version | ${CANDIDATE_VERSION_ID:-not-created} |"
+            echo "| Production deployment ID | ${PRODUCTION_DEPLOYMENT_ID:-not-created} |"
+            echo "| Automatic rollback attempted | ${ROLLBACK_ATTEMPTED:-false} |"
+            echo "| Rollback deployment ID | ${ROLLBACK_DEPLOYMENT_ID:-not-created} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "${CANDIDATE_PREVIEW_URL:-}" == https://* ]]; then
+            {
+              echo
+              echo '### Candidate Preview URL'
+              echo
+              echo "[$CANDIDATE_PREVIEW_URL]($CANDIDATE_PREVIEW_URL)"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [[ "${PRODUCTION_HEALTH_URL:-}" == https://* ]]; then
+            {
+              echo
+              echo '### Production Health Endpoint'
+              echo
+              echo "[$PRODUCTION_HEALTH_URL]($PRODUCTION_HEALTH_URL)"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [[ "$IS_PRERELEASE" == 'true' ]]; then
+            {
+              echo
+              echo '> Pre-release detected: production deployment was intentionally skipped.'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
