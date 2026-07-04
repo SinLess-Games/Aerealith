@@ -1,17 +1,17 @@
 # .github/workflows/27-sponsor-labels.yaml
 #
-# Applies the existing "sponsor" label when the issue or PR author sponsors
-# the owner of this repository through GitHub Sponsors.
+# Applies the existing "sponsor" label when the issue or pull request author
+# sponsors the owner of this repository through GitHub Sponsors.
 #
 # Security design:
 # - pull_request_target is intentional so external-fork pull requests can
 #   receive the sponsor label with the repository's write-scoped GITHUB_TOKEN.
 # - Never checks out, downloads, caches, or executes repository or pull-request
 #   code.
-# - Does not expose repository secrets or credentials beyond the ephemeral
-#   GitHub token scoped only to issue-label management.
-# - Uses an immutable action commit.
-# - Grants only the minimum permission needed to add the existing sponsor label.
+# - Uses GitHub's API directly because the third-party sponsor-label action
+#   supports pull_request.opened, but not pull_request_target.opened.
+# - Uses only the ephemeral token scoped to issue-label management.
+# - The workflow is idempotent and never removes or replaces labels.
 
 name: 27 · Sponsor Labels
 
@@ -41,10 +41,138 @@ jobs:
     permissions:
       issues: write
 
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPOSITORY: ${{ github.repository }}
+      REPOSITORY_OWNER: ${{ github.repository_owner }}
+      ITEM_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
+      ITEM_AUTHOR_NODE_ID: ${{ github.event.issue.user.node_id || github.event.pull_request.user.node_id }}
+      LABEL: sponsor
+
     steps:
-      - name: Sponsor Labels
-        uses: JasonEtco/is-sponsor-label-action@565f3cb67b3518a8aae36c3f0bce9e8513430e84 # v2.0.0
-        with:
-          label: sponsor
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+      - name: Label repository sponsors
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${ITEM_NUMBER:-}" || -z "${ITEM_AUTHOR_NODE_ID:-}" ]]; then
+            echo "::error::Unable to determine the opened issue or pull request author."
+            exit 1
+          fi
+
+          command -v gh >/dev/null
+          command -v jq >/dev/null
+
+          # Fail early with a useful message when the configured label does not
+          # exist. This workflow intentionally never creates repository labels.
+          if ! gh api "/repos/${REPOSITORY}/labels/${LABEL}" >/dev/null; then
+            echo "::error::The repository label '${LABEL}' does not exist."
+            exit 1
+          fi
+
+          existing_labels="$(gh api "/repos/${REPOSITORY}/issues/${ITEM_NUMBER}/labels")"
+
+          if jq -e --arg label "$LABEL" \
+            'any(.[]; .name == $label)' \
+            <<< "$existing_labels" >/dev/null; then
+            echo "::notice::The '${LABEL}' label is already present."
+            exit 0
+          fi
+
+          query='
+            query SponsorLabel($owner: String!, $cursor: String) {
+              repositoryOwner(login: $owner) {
+                ... on User {
+                  sponsorships: sponsorshipsAsMaintainer(
+                    first: 100
+                    after: $cursor
+                  ) {
+                    nodes {
+                      sponsor {
+                        id
+                      }
+                    }
+                    pageInfo {
+                      hasNextPage
+                      endCursor
+                    }
+                  }
+                }
+                ... on Organization {
+                  sponsorships: sponsorshipsAsMaintainer(
+                    first: 100
+                    after: $cursor
+                  ) {
+                    nodes {
+                      sponsor {
+                        id
+                      }
+                    }
+                    pageInfo {
+                      hasNextPage
+                      endCursor
+                    }
+                  }
+                }
+              }
+            }
+          '
+
+          cursor=''
+          is_sponsor='false'
+
+          while true; do
+            arguments=(
+              api graphql
+              -f "query=${query}"
+              -F "owner=${REPOSITORY_OWNER}"
+            )
+
+            if [[ -n "$cursor" ]]; then
+              arguments+=(-F "cursor=${cursor}")
+            fi
+
+            response="$(gh "${arguments[@]}")"
+
+            if ! jq -e \
+              '.data.repositoryOwner != null and .data.repositoryOwner.sponsorships != null' \
+              <<< "$response" >/dev/null; then
+              echo "::error::Unable to read GitHub Sponsors data for '${REPOSITORY_OWNER}'."
+              exit 1
+            fi
+
+            if jq -e --arg author_id "$ITEM_AUTHOR_NODE_ID" \
+              '.data.repositoryOwner.sponsorships.nodes[]? | select(.sponsor.id == $author_id)' \
+              <<< "$response" >/dev/null; then
+              is_sponsor='true'
+              break
+            fi
+
+            has_next_page="$(jq -r \
+              '.data.repositoryOwner.sponsorships.pageInfo.hasNextPage' \
+              <<< "$response")"
+
+            if [[ "$has_next_page" != 'true' ]]; then
+              break
+            fi
+
+            cursor="$(jq -r \
+              '.data.repositoryOwner.sponsorships.pageInfo.endCursor' \
+              <<< "$response")"
+
+            if [[ -z "$cursor" || "$cursor" == 'null' ]]; then
+              echo "::error::GitHub returned an invalid sponsorship pagination cursor."
+              exit 1
+            fi
+          done
+
+          if [[ "$is_sponsor" != 'true' ]]; then
+            echo "::notice::The opened item author is not a sponsor."
+            exit 0
+          fi
+
+          gh api \
+            --method POST \
+            "/repos/${REPOSITORY}/issues/${ITEM_NUMBER}/labels" \
+            -f "labels[]=${LABEL}" >/dev/null
+
+          echo "::notice::Applied the '${LABEL}' label to a GitHub Sponsor."
