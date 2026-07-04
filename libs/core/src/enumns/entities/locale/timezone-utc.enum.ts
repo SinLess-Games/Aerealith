@@ -45,14 +45,17 @@ export const TimezoneUtc = {
   UtcPlus1300: 'UTC+13:00',
   UtcPlus1345: 'UTC+13:45',
   UtcPlus1400: 'UTC+14:00',
-} as const;
+} as const
 
-export type TimezoneUtc = (typeof TimezoneUtc)[keyof typeof TimezoneUtc];
+export type TimezoneUtc = (typeof TimezoneUtc)[keyof typeof TimezoneUtc]
 
-export const DefaultTimezoneUtc = TimezoneUtc.UtcPlus0000;
+export const DefaultTimezoneUtc = TimezoneUtc.UtcPlus0000
 
-export const TimezoneUtcValues = Object.values(TimezoneUtc);
+export const TimezoneUtcValues = Object.values(TimezoneUtc)
 
 export function isTimezoneUtc(value: unknown): value is TimezoneUtc {
-  return typeof value === 'string' && TimezoneUtcValues.includes(value as TimezoneUtc);
+  return (
+    typeof value === 'string' &&
+    TimezoneUtcValues.includes(value as TimezoneUtc)
+  )
 }

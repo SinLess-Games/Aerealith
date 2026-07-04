@@ -10,14 +10,16 @@ export const DateFormat = {
   European: 'dd/MM/yyyy',
   Long: 'MMMM d, yyyy',
   ShortMonth: 'MMM d, yyyy',
-} as const;
+} as const
 
-export type DateFormat = (typeof DateFormat)[keyof typeof DateFormat];
+export type DateFormat = (typeof DateFormat)[keyof typeof DateFormat]
 
-export const DefaultDateFormat = DateFormat.Iso8601;
+export const DefaultDateFormat = DateFormat.Iso8601
 
-export const DateFormatValues = Object.values(DateFormat);
+export const DateFormatValues = Object.values(DateFormat)
 
 export function isDateFormat(value: unknown): value is DateFormat {
-  return typeof value === 'string' && DateFormatValues.includes(value as DateFormat);
+  return (
+    typeof value === 'string' && DateFormatValues.includes(value as DateFormat)
+  )
 }

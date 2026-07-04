@@ -1,13 +1,10 @@
 // libs/db/src/repositories/user/drizzle-user-session.repository.spec.ts
 
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest'
 
-import type { DatabaseClient } from '../../client';
-import {
-  type UserSessionRow,
-  userSessionsTable,
-} from '../../schema';
-import { DrizzleUserSessionRepository } from './drizzle-user-session.repository';
+import type { DatabaseClient } from '../../client'
+import { type UserSessionRow, userSessionsTable } from '../../schema'
+import { DrizzleUserSessionRepository } from './drizzle-user-session.repository'
 
 function createUserSessionRow(
   overrides: Partial<UserSessionRow> = {},
@@ -37,18 +34,18 @@ function createUserSessionRow(
     deletedAt: null,
 
     ...overrides,
-  };
+  }
 }
 
 function createDatabaseMock({
   selectedRows = [],
   insertedRows = [],
 }: {
-  selectedRows?: UserSessionRow[];
-  insertedRows?: UserSessionRow[];
+  selectedRows?: UserSessionRow[]
+  insertedRows?: UserSessionRow[]
 } = {}) {
-  const selectLimit = vi.fn().mockResolvedValue(selectedRows);
-  const selectOrderBy = vi.fn();
+  const selectLimit = vi.fn().mockResolvedValue(selectedRows)
+  const selectOrderBy = vi.fn()
 
   const selectResult = {
     limit: selectLimit,
@@ -61,32 +58,32 @@ function createDatabaseMock({
         | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
         | null,
     ): Promise<TResult1 | TResult2> {
-      return Promise.resolve(selectedRows).then(onfulfilled, onrejected);
+      return Promise.resolve(selectedRows).then(onfulfilled, onrejected)
     },
-  };
+  }
 
-  selectOrderBy.mockReturnValue(selectResult);
+  selectOrderBy.mockReturnValue(selectResult)
 
-  const selectWhere = vi.fn(() => selectResult);
+  const selectWhere = vi.fn(() => selectResult)
   const selectFrom = vi.fn(() => ({
     where: selectWhere,
-  }));
+  }))
   const select = vi.fn(() => ({
     from: selectFrom,
-  }));
+  }))
 
-  const insertReturning = vi.fn().mockResolvedValue(insertedRows);
+  const insertReturning = vi.fn().mockResolvedValue(insertedRows)
   const insertValues = vi.fn(() => ({
     returning: insertReturning,
-  }));
+  }))
   const insert = vi.fn(() => ({
     values: insertValues,
-  }));
+  }))
 
   const database = {
     select,
     insert,
-  } as unknown as DatabaseClient;
+  } as unknown as DatabaseClient
 
   return {
     database,
@@ -98,7 +95,7 @@ function createDatabaseMock({
     insert,
     insertValues,
     insertReturning,
-  };
+  }
 }
 
 function toExpectedContract(row: UserSessionRow) {
@@ -113,63 +110,54 @@ function toExpectedContract(row: UserSessionRow) {
     revokedAt: row.revokedAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
-  };
+  }
 }
 
 function toPublicGeoIp(
   geoIp: UserSessionRow['geoIp'],
-): Omit<
-  NonNullable<UserSessionRow['geoIp']>,
-  'latitude' | 'longitude'
-> | null {
+): Omit<NonNullable<UserSessionRow['geoIp']>, 'latitude' | 'longitude'> | null {
   if (!geoIp) {
-    return null;
+    return null
   }
 
-  const publicGeoIp = { ...geoIp };
+  const publicGeoIp = { ...geoIp }
 
-  delete publicGeoIp.latitude;
-  delete publicGeoIp.longitude;
+  delete publicGeoIp.latitude
+  delete publicGeoIp.longitude
 
-  return publicGeoIp;
+  return publicGeoIp
 }
 
 describe('DrizzleUserSessionRepository', () => {
   it('finds an active session by ID', async () => {
-    const row = createUserSessionRow();
+    const row = createUserSessionRow()
     const databaseMock = createDatabaseMock({
       selectedRows: [row],
-    });
+    })
 
-    const repository = new DrizzleUserSessionRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserSessionRepository(databaseMock.database)
 
-    const result = await repository.findById(row.id);
+    const result = await repository.findById(row.id)
 
-    expect(result).toEqual(toExpectedContract(row));
+    expect(result).toEqual(toExpectedContract(row))
 
-    expect(databaseMock.select).toHaveBeenCalledOnce();
-    expect(databaseMock.selectFrom).toHaveBeenCalledWith(
-      userSessionsTable,
-    );
-    expect(databaseMock.selectLimit).toHaveBeenCalledWith(1);
-  });
+    expect(databaseMock.select).toHaveBeenCalledOnce()
+    expect(databaseMock.selectFrom).toHaveBeenCalledWith(userSessionsTable)
+    expect(databaseMock.selectLimit).toHaveBeenCalledWith(1)
+  })
 
   it('returns null when an active session does not exist', async () => {
-    const databaseMock = createDatabaseMock();
+    const databaseMock = createDatabaseMock()
 
-    const repository = new DrizzleUserSessionRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserSessionRepository(databaseMock.database)
 
-    const result = await repository.findById('missing_session');
+    const result = await repository.findById('missing_session')
 
-    expect(result).toBeNull();
-  });
+    expect(result).toBeNull()
+  })
 
   it('returns every active session belonging to a user', async () => {
-    const firstRow = createUserSessionRow();
+    const firstRow = createUserSessionRow()
 
     const secondRow = createUserSessionRow({
       id: 'session_456',
@@ -177,52 +165,46 @@ describe('DrizzleUserSessionRepository', () => {
       deviceName: 'Chrome on Android',
       ipAddress: '192.168.0.11',
       geoIp: null,
-    });
+    })
 
     const databaseMock = createDatabaseMock({
       selectedRows: [firstRow, secondRow],
-    });
+    })
 
-    const repository = new DrizzleUserSessionRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserSessionRepository(databaseMock.database)
 
-    const result = await repository.findAllByUserId('user_123');
+    const result = await repository.findAllByUserId('user_123')
 
     expect(result).toEqual([
       toExpectedContract(firstRow),
       toExpectedContract(secondRow),
-    ]);
-  });
+    ])
+  })
 
   it('does not expose token hashes, user IDs, or exact GeoIP coordinates', async () => {
-    const row = createUserSessionRow();
+    const row = createUserSessionRow()
     const databaseMock = createDatabaseMock({
       selectedRows: [row],
-    });
+    })
 
-    const repository = new DrizzleUserSessionRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserSessionRepository(databaseMock.database)
 
-    const result = await repository.findById(row.id);
+    const result = await repository.findById(row.id)
 
-    expect(result).not.toBeNull();
-    expect(result).not.toHaveProperty('tokenHash');
-    expect(result).not.toHaveProperty('userId');
-    expect(result?.geoIp).not.toHaveProperty('latitude');
-    expect(result?.geoIp).not.toHaveProperty('longitude');
-  });
+    expect(result).not.toBeNull()
+    expect(result).not.toHaveProperty('tokenHash')
+    expect(result).not.toHaveProperty('userId')
+    expect(result?.geoIp).not.toHaveProperty('latitude')
+    expect(result?.geoIp).not.toHaveProperty('longitude')
+  })
 
   it('creates and returns a user session', async () => {
-    const row = createUserSessionRow();
+    const row = createUserSessionRow()
     const databaseMock = createDatabaseMock({
       insertedRows: [row],
-    });
+    })
 
-    const repository = new DrizzleUserSessionRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserSessionRepository(databaseMock.database)
 
     const result = await repository.create({
       userId: row.userId,
@@ -233,13 +215,11 @@ describe('DrizzleUserSessionRepository', () => {
       geoIp: row.geoIp,
       lastSeenAt: row.lastSeenAt,
       expiresAt: row.expiresAt,
-    });
+    })
 
-    expect(result).toEqual(toExpectedContract(row));
+    expect(result).toEqual(toExpectedContract(row))
 
-    expect(databaseMock.insert).toHaveBeenCalledWith(
-      userSessionsTable,
-    );
+    expect(databaseMock.insert).toHaveBeenCalledWith(userSessionsTable)
 
     expect(databaseMock.insertValues).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -252,15 +232,13 @@ describe('DrizzleUserSessionRepository', () => {
         lastSeenAt: row.lastSeenAt,
         expiresAt: row.expiresAt,
       }),
-    );
-  });
+    )
+  })
 
   it('throws when creating a session does not return a row', async () => {
-    const databaseMock = createDatabaseMock();
+    const databaseMock = createDatabaseMock()
 
-    const repository = new DrizzleUserSessionRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserSessionRepository(databaseMock.database)
 
     await expect(
       repository.create({
@@ -268,6 +246,6 @@ describe('DrizzleUserSessionRepository', () => {
         tokenHash: 'hashed-session-token',
         expiresAt: new Date('2026-06-27T00:00:00.000Z'),
       }),
-    ).rejects.toThrow();
-  });
-});
+    ).rejects.toThrow()
+  })
+})

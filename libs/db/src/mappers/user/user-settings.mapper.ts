@@ -3,19 +3,14 @@
 import {
   UserSettingsEntity,
   type UserSettingsContract,
-} from '@aerealith-ai/core';
+} from '@aerealith-ai/core'
 
-import type {
-  NewUserSettingsRow,
-  UserSettingsRow,
-} from '../../schema';
+import type { NewUserSettingsRow, UserSettingsRow } from '../../schema'
 
 /**
  * Converts a database user-settings row into the core entity.
  */
-export function toUserSettingsEntity(
-  row: UserSettingsRow,
-): UserSettingsEntity {
+export function toUserSettingsEntity(row: UserSettingsRow): UserSettingsEntity {
   return new UserSettingsEntity({
     id: row.id,
     userId: row.userId,
@@ -31,7 +26,7 @@ export function toUserSettingsEntity(
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     deletedAt: row.deletedAt,
-  });
+  })
 }
 
 /**
@@ -54,7 +49,7 @@ export function toUserSettingsContract(
 
     createdAt: entity.createdAt.toISOString(),
     updatedAt: entity.updatedAt.toISOString(),
-  };
+  }
 }
 
 /**
@@ -75,5 +70,5 @@ export function toNewUserSettingsRow(
     notifications: entity.notifications,
     privacy: entity.privacy,
     security: entity.security,
-  };
+  }
 }

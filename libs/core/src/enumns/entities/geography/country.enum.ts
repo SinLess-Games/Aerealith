@@ -253,14 +253,14 @@ export const Country = {
   Yemen: 'YE',
   Zambia: 'ZM',
   Zimbabwe: 'ZW',
-} as const;
+} as const
 
-export type Country = (typeof Country)[keyof typeof Country];
+export type Country = (typeof Country)[keyof typeof Country]
 
-export const DefaultCountry = Country.UnitedStates;
+export const DefaultCountry = Country.UnitedStates
 
-export const CountryValues = Object.values(Country);
+export const CountryValues = Object.values(Country)
 
 export function isCountry(value: unknown): value is Country {
-  return typeof value === 'string' && CountryValues.includes(value as Country);
+  return typeof value === 'string' && CountryValues.includes(value as Country)
 }

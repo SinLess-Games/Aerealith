@@ -44,10 +44,10 @@ defaults:
     shell: bash
 
 env:
-  CI: 'true'
-  NX_DAEMON: 'false'
-  NODE_VERSION: '25.9.0'
-  PNPM_VERSION: '11.5.2'
+  CI: "true"
+  NX_DAEMON: "false"
+  NODE_VERSION: "25.9.0"
+  PNPM_VERSION: "11.5.2"
   COVERAGE_DIRECTORY: coverage/code-quality
   COBERTURA_REPORT: coverage/code-quality/cobertura.xml
 

@@ -1,24 +1,21 @@
 // libs/db/src/queries/user/user-session.queries.ts
 
-import { and, eq, gt, isNull } from 'drizzle-orm';
+import { and, eq, gt, isNull } from 'drizzle-orm'
 
-import { userSessionsTable } from '../../schema';
+import { userSessionsTable } from '../../schema'
 
 /**
  * Builds a query condition for an active user session by ID.
  *
  * Revoked, expired, and soft-deleted sessions are excluded.
  */
-export function activeUserSessionById(
-  id: string,
-  now: Date = new Date(),
-) {
+export function activeUserSessionById(id: string, now: Date = new Date()) {
   return and(
     eq(userSessionsTable.id, id),
     isNull(userSessionsTable.revokedAt),
     isNull(userSessionsTable.deletedAt),
     gt(userSessionsTable.expiresAt, now),
-  );
+  )
 }
 
 /**
@@ -35,7 +32,7 @@ export function activeUserSessionByTokenHash(
     isNull(userSessionsTable.revokedAt),
     isNull(userSessionsTable.deletedAt),
     gt(userSessionsTable.expiresAt, now),
-  );
+  )
 }
 
 /**
@@ -52,7 +49,7 @@ export function activeUserSessionsByUserId(
     isNull(userSessionsTable.revokedAt),
     isNull(userSessionsTable.deletedAt),
     gt(userSessionsTable.expiresAt, now),
-  );
+  )
 }
 
 /**
@@ -60,7 +57,7 @@ export function activeUserSessionsByUserId(
  * including revoked, expired, and soft-deleted sessions.
  */
 export function userSessionsByUserId(userId: string) {
-  return eq(userSessionsTable.userId, userId);
+  return eq(userSessionsTable.userId, userId)
 }
 
 /**
@@ -72,5 +69,5 @@ export function userSessionHistoryByUserId(userId: string) {
   return and(
     eq(userSessionsTable.userId, userId),
     isNull(userSessionsTable.deletedAt),
-  );
+  )
 }

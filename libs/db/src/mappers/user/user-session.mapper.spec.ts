@@ -1,15 +1,15 @@
 // libs/db/src/mappers/user/user-session.mapper.spec.ts
 
-import { UserSessionEntity } from '@aerealith-ai/core';
-import { describe, expect, it } from 'vitest';
+import { UserSessionEntity } from '@aerealith-ai/core'
+import { describe, expect, it } from 'vitest'
 
-import type { UserSessionRow } from '../../schema';
+import type { UserSessionRow } from '../../schema'
 import {
   toNewUserSessionRow,
   toPublicUserSessionGeoIp,
   toUserSessionContract,
   toUserSessionEntity,
-} from './user-session.mapper';
+} from './user-session.mapper'
 
 function createUserSessionRow(
   overrides: Partial<UserSessionRow> = {},
@@ -39,16 +39,16 @@ function createUserSessionRow(
     deletedAt: null,
 
     ...overrides,
-  };
+  }
 }
 
 describe('user session mapper', () => {
   it('converts a database row into a user session entity', () => {
-    const row = createUserSessionRow();
+    const row = createUserSessionRow()
 
-    const entity = toUserSessionEntity(row);
+    const entity = toUserSessionEntity(row)
 
-    expect(entity).toBeInstanceOf(UserSessionEntity);
+    expect(entity).toBeInstanceOf(UserSessionEntity)
 
     expect(entity).toEqual(
       expect.objectContaining({
@@ -69,8 +69,8 @@ describe('user session mapper', () => {
         updatedAt: row.updatedAt,
         deletedAt: row.deletedAt,
       }),
-    );
-  });
+    )
+  })
 
   it('preserves nullable session fields and defaults missing activity to creation time', () => {
     const row = createUserSessionRow({
@@ -80,35 +80,35 @@ describe('user session mapper', () => {
       geoIp: null,
       lastSeenAt: undefined,
       revokedAt: null,
-    });
+    })
 
-    const entity = toUserSessionEntity(row);
+    const entity = toUserSessionEntity(row)
 
-    expect(entity.deviceName).toBeNull();
-    expect(entity.userAgent).toBeNull();
-    expect(entity.ipAddress).toBeNull();
-    expect(entity.geoIp).toBeNull();
-    expect(entity.lastSeenAt).toEqual(row.createdAt);
-    expect(entity.revokedAt).toBeNull();
-  });
+    expect(entity.deviceName).toBeNull()
+    expect(entity.userAgent).toBeNull()
+    expect(entity.ipAddress).toBeNull()
+    expect(entity.geoIp).toBeNull()
+    expect(entity.lastSeenAt).toEqual(row.createdAt)
+    expect(entity.revokedAt).toBeNull()
+  })
 
   it('preserves a soft-deletion timestamp when converting to an entity', () => {
-    const deletedAt = new Date('2026-06-21T00:00:00.000Z');
+    const deletedAt = new Date('2026-06-21T00:00:00.000Z')
 
     const entity = toUserSessionEntity(
       createUserSessionRow({
         deletedAt,
       }),
-    );
+    )
 
-    expect(entity.deletedAt).toBe(deletedAt);
-  });
+    expect(entity.deletedAt).toBe(deletedAt)
+  })
 
   it('converts a user session entity into a database insert row', () => {
-    const row = createUserSessionRow();
-    const entity = toUserSessionEntity(row);
+    const row = createUserSessionRow()
+    const entity = toUserSessionEntity(row)
 
-    const newRow = toNewUserSessionRow(entity);
+    const newRow = toNewUserSessionRow(entity)
 
     expect(newRow).toEqual(
       expect.objectContaining({
@@ -129,45 +129,45 @@ describe('user session mapper', () => {
         updatedAt: row.updatedAt,
         deletedAt: row.deletedAt,
       }),
-    );
-  });
+    )
+  })
 
   it('uses the creation timestamp for an insert row when activity is missing', () => {
     const row = createUserSessionRow({
       lastSeenAt: undefined,
-    });
+    })
 
-    const entity = toUserSessionEntity(row);
-    const newRow = toNewUserSessionRow(entity);
+    const entity = toUserSessionEntity(row)
+    const newRow = toNewUserSessionRow(entity)
 
-    expect(entity.lastSeenAt).toEqual(row.createdAt);
-    expect(newRow.lastSeenAt).toEqual(row.createdAt);
-  });
+    expect(entity.lastSeenAt).toEqual(row.createdAt)
+    expect(newRow.lastSeenAt).toEqual(row.createdAt)
+  })
 
   it('removes exact GeoIP coordinates from public session location data', () => {
-    const row = createUserSessionRow();
+    const row = createUserSessionRow()
 
-    const publicGeoIp = toPublicUserSessionGeoIp(row.geoIp);
+    const publicGeoIp = toPublicUserSessionGeoIp(row.geoIp)
 
     expect(publicGeoIp).toEqual({
       country: 'US',
       region: 'Idaho',
       city: 'Twin Falls',
-    });
+    })
 
-    expect(publicGeoIp).not.toHaveProperty('latitude');
-    expect(publicGeoIp).not.toHaveProperty('longitude');
-  });
+    expect(publicGeoIp).not.toHaveProperty('latitude')
+    expect(publicGeoIp).not.toHaveProperty('longitude')
+  })
 
   it('returns null public GeoIP data when session GeoIP data is absent', () => {
-    expect(toPublicUserSessionGeoIp(null)).toBeNull();
-  });
+    expect(toPublicUserSessionGeoIp(null)).toBeNull()
+  })
 
   it('converts an entity into a safe public user session contract', () => {
-    const row = createUserSessionRow();
-    const entity = toUserSessionEntity(row);
+    const row = createUserSessionRow()
+    const entity = toUserSessionEntity(row)
 
-    const contract = toUserSessionContract(entity);
+    const contract = toUserSessionContract(entity)
 
     expect(contract).toEqual(
       expect.objectContaining({
@@ -189,33 +189,33 @@ describe('user session mapper', () => {
         createdAt: row.createdAt.toISOString(),
         updatedAt: row.updatedAt.toISOString(),
       }),
-    );
-  });
+    )
+  })
 
   it('does not expose private session fields in the contract', () => {
-    const entity = toUserSessionEntity(createUserSessionRow());
+    const entity = toUserSessionEntity(createUserSessionRow())
 
-    const contract = toUserSessionContract(entity);
+    const contract = toUserSessionContract(entity)
 
-    expect(contract).not.toHaveProperty('userId');
-    expect(contract).not.toHaveProperty('tokenHash');
-    expect(contract).not.toHaveProperty('deletedAt');
-    expect(contract.geoIp).not.toHaveProperty('latitude');
-    expect(contract.geoIp).not.toHaveProperty('longitude');
-  });
+    expect(contract).not.toHaveProperty('userId')
+    expect(contract).not.toHaveProperty('tokenHash')
+    expect(contract).not.toHaveProperty('deletedAt')
+    expect(contract.geoIp).not.toHaveProperty('latitude')
+    expect(contract.geoIp).not.toHaveProperty('longitude')
+  })
 
   it('preserves revoked session state in the contract', () => {
-    const revokedAt = new Date('2026-06-21T00:00:00.000Z');
+    const revokedAt = new Date('2026-06-21T00:00:00.000Z')
 
     const entity = toUserSessionEntity(
       createUserSessionRow({
         revokedAt,
       }),
-    );
+    )
 
-    const contract = toUserSessionContract(entity);
+    const contract = toUserSessionContract(entity)
 
-    expect(entity.revokedAt).toBe(revokedAt);
-    expect(contract.revokedAt).toBe(revokedAt.toISOString());
-  });
-});
+    expect(entity.revokedAt).toBe(revokedAt)
+    expect(contract.revokedAt).toBe(revokedAt.toISOString())
+  })
+})

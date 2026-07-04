@@ -9,11 +9,11 @@ import {
   uniqueIndex,
   uuid,
   varchar,
-} from 'drizzle-orm/pg-core';
+} from 'drizzle-orm/pg-core'
 
-import type { UserSessionGeoIp } from '@aerealith-ai/core';
+import type { UserSessionGeoIp } from '@aerealith-ai/core'
 
-import { usersTable } from './user.table';
+import { usersTable } from './user.table'
 
 /**
  * Stores authenticated user sessions.
@@ -97,8 +97,8 @@ export const userSessionsTable = pgTable(
 
     index('user_sessions_last_seen_at_index').on(table.lastSeenAt),
   ],
-);
+)
 
-export type UserSessionRow = typeof userSessionsTable.$inferSelect;
+export type UserSessionRow = typeof userSessionsTable.$inferSelect
 
-export type NewUserSessionRow = typeof userSessionsTable.$inferInsert;
+export type NewUserSessionRow = typeof userSessionsTable.$inferInsert

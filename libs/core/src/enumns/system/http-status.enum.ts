@@ -44,11 +44,11 @@ export const HttpStatus = {
   BadGateway: 502,
   ServiceUnavailable: 503,
   GatewayTimeout: 504,
-} as const;
+} as const
 
-export type HttpStatus = (typeof HttpStatus)[keyof typeof HttpStatus];
+export type HttpStatus = (typeof HttpStatus)[keyof typeof HttpStatus]
 
-export const HttpStatusValues = Object.values(HttpStatus);
+export const HttpStatusValues = Object.values(HttpStatus)
 
 export const HttpStatusText = {
   [HttpStatus.Continue]: 'Continue',
@@ -91,11 +91,10 @@ export const HttpStatusText = {
   [HttpStatus.BadGateway]: 'Bad Gateway',
   [HttpStatus.ServiceUnavailable]: 'Service Unavailable',
   [HttpStatus.GatewayTimeout]: 'Gateway Timeout',
-} as const satisfies Record<HttpStatus, string>;
+} as const satisfies Record<HttpStatus, string>
 
 export function isHttpStatus(value: unknown): value is HttpStatus {
   return (
-    typeof value === 'number' &&
-    HttpStatusValues.includes(value as HttpStatus)
-  );
+    typeof value === 'number' && HttpStatusValues.includes(value as HttpStatus)
+  )
 }

@@ -4,19 +4,14 @@ import {
   UserConsentEntity,
   UserConsentType,
   type UserConsentContract,
-} from '@aerealith-ai/core';
+} from '@aerealith-ai/core'
 
-import type {
-  NewUserConsentRow,
-  UserConsentRow,
-} from '../../schema';
+import type { NewUserConsentRow, UserConsentRow } from '../../schema'
 
 /**
  * Converts a database user-consent row into the core entity.
  */
-export function toUserConsentEntity(
-  row: UserConsentRow,
-): UserConsentEntity {
+export function toUserConsentEntity(row: UserConsentRow): UserConsentEntity {
   return new UserConsentEntity({
     id: row.id,
     userId: row.userId,
@@ -27,7 +22,7 @@ export function toUserConsentEntity(
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     deletedAt: row.deletedAt,
-  });
+  })
 }
 
 /**
@@ -45,7 +40,7 @@ export function toUserConsentContract(
     revokedAt: entity.revokedAt?.toISOString() ?? null,
     createdAt: entity.createdAt.toISOString(),
     updatedAt: entity.updatedAt.toISOString(),
-  };
+  }
 }
 
 /**
@@ -62,17 +57,17 @@ export function toNewUserConsentRow(
     version: entity.version,
     grantedAt: entity.grantedAt,
     revokedAt: entity.revokedAt,
-  };
+  }
 }
 
 function toUserConsentType(
   value: string,
 ): (typeof UserConsentType)[keyof typeof UserConsentType] {
-  const consentTypes = Object.values(UserConsentType);
+  const consentTypes = Object.values(UserConsentType)
 
   if (consentTypes.includes(value as never)) {
-    return value as (typeof UserConsentType)[keyof typeof UserConsentType];
+    return value as (typeof UserConsentType)[keyof typeof UserConsentType]
   }
 
-  throw new Error(`Invalid user consent type in database: ${value}`);
+  throw new Error(`Invalid user consent type in database: ${value}`)
 }

@@ -18,14 +18,14 @@ export const UserRole = {
 
   Service: 'service',
   System: 'system',
-} as const;
+} as const
 
-export type UserRole = (typeof UserRole)[keyof typeof UserRole];
+export type UserRole = (typeof UserRole)[keyof typeof UserRole]
 
-export const DefaultUserRole = UserRole.User;
+export const DefaultUserRole = UserRole.User
 
-export const UserRoleValues = Object.values(UserRole);
+export const UserRoleValues = Object.values(UserRole)
 
 export function isUserRole(value: unknown): value is UserRole {
-  return typeof value === 'string' && UserRoleValues.includes(value as UserRole);
+  return typeof value === 'string' && UserRoleValues.includes(value as UserRole)
 }

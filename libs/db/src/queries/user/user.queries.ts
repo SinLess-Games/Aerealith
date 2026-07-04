@@ -1,8 +1,8 @@
 // libs/db/src/queries/user/user.queries.ts
 
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm'
 
-import { usersTable } from '../../schema';
+import { usersTable } from '../../schema'
 
 /**
  * Builds a query condition for an active user by ID.
@@ -10,10 +10,7 @@ import { usersTable } from '../../schema';
  * Soft-deleted users are excluded.
  */
 export function activeUserById(id: string) {
-  return and(
-    eq(usersTable.id, id),
-    isNull(usersTable.deletedAt),
-  );
+  return and(eq(usersTable.id, id), isNull(usersTable.deletedAt))
 }
 
 /**
@@ -25,7 +22,7 @@ export function activeUserByUsername(username: string) {
   return and(
     eq(usersTable.username, normalizeUsername(username)),
     isNull(usersTable.deletedAt),
-  );
+  )
 }
 
 /**
@@ -37,7 +34,7 @@ export function activeUserByEmail(email: string) {
   return and(
     eq(usersTable.email, normalizeEmail(email)),
     isNull(usersTable.deletedAt),
-  );
+  )
 }
 
 /**
@@ -45,7 +42,7 @@ export function activeUserByEmail(email: string) {
  * including soft-deleted users.
  */
 export function userById(id: string) {
-  return eq(usersTable.id, id);
+  return eq(usersTable.id, id)
 }
 
 /**
@@ -53,7 +50,7 @@ export function userById(id: string) {
  * including soft-deleted users.
  */
 export function userByUsername(username: string) {
-  return eq(usersTable.username, normalizeUsername(username));
+  return eq(usersTable.username, normalizeUsername(username))
 }
 
 /**
@@ -61,13 +58,13 @@ export function userByUsername(username: string) {
  * including soft-deleted users.
  */
 export function userByEmail(email: string) {
-  return eq(usersTable.email, normalizeEmail(email));
+  return eq(usersTable.email, normalizeEmail(email))
 }
 
 function normalizeUsername(username: string): string {
-  return username.trim().toLowerCase();
+  return username.trim().toLowerCase()
 }
 
 function normalizeEmail(email: string): string {
-  return email.trim().toLowerCase();
+  return email.trim().toLowerCase()
 }

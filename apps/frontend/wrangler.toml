@@ -83,6 +83,13 @@ enabled = true
 # Reduce this later if request volume makes full sampling unnecessary.
 head_sampling_rate = 1
 
+[observability.logs]
+enabled = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+
 # ---------------------------------------------------------------------------
 # Feature flags
 # ---------------------------------------------------------------------------

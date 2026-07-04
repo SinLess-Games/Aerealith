@@ -52,16 +52,16 @@ export const CommonErrorCode = {
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
   GATEWAY_TIMEOUT: 'GATEWAY_TIMEOUT',
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
-} as const;
+} as const
 
 export type CommonErrorCode =
-  (typeof CommonErrorCode)[keyof typeof CommonErrorCode];
+  (typeof CommonErrorCode)[keyof typeof CommonErrorCode]
 
-export const CommonErrorCodeValues = Object.values(CommonErrorCode);
+export const CommonErrorCodeValues = Object.values(CommonErrorCode)
 
 export function isCommonErrorCode(value: unknown): value is CommonErrorCode {
   return (
     typeof value === 'string' &&
     CommonErrorCodeValues.includes(value as CommonErrorCode)
-  );
+  )
 }

@@ -30,17 +30,16 @@ export const Sexuality = {
   AroAce: 'aroace',
 
   Sapiosexual: 'sapiosexual',
-} as const;
+} as const
 
-export type Sexuality = (typeof Sexuality)[keyof typeof Sexuality];
+export type Sexuality = (typeof Sexuality)[keyof typeof Sexuality]
 
-export const DefaultSexuality = Sexuality.Unspecified;
+export const DefaultSexuality = Sexuality.Unspecified
 
-export const SexualityValues = Object.values(Sexuality);
+export const SexualityValues = Object.values(Sexuality)
 
 export function isSexuality(value: unknown): value is Sexuality {
   return (
-    typeof value === 'string' &&
-    SexualityValues.includes(value as Sexuality)
-  );
+    typeof value === 'string' && SexualityValues.includes(value as Sexuality)
+  )
 }

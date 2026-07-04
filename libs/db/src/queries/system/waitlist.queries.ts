@@ -1,8 +1,8 @@
 // libs/db/src/queries/system/waitlist.queries.ts
 
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm'
 
-import { waitlistTable } from '../../schema';
+import { waitlistTable } from '../../schema'
 
 /**
  * Builds a query condition for an active waitlist entry by email address.
@@ -13,7 +13,7 @@ export function activeWaitlistEntryByEmail(email: string) {
   return and(
     eq(waitlistTable.email, normalizeEmail(email)),
     isNull(waitlistTable.deletedAt),
-  );
+  )
 }
 
 /**
@@ -21,9 +21,9 @@ export function activeWaitlistEntryByEmail(email: string) {
  * including soft-deleted records.
  */
 export function waitlistEntryByEmail(email: string) {
-  return eq(waitlistTable.email, normalizeEmail(email));
+  return eq(waitlistTable.email, normalizeEmail(email))
 }
 
 function normalizeEmail(email: string): string {
-  return email.trim().toLowerCase();
+  return email.trim().toLowerCase()
 }

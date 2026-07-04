@@ -8,14 +8,14 @@ export const MeasurementSystem = {
   Imperial: 'imperial',
   Metric: 'metric',
   Scientific: 'scientific',
-} as const;
+} as const
 
 export type MeasurementSystem =
-  (typeof MeasurementSystem)[keyof typeof MeasurementSystem];
+  (typeof MeasurementSystem)[keyof typeof MeasurementSystem]
 
-export const DefaultMeasurementSystem = MeasurementSystem.Metric;
+export const DefaultMeasurementSystem = MeasurementSystem.Metric
 
-export const MeasurementSystemValues = Object.values(MeasurementSystem);
+export const MeasurementSystemValues = Object.values(MeasurementSystem)
 
 export function isMeasurementSystem(
   value: unknown,
@@ -23,5 +23,5 @@ export function isMeasurementSystem(
   return (
     typeof value === 'string' &&
     MeasurementSystemValues.includes(value as MeasurementSystem)
-  );
+  )
 }

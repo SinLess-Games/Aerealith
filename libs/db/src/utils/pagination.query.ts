@@ -1,18 +1,18 @@
 // libs/db/src/utils/pagination.query.ts
 
-import type { PaginationMeta } from '@aerealith-ai/core';
+import type { PaginationMeta } from '@aerealith-ai/core'
 
-export type PaginationQuery = Pick<PaginationMeta, 'page' | 'limit'>;
+export type PaginationQuery = Pick<PaginationMeta, 'page' | 'limit'>
 
 export type DatabasePagination = PaginationQuery & {
-  offset: number;
-};
+  offset: number
+}
 
 export type CreatePaginationMetaInput = {
-  page: number;
-  limit: number;
-  total: number;
-};
+  page: number
+  limit: number
+  total: number
+}
 
 /**
  * Converts validated pagination values into SQL offset values.
@@ -22,14 +22,14 @@ export type CreatePaginationMetaInput = {
 export function createDatabasePagination(
   input: PaginationQuery,
 ): DatabasePagination {
-  const page = Math.max(1, Math.floor(input.page));
-  const limit = Math.max(1, Math.floor(input.limit));
+  const page = Math.max(1, Math.floor(input.page))
+  const limit = Math.max(1, Math.floor(input.limit))
 
   return {
     page,
     limit,
     offset: (page - 1) * limit,
-  };
+  }
 }
 
 /**
@@ -38,10 +38,10 @@ export function createDatabasePagination(
 export function createPaginationMeta(
   input: CreatePaginationMetaInput,
 ): PaginationMeta {
-  const page = Math.max(1, Math.floor(input.page));
-  const limit = Math.max(1, Math.floor(input.limit));
-  const total = Math.max(0, Math.floor(input.total));
-  const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+  const page = Math.max(1, Math.floor(input.page))
+  const limit = Math.max(1, Math.floor(input.limit))
+  const total = Math.max(0, Math.floor(input.total))
+  const totalPages = total === 0 ? 0 : Math.ceil(total / limit)
 
   return {
     page,
@@ -50,5 +50,5 @@ export function createPaginationMeta(
     totalPages,
     hasNextPage: page < totalPages,
     hasPreviousPage: page > 1,
-  };
+  }
 }

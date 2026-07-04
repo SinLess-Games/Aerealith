@@ -7,7 +7,7 @@ import {
   uniqueIndex,
   uuid,
   varchar,
-} from 'drizzle-orm/pg-core';
+} from 'drizzle-orm/pg-core'
 
 import {
   ContentMaturity,
@@ -18,9 +18,9 @@ import {
   WeekStartDay,
   type TimezoneGreenwich,
   type TimezoneUtc,
-} from '@aerealith-ai/core';
+} from '@aerealith-ai/core'
 
-import { usersTable } from './user.table';
+import { usersTable } from './user.table'
 
 /**
  * Stores a user's locale, date, time, measurement, and content preferences.
@@ -121,10 +121,8 @@ export const userPreferencesTable = pgTable(
     uniqueIndex('user_preferences_user_id_unique').on(table.userId),
     index('user_preferences_locale_index').on(table.locale),
   ],
-);
+)
 
-export type UserPreferencesRow =
-  typeof userPreferencesTable.$inferSelect;
+export type UserPreferencesRow = typeof userPreferencesTable.$inferSelect
 
-export type NewUserPreferencesRow =
-  typeof userPreferencesTable.$inferInsert;
+export type NewUserPreferencesRow = typeof userPreferencesTable.$inferInsert
