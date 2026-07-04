@@ -26,8 +26,8 @@
     </a>
     <a href="https://sonarcloud.io/summary/new_code?id=SinLess-Games_Aerealith">
       <img
-        src="https://sonarcloud.io/api/project_badges/measure?project=SinLess-Games_Aerealith&metric=alert_status&token=a9ef6b53ca9fb505435cf83c4a712648479e946e&amp;style=for-the-badge"
-        alt="SonarQube Cloud quality gate"
+        src="https://img.shields.io/github/actions/workflow/status/SinLess-Games/Aerealith/11-sonar.yaml?branch=master&amp;style=for-the-badge&amp;label=Sonar&amp;logo=sonarcloud&amp;logoColor=white"
+        alt="SonarQube Cloud analysis status"
       />
     </a>
     <a href="https://github.com/SinLess-Games/Aerealith/actions/workflows/08-codeql.yaml">
@@ -41,7 +41,7 @@
   <p>
     <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=for-the-badge&amp;logo=typescript&amp;logoColor=white" alt="TypeScript strict" />
     <img src="https://img.shields.io/badge/Node.js-24-339933?style=for-the-badge&amp;logo=nodedotjs&amp;logoColor=white" alt="Node.js 24" />
-    <img src="https://img.shields.io/badge/pnpm-10.23.0-F69220?style=for-the-badge&amp;logo=pnpm&amp;logoColor=white" alt="pnpm 10.23.0" />
+    <img src="https://img.shields.io/badge/pnpm-11.5.2-F69220?style=for-the-badge&amp;logo=pnpm&amp;logoColor=white" alt="pnpm 11.5.2" />
     <img src="https://img.shields.io/badge/Nx-monorepo-143055?style=for-the-badge&amp;logo=nx&amp;logoColor=white" alt="Nx monorepo" />
   </p>
 
