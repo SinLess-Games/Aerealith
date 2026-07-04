@@ -1,6 +1,7 @@
-# Aerealith AI
+#
 
 <div align="center">
+  <h1>Aerealith AI</h1>
 
   <a href="https://aerealith.com">
     <img
@@ -11,7 +12,7 @@
   </a>
 
   <p>
-    <strong>A secure, modular platform for building connected digital experiences.</strong>
+    <strong>Build, manage, and grow your connected digital presence from one secure, modular platform.</strong>
   </p>
 
   <p>
@@ -51,8 +52,8 @@
       alt="TypeScript strict"
     />
     <img
-      src="https://img.shields.io/badge/Node.js-24-339933?style=for-the-badge&amp;logo=nodedotjs&amp;logoColor=white"
-      alt="Node.js 24"
+      src="https://img.shields.io/badge/Node.js-25.9.0-339933?style=for-the-badge&amp;logo=nodedotjs&amp;logoColor=white"
+      alt="Node.js 25.9.0"
     />
     <img
       src="https://img.shields.io/badge/pnpm-11.5.2-F69220?style=for-the-badge&amp;logo=pnpm&amp;logoColor=white"
@@ -237,8 +238,8 @@ This keeps the platform easier to test, reuse, migrate, and self-host later.
 
 ### Requirements
 
-- **Node.js 24**
-- **pnpm 10.23.0**
+- **Node.js 25.9.0**
+- **pnpm 11.5.2**
 - **Git**
 - Optional: Docker for container-focused development and security scanning
 
