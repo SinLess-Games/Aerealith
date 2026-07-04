@@ -10,7 +10,7 @@
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
-        "configFile": "apps/frontend/vite.config.ts",
+        "configFile": "apps/frontend/cloudflare.vite.config.mts",
         "outputPath": "dist/apps/frontend"
       },
       "configurations": {
@@ -72,13 +72,6 @@
         "production": {
           "buildTarget": "frontend:build:production"
         }
-      }
-    },
-    "test": {
-      "executor": "@nx/vite:test",
-      "outputs": ["{options.reportsDirectory}"],
-      "options": {
-        "reportsDirectory": "../../coverage/apps/frontend"
       }
     },
     "lint": {

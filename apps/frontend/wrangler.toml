@@ -8,57 +8,57 @@
 # - Pull request previews: pr-<number>-aerealith.sinless-deploy.workers.dev
 #
 # Staging and pull-request previews are Worker versions and aliases.
-# They are not separate Wrangler environments or separate Worker services.
+# They are not separate Worker services.
 #
 # Do not place secrets in this file.
 # Use Cloudflare Worker secrets for runtime credentials.
 
 "$schema" = "../../node_modules/wrangler/config-schema.json"
 
-# This must match the existing Worker shown in the Cloudflare dashboard.
 name = "aerealith"
 
-# Update intentionally when adopting newer Cloudflare runtime behavior.
 compatibility_date = "2026-07-03"
 
-# The production workers.dev URL remains disabled.
-#
-# Production traffic uses the existing custom domain:
+# Production uses the custom domain configured in Cloudflare:
 # https://aerealith.com
 workers_dev = false
 
-# Explicitly enable versioned and aliased preview URLs even though workers_dev
-# is disabled. This is required for staging and pull-request preview aliases.
+# Enables version and alias URLs such as:
+# pr-123-aerealith.sinless-deploy.workers.dev
 preview_urls = true
 
-# Keep dashboard-managed runtime variables on deployment.
-#
-# Wrangler config remains the source of truth for Worker code and supported
-# configuration, while secrets remain managed separately through Cloudflare.
+# Preserve dashboard-managed runtime variables during deploys.
 keep_vars = true
 
-# Upload source maps with deployable Worker versions for readable Cloudflare
-# stack traces and debugging.
+# Upload source maps for readable Cloudflare stack traces.
 upload_source_maps = true
 
-# The Cloudflare Vite plugin reads this Worker entry point and generates the
-# deployable Worker configuration during the frontend build.
+# Wrangler bundles this Worker during deployment.
+#
+# Vite does not build this file. Wrangler does.
 main = "./src/worker.ts"
 
-# React Router SPA fallback.
-#
-# Do not set an assets directory here. The Cloudflare Vite plugin supplies the
-# generated build output and generated deployment configuration.
 [assets]
+# This path is relative to apps/frontend/wrangler.toml.
+#
+# The Nx Vite build creates this directory:
+# dist/apps/frontend
+directory = "../../dist/apps/frontend"
+
+# Makes React Router browser routes serve index.html.
 not_found_handling = "single-page-application"
+
+# Keeps Cloudflare's normalized trailing-slash behavior.
 html_handling = "auto-trailing-slash"
 
-# Persist Worker observability data at full sampling while the project is in
-# early development. Reduce this later if traffic volume makes full sampling
-# too noisy or expensive.
+# Exposes the Static Assets binding to src/worker.ts.
+binding = "ASSETS"
+
+# Run the Worker only for infrastructure/runtime endpoints.
 #
-# Cloudflare persists Worker logs when observability is enabled. A sampling
-# value of 1 records every request.
+# All normal website and SPA requests stay asset-first.
+run_worker_first = ["/__aerealith/*"]
+
 [observability]
 enabled = true
 head_sampling_rate = 1
