@@ -1,4 +1,41 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"]
+
+  // Aerealith uses Renovate for reviewable dependency maintenance.
+  // Dependency updates never merge automatically.
+  "extends": [
+    "config:recommended",
+    "docker:pinDigests",
+    "helpers:pinGitHubActionDigests",
+    ":pinDevDependencies",
+    "abandonments:recommended",
+    "security:minimumReleaseAgeNpm",
+    ":maintainLockFilesWeekly"
+  ],
+
+  // Keep Renovate schedules aligned with the repository owner's local time.
+  "timezone": "America/Boise",
+
+  // Keep automated dependency work deliberate and manageable.
+  "automerge": false,
+  "prConcurrentLimit": 3,
+  "branchConcurrentLimit": 3,
+  "commitHourlyLimit": 2,
+
+  // Preserve this hand-written JSON5 file and its comments.
+  "configMigration": false,
+
+  // Make major-version upgrades an explicit dashboard decision.
+  "major": {
+    "dependencyDashboardApproval": true
+  },
+
+  // Keep pnpm lockfile updates tidy after package updates.
+  "packageRules": [
+    {
+      "description": "Run pnpm dedupe after npm dependency updates.",
+      "matchManagers": ["npm"],
+      "postUpdateOptions": ["pnpmDedupe"]
+    }
+  ]
 }
