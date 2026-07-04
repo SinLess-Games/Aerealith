@@ -5,8 +5,6 @@ import { codecovVitePlugin } from '@codecov/vite-plugin';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
-const meticulousRecordingToken = process.env.METICULOUS_API_TOKEN;
-
 export default defineConfig(({ mode }) => ({
   root: import.meta.dirname,
 
@@ -25,13 +23,10 @@ export default defineConfig(({ mode }) => ({
       uploadToken: process.env.CODECOV_TOKEN,
     }),
 
-    ...(meticulousRecordingToken
-      ? [
-          meticulous({
-            recordingToken: meticulousRecordingToken,
-          }),
-        ]
-      : []),
+    meticulous({
+      recordingToken: "HKIg6HKVls9xOQOfFw5j6yNmdJ2M1dOiYqcIB25Q",
+      enabled: "always",
+    }),
   ],
 
   server: {
