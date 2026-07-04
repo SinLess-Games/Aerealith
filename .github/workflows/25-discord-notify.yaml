@@ -184,7 +184,7 @@ on:
         type: string
 
       health_url:
-        description: "Optional health endpoint URL."
+        description: "Optional health endpoint."
         required: false
         default: ""
         type: string
@@ -311,7 +311,7 @@ jobs:
             true | false)
               ;;
             *)
-              echo "::error::notify_on_success must be true or false."
+              echo '::error::notify_on_success must be true or false.'
               exit 1
               ;;
           esac
@@ -320,7 +320,7 @@ jobs:
             true | false)
               ;;
             *)
-              echo "::error::force must be true or false."
+              echo '::error::force must be true or false.'
               exit 1
               ;;
           esac
@@ -668,6 +668,8 @@ jobs:
 
       - name: Publish skipped notification result
         if: steps.decision.outputs.should_notify != 'true'
+        env:
+          DECISION_REASON: ${{ steps.decision.outputs.reason }}
         run: |
           set -euo pipefail
 
@@ -678,5 +680,5 @@ jobs:
             echo '| Setting | Value |'
             echo '| --- | --- |'
             echo '| Delivered | false |'
-            echo "| Reason | ${{ steps.decision.outputs.reason }} |"
+            echo "| Reason | $DECISION_REASON |"
           } >> "$GITHUB_STEP_SUMMARY"

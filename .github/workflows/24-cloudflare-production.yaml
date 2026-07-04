@@ -1,4 +1,4 @@
-# .github/workflows/cloudflare-production.yaml
+# .github/workflows/24-cloudflare-production.yaml
 #
 # Deploys a stable published GitHub release to the existing Aerealith
 # Cloudflare Worker production deployment.
@@ -79,8 +79,8 @@ jobs:
     timeout-minutes: 45
 
     environment:
-      name: ${{ 'production' }}
-      url: ${{ 'https://aerealith.com' }}
+      name: production
+      url: https://aerealith.com
 
     outputs:
       candidate_version_id: ${{ steps.upload_candidate.outputs.candidate_version_id }}
@@ -100,24 +100,22 @@ jobs:
 
     steps:
       - name: Check out release tag
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           ref: ${{ github.event.release.tag_name }}
           fetch-depth: 0
           persist-credentials: false
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v6.0.9
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         with:
           version: ${{ env.PNPM_VERSION }}
           run_install: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
 
       - name: Validate release event and deployment inputs
         id: preflight
@@ -413,7 +411,7 @@ jobs:
                   echo '| Setting | Value |'
                   echo '| --- | --- |'
                   echo "| Endpoint | [$candidate_health_url]($candidate_health_url) |"
-                  echo '| Expected response | `{"status":"ok"}` |'
+                  echo "| Expected response | \`{\"status\":\"ok\"}\` |"
                   echo '| Result | passed |'
                 } >> "$GITHUB_STEP_SUMMARY"
 
@@ -535,7 +533,7 @@ jobs:
                 echo '| Setting | Value |'
                 echo '| --- | --- |'
                 echo "| Endpoint | [$production_health_url]($production_health_url) |"
-                echo '| Expected response | `{"status":"ok"}` |'
+                echo "| Expected response | \`{\"status\":\"ok\"}\` |"
                 echo '| Result | passed |'
                 echo '| Automatic rollback | not needed |'
               } >> "$GITHUB_STEP_SUMMARY"

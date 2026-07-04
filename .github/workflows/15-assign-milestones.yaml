@@ -1,13 +1,17 @@
-# .github/workflows/assign-milestones.yaml
+# .github/workflows/15-assign-milestones.yaml
 #
 # Automatically assigns GitHub milestones to issues and pull requests using
 # existing Aerealith labels and the milestone titles defined in
 # .github/milestones.yaml.
 #
-# Safety rules:
-# - Never checks out or executes pull request code.
+# Security design:
+# - pull_request_target is intentional so milestones can be assigned to pull
+#   requests opened from external forks.
+# - Never checks out, caches, downloads artifacts from, or executes pull
+#   request-controlled code.
 # - Reads .github/milestones.yaml from the repository default branch through
 #   the GitHub API.
+# - Uses only the built-in GitHub CLI and inline Ruby available on the runner.
 # - Never replaces an existing milestone during normal automation.
 # - Assigns a milestone only when labels resolve to exactly one candidate.
 # - Leaves ambiguous, unsupported, missing-label, and closed-milestone items
@@ -18,12 +22,12 @@
 # - area: core / area: database        -> 0.2 — Core Domain & Data Platform
 # - area: auth                         -> 0.3 — Authentication & Identity
 # - area: frontend / area: ui          -> 0.4 — Frontend Platform
-# - area: api                           -> 0.5 — API & Service Platform
-# - area: devportal                     -> 0.6 — Developer Portal & Integrations
-# - area: observability                 -> 0.9 — Observability, Reliability & Operations
-# - area: tooling                       -> 0.1 — Foundation & Workspace
-# - type: ci / type: build              -> 0.1 — Foundation & Workspace
-# - type: accessibility                 -> 0.4 — Frontend Platform
+# - area: api                          -> 0.5 — API & Service Platform
+# - area: devportal                    -> 0.6 — Developer Portal & Integrations
+# - area: observability                -> 0.9 — Observability, Reliability & Operations
+# - area: tooling                      -> 0.1 — Foundation & Workspace
+# - type: ci / type: build             -> 0.1 — Foundation & Workspace
+# - type: accessibility                -> 0.4 — Frontend Platform
 #
 # Intentionally not auto-mapped:
 # - area: discord, because it can legitimately belong to either the Discord
@@ -44,6 +48,8 @@ on:
       - labeled
       - unlabeled
 
+  # Required for safe milestone mutation on external-fork pull requests.
+  # This workflow must never check out or execute pull request code.
   pull_request_target:
     branches:
       - master
@@ -78,7 +84,6 @@ on:
 permissions:
   contents: read
   issues: write
-  pull-requests: write
 
 concurrency:
   group: >-
@@ -479,13 +484,17 @@ jobs:
 
       - name: Display assignment result
         if: always()
+        env:
+          ASSIGNMENT_STATUS: ${{ steps.assignment.outputs.status || 'unknown' }}
+          SELECTED_MILESTONE: ${{ steps.assignment.outputs.selected_milestone || 'none' }}
+          SELECTED_MILESTONE_NUMBER: ${{ steps.assignment.outputs.selected_milestone_number || 'none' }}
         run: |
           {
             echo '## Assignment Result'
             echo
             echo "| Output | Value |"
             echo "| --- | --- |"
-            echo "| Status | \`${{ steps.assignment.outputs.status || 'unknown' }}\` |"
-            echo "| Milestone | \`${{ steps.assignment.outputs.selected_milestone || 'none' }}\` |"
-            echo "| Milestone number | \`${{ steps.assignment.outputs.selected_milestone_number || 'none' }}\` |"
+            echo "| Status | \`$ASSIGNMENT_STATUS\` |"
+            echo "| Milestone | \`$SELECTED_MILESTONE\` |"
+            echo "| Milestone number | \`$SELECTED_MILESTONE_NUMBER\` |"
           } >> "$GITHUB_STEP_SUMMARY"

@@ -1,13 +1,17 @@
-# .github/workflows/sponsor-labels.yaml
+# .github/workflows/27-sponsor-labels.yaml
 #
 # Applies the existing "sponsor" label when the issue or PR author sponsors
 # the owner of this repository through GitHub Sponsors.
 #
-# Security notes:
-# - Uses pull_request_target only to label external-fork PRs.
-# - Does not check out repository or pull-request code.
-# - Does not run shell commands or expose repository secrets.
-# - Grants only label-management permissions.
+# Security design:
+# - pull_request_target is intentional so external-fork pull requests can
+#   receive the sponsor label with the repository's write-scoped GITHUB_TOKEN.
+# - Never checks out, downloads, caches, or executes repository or pull-request
+#   code.
+# - Does not expose repository secrets or credentials beyond the ephemeral
+#   GitHub token scoped only to issue-label management.
+# - Uses an immutable action commit.
+# - Grants only the minimum permission needed to add the existing sponsor label.
 
 name: 27 · Sponsor Labels
 
@@ -15,6 +19,9 @@ on:
   issues:
     types:
       - opened
+
+  # Required to label pull requests opened from external forks.
+  # This workflow must never check out or execute pull request-controlled code.
   pull_request_target:
     types:
       - opened
@@ -33,7 +40,6 @@ jobs:
 
     permissions:
       issues: write
-      pull-requests: write
 
     steps:
       - name: Sponsor Labels
@@ -41,4 +47,4 @@ jobs:
         with:
           label: sponsor
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}

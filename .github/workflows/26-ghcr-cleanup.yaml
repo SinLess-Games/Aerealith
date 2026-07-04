@@ -1,7 +1,7 @@
-# .github/workflows/ghcr-cleanup.yaml
+# .github/workflows/26-ghcr-cleanup.yaml
 #
-# Cleans old GitHub Container Registry versions after the Aerealith GHCR
-# publishing workflow completes successfully.
+# Cleans old GitHub Container Registry versions after the trusted Aerealith
+# GHCR publishing workflow completes successfully.
 #
 # Retention policy:
 # - Keeps the 20 newest active versions of every managed image.
@@ -12,12 +12,23 @@
 # Managed GHCR image names:
 # - ghcr.io/sinless-games/aerealith-*
 #
+# Security design:
+# - workflow_run is intentional because package deletion must occur only after
+#   the separate GHCR publishing workflow has finished.
+# - The validation job has no token permissions and never checks out source,
+#   downloads artifacts, or executes content from the triggering workflow.
+# - The write-capable cleanup job runs only after a completed, successful,
+#   same-repository release publication from the expected workflow.
+# - Manual deletion is restricted to protected repository branches.
+#
 # Automatic trigger:
-# - Runs after "15 · Publish GHCR Images" completes successfully.
+# - Runs after "19 · Publish GHCR Images" completes successfully from a trusted
+#   release reference in this repository.
 #
 # Manual trigger:
 # - Defaults to a dry run.
-# - Set dry_run to false to perform deletion manually.
+# - Set dry_run to false to perform deletion manually from master, staging, or
+#   production.
 #
 # Required GitHub permissions:
 # - packages: write
@@ -33,7 +44,7 @@ name: 26 · GHCR Cleanup
 on:
   workflow_run:
     workflows:
-      - "15 · Publish GHCR Images"
+      - "19 · Publish GHCR Images"
     types:
       - completed
 
@@ -45,9 +56,7 @@ on:
         default: true
         type: boolean
 
-permissions:
-  contents: read
-  packages: write
+permissions: {}
 
 concurrency:
   group: ghcr-cleanup
@@ -63,32 +72,199 @@ env:
   KEEP_VERSION_COUNT: "20"
 
 jobs:
+  validate-trigger:
+    name: Validate cleanup trigger
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    permissions: {}
+
+    outputs:
+      should_cleanup: ${{ steps.validate.outputs.should_cleanup }}
+      dry_run: ${{ steps.validate.outputs.dry_run }}
+      source_workflow_name: ${{ steps.validate.outputs.source_workflow_name }}
+      source_workflow_run_id: ${{ steps.validate.outputs.source_workflow_run_id }}
+      source_workflow_run_url: ${{ steps.validate.outputs.source_workflow_run_url }}
+      source_ref: ${{ steps.validate.outputs.source_ref }}
+
+    steps:
+      - name: Validate trusted cleanup source
+        id: validate
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          MANUAL_DRY_RUN: ${{ inputs.dry_run }}
+          MANUAL_REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          expected_workflow_name='19 · Publish GHCR Images'
+          expected_workflow_path='.github/workflows/19-ghcr-publish.yaml'
+          expected_repository="$GITHUB_REPOSITORY"
+          expected_run_url_prefix="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/"
+
+          should_cleanup='false'
+          dry_run='false'
+          source_workflow_name=''
+          source_workflow_run_id=''
+          source_workflow_run_url=''
+          source_ref=''
+          skip_reason=''
+
+          is_trusted_branch() {
+            case "$1" in
+              master | staging | production)
+                return 0
+                ;;
+              *)
+                return 1
+                ;;
+            esac
+          }
+
+          is_release_tag() {
+            local ref="${1#refs/tags/}"
+
+            [[ "$ref" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]
+          }
+
+          if [[ "$EVENT_NAME" == 'workflow_dispatch' ]]; then
+            dry_run="${MANUAL_DRY_RUN:-true}"
+
+            if [[ "$dry_run" != 'true' && "$dry_run" != 'false' ]]; then
+              skip_reason='Manual dry_run input must be true or false.'
+            elif ! is_trusted_branch "${MANUAL_REF_NAME:-}"; then
+              skip_reason='Manual cleanup is restricted to master, staging, or production.'
+            else
+              should_cleanup='true'
+              source_workflow_name='Manual workflow dispatch'
+              source_ref="$MANUAL_REF_NAME"
+            fi
+          elif [[ "$EVENT_NAME" == 'workflow_run' ]]; then
+            raw_source_action="$(jq -r '.action // empty' "$GITHUB_EVENT_PATH")"
+            raw_source_workflow_name="$(
+              jq -r '.workflow_run.name // empty' "$GITHUB_EVENT_PATH"
+            )"
+            raw_source_workflow_path="$(
+              jq -r '.workflow_run.path // empty' "$GITHUB_EVENT_PATH"
+            )"
+            raw_source_workflow_status="$(
+              jq -r '.workflow_run.status // empty' "$GITHUB_EVENT_PATH"
+            )"
+            raw_source_workflow_conclusion="$(
+              jq -r '.workflow_run.conclusion // empty' "$GITHUB_EVENT_PATH"
+            )"
+            raw_source_workflow_event="$(
+              jq -r '.workflow_run.event // empty' "$GITHUB_EVENT_PATH"
+            )"
+            raw_source_workflow_run_id="$(
+              jq -r '.workflow_run.id // empty' "$GITHUB_EVENT_PATH"
+            )"
+            raw_source_workflow_run_url="$(
+              jq -r '.workflow_run.html_url // empty' "$GITHUB_EVENT_PATH"
+            )"
+            raw_source_repository="$(
+              jq -r '.repository.full_name // empty' "$GITHUB_EVENT_PATH"
+            )"
+            raw_source_head_repository="$(
+              jq -r '.workflow_run.head_repository.full_name // empty' \
+                "$GITHUB_EVENT_PATH"
+            )"
+            raw_source_head_sha="$(
+              jq -r '.workflow_run.head_sha // empty' "$GITHUB_EVENT_PATH"
+            )"
+            raw_source_ref="$(
+              jq -r '.workflow_run.head_branch // empty' "$GITHUB_EVENT_PATH"
+            )"
+
+            if [[ "$raw_source_action" != 'completed' ]]; then
+              skip_reason='The upstream workflow_run event was not completed.'
+            elif [[ "$raw_source_workflow_name" != "$expected_workflow_name" ]]; then
+              skip_reason='The upstream workflow name is not approved for GHCR cleanup.'
+            elif [[ "$raw_source_workflow_path" != "${expected_workflow_path}@"* ]]; then
+              skip_reason='The upstream workflow path is not the approved GHCR publishing workflow.'
+            elif [[ "$raw_source_workflow_status" != 'completed' ]]; then
+              skip_reason='The upstream workflow status is not completed.'
+            elif [[ "$raw_source_workflow_conclusion" != 'success' ]]; then
+              skip_reason='The upstream GHCR publishing workflow did not succeed.'
+            elif [[ "$raw_source_workflow_event" != 'release' ]]; then
+              skip_reason='The upstream workflow was not triggered by a release event.'
+            elif [[ "$raw_source_repository" != "$expected_repository" ]] ||
+              [[ "$raw_source_head_repository" != "$expected_repository" ]]; then
+              skip_reason='The upstream workflow did not originate from this repository.'
+            elif ! [[ "$raw_source_workflow_run_id" =~ ^[1-9][0-9]*$ ]]; then
+              skip_reason='The upstream workflow run ID is invalid.'
+            elif ! [[ "$raw_source_head_sha" =~ ^[0-9a-fA-F]{40}$ ]]; then
+              skip_reason='The upstream workflow commit SHA is invalid.'
+            elif [[ "$raw_source_workflow_run_url" != \
+              "${expected_run_url_prefix}${raw_source_workflow_run_id}" ]]; then
+              skip_reason='The upstream workflow URL is invalid.'
+            elif is_trusted_branch "$raw_source_ref"; then
+              should_cleanup='true'
+            elif is_release_tag "$raw_source_ref"; then
+              should_cleanup='true'
+            else
+              skip_reason='The upstream workflow did not run from an approved branch or release tag.'
+            fi
+
+            if [[ "$should_cleanup" == 'true' ]]; then
+              source_workflow_name="$raw_source_workflow_name"
+              source_workflow_run_id="$raw_source_workflow_run_id"
+              source_workflow_run_url="$raw_source_workflow_run_url"
+              source_ref="$raw_source_ref"
+            fi
+          else
+            skip_reason='Unsupported event type for GHCR cleanup.'
+          fi
+
+          {
+            echo "should_cleanup=$should_cleanup"
+            echo "dry_run=$dry_run"
+            echo "source_workflow_name=$source_workflow_name"
+            echo "source_workflow_run_id=$source_workflow_run_id"
+            echo "source_workflow_run_url=$source_workflow_run_url"
+            echo "source_ref=$source_ref"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo '## GHCR Cleanup Trigger Validation'
+            echo
+            echo '| Check | Result |'
+            echo '| --- | --- |'
+            echo "| Event | $EVENT_NAME |"
+            echo "| Approved source workflow | $expected_workflow_name |"
+            echo "| Source workflow | ${source_workflow_name:-not-applicable} |"
+            echo "| Source ref | ${source_ref:-not-applicable} |"
+            echo "| Source run ID | ${source_workflow_run_id:-not-applicable} |"
+            echo "| Cleanup authorized | $should_cleanup |"
+            echo "| Dry run | $dry_run |"
+            echo "| Decision | ${skip_reason:-trusted source accepted} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "$should_cleanup" != 'true' ]]; then
+            echo "::notice::GHCR cleanup was skipped: $skip_reason"
+          fi
+
   cleanup:
     name: Retain newest GHCR image versions
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (
-        github.event_name == 'workflow_run' &&
-        github.event.workflow_run.conclusion == 'success'
-      )
+    needs: validate-trigger
+    if: needs.validate-trigger.outputs.should_cleanup == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+
+    permissions:
+      packages: write
 
     env:
       GH_TOKEN: ${{ github.token }}
 
       PACKAGE_OWNER: ${{ github.repository_owner }}
 
-      DRY_RUN: >-
-        ${{
-          github.event_name == 'workflow_dispatch' &&
-          inputs.dry_run ||
-          'false'
-        }}
+      DRY_RUN: ${{ needs.validate-trigger.outputs.dry_run }}
 
-      SOURCE_WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
-      SOURCE_WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
-      SOURCE_WORKFLOW_RUN_URL: ${{ github.event.workflow_run.html_url }}
+      SOURCE_WORKFLOW_NAME: ${{ needs.validate-trigger.outputs.source_workflow_name }}
+      SOURCE_WORKFLOW_RUN_ID: ${{ needs.validate-trigger.outputs.source_workflow_run_id }}
+      SOURCE_WORKFLOW_RUN_URL: ${{ needs.validate-trigger.outputs.source_workflow_run_url }}
+      SOURCE_REF: ${{ needs.validate-trigger.outputs.source_ref }}
 
     steps:
       - name: Validate cleanup configuration
@@ -159,6 +335,7 @@ jobs:
           if [[ "${SOURCE_WORKFLOW_RUN_URL:-}" == https://* ]]; then
             {
               echo "| Triggering workflow | [$SOURCE_WORKFLOW_NAME]($SOURCE_WORKFLOW_RUN_URL) |"
+              echo "| Validated source ref | $SOURCE_REF |"
             } >> "$GITHUB_STEP_SUMMARY"
           fi
 

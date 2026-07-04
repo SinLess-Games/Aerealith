@@ -1,4 +1,4 @@
-# .github/workflows/hercules-insights.yaml
+# .github/workflows/28-hercules-insights.yaml
 #
 # Monthly Git-history reporting for repository ownership, churn, coupling,
 # contributor activity, and structural hotspots.
@@ -35,14 +35,14 @@ jobs:
 
     steps:
       - name: Check out complete repository history
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
           fetch-tags: true
           persist-credentials: false
 
       - name: Generate Hercules reports
-        uses: src-d/hercules@v10.7.2
+        uses: src-d/hercules@6959c0d102ed485929385d87c56a9910551ad0b1 # v10.7.2
         with:
           # Produces the data needed for project burndown, contributor churn,
           # ownership, file coupling, contributor activity, and code hotspots.
@@ -57,7 +57,7 @@ jobs:
             --shotness
 
       - name: Upload Hercules reports
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: hercules-insights-${{ github.run_number }}
           path: hercules_charts.tar

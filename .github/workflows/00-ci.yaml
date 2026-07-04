@@ -1,4 +1,4 @@
-# .github/workflows/ci.yaml
+# .github/workflows/00-ci.yaml
 #
 # Validates the Aerealith Nx workspace using affected-project checks and
 # MegaLinter quality validation.
@@ -52,19 +52,20 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
           filter: tree:0
+          persist-credentials: false
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         with:
           version: 11.5.2
           run_install: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: 24
           package-manager-cache: false
@@ -80,7 +81,7 @@ jobs:
 
       - name: Restore pnpm store cache
         id: cache_pnpm
-        uses: actions/cache@v5
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: ${{ env.PNPM_STORE_DIR }}
           key: pnpm-store-${{ runner.os }}-node-24-pnpm-10-${{ hashFiles('pnpm-lock.yaml') }}
@@ -270,7 +271,7 @@ jobs:
 
       - name: Upload CI logs
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ci-logs-${{ github.run_id }}
           path: artifacts/ci/
@@ -317,15 +318,16 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
           filter: tree:0
+          persist-credentials: false
 
       - name: Run MegaLinter
         id: megalinter
         continue-on-error: true
-        uses: oxsecurity/megalinter@v9.5.0
+        uses: oxsecurity/megalinter@0e3ce9b9c8c10effb9b269509cc47ca17cae31c7 # v9.5.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APPLY_FIXES: none
@@ -335,7 +337,7 @@ jobs:
 
       - name: Upload MegaLinter report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: megalinter-report-${{ github.run_id }}
           path: megalinter-reports/
@@ -367,7 +369,7 @@ jobs:
       - name: Update pull request CI summary
         if: github.event.pull_request.head.repo.full_name == github.repository
         continue-on-error: true
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         env:
           RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           RUN_NUMBER: ${{ github.run_number }}

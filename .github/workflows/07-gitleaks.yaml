@@ -1,13 +1,15 @@
-# .github/workflows/gitleaks.yaml
+# .github/workflows/07-gitleaks.yaml
 #
 # Detects committed secrets, tokens, passwords, credentials, and private keys.
 #
 # Security design:
-# - Pull requests use pull_request_target so organization secrets are available
-#   for forked pull requests.
-# - The workflow never installs dependencies or executes repository code.
-# - The only repository content operation is a non-persistent checkout so
-#   Gitleaks can inspect Git history and changed files.
+# - Pull requests use pull_request, never pull_request_target.
+# - External fork pull requests never receive repository or organization secrets.
+# - Trusted repository branches and internal pull requests use the licensed
+#   Gitleaks Action.
+# - External fork pull requests fail closed instead of receiving a false-green
+#   security result without the required organization license.
+# - The workflow never installs project dependencies or executes repository code.
 # - Pull request comments are disabled to keep permissions read-only.
 #
 # Required repository or organization secret:
@@ -20,7 +22,7 @@
 name: 07 · Gitleaks
 
 on:
-  pull_request_target:
+  pull_request:
     branches:
       - master
       - staging
@@ -61,32 +63,26 @@ defaults:
     shell: bash
 
 jobs:
-  scan:
-    name: Scan for exposed secrets
+  scan-trusted-source:
+    name: Scan trusted source for exposed secrets
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
       - name: Check out repository history
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          # For pull_request_target, scan the exact untrusted PR commit without
-          # running any project code. For push, schedule, and manual runs,
-          # scan the triggering commit.
-          ref: >-
-            ${{
-              github.event_name == 'pull_request_target' &&
-              github.event.pull_request.head.sha ||
-              github.sha
-            }}
           fetch-depth: 0
           persist-credentials: false
 
       - name: Scan repository with Gitleaks
-        uses: gitleaks/gitleaks-action@v3.0.0
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
-          # GitHub provides this token automatically. It is used by the action
-          # for GitHub API interactions required by its scanner integration.
+          # GitHub provides this token automatically. The workflow permissions
+          # remain read-only, and pull-request comments stay disabled.
           GITHUB_TOKEN: ${{ github.token }}
 
           # Required by Gitleaks Action for organization-owned repositories.
@@ -101,7 +97,7 @@ jobs:
 
           # Do not upload a SARIF artifact containing secret-match metadata.
           # A real detection should be handled by rotating the secret and
-          # removing it from the repository history where appropriate.
+          # removing it from repository history where appropriate.
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
 
       - name: Write security guidance
@@ -118,3 +114,30 @@ jobs:
             echo '4. Replace it with an environment variable, GitHub Actions secret, or managed secret-store reference.'
             echo '5. Add an allowlist entry only after confirming the value is not a real credential.'
           } >> "$GITHUB_STEP_SUMMARY"
+
+  external-fork-requires-maintainer-scan:
+    name: External fork requires secretless review
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Block unlicensed external-fork scan
+        run: |
+          set -euo pipefail
+
+          {
+            echo '## External Fork Secret-Scan Review Required'
+            echo
+            echo 'This pull request originates from an external fork.'
+            echo
+            echo 'The repository GITLEAKS_LICENSE is intentionally not exposed to forked pull requests.'
+            echo 'Running a privileged pull_request_target workflow against fork code would create a secret-exposure risk.'
+            echo
+            echo 'A maintainer must complete a secretless review or run an approved isolated scan before merging this pull request.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo '::error::External fork pull requests cannot use the licensed Gitleaks Action because repository secrets are intentionally unavailable.'
+          exit 1

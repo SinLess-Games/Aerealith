@@ -1,4 +1,4 @@
-# .github/workflows/sync-labels.yaml
+# .github/workflows/12-sync-labels.yaml
 #
 # Synchronizes repository labels from .github/labels.yaml.
 #
@@ -18,7 +18,7 @@ on:
       - production
     paths:
       - ".github/labels.yaml"
-      - ".github/workflows/sync-labels.yaml"
+      - ".github/workflows/12-sync-labels.yaml"
 
   workflow_dispatch:
     inputs:
@@ -54,7 +54,7 @@ jobs:
 
     steps:
       - name: Check out label catalogue
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 1
           sparse-checkout: |
@@ -88,7 +88,7 @@ jobs:
           echo "Found $label_count labels in $labels_file."
 
       - name: Synchronize labels
-        uses: EndBug/label-sync@v2.3.3
+        uses: EndBug/label-sync@52074158190acb45f3077f9099fea818aa43f97a # v2.3.3
         with:
           config-file: .github/labels.yaml
           token: ${{ secrets.GITHUB_TOKEN }}

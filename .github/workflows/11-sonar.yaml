@@ -1,4 +1,4 @@
-# .github/workflows/sonar.yaml
+# .github/workflows/11-sonar.yaml
 #
 # SonarQube Cloud analysis for the Aerealith Nx monorepo.
 #
@@ -171,19 +171,19 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v6.0.9
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         with:
           version: ${{ env.PNPM_VERSION }}
           run_install: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
@@ -366,7 +366,7 @@ jobs:
       - name: Run SonarQube Cloud analysis
         id: sonar_scan
         continue-on-error: true
-        uses: SonarSource/sonarqube-scan-action@v8.2.0
+        uses: SonarSource/sonarqube-scan-action@713881670b6b3676cda39549040e2d88c70d582e # v8.2.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
@@ -739,55 +739,51 @@ jobs:
               echo
               echo '| Category | Count |'
               echo '| --- | --- |'
-            } >> "$GITHUB_STEP_SUMMARY"
 
-            jq -r '
-              .issues
-              | group_by(.severity)
-              | .[]
-              | "| Severity: \(.[0].severity // "UNKNOWN") | \(length) |"
-            ' "$issues_file" >> "$GITHUB_STEP_SUMMARY"
+              jq -r '
+                .issues
+                | group_by(.severity)
+                | .[]
+                | "| Severity: \(.[0].severity // "UNKNOWN") | \(length) |"
+              ' "$issues_file"
 
-            jq -r '
-              .issues
-              | group_by(.type)
-              | .[]
-              | "| Type: \(.[0].type // "UNKNOWN") | \(length) |"
-            ' "$issues_file" >> "$GITHUB_STEP_SUMMARY"
+              jq -r '
+                .issues
+                | group_by(.type)
+                | .[]
+                | "| Type: \(.[0].type // "UNKNOWN") | \(length) |"
+              ' "$issues_file"
 
-            {
               echo
               echo '### Open Sonar Issues'
               echo
               echo '| Type | Severity | Rule | Location | Message |'
               echo '| --- | --- | --- | --- | --- |'
-            } >> "$GITHUB_STEP_SUMMARY"
 
-            jq -r \
-              --argjson maximum "$SONAR_SUMMARY_MAX_ISSUES" '
-                def clean:
-                  tostring
-                  | gsub("[\r\n]+"; " ")
-                  | gsub("[|]"; "&#124;");
+              jq -r \
+                --argjson maximum "$SONAR_SUMMARY_MAX_ISSUES" '
+                  def clean:
+                    tostring
+                    | gsub("[\r\n]+"; " ")
+                    | gsub("[|]"; "&#124;");
 
-                .issues[0:$maximum][]
-                | (.component // "unknown") as $component
-                | (
-                    if .line then
-                      "\($component):\(.line)"
-                    else
-                      $component
-                    end
-                  ) as $location
-                | "| \((.type // "unknown") | clean) | \((.severity // "unknown") | clean) | \((.rule // "unknown") | clean) | \($location | clean) | \((.message // "unknown") | clean) |"
-              ' "$issues_file" >> "$GITHUB_STEP_SUMMARY"
+                  .issues[0:$maximum][]
+                  | (.component // "unknown") as $component
+                  | (
+                      if .line then
+                        "\($component):\(.line)"
+                      else
+                        $component
+                      end
+                    ) as $location
+                  | "| \((.type // "unknown") | clean) | \((.severity // "unknown") | clean) | \((.rule // "unknown") | clean) | \($location | clean) | \((.message // "unknown") | clean) |"
+                ' "$issues_file"
 
-            if [[ "$issue_count" -gt "$SONAR_SUMMARY_MAX_ISSUES" ]]; then
-              {
+              if [[ "$issue_count" -gt "$SONAR_SUMMARY_MAX_ISSUES" ]]; then
                 echo
                 echo "> Sonar reported $issue_count open issues. This summary displays the first $SONAR_SUMMARY_MAX_ISSUES."
-              } >> "$GITHUB_STEP_SUMMARY"
-            fi
+              fi
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
 
           if [[ -s "$errors_file" ]]; then
@@ -844,7 +840,7 @@ jobs:
 
       - name: Upload Sonar diagnostics and coverage
         if: always()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: sonar-diagnostics-${{ github.run_id }}
           path: |

@@ -1,4 +1,4 @@
-# .github/workflows/snyk.yaml
+# .github/workflows/10-snyk.yaml
 #
 # Scans Aerealith dependencies and production source code with Snyk.
 #
@@ -48,7 +48,6 @@ on:
 permissions:
   actions: read
   contents: read
-  security-events: write
 
 concurrency:
   group: >-
@@ -105,7 +104,7 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -234,6 +233,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
 
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
     outputs:
       open_source_status: ${{ steps.open_source_scan.outputs.status }}
       open_source_exit_code: ${{ steps.open_source_scan.outputs.exit_code }}
@@ -252,21 +256,21 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 1
           persist-credentials: false
 
       - name: Set up pnpm
         if: needs.preflight.outputs.open_source_enabled == 'true'
-        uses: pnpm/action-setup@v6.0.9
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         with:
           version: ${{ env.PNPM_VERSION }}
           run_install: false
 
       - name: Set up Node.js
         if: needs.preflight.outputs.open_source_enabled == 'true'
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
@@ -303,7 +307,7 @@ jobs:
           pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Set up Snyk CLI
-        uses: snyk/actions/setup@v1.0.0
+        uses: snyk/actions/setup@9adf32b1121593767fc3c057af55b55db032dc04 # v1.0.0
         with:
           snyk-version: ${{ env.SNYK_VERSION }}
 
@@ -685,7 +689,7 @@ jobs:
 
       - name: Upload Open Source findings to GitHub Code Scanning
         if: always() && hashFiles('snyk-reports/open-source.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
         with:
           sarif_file: snyk-reports/open-source.sarif
           category: snyk-open-source
@@ -964,14 +968,14 @@ jobs:
 
       - name: Upload Snyk Code findings to GitHub Code Scanning
         if: always() && hashFiles('snyk-reports/code.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
         with:
           sarif_file: snyk-reports/code.sarif
           category: snyk-code
 
       - name: Upload Snyk reports
         if: always()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: snyk-reports-${{ github.run_id }}
           path: |

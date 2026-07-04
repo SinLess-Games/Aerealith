@@ -1,4 +1,4 @@
-# .github/workflows/graphql-schema.yaml
+# .github/workflows/04-graphql-schema.yaml
 #
 # Detects GraphQL usage in the repository and validates file-backed GraphQL
 # schema changes when a baseline schema exists.
@@ -54,7 +54,6 @@ on:
 
 permissions:
   contents: read
-  checks: write
 
 concurrency:
   group: >-
@@ -88,7 +87,7 @@ jobs:
 
     steps:
       - name: Check out repository history
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -335,19 +334,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
+    permissions:
+      contents: read
+      checks: write
+
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.discover.outputs.matrix) }}
 
     steps:
       - name: Check out repository history
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - name: Compare GraphQL schema
-        uses: graphql-hive/graphql-inspector@release-1781692943029
+        uses: graphql-hive/graphql-inspector@8733c10560f98b868d3eb4db1325c8edf64936b3 # release-1781692943029
         with:
           name: GraphQL Schema - ${{ matrix.name }}
           schema: "${{ needs.discover.outputs.base_sha }}:${{ matrix.schema }}"

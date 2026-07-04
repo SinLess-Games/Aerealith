@@ -1,4 +1,4 @@
-# .github/workflows/meticulous.yaml
+# .github/workflows/16-meticulous.yaml
 #
 # Builds the Aerealith frontend and runs Meticulous visual regression tests.
 #
@@ -33,16 +33,18 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v6.0.9
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         with:
           version: 10
           run_install: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: 24
           cache: pnpm
@@ -59,7 +61,7 @@ jobs:
           METICULOUS_API_TOKEN: ${{ secrets.METICULOUS_API_TOKEN }}
 
       - name: Upload frontend assets and run Meticulous tests
-        uses: alwaysmeticulous/report-diffs-action/upload-assets@v1
+        uses: alwaysmeticulous/report-diffs-action/upload-assets@b3c2a025ca3fc594f73c9ebac4a151a7175c1153 # v1.73.0
         with:
           api-token: ${{ secrets.METICULOUS_API_TOKEN }}
           app-directory: dist/apps/frontend

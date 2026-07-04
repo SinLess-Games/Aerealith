@@ -1,4 +1,4 @@
-# .github/workflows/labeler.yaml
+# .github/workflows/13-labeler.yaml
 #
 # Automatically applies repository labels to pull requests using
 # .github/labeler.yaml.
@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Apply labels from repository rules
-        uses: actions/labeler@v6.1.0
+        uses: actions/labeler@f27b608878404679385c85cfa523b85ccb86e213 # v6.1.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           configuration-path: .github/labeler.yaml

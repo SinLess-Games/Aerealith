@@ -3,10 +3,14 @@
 # Central Datadog observability for Aerealith CI, releases, and deployments.
 #
 # Automatic collection:
-# - Watches completed core workflows with workflow_run.
-# - Records workflow duration, completion, failure, and per-run failure rate.
-# - Records deployment result metrics for preview, staging, and production.
-# - Verifies the production health endpoint after production workflow runs.
+# - Watches only successful, completed workflow_run events from explicitly
+#   allowlisted Aerealith workflows.
+# - Requires the upstream run to originate in this repository and validates
+#   the expected GitHub event and trusted branch or release source.
+# - Never checks out, downloads, extracts, or executes upstream artifacts.
+# - Records trusted workflow duration, completion, and deployment metrics.
+# - Verifies the production health endpoint only after a validated successful
+#   production deployment workflow run.
 # - Sends GitHub workflow events to Datadog Events.
 # - Sends successful healthy production deployments to Datadog DORA Metrics.
 #
@@ -25,8 +29,10 @@
 #
 # This workflow intentionally:
 # - never checks out source code from observed workflow runs
-# - never downloads or executes artifacts from observed workflow runs
-# - skips telemetry for external fork workflow runs
+# - never downloads, extracts, or executes artifacts from observed workflow runs
+# - validates all workflow_run event data before a job with DATADOG_API_KEY runs
+# - accepts workflow_run telemetry only from successful allowlisted upstream runs
+# - skips external forks and unexpected upstream events without exposing secrets
 # - does not block the source workflow because workflow_run runs separately
 # - keeps metric tag cardinality low by excluding commit SHA and run ID tags
 
@@ -35,12 +41,12 @@ name: 22 · Datadog CI Observability
 on:
   workflow_run:
     workflows:
-      - "13 · Cloudflare Preview"
-      - "14 · Cloudflare Staging"
-      - "15 · Publish GHCR Images"
-      - "16 · Create Release"
-      - "Cloudflare Production"
-      - "GHCR Cleanup"
+      - "19 · Publish GHCR Images"
+      - "20 · Cloudflare Preview"
+      - "21 · Cloudflare Staging"
+      - "23 · Create Release"
+      - "24 · Cloudflare Production"
+      - "26 · GHCR Cleanup"
     types:
       - completed
 
@@ -207,8 +213,169 @@ env:
   PRODUCTION_HEALTH_URL: "https://aerealith.com/__aerealith/health"
 
 jobs:
+  validate_workflow_run:
+    name: Validate observed workflow run
+    if: github.event_name == 'workflow_run'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    outputs:
+      trusted: ${{ steps.validate.outputs.trusted }}
+
+    steps:
+      - name: Validate upstream workflow-run trust boundary
+        id: validate
+        run: |
+          set -euo pipefail
+
+          trusted='false'
+          reason='Unknown validation failure.'
+          workflow_name=''
+          source_event=''
+          source_branch=''
+          source_repository=''
+          source_run_id=''
+          source_conclusion=''
+          source_sha=''
+
+          action="$(
+            jq -r '.action // empty' "$GITHUB_EVENT_PATH"
+          )"
+          workflow_name="$(
+            jq -r '.workflow_run.name // empty' "$GITHUB_EVENT_PATH"
+          )"
+          source_event="$(
+            jq -r '.workflow_run.event // empty' "$GITHUB_EVENT_PATH"
+          )"
+          source_branch="$(
+            jq -r '.workflow_run.head_branch // empty' "$GITHUB_EVENT_PATH"
+          )"
+          source_repository="$(
+            jq -r '.workflow_run.head_repository.full_name // empty' \
+              "$GITHUB_EVENT_PATH"
+          )"
+          source_run_id="$(
+            jq -r '.workflow_run.id // empty' "$GITHUB_EVENT_PATH"
+          )"
+          source_conclusion="$(
+            jq -r '.workflow_run.conclusion // empty' "$GITHUB_EVENT_PATH"
+          )"
+          source_sha="$(
+            jq -r '.workflow_run.head_sha // empty' "$GITHUB_EVENT_PATH"
+          )"
+
+          expected_source=''
+
+          if [[ "$action" != 'completed' ]]; then
+            reason="Expected workflow_run action 'completed', received '${action:-empty}'."
+          elif [[ "$source_conclusion" != 'success' ]]; then
+            reason="Upstream workflow conclusion must be success, received '${source_conclusion:-empty}'."
+          elif [[ "$source_repository" != "$GITHUB_REPOSITORY" ]]; then
+            reason='The upstream run did not originate from this repository.'
+          elif ! [[ "$source_run_id" =~ ^[1-9][0-9]*$ ]]; then
+            reason='The upstream workflow run ID is invalid.'
+          elif ! [[ "$source_sha" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            reason='The upstream workflow commit SHA is invalid.'
+          else
+            case "$workflow_name" in
+              '20 · Cloudflare Preview')
+                if {
+                  [[ "$source_event" == 'pull_request' ]] ||
+                  [[ "$source_event" == 'workflow_dispatch' ]]
+                } && [[ -n "$source_branch" ]]; then
+                  expected_source='trusted internal pull-request branch or manual dispatch'
+                  trusted='true'
+                else
+                  reason='Cloudflare Preview must originate from an internal pull_request or workflow_dispatch run with a branch.'
+                fi
+                ;;
+              '21 · Cloudflare Staging')
+                if {
+                  [[ "$source_event" == 'push' ]] ||
+                  [[ "$source_event" == 'workflow_dispatch' ]]
+                } && [[ "$source_branch" == 'staging' ]]; then
+                  expected_source='staging push or manual dispatch'
+                  trusted='true'
+                else
+                  reason='Cloudflare Staging must originate from a push or workflow_dispatch run on the staging branch.'
+                fi
+                ;;
+              '19 · Publish GHCR Images')
+                if [[ "$source_event" == 'release' ]]; then
+                  expected_source='published release'
+                  trusted='true'
+                else
+                  reason='Publish GHCR Images must originate from a release workflow run.'
+                fi
+                ;;
+              '23 · Create Release')
+                if [[ "$source_event" == 'workflow_dispatch' ]] &&
+                  [[ "$source_branch" == 'master' ]]; then
+                  expected_source='manual dispatch from master'
+                  trusted='true'
+                else
+                  reason='Create Release must originate from workflow_dispatch on the master branch.'
+                fi
+                ;;
+              '24 · Cloudflare Production')
+                if [[ "$source_event" == 'release' ]]; then
+                  expected_source='stable published release'
+                  trusted='true'
+                else
+                  reason='Cloudflare Production must originate from a release workflow run.'
+                fi
+                ;;
+              '26 · GHCR Cleanup')
+                if [[ "$source_event" == 'schedule' ]] ||
+                  {
+                    [[ "$source_event" == 'workflow_dispatch' ]] &&
+                    [[ "$source_branch" == 'master' ]]
+                  }; then
+                  expected_source='scheduled run or manual dispatch from master'
+                  trusted='true'
+                else
+                  reason='GHCR Cleanup must originate from schedule or workflow_dispatch on the master branch.'
+                fi
+                ;;
+              *)
+                reason="Workflow '${workflow_name:-empty}' is not in the observability allowlist."
+                ;;
+            esac
+          fi
+
+          {
+            echo "trusted=$trusted"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo '## Datadog Upstream Workflow Validation'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo "| Upstream workflow | ${workflow_name:-not-provided} |"
+            echo "| Upstream event | ${source_event:-not-provided} |"
+            echo "| Upstream branch | ${source_branch:-not-provided} |"
+            echo "| Upstream repository | ${source_repository:-not-provided} |"
+            echo "| Upstream run ID | ${source_run_id:-not-provided} |"
+            echo "| Expected source | ${expected_source:-not-matched} |"
+            echo "| Upstream conclusion | ${source_conclusion:-not-provided} |"
+            echo "| Trusted for Datadog API-key use | $trusted |"
+            echo "| Decision | $reason |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "$trusted" != 'true' ]]; then
+            echo "::warning::Datadog telemetry was skipped: $reason"
+          fi
+
   observe:
     name: Send workflow observability to Datadog
+    needs: validate_workflow_run
+    if: >-
+      always() &&
+      (
+        github.event_name != 'workflow_run' ||
+        needs.validate_workflow_run.outputs.trusted == 'true'
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -349,25 +516,22 @@ jobs:
 
           if [[ "$category" == 'auto' || -z "$category" ]]; then
             case "$workflow_name" in
-              '13 · Cloudflare Preview')
+              '20 · Cloudflare Preview')
                 category='deployment'
                 deployment_environment='preview'
                 ;;
-              '14 · Cloudflare Staging')
+              '21 · Cloudflare Staging')
                 category='deployment'
                 deployment_environment='staging'
                 ;;
-              'Cloudflare Production')
+              '24 · Cloudflare Production')
                 category='deployment'
                 deployment_environment='production'
                 ;;
-              '15 · Publish GHCR Images')
+              '19 · Publish GHCR Images' | '23 · Create Release')
                 category='release'
                 ;;
-              '16 · Create Release')
-                category='release'
-                ;;
-              'GHCR Cleanup')
+              '26 · GHCR Cleanup')
                 category='maintenance'
                 ;;
               *[Ss]ecurity* | *Gitleaks* | *CodeQL* | *Snyk* | *Sonar* | *Dependency*)
@@ -663,10 +827,12 @@ jobs:
 
       - name: Submit workflow metrics
         if: steps.collect.outputs.should_send == 'true'
+        env:
+          CONTEXT_FILE: ${{ steps.collect.outputs.context_file }}
         run: |
           set -euo pipefail
 
-          context_file="${{ steps.collect.outputs.context_file }}"
+          context_file="$CONTEXT_FILE"
           metrics_payload="$RUNNER_TEMP/datadog-ci-metrics.json"
 
           jq -n \
@@ -812,10 +978,12 @@ jobs:
 
       - name: Submit Datadog workflow event
         if: steps.collect.outputs.should_send == 'true'
+        env:
+          CONTEXT_FILE: ${{ steps.collect.outputs.context_file }}
         run: |
           set -euo pipefail
 
-          context_file="${{ steps.collect.outputs.context_file }}"
+          context_file="$CONTEXT_FILE"
           event_payload="$RUNNER_TEMP/datadog-workflow-event.json"
 
           jq -n \
@@ -946,10 +1114,12 @@ jobs:
           steps.collect.outputs.is_deployment == 'true' &&
           steps.collect.outputs.release_health == '1' &&
           env.ENABLE_DORA_DEPLOYMENTS == 'true'
+        env:
+          CONTEXT_FILE: ${{ steps.collect.outputs.context_file }}
         run: |
           set -euo pipefail
 
-          context_file="${{ steps.collect.outputs.context_file }}"
+          context_file="$CONTEXT_FILE"
           dora_payload="$RUNNER_TEMP/datadog-dora-deployment.json"
 
           jq -n \
@@ -1031,10 +1201,12 @@ jobs:
 
       - name: Publish skipped observability result
         if: steps.collect.outputs.should_send != 'true'
+        env:
+          CONTEXT_FILE: ${{ steps.collect.outputs.context_file }}
         run: |
           set -euo pipefail
 
-          context_file="${{ steps.collect.outputs.context_file }}"
+          context_file="$CONTEXT_FILE"
 
           skip_reason="$(
             jq -r '.skip_reason // "Telemetry was skipped."' "$context_file"

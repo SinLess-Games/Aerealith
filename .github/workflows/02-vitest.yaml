@@ -1,3 +1,5 @@
+# .github/workflows/02-vitest.yaml
+
 name: 02 · Vitest
 
 on:
@@ -48,27 +50,27 @@ jobs:
 
     steps:
       - name: Check out repository history
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
           fetch-tags: false
           persist-credentials: false
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v6.0.9
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         with:
           version: ${{ env.PNPM_VERSION }}
           run_install: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
       - name: Restore Nx cache
-        uses: actions/cache@v5.0.5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: .nx/cache
           key: nx-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'nx.json', 'package.json') }}-${{ github.sha }}
@@ -367,7 +369,7 @@ jobs:
 
       - name: Upload Vitest coverage artifact
         if: always()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: vitest-coverage-${{ github.run_id }}
           path: coverage/
@@ -377,7 +379,7 @@ jobs:
 
       - name: Upload Vitest JUnit artifact
         if: always()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: vitest-junit-results-${{ github.run_id }}
           path: test-results/
@@ -395,7 +397,7 @@ jobs:
             github.event_name != 'pull_request' ||
             github.event.pull_request.head.repo.full_name == github.repository
           )
-        uses: codecov/codecov-action@v7.0.0
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           token: ${{ env.CODECOV_TOKEN }}
           files: ${{ steps.reports.outputs.coverage_files }}
@@ -416,7 +418,7 @@ jobs:
             github.event_name != 'pull_request' ||
             github.event.pull_request.head.repo.full_name == github.repository
           )
-        uses: codecov/test-results-action@v1
+        uses: codecov/test-results-action@1b5b448b98e58ba90d1a1a1d9fcb72ca2263be46 # v1.0.0
         with:
           token: ${{ env.CODECOV_TOKEN }}
           files: ${{ steps.reports.outputs.junit_files }}
@@ -434,7 +436,7 @@ jobs:
           github.event.pull_request.head.repo.full_name == github.repository &&
           steps.reports.outputs.coverage_available == 'true' &&
           hashFiles('coverage/coverage-summary.json') != ''
-        uses: davelosert/vitest-coverage-report-action@v2.12.1
+        uses: davelosert/vitest-coverage-report-action@3c054a2d2e2ca45446417ad5d6d5eb33092af8f1 # v2.12.1
         with:
           name: Aerealith Vitest Coverage
           working-directory: .

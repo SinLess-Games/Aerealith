@@ -1,4 +1,4 @@
-# .github/workflows/sync-milestones.yaml
+# .github/workflows/14-sync-milestones.yaml
 #
 # Synchronizes GitHub repository milestones from .github/milestones.yaml.
 #
@@ -26,7 +26,7 @@ on:
       - production
     paths:
       - ".github/milestones.yaml"
-      - ".github/workflows/sync-milestones.yaml"
+      - ".github/workflows/14-sync-milestones.yaml"
 
   workflow_dispatch:
     inputs:
@@ -61,7 +61,7 @@ jobs:
 
     steps:
       - name: Check out milestone catalogue
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 1
           sparse-checkout: |
@@ -474,15 +474,21 @@ jobs:
 
       - name: Display synchronization result
         if: always()
+        env:
+          CREATED: ${{ steps.sync.outputs.created || '0' }}
+          UPDATED: ${{ steps.sync.outputs.updated || '0' }}
+          UNCHANGED: ${{ steps.sync.outputs.unchanged || '0' }}
+          UNMANAGED: ${{ steps.sync.outputs.unmanaged || '0' }}
+          DRY_RUN_RESULT: ${{ steps.sync.outputs.dry_run || 'false' }}
         run: |
           {
             echo '## Synchronization Result'
             echo
             echo '| Output | Value |'
             echo '| --- | --- |'
-            echo "| Created | \`${{ steps.sync.outputs.created || '0' }}\` |"
-            echo "| Updated | \`${{ steps.sync.outputs.updated || '0' }}\` |"
-            echo "| Unchanged | \`${{ steps.sync.outputs.unchanged || '0' }}\` |"
-            echo "| Unmanaged | \`${{ steps.sync.outputs.unmanaged || '0' }}\` |"
-            echo "| Dry run | \`${{ steps.sync.outputs.dry_run || 'false' }}\` |"
+            echo "| Created | \`$CREATED\` |"
+            echo "| Updated | \`$UPDATED\` |"
+            echo "| Unchanged | \`$UNCHANGED\` |"
+            echo "| Unmanaged | \`$UNMANAGED\` |"
+            echo "| Dry run | \`$DRY_RUN_RESULT\` |"
           } >> "$GITHUB_STEP_SUMMARY"
