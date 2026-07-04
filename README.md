@@ -69,7 +69,7 @@
     <strong>Repository</strong>
     <br />
     <img
-      src="https://img.shields.io/github/v/release/SinLess-Games/Aerealith?sort=semver&amp;style=for-the-badge"
+      src="https://img.shields.io/github/v/release/SinLess-Games/Aerealith?sort=semver&style=for-the-badge"
       alt="Latest release"
     />
     <img
