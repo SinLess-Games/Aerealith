@@ -3,7 +3,7 @@
 # Validates Conventional Commit messages for pull requests and protected-branch
 # pushes. It also blocks WIP-style commit messages from being merged.
 
-name: Commitlint
+name: 01 · Commitlint
 
 on:
   pull_request:

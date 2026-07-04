@@ -29,7 +29,7 @@
 # - does not block deployments or releases when Discord delivery fails
 # - supports manual testing through workflow_dispatch
 
-name: 20 · Discord Notify
+name: 25 · Discord Notify
 
 on:
   workflow_call:

@@ -16,7 +16,7 @@
 #
 # Manual runs support dry-run mode for validating intended changes safely.
 
-name: Sync Milestones
+name: 14 · Sync Milestones
 
 on:
   push:

@@ -26,7 +26,7 @@
 # - GitHub Code Security / Code Scanning must be enabled for private
 #   organization repositories.
 
-name: CodeQL
+name: 08 · CodeQL
 
 on:
   push:

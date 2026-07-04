@@ -28,7 +28,7 @@
 # - Deleted package versions can generally be restored from GitHub Packages
 #   for a limited retention period, but do not rely on cleanup as a backup.
 
-name: GHCR Cleanup
+name: 26 · GHCR Cleanup
 
 on:
   workflow_run:

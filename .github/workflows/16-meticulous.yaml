@@ -5,7 +5,7 @@
 # Required repository secret:
 #   METICULOUS_API_TOKEN
 
-name: Meticulous
+name: 16 · Meticulous
 
 on:
   push:

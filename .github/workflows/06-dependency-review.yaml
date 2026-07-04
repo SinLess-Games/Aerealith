@@ -12,7 +12,7 @@
 # Repository Settings -> Rules -> Branch ruleset / Branch protection
 # -> Require status checks -> require "Dependency Review".
 
-name: Dependency Review
+name: 06 · Dependency Review
 
 on:
   pull_request:

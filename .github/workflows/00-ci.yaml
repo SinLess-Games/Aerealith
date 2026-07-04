@@ -3,7 +3,7 @@
 # Validates the Aerealith Nx workspace using affected-project checks and
 # MegaLinter quality validation.
 
-name: CI
+name: 00 · CI
 
 on:
   push:

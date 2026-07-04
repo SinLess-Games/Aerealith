@@ -18,7 +18,7 @@
 # Required policy file:
 # - .snyk
 
-name: Snyk
+name: 10 · Snyk
 
 on:
   pull_request:

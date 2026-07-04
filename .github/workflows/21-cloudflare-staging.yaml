@@ -36,7 +36,7 @@
 # - upload runtime Worker secrets
 # - deploy from branches other than staging
 
-name: 14 · Cloudflare Staging
+name: 21 · Cloudflare Staging
 
 on:
   push:

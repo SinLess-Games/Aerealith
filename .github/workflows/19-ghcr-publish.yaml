@@ -26,7 +26,7 @@
 # - skips publishing cleanly when no Dockerfiles are found under apps/
 # - does not build Dockerfiles outside apps/
 
-name: 15 · Publish GHCR Images
+name: 19 · Publish GHCR Images
 
 on:
   release:

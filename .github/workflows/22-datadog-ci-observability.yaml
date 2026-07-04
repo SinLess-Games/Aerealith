@@ -30,7 +30,7 @@
 # - does not block the source workflow because workflow_run runs separately
 # - keeps metric tag cardinality low by excluding commit SHA and run ID tags
 
-name: Datadog CI Observability
+name: 22 · Datadog CI Observability
 
 on:
   workflow_run:

@@ -1,4 +1,4 @@
-name: Vitest
+name: 02 · Vitest
 
 on:
   pull_request:

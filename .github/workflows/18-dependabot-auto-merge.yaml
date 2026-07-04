@@ -16,7 +16,7 @@
 #
 # Do not make this workflow itself a required check.
 
-name: Dependabot Auto-Merge
+name: 18 · Dependabot Auto-Merge
 
 on:
   pull_request:

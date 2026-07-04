@@ -9,7 +9,7 @@
 # - Does not run shell commands or expose repository secrets.
 # - Grants only label-management permissions.
 
-name: Sponsor Labels
+name: 27 · Sponsor Labels
 
 on:
   issues:

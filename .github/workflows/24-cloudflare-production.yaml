@@ -34,7 +34,7 @@
 # - This workflow intentionally does not run `wrangler triggers deploy`.
 #   Custom domains, routes, and other dashboard-managed triggers stay intact.
 
-name: Cloudflare Production
+name: 24 · Cloudflare Production
 
 on:
   release:

@@ -18,7 +18,7 @@
 # - Does not grant write access to repository contents.
 # - Does not apply or commit automatic fixes.
 
-name: Repository Quality
+name: 05 · Repository Quality
 
 on:
   pull_request:

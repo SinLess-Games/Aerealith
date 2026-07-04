@@ -8,7 +8,7 @@
 #
 # Keep this workflow non-required in branch protection / rulesets.
 
-name: Codeball Review
+name: 17 · Codeball Review
 
 on:
   pull_request:

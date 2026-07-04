@@ -17,7 +17,7 @@
 # - gitleaks.toml
 # - .gitleaksignore
 
-name: Gitleaks
+name: 07 · Gitleaks
 
 on:
   pull_request_target:

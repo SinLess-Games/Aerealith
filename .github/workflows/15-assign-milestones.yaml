@@ -34,7 +34,7 @@
 # Assign those cases manually, or add a more specific label rule only after the
 # corresponding classification policy is stable.
 
-name: Assign Milestones
+name: 15 · Assign Milestones
 
 on:
   issues:

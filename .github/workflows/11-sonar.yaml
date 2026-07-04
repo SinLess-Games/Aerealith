@@ -23,7 +23,7 @@
 #   the GitHub summary.
 # - Fails only after the diagnostic summary and artifact are published.
 
-name: SonarQube Cloud
+name: 11 · SonarQube Cloud
 
 on:
   pull_request:

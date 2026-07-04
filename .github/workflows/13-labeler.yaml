@@ -6,7 +6,7 @@
 # This workflow uses pull_request_target so labels can also be applied to pull
 # requests opened from forks. It does not check out or execute pull request code.
 
-name: Labeler
+name: 13 · Labeler
 
 on:
   pull_request_target:

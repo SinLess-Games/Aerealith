@@ -8,7 +8,7 @@
 # Manual runs can preview changes with dry_run=true or preserve unmanaged labels
 # with delete_other_labels=false.
 
-name: Sync Labels
+name: 12 · Sync Labels
 
 on:
   push:

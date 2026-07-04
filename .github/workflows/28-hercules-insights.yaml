@@ -11,7 +11,7 @@
 # Run manually at first. Keep the scheduled run enabled only after the
 # repository has enough stable history for the reports to be useful.
 
-name: Hercules Insights
+name: 28 · Hercules Insights
 
 on:
   schedule:

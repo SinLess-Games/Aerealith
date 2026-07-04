@@ -35,7 +35,7 @@
 # - upload runtime Worker secrets
 # - deploy pull requests from external forks
 
-name: 13 · Cloudflare Preview
+name: 20 · Cloudflare Preview
 
 on:
   pull_request:

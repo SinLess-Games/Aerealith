@@ -32,7 +32,7 @@
 # and Herculese are represented honestly in the release template. Their values
 # remain "Not run" until their reports are integrated into this release workflow.
 
-name: 16 · Create Release
+name: 23 · Create Release
 
 on:
   workflow_dispatch:
