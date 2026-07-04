@@ -13,6 +13,8 @@
 # 2. Wrangler bundles apps/frontend/src/worker.ts.
 # 3. Wrangler uploads dist/apps/frontend as Cloudflare Static Assets.
 # 4. Wrangler uploads a Worker version with a pr-<number> preview alias.
+# 5. Wrangler writes structured deployment output that this workflow uses to
+#    retrieve the actual aliased preview URL.
 #
 # Required GitHub repository secrets:
 # - CLOUDFLARE_API_TOKEN
@@ -310,6 +312,7 @@ jobs:
 
     outputs:
       preview_url: ${{ steps.upload.outputs.preview_url }}
+      version_id: ${{ steps.upload.outputs.version_id }}
       health_url: ${{ steps.verify.outputs.health_url }}
 
     env:
@@ -438,28 +441,57 @@ jobs:
         run: |
           set -euo pipefail
 
-          output_file="$RUNNER_TEMP/cloudflare-preview-upload.txt"
+          output_file="$RUNNER_TEMP/cloudflare-preview-output.json"
 
-          pnpm exec wrangler versions upload \
-            --config "$WRANGLER_CONFIG_PATH" \
-            --preview-alias "$PREVIEW_ALIAS" \
-            2>&1 | tee "$output_file"
+          rm -f "$output_file"
 
-          preview_url="$(
-            grep -Eo \
-              "https://${PREVIEW_ALIAS}-[a-z0-9-]+(\.[a-z0-9-]+)+\.workers\.dev" \
-              "$output_file" \
-              | tail -n 1 \
-              || true
-          )"
+          WRANGLER_OUTPUT_FILE_PATH="$output_file" \
+            pnpm exec wrangler versions upload \
+              --config "$WRANGLER_CONFIG_PATH" \
+              --preview-alias "$PREVIEW_ALIAS"
 
-          if [[ -z "$preview_url" ]]; then
-            echo '::error::Cloudflare uploaded the preview version but did not return the aliased preview URL.'
-            echo '::error::Inspect the Wrangler output above and the Worker Deployments tab.'
+          if [[ ! -s "$output_file" ]]; then
+            echo '::error::Wrangler did not write structured deployment output.'
+            echo '::error::Cannot safely determine the Cloudflare preview alias URL.'
             exit 1
           fi
 
-          echo "preview_url=$preview_url" >> "$GITHUB_OUTPUT"
+          preview_url="$(
+            jq -rs '
+              map(select(.type == "version-upload"))
+              | .[-1].preview_alias_url // empty
+            ' "$output_file"
+          )"
+
+          version_id="$(
+            jq -rs '
+              map(select(.type == "version-upload"))
+              | .[-1].version_id // empty
+            ' "$output_file"
+          )"
+
+          if [[ "$preview_url" != https://* ]]; then
+            echo '::error::Cloudflare uploaded the Worker version but did not return an aliased preview URL.'
+            echo '::error::Confirm preview_urls = true is present in apps/frontend/wrangler.toml.'
+            echo '::error::Confirm Preview URLs are enabled for the aerealith Worker in Cloudflare.'
+            echo '::group::Wrangler structured output'
+            cat "$output_file"
+            echo '::endgroup::'
+            exit 1
+          fi
+
+          if [[ -z "$version_id" ]]; then
+            echo '::error::Cloudflare did not return a Worker version ID.'
+            echo '::group::Wrangler structured output'
+            cat "$output_file"
+            echo '::endgroup::'
+            exit 1
+          fi
+
+          {
+            echo "preview_url=$preview_url"
+            echo "version_id=$version_id"
+          } >> "$GITHUB_OUTPUT"
 
           {
             echo '## Cloudflare Preview Version Uploaded'
@@ -467,6 +499,7 @@ jobs:
             echo '| Setting | Value |'
             echo '| --- | --- |'
             echo "| Worker service | $WORKER_NAME |"
+            echo "| Worker version ID | $version_id |"
             echo "| Preview alias | $PREVIEW_ALIAS |"
             echo "| Preview URL | [$preview_url]($preview_url) |"
             echo '| Production promotion | not performed |'
@@ -483,26 +516,46 @@ jobs:
 
           health_url="${PREVIEW_URL%/}${HEALTH_PATH}"
 
-          curl \
-            --fail \
-            --silent \
-            --show-error \
-            --location \
-            --retry 3 \
-            --retry-delay 3 \
-            --connect-timeout 15 \
-            --max-time 60 \
-            "$health_url"
+          for attempt in {1..12}; do
+            health_response=''
 
-          echo "health_url=$health_url" >> "$GITHUB_OUTPUT"
+            if health_response="$(
+              curl \
+                --fail \
+                --silent \
+                --show-error \
+                --location \
+                --connect-timeout 15 \
+                --max-time 60 \
+                "$health_url"
+            )"; then
+              if jq -e '.status == "ok"' <<< "$health_response" >/dev/null; then
+                echo "health_url=$health_url" >> "$GITHUB_OUTPUT"
 
-          {
-            echo
-            echo '### Health Check'
-            echo
-            echo "| Endpoint | [$health_url]($health_url) |"
-            echo '| Result | passed |'
-          } >> "$GITHUB_STEP_SUMMARY"
+                {
+                  echo
+                  echo '### Health Check'
+                  echo
+                  echo "| Endpoint | [$health_url]($health_url) |"
+                  echo '| Expected response | `{"status":"ok"}` |'
+                  echo '| Result | passed |'
+                } >> "$GITHUB_STEP_SUMMARY"
+
+                exit 0
+              fi
+
+              echo 'Preview health endpoint returned an unexpected response.'
+              printf '%s\n' "$health_response"
+            fi
+
+            echo "Preview URL is not ready yet. Retry ${attempt}/12..."
+            sleep 5
+          done
+
+          echo "::error::Preview health endpoint did not become reachable: $health_url"
+          echo '::error::Confirm preview_urls = true is committed in apps/frontend/wrangler.toml.'
+          echo '::error::Confirm Preview URLs are enabled in Cloudflare → Worker → Settings → Domains & Routes.'
+          exit 1
 
   summary:
     name: Publish preview result
@@ -523,6 +576,7 @@ jobs:
           CONFIGURATION_SOURCE: ${{ needs.preflight.outputs.configuration_source }}
           PREFLIGHT_STATUS: ${{ needs.preflight.outputs.skip_reason }}
           PREVIEW_URL: ${{ needs.deploy.outputs.preview_url }}
+          VERSION_ID: ${{ needs.deploy.outputs.version_id }}
           HEALTH_URL: ${{ needs.deploy.outputs.health_url }}
           DEPLOY_RESULT: ${{ needs.deploy.result }}
         run: |
@@ -536,6 +590,7 @@ jobs:
             echo "| Worker service | $WORKER_NAME |"
             echo "| Preview deployment enabled | ${DEPLOY_ENABLED:-false} |"
             echo "| Preview alias | ${PREVIEW_ALIAS:-not-created} |"
+            echo "| Worker version ID | ${VERSION_ID:-not-created} |"
             echo "| Wrangler configuration | ${WRANGLER_CONFIG_PATH:-not-selected} |"
             echo "| Wrangler configuration format | ${WRANGLER_CONFIG_FORMAT:-not-selected} |"
             echo "| Configuration selection | ${CONFIGURATION_SOURCE:-not-selected} |"
