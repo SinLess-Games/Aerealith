@@ -21,25 +21,25 @@
   </p>
 
   <p>
-    <a href="https://github.com/SinLess-Games/Aerealith/actions/workflows/ci.yml">
-      <img src="https://github.com/SinLess-Games/Aerealith/actions/workflows/ci.yml/badge.svg?branch=master" alt="CI" />
+    <a href="https://github.com/SinLess-Games/Aerealith/actions/workflows/00-ci.yaml">
+      <img src="https://img.shields.io/github/actions/workflow/status/SinLess-Games/Aerealith/00-ci.yaml?branch=master&amp;style=for-the-badge&amp;label=CI&amp;logo=githubactions&amp;logoColor=white" alt="CI status" />
     </a>
     <a href="https://sonarcloud.io/summary/new_code?id=SinLess-Games_Aerealith">
-      <img src="https://sonarcloud.io/images/project_badges/sonarcloud-dark.svg" alt="SonarQube Cloud" />
+      <img src="https://img.shields.io/sonar/quality/gate/SinLess-Games_Aerealith?server=https%3A%2F%2Fsonarcloud.io&amp;style=for-the-badge&amp;label=Quality%20Gate&amp;logo=sonarcloud&amp;logoColor=white" alt="SonarQube Cloud quality gate" />
     </a>
-    <a href="https://sonarcloud.io/summary/new_code?id=SinLess-Games_Aerealith">
-      <img src="https://sonarcloud.io/api/project_badges/quality_gate?project=SinLess-Games_Aerealith" alt="SonarQube Quality Gate" />
+    <a href="https://github.com/SinLess-Games/Aerealith/actions/workflows/08-codeql.yaml">
+      <img src="https://img.shields.io/github/actions/workflow/status/SinLess-Games/Aerealith/08-codeql.yaml?branch=master&amp;style=for-the-badge&amp;label=CodeQL&amp;logo=githubactions&amp;logoColor=white" alt="CodeQL status" />
     </a>
-    <a href="https://github.com/SinLess-Games/Aerealith/security">
-      <img src="https://img.shields.io/badge/security-managed%20scanning-0B8F61?logo=githubactions&logoColor=white" alt="Security Managed Scanning" />
+    <a href="https://github.com/SinLess-Games/Aerealith/actions/workflows/10-snyk.yaml">
+      <img src="https://img.shields.io/github/actions/workflow/status/SinLess-Games/Aerealith/10-snyk.yaml?branch=master&amp;style=for-the-badge&amp;label=Snyk&amp;logo=snyk&amp;logoColor=white" alt="Snyk security scan status" />
     </a>
   </p>
 
   <p>
-    <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white" alt="TypeScript Strict" />
-    <img src="https://img.shields.io/badge/Node.js-24-339933?logo=nodedotjs&logoColor=white" alt="Node.js 24" />
-    <img src="https://img.shields.io/badge/pnpm-10.23.0-F69220?logo=pnpm&logoColor=white" alt="pnpm 10.23.0" />
-    <img src="https://img.shields.io/badge/Nx-monorepo-143055?logo=nx&logoColor=white" alt="Nx Monorepo" />
+    <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=for-the-badge&amp;logo=typescript&amp;logoColor=white" alt="TypeScript strict" />
+    <img src="https://img.shields.io/badge/Node.js-24-339933?style=for-the-badge&amp;logo=nodedotjs&amp;logoColor=white" alt="Node.js 24" />
+    <img src="https://img.shields.io/badge/pnpm-10.23.0-F69220?style=for-the-badge&amp;logo=pnpm&amp;logoColor=white" alt="pnpm 10.23.0" />
+    <img src="https://img.shields.io/badge/Nx-monorepo-143055?style=for-the-badge&amp;logo=nx&amp;logoColor=white" alt="Nx monorepo" />
   </p>
 
   <p>
