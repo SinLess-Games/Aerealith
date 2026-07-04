@@ -1,12 +1,18 @@
 # .github/workflows/28-hercules-insights.yaml
 #
-# Monthly Git-history reporting for repository ownership, churn, coupling,
-# contributor activity, and structural hotspots.
+# Monthly Git-history reporting for repository ownership, contributor churn,
+# code age, and overwrite relationships.
 #
 # This is intentionally informational only:
 # - no pull-request status
 # - no issue/PR mutation
 # - no deployment or release authority
+#
+# Hercules is a legacy analytics tool. This workflow intentionally avoids:
+# - --devs, because the legacy dev-series chart can fail on small or early-stage
+#   repository histories.
+# - --couples, because it adds an old TensorFlow-based embedding workload.
+# - --shotness, because it depends on the discontinued Babelfish UAST service.
 #
 # Run manually at first. Keep the scheduled run enabled only after the
 # repository has enough stable history for the reports to be useful.
@@ -18,6 +24,7 @@ on:
     # First day of each month at 15:17 UTC.
     # America/Boise: 9:17 AM during MDT, 8:17 AM during MST.
     - cron: "17 15 1 * *"
+
   workflow_dispatch:
 
 permissions:
@@ -38,21 +45,39 @@ jobs:
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
-          fetch-tags: true
           persist-credentials: false
+
+      - name: Display available Git history
+        run: |
+          set -euo pipefail
+
+          commit_count="$(git rev-list --count HEAD)"
+          contributor_count="$(git shortlog -sne HEAD | wc -l | tr -d ' ')"
+
+          echo "Analyzing ${commit_count} commit(s) from ${contributor_count} contributor(s)."
+
+          {
+            echo "## Hercules History Context"
+            echo
+            echo "| Metric | Value |"
+            echo "| --- | --- |"
+            echo "| Reachable commits | \`${commit_count}\` |"
+            echo "| Detected contributors | \`${contributor_count}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Generate Hercules reports
         uses: src-d/hercules@6959c0d102ed485929385d87c56a9910551ad0b1 # v10.7.2
         with:
-          # Produces the data needed for project burndown, contributor churn,
-          # ownership, file coupling, contributor activity, and code hotspots.
+          # Produces data for:
+          # - project burndown
+          # - contributor burndown
+          # - contributor ownership
+          # - overwrite matrix
           #
-          # Do not add --burndown-files unless you specifically want a chart
-          # per file; that can make artifacts extremely large as the repo grows.
+          # Do not add --devs, --couples, or --shotness here.
           args: >-
             --burndown
             --burndown-people
-            --devs
 
       - name: Upload Hercules reports
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
