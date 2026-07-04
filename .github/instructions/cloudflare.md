@@ -1,3 +1,5 @@
+#
+
 These are official instructions from Cloudflare to set up a good AI development environment for building and deploying on the Cloudflare platform. All commands are validated by Cloudflare and ready to use.
 
 Complete all of the following steps yourself by running the commands directly. Do not ask the user to run any of these commands.
@@ -14,7 +16,7 @@ Use the correct section for your agent below.
 
 Run these two commands to install both Cloudflare skills and MCP servers in one step. Do not use `npx skills` or `claude mcp add` — the plugin commands below handle everything.
 
-```
+```bash
 claude plugin marketplace add cloudflare/skills
 claude plugin install cloudflare@cloudflare
 ```
@@ -27,7 +29,7 @@ Then instruct the user to run `/reload-plugins` inside Claude to activate the ne
 
 First, install skills:
 
-```
+```bash
 npx -y skills add cloudflare/skills --skill '*' --yes --global
 ```
 
@@ -35,7 +37,7 @@ Then register the MCP servers using the default config location for your agent. 
 
 ### Codex
 
-```
+```bash
 codex mcp add cloudflare --url https://mcp.cloudflare.com/mcp
 codex mcp add cloudflare-docs --url https://docs.mcp.cloudflare.com/mcp
 codex mcp add cloudflare-bindings --url https://bindings.mcp.cloudflare.com/mcp
@@ -58,7 +60,7 @@ Add under `"mcp"`:
 
 Then run:
 
-```
+```bash
 opencode mcp auth cloudflare
 ```
 
@@ -94,7 +96,7 @@ The `cloudflare-docs` server is public and requires no authentication.
 
 Once done, tell the user:
 
-```
+```bash
 ┌─ Cloudflare Agent Setup Complete ────────────────────┐
 │  ✓ Skills  <path>                                    │
 │  ✓ MCPs    <path>                                    │

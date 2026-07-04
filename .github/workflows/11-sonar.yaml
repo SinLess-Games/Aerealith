@@ -229,7 +229,11 @@ jobs:
           fi
 
           "$nx_bin" show projects --withTarget=test |
-            awk 'NF { print }' |
+            # Generator templates contain placeholder project.json files that
+            # Nx discovers as literal projects (for example,
+            # "<%= projectName %>"). They are source templates, not runnable
+            # workspace projects, so exclude them from the coverage matrix.
+            jq -r '.[] | select(test("<%.*%>") | not)' |
             sort -u > "$projects_file"
 
           test_project_count="$(wc -l < "$projects_file" | tr -d ' ')"
@@ -268,7 +272,8 @@ jobs:
               -- \
               --coverage.enabled=true \
               --coverage.reporter=lcov \
-              --coverage.reporter=json-summary
+              --coverage.reporter=json-summary \
+              </dev/null
 
             echo "::endgroup::"
           done < "$projects_file"
@@ -861,6 +866,11 @@ jobs:
           DIAGNOSIS_STATUS: ${{ steps.sonar_diagnosis.outputs.diagnosis_status }}
         run: |
           set -euo pipefail
+
+          if [[ "$SCANNER_OUTCOME" == 'skipped' ]]; then
+            echo '::error::The Sonar scanner was skipped because an earlier setup, test, coverage, or configuration step failed. Review the first failed step in this job.'
+            exit 1
+          fi
 
           if [[ "$SCANNER_OUTCOME" == 'failure' ]]; then
             echo '::error::The Sonar scanner failed. Review the SonarQube Cloud Exact Diagnosis summary.'
