@@ -1,21 +1,32 @@
 # .github/workflows/16-meticulous.yaml
 #
-# Builds the Aerealith frontend and runs Meticulous visual regression tests.
+# Builds the static Aerealith frontend and runs Meticulous visual regression
+# tests against the built assets.
 #
 # Required repository secret:
 #   METICULOUS_API_TOKEN
+#
+# Prerequisites outside this workflow:
+# - The Always Meticulous GitHub App is installed for SinLess-Games/Aerealith.
+# - At least one browser session has been recorded for the Aerealith project.
+# - The frontend recorder configuration remains in the Vite config.
 
 name: 16 · Meticulous
 
 on:
-  # Meticulous needs a successful baseline run on the repository default branch
-  # before it can compare pull requests against that branch.
+  # Meticulous needs a successful run on the default branch before it can
+  # compare a pull request against that branch.
   push:
     branches:
       - master
-  pull_request:
-  workflow_dispatch:
 
+  pull_request: {}
+
+  # Required so Meticulous can request a run for a missing base commit.
+  workflow_dispatch: {}
+
+# These are the permissions Meticulous requires to create/update its status
+# check and, when enabled in Meticulous, its pull request feedback comment.
 permissions:
   actions: write
   contents: read
@@ -55,7 +66,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build frontend
+      - name: Build frontend for Meticulous
         run: pnpm nx run frontend:build
         env:
           NODE_ENV: production
