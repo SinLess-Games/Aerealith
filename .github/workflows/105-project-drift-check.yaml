@@ -1030,25 +1030,25 @@ jobs:
 
                   acceptable_statuses =
                     if content["merged"] == true
-                      %w[
-                        Awaiting Release
-                        QA
-                        Deployment
-                        Done
+                      [
+                        "Awaiting Release",
+                        "QA",
+                        "Deployment",
+                        "Done",
                       ]
                     elsif content["state"] == "CLOSED"
-                      %w[
-                        Cancelled
+                      [
+                        "Cancelled",
                       ]
                     elsif content["isDraft"] == true
-                      %w[
-                        In Progress
+                      [
+                        "In Progress",
                       ]
                     else
-                      %w[
-                        In Review
-                        Testing
-                        QA
+                      [
+                        "In Review",
+                        "Testing",
+                        "QA",
                       ]
                     end
 
