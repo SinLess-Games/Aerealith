@@ -348,6 +348,10 @@ jobs:
 
             echo 'sonar.sources=apps,libs,tools'
 
+            # Restrict program discovery to real workspace projects. Template
+            # tsconfigs become valid only after the generator renders them.
+            echo 'sonar.typescript.tsconfigPaths=apps/frontend/tsconfig.app.json,libs/core/tsconfig.lib.json,libs/db/tsconfig.lib.json,libs/ui/tsconfig.lib.json,libs/utils/tsconfig.lib.json,tools/generators/service/tsconfig.lib.json'
+
             echo 'sonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/.nx/**,**/.vite/**,**/out-tsc/**,**/storybook-static/**,**/public/**,**/templates/**,**/*.d.ts,**/*.test.*,**/*.spec.*,**/*.e2e.*,**/*.integration.*,**/*.stories.*,**/test/**,**/tests/**,**/spec/**,**/specs/**,**/e2e/**,**/e2e-tests/**,**/integration/**,**/integration-tests/**,**/__tests__/**,**/__mocks__/**,**/__fixtures__/**'
 
             echo 'sonar.coverage.exclusions=**/*.test.*,**/*.spec.*,**/*.e2e.*,**/*.integration.*,**/*.stories.*,**/test/**,**/tests/**,**/spec/**,**/specs/**,**/e2e/**,**/e2e-tests/**,**/integration/**,**/integration-tests/**,**/__tests__/**,**/__mocks__/**,**/__fixtures__/**,**/*.d.ts'

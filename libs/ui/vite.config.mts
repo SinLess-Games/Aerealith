@@ -48,6 +48,7 @@ export default defineConfig(() => ({
     coverage: {
       reportsDirectory: '../../coverage/libs/ui',
       provider: 'v8' as const,
+      exclude: ['src/**/*.css'],
     },
   },
 }))

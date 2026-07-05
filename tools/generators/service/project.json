@@ -36,6 +36,12 @@
           }
         ]
       }
+    },
+    "test": {
+      "executor": "@nx/vitest:test",
+      "options": {
+        "configFile": "tools/generators/service/vitest.config.mts"
+      }
     }
   }
 }
