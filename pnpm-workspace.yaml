@@ -12,4 +12,4 @@ allowBuilds:
   unrs-resolver: true
   workerd: true
 overrides:
-  "@opentelemetry/core": 2.8.0
+  "@opentelemetry/core": 2.9.0
