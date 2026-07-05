@@ -147,7 +147,7 @@ importers:
         specifier: ~0.8.0
         version: 0.8.1(@swc/core@1.15.41(@swc/helpers@0.5.23))
       "@swc/core":
-        specifier: ~1.15.5
+        specifier: ~1.15.0
         version: 1.15.41(@swc/helpers@0.5.23)
       "@swc/helpers":
         specifier: ~0.5.18
