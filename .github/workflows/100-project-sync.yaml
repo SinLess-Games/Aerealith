@@ -829,6 +829,11 @@ jobs:
 
             next unless configured_type == "singleSelect"
 
+            unless live_field["__typename"] == "ProjectV2SingleSelectField"
+              warnings << "Field `#{field_name}` is derived from an organization Issue Field; manage its options in organization settings."
+              next
+            end
+
             desired_options = desired_field.fetch("options")
             live_options = live_field["options"] || []
             live_option_names = live_options.map { |option| option["name"] }.to_set
