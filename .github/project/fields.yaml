@@ -281,7 +281,7 @@ projectFields:
 
   - key: area
     name: Area
-    source: projectField
+    source: organizationIssueField
     type: singleSelect
     required: false
     editable: true
@@ -348,7 +348,7 @@ projectFields:
 
   - key: release
     name: Release
-    source: projectField
+    source: organizationIssueField
     type: singleSelect
     required: false
     editable: true
@@ -383,7 +383,7 @@ projectFields:
 
   - key: ai_triage
     name: AI triage
-    source: projectField
+    source: organizationIssueField
     type: singleSelect
     required: false
     editable: true

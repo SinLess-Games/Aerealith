@@ -467,6 +467,7 @@ jobs:
             .map do |field|
               {
                 "name" => field["name"],
+                "source" => field["source"],
                 "type" => field["type"],
                 "options" => fetch_array(field, "options").filter_map do |option|
                   next unless option.is_a?(Hash)
@@ -772,6 +773,7 @@ jobs:
 
           plan.fetch("projectFields").each do |desired_field|
             field_name = desired_field.fetch("name")
+            field_source = desired_field.fetch("source", "projectField")
             configured_type = desired_field.fetch("type")
             expected_data_type = type_map.fetch(configured_type)
             matching_fields = fields_by_name[field_name] || []
@@ -781,6 +783,11 @@ jobs:
             end
 
             if matching_fields.empty?
+              if field_source == "organizationIssueField"
+                warnings << "Organization Issue Field `#{field_name}` is not attached to the Project; add it in Project settings."
+                next
+              end
+
               input = {
                 "projectId" => project_id,
                 "name" => field_name,
@@ -829,7 +836,7 @@ jobs:
 
             next unless configured_type == "singleSelect"
 
-            unless live_field["__typename"] == "ProjectV2SingleSelectField"
+            if field_source == "organizationIssueField"
               warnings << "Field `#{field_name}` is derived from an organization Issue Field; manage its options in organization settings."
               next
             end

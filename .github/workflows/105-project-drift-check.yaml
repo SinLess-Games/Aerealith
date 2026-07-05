@@ -786,7 +786,7 @@ jobs:
 
                 next unless expected_type == "SINGLE_SELECT"
 
-                unless live_field["__typename"] == "ProjectV2SingleSelectField"
+                if expected_field["source"] == "organizationIssueField"
                   warnings << "Field `#{field_name}` is derived from an organization Issue Field; its options are not available through the Projects API."
                   next
                 end
