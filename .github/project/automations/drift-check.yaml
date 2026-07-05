@@ -254,7 +254,7 @@ fieldChecks:
     - Target date
 
   requiredProjectFields:
-    - Type
+    - Work Type
     - Area
     - Iteration
     - Release
@@ -264,7 +264,7 @@ fieldChecks:
     - Commits
 
   typeRequirements:
-    Type: singleSelect
+    Work Type: singleSelect
     Area: singleSelect
     Iteration: iteration
     Release: singleSelect

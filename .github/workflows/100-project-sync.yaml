@@ -252,7 +252,7 @@ jobs:
           end
 
           expected_project_fields = {
-            "Type" => "singleSelect",
+            "Work Type" => "singleSelect",
             "Area" => "singleSelect",
             "Iteration" => "iteration",
             "Release" => "singleSelect",
@@ -809,15 +809,15 @@ jobs:
                 if duration_days.nil? || start_date.to_s.empty?
                   raise "Iteration field `#{field_name}` requires `configuration.durationDays` and `configuration.startDate`."
                 end
-
-                input["iterationConfiguration"] = {
-                  "duration" => duration_days,
-                  "startDate" => start_date,
-                }
               end
 
               client.graphql(create_field_mutation, { "input" => input })
               created_fields << field_name
+
+              if configured_type == "iteration"
+                warnings << "Iteration field `#{field_name}` was created with GitHub defaults; verify a #{duration_days}-day duration and #{start_date} start date in Project settings."
+              end
+
               next
             end
 

@@ -37,7 +37,7 @@ fields:
   status: Status
   priority: Priority
   effort: Effort
-  type: Type
+  type: Work Type
   area: Area
   iteration: Iteration
   release: Release
@@ -619,7 +619,7 @@ tasks:
             - project:exclude
 
       - projectField:
-          name: Type
+          name: Work Type
           equals: Epic
 
     output:

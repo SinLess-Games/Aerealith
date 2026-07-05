@@ -248,7 +248,7 @@ organizationIssueFields:
 
 projectFields:
   - key: type
-    name: Type
+    name: Work Type
     source: projectField
     type: singleSelect
     required: true

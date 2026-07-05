@@ -147,7 +147,7 @@ fields:
   startDate: Start date
   targetDate: Target date
 
-  type: Type
+  type: Work Type
   area: Area
   iteration: Iteration
   release: Release

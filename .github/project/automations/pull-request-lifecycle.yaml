@@ -36,7 +36,7 @@ repository:
 
 fields:
   status: Status
-  type: Type
+  type: Work Type
   area: Area
   iteration: Iteration
   release: Release
@@ -543,7 +543,7 @@ linkedIssues:
 
     fields:
       inheritFromIssueToPullRequest:
-        - Type
+        - Work Type
         - Area
         - Priority
         - Iteration

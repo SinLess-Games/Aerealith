@@ -640,7 +640,7 @@ jobs:
           updated_issue_fields = []
 
           status_field_name = config_fields.fetch("status", "Status")
-          type_field_name = config_fields.fetch("type", "Type")
+          type_field_name = config_fields.fetch("type", "Work Type")
           area_field_name = config_fields.fetch("area", "Area")
           release_field_name = config_fields.fetch("release", "Release")
           ai_triage_field_name = config_fields.fetch("aiTriage", "AI triage")
