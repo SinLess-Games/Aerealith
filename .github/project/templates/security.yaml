@@ -1,0 +1,173 @@
+# .github/project/templates/security.yaml
+
+schemaVersion: 1
+
+template:
+  key: security
+  name: Security
+  description: Security vulnerability, hardening, authentication, authorization, privacy, secret, or dependency-risk work.
+  appliesTo:
+    - issue
+
+project:
+  defaults:
+    status: Ready
+    type: Security
+    priority: High
+    effort: Medium
+    area: Security
+    release: Unscheduled
+    aiTriage: Pending
+
+  fields:
+    iteration: null
+    startDate: null
+    targetDate: null
+    blockedReason: null
+    aiSummary: null
+
+labels:
+  add:
+    - type:security
+    - area:security
+    - ai:skip
+
+  remove: []
+
+automation:
+  addToProject: true
+
+  # Security work should not be sent to external AI providers automatically.
+  # A maintainer may remove ai:skip only after confirming the issue contains
+  # no sensitive vulnerability, credential, exploit, or private system details.
+  runAiSummary: false
+  runDuplicateDetection: false
+  runAcceptanceCriteria: false
+  runEstimateSuggestion: false
+  runImplementationPlan: false
+
+  includeInRoadmap: true
+
+  staleWork:
+    enabled: true
+    useAiContext: false
+
+  branchWork:
+    requiresAssigneeBeforeInProgress: true
+    validBranchPrefixes:
+      - security
+      - fix
+      - hotfix
+
+issue:
+  title:
+    format: "[Security] <short non-sensitive description>"
+
+  requiredSections:
+    - Summary
+    - Impact
+    - Affected area
+    - Reproduction or verification details
+    - Recommended remediation
+    - Validation
+
+  suggestedSections:
+    - Severity rationale
+    - Attack prerequisites
+    - Affected versions or environments
+    - Mitigation or workaround
+    - Rollout considerations
+    - Rollback considerations
+    - Related advisories
+    - Related issues
+    - Disclosure timeline
+
+  disclosure:
+    privateByDefault: true
+
+    guidance: |
+      Do not include credentials, access tokens, private keys, production URLs,
+      customer information, exploit payloads, or sensitive infrastructure details
+      in public issues or pull requests.
+
+      Use GitHub private vulnerability reporting, a private repository issue, or
+      the approved private security-reporting channel for sensitive disclosures.
+
+triage:
+  priorityGuidance:
+    urgent:
+      - Active exploitation or credible active attack.
+      - Exposed credentials, tokens, secrets, or private keys.
+      - Confirmed unauthorized access, privilege escalation, or data exposure.
+      - Severe production vulnerability requiring immediate mitigation.
+      - Security incident affecting users, infrastructure, or critical services.
+
+    high:
+      - Confirmed vulnerability with meaningful impact.
+      - Authentication or authorization flaw.
+      - Security issue affecting production-facing behavior.
+      - Dependency vulnerability requiring near-term remediation.
+      - Sensitive data handling, privacy, or access-control defect.
+
+    medium:
+      - Security hardening work with no known active exploit.
+      - Lower-impact vulnerability with meaningful mitigation available.
+      - Security configuration improvement or defense-in-depth change.
+      - Internal security workflow or audit improvement.
+
+    low:
+      - Minor hardening improvement.
+      - Low-risk internal cleanup.
+      - Documentation or process improvement with limited direct security impact.
+      - Non-urgent security tooling enhancement.
+
+  effortGuidance:
+    low:
+      - Focused remediation with a known cause and isolated scope.
+      - Small configuration, dependency, validation, or permission change.
+      - Clear verification path and limited rollout risk.
+
+    medium:
+      - Security work touching multiple related modules, workflows, or services.
+      - Requires normal regression coverage, review, and deployment validation.
+      - May require coordination around access controls, secrets, or configuration.
+
+    high:
+      - Cross-cutting authentication, authorization, cryptography, privacy, or
+        infrastructure security work.
+      - Requires migration, key rotation, broad dependency remediation, incident
+        coordination, or staged rollout.
+      - Contains unresolved security design decisions or should be split into an Epic.
+
+planning:
+  expected:
+    - The security concern and affected scope are described without exposing unnecessary sensitive details.
+    - The impact and severity rationale are recorded.
+    - The affected Area is confirmed before implementation begins.
+    - A mitigation or remediation approach is identified when practical.
+    - Verification requirements are defined before the issue is marked complete.
+    - Rollout and rollback considerations are documented when production behavior is affected.
+    - Release assignment is set when remediation must ship in a specific release.
+
+validation:
+  expected:
+    - The vulnerability or security concern is verified safely.
+    - The remediation prevents the reported behavior or exposure.
+    - Relevant regression coverage is added or updated where practical.
+    - Authentication, authorization, permissions, input handling, privacy, and secret handling are reviewed when relevant.
+    - Logs, telemetry, and error messages do not expose sensitive implementation or user data.
+    - Dependency updates are validated against lockfiles, CI, and relevant runtime behavior when applicable.
+    - Production rollout and rollback procedures are reviewed when the change affects deployed systems.
+    - Security-sensitive details remain out of public issues, pull requests, logs, and generated AI output.
+
+safeguards:
+  never:
+    - Send issue content to external AI providers while ai:skip is present.
+    - Automatically remove ai:skip.
+    - Automatically create public comments containing vulnerability details.
+    - Automatically close the issue.
+    - Automatically change priority.
+    - Automatically change area.
+    - Automatically mark the issue Done without an explicit lifecycle event.
+    - Override Blocked or Cancelled status.
+    - Expose secrets, credentials, private keys, exploit payloads, customer data, or private infrastructure details.

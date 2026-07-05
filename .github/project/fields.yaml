@@ -1,0 +1,464 @@
+# .github/project/fields.yaml
+
+schemaVersion: 1
+
+# This file is the declarative field contract for the Aerealith Delivery
+# GitHub Project. Project workflows use these stable keys to locate fields,
+# validate configuration, and safely update item values.
+#
+# Important:
+# - organizationIssueField fields are shared across SinLess-Games.
+# - projectField fields belong only to Aerealith Delivery.
+# - systemField fields are provided by GitHub and must not be recreated.
+# - Status is a GitHub-managed system field and should be configured in the UI.
+# - Assignees and Reviewers use GitHub's native fields. Do not create text copies.
+
+project:
+  owner: SinLess-Games
+  number: 3
+  name: Aerealith Delivery
+  repository: SinLess-Games/Aerealith
+
+defaults:
+  priority: Medium
+  effort: 3
+  release: Unscheduled
+  aiTriage: Pending
+
+fieldGroups:
+  system:
+    description: GitHub-provided fields used directly by the Project.
+
+  organizationIssue:
+    description: Shared SinLess-Games Issue Fields displayed in this Project.
+
+  project:
+    description: Fields owned specifically by the Aerealith Delivery Project.
+
+systemFields:
+  - key: title
+    name: Title
+    source: systemField
+    type: title
+    required: true
+    editable: false
+
+  - key: status
+    name: Status
+    source: systemField
+    type: singleSelect
+    required: true
+    editable: true
+    sync:
+      mode: validate
+    description: The primary lifecycle state for issues, pull requests, and draft items.
+    options:
+      - key: inbox
+        name: Inbox
+        description: New or untriaged work that needs review.
+      - key: backlog
+        name: Backlog
+        description: Valid work that is not currently scheduled.
+      - key: ready
+        name: Ready
+        description: Scoped work that can be started.
+      - key: in_progress
+        name: In Progress
+        description: Active implementation work is happening.
+      - key: in_review
+        name: In Review
+        description: Work is actively being reviewed.
+      - key: testing
+        name: Testing
+        description: Automated, integration, or acceptance testing is underway.
+      - key: qa
+        name: QA
+        description: Manual or staging quality assurance is underway.
+      - key: awaiting_release
+        name: Awaiting Release
+        description: Completed work waiting for its planned release.
+      - key: deployment
+        name: Deployment
+        description: Production deployment or release activity is underway.
+      - key: done
+        name: Done
+        description: Work is completed, released, shipped, or intentionally closed.
+      - key: blocked
+        name: Blocked
+        description: Work cannot continue because of a dependency or decision.
+      - key: cancelled
+        name: Cancelled
+        description: Work has intentionally stopped and will not be completed.
+    automation:
+      protectedOptions:
+        - Blocked
+        - Cancelled
+
+  - key: assignees
+    name: Assignees
+    source: systemField
+    type: users
+    required: false
+    editable: true
+    sync:
+      mode: native
+    description: Native GitHub assignees. Used to determine ownership and active work.
+
+  - key: reviewers
+    name: Reviewers
+    source: systemField
+    type: reviewers
+    required: false
+    editable: true
+    sync:
+      mode: native
+    description: Native GitHub pull request reviewers.
+
+  - key: labels
+    name: Labels
+    source: systemField
+    type: labels
+    required: false
+    editable: true
+    sync:
+      mode: native
+    description: Native GitHub labels used for templates, automation, and filtering.
+
+  - key: linked_pull_requests
+    name: Linked pull requests
+    source: systemField
+    type: pullRequests
+    required: false
+    editable: false
+    sync:
+      mode: native
+    description: Pull requests linked to the issue through GitHub development references.
+
+  - key: repository
+    name: Repository
+    source: systemField
+    type: repository
+    required: true
+    editable: false
+    sync:
+      mode: native
+    description: Repository containing the issue or pull request.
+
+  - key: milestone
+    name: Milestone
+    source: systemField
+    type: milestone
+    required: false
+    editable: true
+    sync:
+      mode: native
+    description: GitHub milestone used for release deadlines and roadmap markers.
+
+  - key: parent_issue
+    name: Parent issue
+    source: systemField
+    type: parentIssue
+    required: false
+    editable: true
+    sync:
+      mode: native
+    description: Native parent issue relationship for issue hierarchy.
+
+  - key: sub_issues_progress
+    name: Sub-issues progress
+    source: systemField
+    type: subIssuesProgress
+    required: false
+    editable: false
+    sync:
+      mode: native
+    description: Native progress summary for issue sub-items.
+
+organizationIssueFields:
+  - key: priority
+    name: Priority
+    source: organizationIssueField
+    type: singleSelect
+    required: false
+    editable: true
+    sync:
+      mode: validate
+    appliesTo:
+      - issue
+    description: Business and engineering urgency for an issue.
+    options:
+      - key: urgent
+        name: Urgent
+        description: Production risk, security incident, major outage, or immediate blocker.
+      - key: high
+        name: High
+        description: Important work that should be scheduled soon.
+      - key: medium
+        name: Medium
+        description: Standard planned work.
+      - key: low
+        name: Low
+        description: Nice-to-have work with no near-term urgency.
+
+  - key: effort
+    name: Effort
+    source: organizationIssueField
+    type: singleSelect
+    required: false
+    editable: true
+    sync:
+      mode: validate
+    appliesTo:
+      - issue
+    description: Fibonacci story-point estimate for implementation effort.
+    options:
+      - key: low
+        name: Low
+        description: 1-2 story points of work.
+      - key: medium
+        name: Medium
+        description: 3-5 story points of work.
+      - key: high
+        name: High
+        description: 8-13 story points of work.
+
+  - key: start_date
+    name: Start date
+    source: organizationIssueField
+    type: date
+    required: false
+    editable: true
+    sync:
+      mode: validate
+    appliesTo:
+      - issue
+    description: Intended start date for roadmap and iteration planning.
+
+  - key: target_date
+    name: Target date
+    source: organizationIssueField
+    type: date
+    required: false
+    editable: true
+    sync:
+      mode: validate
+    appliesTo:
+      - issue
+    description: Intended completion, delivery, or deadline date.
+
+projectFields:
+  - key: type
+    name: Type
+    source: projectField
+    type: singleSelect
+    required: true
+    editable: true
+    sync:
+      mode: reconcile
+    description: Work classification used for issues, pull requests, and draft items.
+    options:
+      - key: epic
+        name: Epic
+        description: Large initiative that contains multiple related issues.
+      - key: feature
+        name: Feature
+        description: User-facing capability or significant product improvement.
+      - key: bug
+        name: Bug
+        description: Incorrect, broken, or unexpected behavior.
+      - key: task
+        name: Task
+        description: Defined engineering or operational work.
+      - key: chore
+        name: Chore
+        description: Maintenance work without direct product behavior changes.
+      - key: documentation
+        name: Documentation
+        description: Documentation, guides, references, or developer experience content.
+      - key: security
+        name: Security
+        description: Security remediation, hardening, vulnerability, or access-control work.
+
+  - key: area
+    name: Area
+    source: projectField
+    type: singleSelect
+    required: false
+    editable: true
+    sync:
+      mode: reconcile
+    description: Primary Aerealith ownership or technical area.
+    options:
+      - key: frontend
+        name: Frontend
+        description: Website, web application, docs site, and developer portal UI.
+      - key: api
+        name: API
+        description: HTTP, tRPC, GraphQL, WebSocket, and service API work.
+      - key: core
+        name: Core
+        description: Shared core entities, types, errors, constants, and contracts.
+      - key: db
+        name: DB
+        description: Database entities, schema, migrations, validation, and persistence.
+      - key: ui
+        name: UI
+        description: Shared UI components, design system, accessibility, and styling.
+      - key: content
+        name: Content
+        description: Content libraries, localization, translations, and managed content.
+      - key: flags
+        name: Flags
+        description: Feature flags, OpenFeature, targeting, and rollout controls.
+      - key: observability
+        name: Observability
+        description: Logging, tracing, metrics, alerts, dashboards, and Grafana.
+      - key: docs
+        name: Docs
+        description: Documentation, contributor guides, API references, and architecture notes.
+      - key: devops
+        name: DevOps
+        description: Cloudflare, CI/CD, Docker, deployment, secrets, and infrastructure.
+      - key: discord_bot
+        name: Discord Bot
+        description: Aerealith AI Discord bot, moderation, automation, tickets, and server tools.
+      - key: dependencies
+        name: Dependencies
+        description: Dependency upgrades, package maintenance, Dependabot, and supply chain work.
+      - key: security
+        name: Security
+        description: Security policy, hardening, secrets, authentication, and vulnerability work.
+      - key: tooling
+        name: Tooling
+        description: Nx, pnpm, linting, testing, repository tooling, and developer workflow.
+
+  - key: iteration
+    name: Iteration
+    source: projectField
+    type: iteration
+    required: false
+    editable: true
+    sync:
+      mode: reconcile
+    description: Two-week Aerealith planning and delivery cycle.
+    configuration:
+      durationDays: 14
+      startDate: "2026-07-06"
+      titleFormat: Sprint "{number}"
+
+  - key: release
+    name: Release
+    source: projectField
+    type: singleSelect
+    required: false
+    editable: true
+    sync:
+      mode: reconcile
+    description: Planned Aerealith release train.
+    options:
+      - key: unscheduled
+        name: Unscheduled
+        description: Not currently assigned to a release.
+      - key: next_release
+        name: Next Release
+        description: Planned for the next available Aerealith release.
+    automation:
+      additionalOptions:
+        source: config
+        path: releases
+
+  - key: blocked_reason
+    name: Blocked reason
+    source: projectField
+    type: text
+    required: false
+    editable: true
+    sync:
+      mode: reconcile
+    description: Required explanation when Status is Blocked.
+    validation:
+      requiredWhen:
+        field: Status
+        equals: Blocked
+
+  - key: ai_triage
+    name: AI triage
+    source: projectField
+    type: singleSelect
+    required: false
+    editable: true
+    sync:
+      mode: reconcile
+    description: Tracks the AI planning and review state for an item.
+    options:
+      - key: pending
+        name: Pending
+        description: AI work has not started or is awaiting a workflow trigger.
+      - key: suggested
+        name: Suggested
+        description: AI created suggestions that need human review.
+      - key: approved
+        name: Approved
+        description: A maintainer approved AI-generated planning output.
+      - key: rejected
+        name: Rejected
+        description: AI output was reviewed and should not be used.
+
+  - key: ai_summary
+    name: AI summary
+    source: projectField
+    type: text
+    required: false
+    editable: true
+    sync:
+      mode: reconcile
+    description: Short automation-maintained summary of the work item.
+    automation:
+      managed: true
+      maximumLength: 500
+
+  - key: commits
+    name: Commits
+    source: projectField
+    type: text
+    required: false
+    editable: false
+    sync:
+      mode: reconcile
+    description: Automation-maintained commit activity summary.
+    automation:
+      managed: true
+      format: "{count} commits · latest: {sha}"
+      maximumLength: 120
+
+rules:
+  - name: blocked-items-require-a-reason
+    when:
+      field: Status
+      equals: Blocked
+    require:
+      field: Blocked reason
+      notEmpty: true
+
+  - name: protected-statuses-require-human-action
+    when:
+      field: Status
+      in:
+        - Blocked
+        - Cancelled
+    automation:
+      allowOverwrite: false
+
+  - name: ai-skip-prevents-external-ai-processing
+    when:
+      field: Labels
+      includes: ai:skip
+    automation:
+      aiProcessing: disabled
+
+  - name: paused-items-prevent-status-automation
+    when:
+      field: Labels
+      includes: automation:paused
+    automation:
+      statusUpdates: disabled

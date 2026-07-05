@@ -1,0 +1,998 @@
+# .github/workflows/100-project-sync.yaml
+
+name: 100 · Project Sync
+
+run-name: >-
+  Project Sync ·
+  ${{ github.event_name == 'pull_request' && format('PR #{0}', github.event.pull_request.number) || github.ref_name }}
+
+on:
+  pull_request:
+    paths:
+      - ".github/project/**"
+      - ".github/workflows/100-project-sync.yaml"
+
+  push:
+    branches:
+      - master
+    paths:
+      - ".github/project/**"
+      - ".github/workflows/100-project-sync.yaml"
+
+  workflow_dispatch:
+    inputs:
+      apply_safe_changes:
+        description: Create missing Project fields, append missing field options, and sync managed labels.
+        required: false
+        default: false
+        type: boolean
+
+      dry_run:
+        description: Validate and report without changing GitHub Project fields or labels.
+        required: false
+        default: true
+        type: boolean
+
+concurrency:
+  group: project-config-sync-${{ github.repository }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  sync:
+    name: Validate and Sync Project Configuration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      PROJECT_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout Project configuration
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout: |
+            .github/project
+          sparse-checkout-cone-mode: true
+
+      - name: Validate Project configuration
+        id: validate
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          ruby <<'RUBY'
+          require "json"
+          require "yaml"
+          require "pathname"
+          require "set"
+
+          root = File.expand_path(".github/project", Dir.pwd)
+          runner_temp = ENV.fetch("RUNNER_TEMP")
+          report_path = File.join(runner_temp, "aerealith-project-validation.md")
+          plan_path = File.join(runner_temp, "aerealith-project-sync-plan.json")
+
+          errors = []
+          warnings = []
+
+          required_files = %w[
+            config.yaml
+            fields.yaml
+            views.yaml
+            automations/auto-add-project.yaml
+            automations/status-transitions.yaml
+            automations/branch-activity.yaml
+            automations/pull-request-lifecycle.yaml
+            automations/deployment-lifecycle.yaml
+            automations/release-lifecycle.yaml
+            automations/issue-linking.yaml
+            automations/commit-tracking.yaml
+            automations/ai-triage.yaml
+            automations/stale-work.yaml
+            automations/archive-items.yaml
+            automations/labels.yaml
+            automations/dependencies.yaml
+            automations/config-sync.yaml
+            automations/drift-check.yaml
+            prompts/issue-summary.md
+            prompts/duplicate-detection.md
+            prompts/estimate-suggestion.md
+            prompts/acceptance-criteria.md
+            prompts/implementation-plan.md
+            prompts/epic-breakdown.md
+            prompts/pr-description-review.md
+            prompts/pr-summary.md
+            prompts/stale-item-review.md
+            templates/bug.yaml
+            templates/feature.yaml
+            templates/task.yaml
+            templates/chore.yaml
+            templates/documentation.yaml
+            templates/security.yaml
+            templates/epic.yaml
+          ].freeze
+
+          required_files.each do |relative_path|
+            full_path = File.join(root, relative_path)
+
+            errors << "Missing required file: `.github/project/#{relative_path}`." unless File.file?(full_path)
+          end
+
+          yaml_files = Dir.glob(File.join(root, "**", "*.yaml")) +
+                       Dir.glob(File.join(root, "**", "*.yml"))
+
+          documents = {}
+
+          yaml_files.uniq.sort.each do |path|
+            relative_path = Pathname.new(path).relative_path_from(Pathname.new(root)).to_s
+
+            begin
+              content = File.read(path)
+
+              documents[relative_path] = YAML.safe_load(
+                content,
+                permitted_classes: [],
+                permitted_symbols: [],
+                aliases: false,
+              ) || {}
+            rescue Psych::SyntaxError => error
+              errors << "Invalid YAML in `.github/project/#{relative_path}`: #{error.message.lines.first.strip}"
+            rescue StandardError => error
+              errors << "Could not read `.github/project/#{relative_path}`: #{error.message}"
+            end
+          end
+
+          def fetch_hash(document, key)
+            value = document[key]
+
+            value.is_a?(Hash) ? value : {}
+          end
+
+          def fetch_array(document, key)
+            value = document[key]
+
+            value.is_a?(Array) ? value : []
+          end
+
+          def collect_scalar_strings(value, values = [])
+            case value
+            when Hash
+              value.each_value { |child| collect_scalar_strings(child, values) }
+            when Array
+              value.each { |child| collect_scalar_strings(child, values) }
+            when String
+              values << value
+            end
+
+            values
+          end
+
+          config = documents["config.yaml"] || {}
+          fields = documents["fields.yaml"] || {}
+          labels_document = documents["automations/labels.yaml"] || {}
+
+          config_project = fetch_hash(config, "project")
+          config_repository = fetch_hash(config, "repository")
+          branching = fetch_hash(config, "branching")
+
+          project_owner = config_project["owner"].to_s
+          project_name = config_project["name"].to_s
+          project_number = config_project["number"]
+          repository_owner = config_repository["owner"].to_s
+          repository_name = config_repository["name"].to_s
+          repository_full_name = "#{repository_owner}/#{repository_name}"
+          production_branch = config_repository["productionBranch"].to_s
+
+          errors << "`.github/project/config.yaml` must define `project.owner`." if project_owner.empty?
+          errors << "`.github/project/config.yaml` must define `project.name`." if project_name.empty?
+          errors << "`.github/project/config.yaml` must define a numeric `project.number`." unless project_number.is_a?(Integer)
+          errors << "`.github/project/config.yaml` must define `repository.owner`." if repository_owner.empty?
+          errors << "`.github/project/config.yaml` must define `repository.name`." if repository_name.empty?
+
+          unless production_branch == "master"
+            errors << "Production branch must be `master`; found `#{production_branch}`."
+          end
+
+          unless fetch_hash(branching, "production")["branch"] == "master"
+            errors << "`branching.production.branch` must be `master`."
+          end
+
+          unless fetch_hash(branching, "releaseBranches")["allowed"] == false
+            errors << "`branching.releaseBranches.allowed` must be `false`."
+          end
+
+          allowed_branch_prefixes = fetch_array(branching, "allowedPrefixes")
+
+          if allowed_branch_prefixes.any? { |prefix| %w[release releases].include?(prefix.to_s) }
+            errors << "Release branch prefixes must not appear in `branching.allowedPrefixes`."
+          end
+
+          expected_statuses = %w[
+            Inbox
+            Backlog
+            Ready
+            In Progress
+            In Review
+            Testing
+            QA
+            Awaiting Release
+            Deployment
+            Done
+            Blocked
+            Cancelled
+          ].freeze
+
+          system_fields = fetch_array(fields, "systemFields")
+          organization_issue_fields = fetch_array(fields, "organizationIssueFields")
+          project_fields = fetch_array(fields, "projectFields")
+
+          status_field = system_fields.find { |field| field.is_a?(Hash) && field["name"] == "Status" }
+
+          unless status_field
+            errors << "Missing required system field: `Status`."
+          else
+            status_options = fetch_array(status_field, "options").filter_map do |option|
+              option["name"] if option.is_a?(Hash)
+            end
+
+            expected_statuses.each do |status|
+              errors << "Status field is missing required option: `#{status}`." unless status_options.include?(status)
+            end
+          end
+
+          expected_project_fields = {
+            "Type" => "singleSelect",
+            "Area" => "singleSelect",
+            "Iteration" => "iteration",
+            "Release" => "singleSelect",
+            "Blocked reason" => "text",
+            "AI triage" => "singleSelect",
+            "AI summary" => "text",
+            "Commits" => "number",
+          }.freeze
+
+          project_fields_by_name = project_fields
+            .select { |field| field.is_a?(Hash) }
+            .group_by { |field| field["name"] }
+
+          expected_project_fields.each do |field_name, expected_type|
+            matching_fields = project_fields_by_name[field_name] || []
+
+            if matching_fields.empty?
+              errors << "Missing required Project field: `#{field_name}`."
+              next
+            end
+
+            if matching_fields.length > 1
+              errors << "Project field `#{field_name}` is declared more than once in `fields.yaml`."
+              next
+            end
+
+            configured_type = matching_fields.first["type"]
+
+            unless configured_type == expected_type
+              errors << "Project field `#{field_name}` must use type `#{expected_type}`; found `#{configured_type}`."
+            end
+          end
+
+          effort_field = organization_issue_fields.find do |field|
+            field.is_a?(Hash) && field["name"] == "Effort"
+          end
+
+          expected_effort_options = %w[Low Medium High].freeze
+
+          unless effort_field
+            errors << "Missing required organization Issue Field: `Effort`."
+          else
+            effort_options = fetch_array(effort_field, "options").filter_map do |option|
+              option["name"] if option.is_a?(Hash)
+            end
+
+            unless effort_options == expected_effort_options
+              errors << "Effort options must be exactly: `Low`, `Medium`, `High`."
+            end
+          end
+
+          priority_field = organization_issue_fields.find do |field|
+            field.is_a?(Hash) && field["name"] == "Priority"
+          end
+
+          expected_priority_options = %w[Urgent High Medium Low].freeze
+
+          unless priority_field
+            errors << "Missing required organization Issue Field: `Priority`."
+          else
+            priority_options = fetch_array(priority_field, "options").filter_map do |option|
+              option["name"] if option.is_a?(Hash)
+            end
+
+            expected_priority_options.each do |priority|
+              errors << "Priority field is missing required option: `#{priority}`." unless priority_options.include?(priority)
+            end
+          end
+
+          %w[Start date Target date].each do |field_name|
+            field = organization_issue_fields.find do |entry|
+              entry.is_a?(Hash) && entry["name"] == field_name
+            end
+
+            if field.nil?
+              errors << "Missing required organization Issue Field: `#{field_name}`."
+            elsif field["type"] != "date"
+              errors << "Organization Issue Field `#{field_name}` must use type `date`."
+            end
+          end
+
+          labels = fetch_array(labels_document, "labels").filter_map do |label|
+            next unless label.is_a?(Hash)
+            next if label["name"].to_s.empty?
+
+            {
+              "name" => label["name"].to_s,
+              "color" => label["color"].to_s.delete_prefix("#"),
+              "description" => label["description"].to_s,
+            }
+          end
+
+          label_names = labels.map { |label| label["name"] }.to_set
+
+          required_labels = %w[
+            project:exclude
+            automation:paused
+            stale
+            automation:testing
+            status:testing
+            status:qa
+            ai:skip
+            ai:approved
+            ai:expand
+            ai:working
+            dependencies:dependabot
+            deployment:failed
+          ].freeze
+
+          required_labels.each do |label_name|
+            errors << "Missing required managed label: `#{label_name}`." unless label_names.include?(label_name)
+          end
+
+          duplicate_label_names = labels
+            .group_by { |label| label["name"] }
+            .select { |_name, entries| entries.length > 1 }
+            .keys
+
+          duplicate_label_names.each do |label_name|
+            errors << "Managed label `#{label_name}` is declared more than once."
+          end
+
+          label_pattern = /\A[a-z][a-z0-9-]*:[a-z][a-z0-9-]*\z/
+
+          referenced_labels = documents.values
+            .flat_map { |document| collect_scalar_strings(document) }
+            .select { |value| value.match?(label_pattern) }
+            .uniq
+
+          referenced_labels.each do |label_name|
+            next if label_names.include?(label_name)
+
+            errors << "Configuration references undeclared label: `#{label_name}`."
+          end
+
+          expected_prompt_files = %w[
+            issue-summary.md
+            duplicate-detection.md
+            estimate-suggestion.md
+            acceptance-criteria.md
+            implementation-plan.md
+            epic-breakdown.md
+            pr-description-review.md
+            pr-summary.md
+            stale-item-review.md
+          ].freeze
+
+          expected_prompt_files.each do |file_name|
+            path = File.join(root, "prompts", file_name)
+
+            if File.file?(path) && File.read(path).strip.empty?
+              errors << "Prompt file `.github/project/prompts/#{file_name}` must not be empty."
+            end
+          end
+
+          expected_template_files = %w[
+            bug.yaml
+            feature.yaml
+            task.yaml
+            chore.yaml
+            documentation.yaml
+            security.yaml
+            epic.yaml
+          ].freeze
+
+          template_documents = expected_template_files.filter_map do |file_name|
+            document = documents["templates/#{file_name}"]
+            [file_name, document] if document.is_a?(Hash)
+          end
+
+          config_effort = fetch_hash(config, "defaults")["effort"]
+
+          unless expected_effort_options.include?(config_effort)
+            errors << "`defaults.effort` must be `Low`, `Medium`, or `High`; found `#{config_effort}`."
+          end
+
+          template_documents.each do |file_name, template|
+            effort = fetch_hash(fetch_hash(template, "project"), "defaults")["effort"]
+
+            unless expected_effort_options.include?(effort)
+              errors << "Template `#{file_name}` must use Effort `Low`, `Medium`, or `High`; found `#{effort}`."
+            end
+          end
+
+          documents.each do |relative_path, document|
+            next unless document.is_a?(Hash)
+
+            document_project = fetch_hash(document, "project")
+
+            if document_project.any?
+              owner = document_project["owner"]
+              name = document_project["name"]
+              repository = document_project["repository"]
+
+              if owner && owner != project_owner
+                errors << "`.github/project/#{relative_path}` uses project owner `#{owner}`, expected `#{project_owner}`."
+              end
+
+              if name && name != project_name
+                errors << "`.github/project/#{relative_path}` uses project name `#{name}`, expected `#{project_name}`."
+              end
+
+              if repository && repository != repository_full_name
+                errors << "`.github/project/#{relative_path}` uses repository `#{repository}`, expected `#{repository_full_name}`."
+              end
+            end
+
+            document_repository = fetch_hash(document, "repository")
+
+            if document_repository.any?
+              owner = document_repository["owner"]
+              name = document_repository["name"]
+              branch = document_repository["productionBranch"]
+
+              if owner && owner != repository_owner
+                errors << "`.github/project/#{relative_path}` uses repository owner `#{owner}`, expected `#{repository_owner}`."
+              end
+
+              if name && name != repository_name
+                errors << "`.github/project/#{relative_path}` uses repository name `#{name}`, expected `#{repository_name}`."
+              end
+
+              if branch && branch != "master"
+                errors << "`.github/project/#{relative_path}` uses production branch `#{branch}`, expected `master`."
+              end
+            end
+          end
+
+          project_field_plan = project_fields
+            .select { |field| field.is_a?(Hash) }
+            .map do |field|
+              {
+                "name" => field["name"],
+                "type" => field["type"],
+                "options" => fetch_array(field, "options").filter_map do |option|
+                  next unless option.is_a?(Hash)
+
+                  {
+                    "name" => option["name"].to_s,
+                    "description" => option["description"].to_s,
+                    "color" => "GRAY",
+                  }
+                end,
+                "configuration" => fetch_hash(field, "configuration"),
+              }
+            end
+
+          plan = {
+            "project" => {
+              "owner" => project_owner,
+              "name" => project_name,
+              "number" => project_number,
+              "repository" => repository_full_name,
+            },
+            "projectFields" => project_field_plan,
+            "statusOptions" => status_field ? fetch_array(status_field, "options").filter_map { |option| option["name"] if option.is_a?(Hash) } : [],
+            "labels" => labels,
+          }
+
+          File.write(plan_path, JSON.pretty_generate(plan))
+
+          report = []
+          report << "## Aerealith Project Configuration Validation"
+          report << ""
+          report << "- **Project:** `#{project_owner} / #{project_name}`"
+          report << "- **Repository:** `#{repository_full_name}`"
+          report << "- **Production branch:** `master`"
+          report << "- **Managed Project fields:** `#{project_field_plan.length}`"
+          report << "- **Managed labels:** `#{labels.length}`"
+          report << ""
+
+          if errors.empty?
+            report << "✅ Configuration validation passed."
+          else
+            report << "❌ Configuration validation failed."
+            report << ""
+            report << "### Errors"
+            errors.each { |error| report << "- #{error}" }
+          end
+
+          unless warnings.empty?
+            report << ""
+            report << "### Warnings"
+            warnings.each { |warning| report << "- #{warning}" }
+          end
+
+          File.write(report_path, report.join("\n") + "\n")
+
+          unless errors.empty?
+            warn errors.join("\n")
+            exit 1
+          end
+          RUBY
+
+      - name: Publish validation summary
+        if: always()
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          report_path="${RUNNER_TEMP}/aerealith-project-validation.md"
+
+          if [[ -f "${report_path}" ]]; then
+            cat "${report_path}" >> "${GITHUB_STEP_SUMMARY}"
+          else
+            {
+              echo '## Aerealith Project Configuration Validation'
+              echo
+              echo '❌ Validation stopped before a report could be generated.'
+            } >> "${GITHUB_STEP_SUMMARY}"
+          fi
+
+      - name: Confirm Project token is available
+        if: >-
+          github.event_name == 'push' ||
+          (github.event_name == 'workflow_dispatch' && inputs.apply_safe_changes)
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          if [[ -z "${PROJECT_TOKEN}" ]]; then
+            echo "::error::COPILOT_GITHUB_TOKEN is required to synchronize the organization Project."
+            exit 1
+          fi
+
+      - name: Apply safe Project field and label changes
+        if: >-
+          github.event_name == 'push' ||
+          (github.event_name == 'workflow_dispatch' && inputs.apply_safe_changes)
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.dry_run }}" == "true" ]]; then
+            echo "Manual run is configured as dry-run; skipping Project mutations."
+            exit 0
+          fi
+
+          ruby <<'RUBY'
+          require "erb"
+          require "json"
+          require "net/http"
+          require "uri"
+
+          runner_temp = ENV.fetch("RUNNER_TEMP")
+          token = ENV.fetch("PROJECT_TOKEN")
+          plan_path = File.join(runner_temp, "aerealith-project-sync-plan.json")
+
+          raise "Project sync plan was not generated." unless File.file?(plan_path)
+
+          plan = JSON.parse(File.read(plan_path))
+          project = plan.fetch("project")
+          project_owner = project.fetch("owner")
+          project_name = project.fetch("name")
+          project_number = project.fetch("number")
+
+          class GitHubClient
+            API_VERSION = "2022-11-28".freeze
+
+            def initialize(token)
+              @token = token
+            end
+
+            def graphql(query, variables = {})
+              response = request(
+                method: :post,
+                uri: URI("https://api.github.com/graphql"),
+                body: {
+                  query: query,
+                  variables: variables,
+                },
+              )
+
+              unless response.is_a?(Net::HTTPSuccess)
+                raise "GitHub GraphQL request failed with HTTP #{response.code}: #{response.body}"
+              end
+
+              payload = JSON.parse(response.body)
+
+              if payload["errors"]&.any?
+                messages = payload["errors"].map { |error| error["message"] }.join("; ")
+                raise "GitHub GraphQL returned errors: #{messages}"
+              end
+
+              payload.fetch("data")
+            end
+
+            def rest(method, path, body = nil)
+              response = request(
+                method: method,
+                uri: URI("https://api.github.com#{path}"),
+                body: body,
+              )
+
+              [response, JSON.parse(response.body) rescue nil]
+            end
+
+            private
+
+            def request(method:, uri:, body:)
+              request_class = {
+                get: Net::HTTP::Get,
+                post: Net::HTTP::Post,
+                patch: Net::HTTP::Patch,
+              }.fetch(method)
+
+              request = request_class.new(uri)
+              request["Accept"] = "application/vnd.github+json"
+              request["Authorization"] = "Bearer #{@token}"
+              request["X-GitHub-Api-Version"] = API_VERSION
+              request["User-Agent"] = "Aerealith-Project-Sync"
+
+              if body
+                request["Content-Type"] = "application/json"
+                request.body = JSON.generate(body)
+              end
+
+              Net::HTTP.start(
+                uri.hostname,
+                uri.port,
+                use_ssl: uri.scheme == "https",
+              ) do |http|
+                http.request(request)
+              end
+            end
+          end
+
+          client = GitHubClient.new(token)
+
+          project_query = <<~GRAPHQL
+            query($owner: String!, $number: Int!) {
+              organization(login: $owner) {
+                projectV2(number: $number) {
+                  id
+                  title
+                  fields(first: 100) {
+                    nodes {
+                      __typename
+                      ... on ProjectV2FieldCommon {
+                        id
+                        name
+                        dataType
+                      }
+                      ... on ProjectV2SingleSelectField {
+                        options {
+                          id
+                          name
+                          description
+                          color
+                        }
+                      }
+                      ... on ProjectV2IterationField {
+                        configuration {
+                          duration
+                          startDay
+                          iterations {
+                            id
+                            title
+                            startDate
+                            duration
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          GRAPHQL
+
+          project_result = client.graphql(
+            project_query,
+            {
+              "owner" => project_owner,
+              "number" => project_number,
+            },
+          )
+
+          live_project = project_result
+            .dig("organization", "projectV2")
+
+          raise "Could not find organization Project ##{project_number} for #{project_owner}." unless live_project
+
+          unless live_project["title"] == project_name
+            raise "Configured Project name `#{project_name}` does not match live Project title `#{live_project["title"]}`."
+          end
+
+          project_id = live_project.fetch("id")
+          live_fields = live_project.dig("fields", "nodes") || []
+          fields_by_name = live_fields.group_by { |field| field["name"] }
+
+          created_fields = []
+          appended_options = []
+          warnings = []
+
+          type_map = {
+            "singleSelect" => "SINGLE_SELECT",
+            "iteration" => "ITERATION",
+            "text" => "TEXT",
+            "number" => "NUMBER",
+          }.freeze
+
+          create_field_mutation = <<~GRAPHQL
+            mutation($input: CreateProjectV2FieldInput!) {
+              createProjectV2Field(input: $input) {
+                projectV2Field {
+                  ... on ProjectV2FieldCommon {
+                    id
+                    name
+                    dataType
+                  }
+                }
+              }
+            }
+          GRAPHQL
+
+          update_field_mutation = <<~GRAPHQL
+            mutation($input: UpdateProjectV2FieldInput!) {
+              updateProjectV2Field(input: $input) {
+                projectV2Field {
+                  ... on ProjectV2FieldCommon {
+                    id
+                    name
+                    dataType
+                  }
+                }
+              }
+            }
+          GRAPHQL
+
+          plan.fetch("projectFields").each do |desired_field|
+            field_name = desired_field.fetch("name")
+            configured_type = desired_field.fetch("type")
+            expected_data_type = type_map.fetch(configured_type)
+            matching_fields = fields_by_name[field_name] || []
+
+            if matching_fields.length > 1
+              raise "Live Project contains multiple fields named `#{field_name}`."
+            end
+
+            if matching_fields.empty?
+              input = {
+                "projectId" => project_id,
+                "name" => field_name,
+                "dataType" => expected_data_type,
+              }
+
+              if configured_type == "singleSelect"
+                options = desired_field.fetch("options")
+
+                raise "Single-select field `#{field_name}` must define at least one option." if options.empty?
+
+                input["singleSelectOptions"] = options.map do |option|
+                  {
+                    "name" => option.fetch("name"),
+                    "description" => option.fetch("description"),
+                    "color" => option.fetch("color"),
+                  }
+                end
+              end
+
+              if configured_type == "iteration"
+                configuration = desired_field.fetch("configuration")
+                duration_days = configuration["durationDays"]
+                start_date = configuration["startDate"]
+
+                if duration_days.nil? || start_date.to_s.empty?
+                  raise "Iteration field `#{field_name}` requires `configuration.durationDays` and `configuration.startDate`."
+                end
+
+                input["iterationConfiguration"] = {
+                  "duration" => duration_days,
+                  "startDate" => start_date,
+                }
+              end
+
+              client.graphql(create_field_mutation, { "input" => input })
+              created_fields << field_name
+              next
+            end
+
+            live_field = matching_fields.first
+
+            unless live_field["dataType"] == expected_data_type
+              raise "Live field `#{field_name}` has type `#{live_field["dataType"]}`, expected `#{expected_data_type}`."
+            end
+
+            next unless configured_type == "singleSelect"
+
+            desired_options = desired_field.fetch("options")
+            live_options = live_field["options"] || []
+            live_option_names = live_options.map { |option| option["name"] }.to_set
+
+            missing_options = desired_options.reject do |option|
+              live_option_names.include?(option["name"])
+            end
+
+            next if missing_options.empty?
+
+            preserved_options = live_options.map do |option|
+              {
+                "id" => option.fetch("id"),
+                "name" => option.fetch("name"),
+                "description" => option.fetch("description"),
+                "color" => option.fetch("color"),
+              }
+            end
+
+            new_options = missing_options.map do |option|
+              {
+                "name" => option.fetch("name"),
+                "description" => option.fetch("description"),
+                "color" => option.fetch("color"),
+              }
+            end
+
+            client.graphql(
+              update_field_mutation,
+              {
+                "input" => {
+                  "fieldId" => live_field.fetch("id"),
+                  "singleSelectOptions" => preserved_options + new_options,
+                },
+              },
+            )
+
+            appended_options << "#{field_name}: #{missing_options.map { |option| option["name"] }.join(", ")}"
+          end
+
+          status_field = fields_by_name["Status"]&.first
+
+          if status_field.nil?
+            warnings << "Live Project is missing the GitHub-managed Status field."
+          else
+            live_statuses = (status_field["options"] || []).map { |option| option["name"] }
+
+            plan.fetch("statusOptions").each do |expected_status|
+              next if live_statuses.include?(expected_status)
+
+              warnings << "Status option `#{expected_status}` is missing and must be added manually in GitHub."
+            end
+          end
+
+          repository_owner, repository_name = project.fetch("repository").split("/", 2)
+          created_labels = []
+          updated_labels = []
+
+          plan.fetch("labels").each do |label|
+            label_name = label.fetch("name")
+            encoded_label_name = ERB::Util.url_encode(label_name)
+
+            response, = client.rest(
+              :get,
+              "/repos/#{repository_owner}/#{repository_name}/labels/#{encoded_label_name}",
+            )
+
+            payload = {
+              "name" => label_name,
+              "color" => label.fetch("color").delete_prefix("#"),
+              "description" => label.fetch("description"),
+            }
+
+            if response.code == "404"
+              create_response, = client.rest(
+                :post,
+                "/repos/#{repository_owner}/#{repository_name}/labels",
+                payload,
+              )
+
+              unless create_response.is_a?(Net::HTTPSuccess)
+                raise "Could not create label `#{label_name}`: HTTP #{create_response.code}."
+              end
+
+              created_labels << label_name
+              next
+            end
+
+            unless response.is_a?(Net::HTTPSuccess)
+              raise "Could not inspect label `#{label_name}`: HTTP #{response.code}."
+            end
+
+            update_response, = client.rest(
+              :patch,
+              "/repos/#{repository_owner}/#{repository_name}/labels/#{encoded_label_name}",
+              payload.merge("new_name" => label_name),
+            )
+
+            unless update_response.is_a?(Net::HTTPSuccess)
+              raise "Could not update label `#{label_name}`: HTTP #{update_response.code}."
+            end
+
+            updated_labels << label_name
+          end
+
+          summary = []
+          summary << ""
+          summary << "## Aerealith Project Safe Sync"
+          summary << ""
+          summary << "- **Project:** `#{project_owner} / #{project_name}`"
+          summary << "- **Project number:** `#{project_number}`"
+          summary << "- **Repository:** `#{repository_owner}/#{repository_name}`"
+          summary << ""
+
+          if created_fields.empty?
+            summary << "- Project fields created: none"
+          else
+            summary << "- Project fields created: #{created_fields.map { |field| "`#{field}`" }.join(", ")}"
+          end
+
+          if appended_options.empty?
+            summary << "- Field options appended: none"
+          else
+            summary << "- Field options appended:"
+            appended_options.each { |entry| summary << "  - #{entry}" }
+          end
+
+          if created_labels.empty?
+            summary << "- Labels created: none"
+          else
+            summary << "- Labels created: #{created_labels.map { |label| "`#{label}`" }.join(", ")}"
+          end
+
+          summary << "- Labels synchronized: `#{updated_labels.length}`"
+
+          unless warnings.empty?
+            summary << ""
+            summary << "### Manual Follow-up"
+            warnings.each { |warning| summary << "- #{warning}" }
+          end
+
+          File.open(ENV.fetch("GITHUB_STEP_SUMMARY"), "a") do |file|
+            file.puts(summary.join("\n"))
+          end
+          RUBY
+
+      - name: Explain dry-run behavior
+        if: >-
+          github.event_name == 'workflow_dispatch' &&
+          inputs.apply_safe_changes &&
+          inputs.dry_run
+        shell: bash
+        run: |
+          {
+            echo
+            echo '## Project Sync Dry Run'
+            echo
+            echo 'No GitHub Project fields or labels were changed because `dry_run` is enabled.'
+          } >> "${GITHUB_STEP_SUMMARY}"

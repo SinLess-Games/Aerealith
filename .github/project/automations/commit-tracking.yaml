@@ -1,0 +1,407 @@
+# .github/project/automations/commit-tracking.yaml
+
+schemaVersion: 1
+
+# Declarative commit-count rules consumed by:
+# .github/workflows/102-project-status.yaml
+# .github/workflows/104-project-pr-lifecycle.yaml
+#
+# Commits is a numeric Project field.
+#
+# It represents:
+# - Pull request items:
+#   The number of commits on the PR head branch ahead of master.
+#
+# - Issue items:
+#   The highest commit count from a qualifying linked work branch or open PR.
+#
+# This intentionally avoids summing commits across multiple branches because
+# a cherry-pick, rebase, or stacked PR can otherwise double-count the same work.
+
+automation:
+  key: commit-tracking
+  name: Commit Tracking
+  enabled: true
+
+configFile: ../config.yaml
+fieldsFile: ../fields.yaml
+branchActivityFile: ./branch-activity.yaml
+issueLinkingFile: ./issue-linking.yaml
+pullRequestLifecycleFile: ./pull-request-lifecycle.yaml
+
+project:
+  owner: SinLess-Games
+  name: Aerealith Delivery
+  repository: SinLess-Games/Aerealith
+
+repository:
+  owner: SinLess-Games
+  name: Aerealith
+  productionBranch: master
+
+fields:
+  commits: Commits
+  status: Status
+  labels: Labels
+  linkedPullRequests: Linked pull requests
+
+field:
+  name: Commits
+  type: number
+  required: false
+  editableByHumans: false
+
+  description: >-
+    Automation-maintained count of commits on the active work branch or
+    linked pull request ahead of master.
+
+  minimumValue: 0
+  defaultValue: 0
+
+sources:
+  branches:
+    enabled: true
+
+    acceptedPrefixes:
+      - feature
+      - fix
+      - hotfix
+      - chore
+      - docs
+      - refactor
+      - test
+      - build
+      - ci
+      - perf
+      - security
+      - ai
+
+    blockedPrefixes:
+      - release
+      - releases
+
+    branchPattern: >-
+      ^(feature|fix|hotfix|chore|docs|refactor|test|build|ci|perf|security|ai)/
+      ([1-9][0-9]*)-[a-z0-9][a-z0-9-]*$
+
+    issueNumberCaptureGroup: 2
+
+  pullRequests:
+    enabled: true
+
+    includeStates:
+      - open
+      - merged
+
+    excludeAuthors:
+      - dependabot[bot]
+
+calculation:
+  # Uses GitHub's comparison between master and the work branch:
+  #
+  # master...feature/123-project-automation
+  #
+  # The workflow should store the returned ahead-by count.
+  mode: commitsAheadOfProductionBranch
+
+  baseBranch: master
+
+  includeMergeCommits: true
+
+  # Rebased and force-pushed branches can cause the count to decrease.
+  # The Project value should reflect the current real branch state, not the
+  # largest historical value.
+  allowCountDecrease: true
+
+  # A branch with no commits ahead of master remains valid but should display 0.
+  minimumValue: 0
+
+  issueAggregation:
+    enabled: true
+
+    # One issue can have multiple active branches or linked PRs.
+    #
+    # Example:
+    # - feature/123-api-work      → 4 commits ahead of master
+    # - fix/123-validation-fix    → 2 commits ahead of master
+    #
+    # Issue #123 gets:
+    # Commits: 4
+    #
+    # This prevents duplicate counting when branches share commits.
+    mode: maximumQualifyingBranchCount
+
+    include:
+      - validIssueBranch
+      - openLinkedPullRequest
+
+    exclude:
+      - closedUnmergedPullRequest
+      - archivedProjectItem
+      - invalidBranchName
+      - releaseBranch
+
+  pullRequestAggregation:
+    enabled: true
+
+    # Each PR has one head branch, so its number is direct and does not need
+    # multi-branch aggregation.
+    mode: headBranchCount
+
+triggers:
+  - event: push
+    actions:
+      - created
+      - deleted
+      - forced
+
+  - event: pull_request
+    actions:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+      - converted_to_draft
+      - closed
+
+  - event: workflow_dispatch
+
+  # This is a recovery mechanism for missed webhook or Action events.
+  - event: schedule
+    cron: "17 */6 * * *"
+
+pushHandling:
+  enabled: true
+
+  ignore:
+    branches:
+      - master
+      - release/**
+      - releases/**
+
+    tags: true
+    deletedBranches: false
+
+  validBranchBehavior:
+    firstPush:
+      updateCommitCount: true
+      triggerStatusAutomation: true
+
+    laterPushes:
+      updateCommitCount: true
+      triggerStatusAutomation: false
+
+  invalidBranchBehavior:
+    updateCommitCount: false
+    triggerStatusAutomation: false
+    report: workflowSummary
+
+  deletedBranchBehavior:
+    updateCommitCount: true
+
+    # On deletion, recompute from remaining linked branches and PRs.
+    # Do not blindly set the issue to zero because it may still have another
+    # active implementation branch or an open pull request.
+    recomputeAffectedIssue: true
+
+pullRequestHandling:
+  enabled: true
+
+  onOpened:
+    updatePullRequestItem: true
+    updateLinkedIssues: true
+
+  onReopened:
+    updatePullRequestItem: true
+    updateLinkedIssues: true
+
+  onSynchronize:
+    updatePullRequestItem: true
+    updateLinkedIssues: true
+
+  onReadyForReview:
+    updatePullRequestItem: true
+    updateLinkedIssues: true
+
+  onConvertedToDraft:
+    updatePullRequestItem: true
+    updateLinkedIssues: true
+
+  onClosed:
+    updatePullRequestItem: true
+    updateLinkedIssues: true
+
+  mergedPullRequest:
+    preserveFinalCommitCount: true
+
+  closedWithoutMerge:
+    # Closed PRs that were never merged should no longer contribute to the
+    # linked issue's aggregate count.
+    includeInIssueAggregation: false
+
+linkedIssueHandling:
+  enabled: true
+
+  discovery:
+    sources:
+      - github-native
+      - github-closing-keywords
+      - valid-branch-name
+
+  updateRules:
+    issue:
+      updateWhen:
+        - validBranchPushed
+        - linkedPullRequestOpened
+        - linkedPullRequestSynchronized
+        - linkedPullRequestClosed
+        - branchDeleted
+        - scheduledReconciliation
+
+      fieldValue:
+        source: issueAggregation
+
+    pullRequest:
+      updateWhen:
+        - opened
+        - reopened
+        - synchronize
+        - ready_for_review
+        - converted_to_draft
+        - closed
+        - scheduledReconciliation
+
+      fieldValue:
+        source: pullRequestAggregation
+
+statusProtection:
+  # Commit tracking remains active for protected statuses so the Project can
+  # still show that branch activity exists. It must never move status by itself.
+  updateCommitsWhenStatusIs:
+    - Blocked
+    - Cancelled
+    - Done
+    - Awaiting Release
+    - Deployment
+
+  neverChangeStatus:
+    - Blocked
+    - Cancelled
+    - Done
+    - Awaiting Release
+    - Deployment
+
+labelProtection:
+  excludeFromTracking:
+    - project:exclude
+
+  pauseStatusAutomationOnly:
+    - automation:paused
+
+  # automation:paused stops status movement, not commit count updates.
+  updateCommitsWhenPaused: true
+
+projectItemHandling:
+  ensureIssueProjectItemExists: true
+  ensurePullRequestProjectItemExists: true
+
+  missingItemBehavior:
+    issue:
+      addToProject: true
+      initialStatus: Inbox
+
+    pullRequest:
+      addToProject: true
+      initialStatus: In Progress
+
+  duplicateHandling:
+    mode: reuseExistingProjectItem
+
+reconciliation:
+  enabled: true
+
+  schedule:
+    cron: "17 */6 * * *"
+
+  scope:
+    includeOpenIssues: true
+    includeOpenPullRequests: true
+    includeMergedPullRequestsAwaitingRelease: true
+
+  actions:
+    - findProjectItemsWithMissingCommitValues
+    - findProjectItemsWithStaleCommitValues
+    - recalculatePullRequestCommitCounts
+    - recalculateIssueCommitCounts
+    - updateChangedValuesOnly
+    - writeWorkflowSummary
+
+  staleValueDetection:
+    enabled: true
+
+    # The workflow should update the field only when the calculated value is
+    # different. This keeps API usage low and avoids unnecessary Project noise.
+    updateOnlyWhenValueChanged: true
+
+permissions:
+  contents: read
+  issues: write
+  pullRequests: read
+  repositoryProjects: write
+
+safeguards:
+  never:
+    - checkoutOrRunBranchCode
+    - executeCommitContent
+    - modifyCommits
+    - rewriteGitHistory
+    - forcePushBranches
+    - createBranches
+    - deleteBranches
+    - createPullRequests
+    - closePullRequests
+    - mergePullRequests
+    - changePriority
+    - changeType
+    - changeArea
+    - changeIteration
+    - changeRelease
+    - overrideBlockedStatus
+    - overrideCancelledStatus
+    - runExternalAiAnalysis
+
+  skipWhen:
+    labels:
+      - project:exclude
+
+  externalPullRequests:
+    useRepositorySecrets: false
+    writeProjectFields: false
+    inspectDiffs: false
+    inspectCommitMessages: false
+
+workflow:
+  concurrency:
+    enabled: true
+    groupFormat: "project-commits-{repository}-{issueOrPullRequestNumber}"
+    cancelInProgress: false
+
+  logging:
+    writeWorkflowSummary: true
+
+    include:
+      - sourceEvent
+      - branchName
+      - pullRequestNumber
+      - linkedIssueNumbers
+      - previousCommitCount
+      - calculatedCommitCount
+      - fieldUpdated
+      - skippedReason
+
+    exclude:
+      - accessTokens
+      - secrets
+      - commitMessages
+      - commitDiffs
+      - sourceCode

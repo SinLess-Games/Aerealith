@@ -1,0 +1,776 @@
+# .github/workflows/102-project-status.yaml
+
+name: 102 · Project Status
+
+run-name: >-
+  Project Status ·
+  ${{
+    github.event.issue.number ||
+    inputs.issue_number ||
+    github.ref_name ||
+    github.run_id
+  }}
+
+on:
+  issues:
+    types:
+      - assigned
+      - closed
+      - reopened
+      - labeled
+      - unlabeled
+
+  push:
+    tags-ignore:
+      - "**"
+
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Issue number to reconcile against current labels and Project state.
+        required: true
+        type: string
+
+concurrency:
+  group: >-
+    project-status-${{ github.repository }}-${{
+      github.event.issue.number ||
+      inputs.issue_number ||
+      github.ref_name ||
+      github.run_id
+    }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  update-status:
+    name: Update Issue Status
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      PROJECT_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+
+    steps:
+      - name: Confirm Project token is available
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          if [[ -z "${PROJECT_TOKEN}" ]]; then
+            echo "::error::COPILOT_GITHUB_TOKEN is required for Project status automation."
+            exit 1
+          fi
+
+      - name: Checkout trusted Project configuration
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout: |
+            .github/project
+          sparse-checkout-cone-mode: true
+
+      - name: Process status automation
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_PATH: ${{ github.event_path }}
+          REPOSITORY: ${{ github.repository }}
+          INPUT_ISSUE_NUMBER: ${{ inputs.issue_number }}
+        run: |
+          set -Eeuo pipefail
+
+          ruby <<'RUBY'
+          require "json"
+          require "net/http"
+          require "set"
+          require "uri"
+          require "yaml"
+
+          PROJECT_ROOT = File.expand_path(".github/project", Dir.pwd)
+
+          def read_yaml(relative_path)
+            full_path = File.join(PROJECT_ROOT, relative_path)
+
+            raise "Missing Project configuration file: #{relative_path}" unless File.file?(full_path)
+
+            YAML.safe_load(
+              File.read(full_path),
+              permitted_classes: [],
+              permitted_symbols: [],
+              aliases: false,
+            ) || {}
+          end
+
+          def hash_value(value, key)
+            result = value[key]
+
+            result.is_a?(Hash) ? result : {}
+          end
+
+          def array_value(value, key)
+            result = value[key]
+
+            result.is_a?(Array) ? result : []
+          end
+
+          def present?(value)
+            !value.nil? && !value.to_s.empty?
+          end
+
+          class GitHubClient
+            API_VERSION = "2022-11-28".freeze
+
+            def initialize(token)
+              @token = token
+            end
+
+            def graphql(query, variables = {})
+              response = request(
+                method: :post,
+                uri: URI("https://api.github.com/graphql"),
+                body: {
+                  query: query,
+                  variables: variables,
+                },
+              )
+
+              unless response.is_a?(Net::HTTPSuccess)
+                raise "GitHub GraphQL request failed with HTTP #{response.code}: #{response.body}"
+              end
+
+              payload = JSON.parse(response.body)
+
+              if payload["errors"]&.any?
+                messages = payload["errors"].map { |error| error["message"] }.join("; ")
+                raise "GitHub GraphQL returned errors: #{messages}"
+              end
+
+              payload.fetch("data")
+            end
+
+            def get(path)
+              response = request(
+                method: :get,
+                uri: URI("https://api.github.com#{path}"),
+                body: nil,
+              )
+
+              payload =
+                begin
+                  JSON.parse(response.body)
+                rescue JSON::ParserError
+                  {}
+                end
+
+              [response, payload]
+            end
+
+            private
+
+            def request(method:, uri:, body:)
+              request_class = {
+                get: Net::HTTP::Get,
+                post: Net::HTTP::Post,
+              }.fetch(method)
+
+              request = request_class.new(uri)
+              request["Accept"] = "application/vnd.github+json"
+              request["Authorization"] = "Bearer #{@token}"
+              request["X-GitHub-Api-Version"] = API_VERSION
+              request["User-Agent"] = "Aerealith-Project-Status"
+
+              if body
+                request["Content-Type"] = "application/json"
+                request.body = JSON.generate(body)
+              end
+
+              Net::HTTP.start(
+                uri.hostname,
+                uri.port,
+                use_ssl: uri.scheme == "https",
+              ) do |http|
+                http.request(request)
+              end
+            end
+          end
+
+          config = read_yaml("config.yaml")
+          branch_activity = read_yaml("automations/branch-activity.yaml")
+          status_transitions = read_yaml("automations/status-transitions.yaml")
+
+          config_project = hash_value(config, "project")
+          config_repository = hash_value(config, "repository")
+          config_fields = hash_value(config, "fields")
+          config_labels = hash_value(config, "labels")
+          config_ai_labels = hash_value(config_labels, "ai")
+
+          project_owner = config_project.fetch("owner")
+          project_name = config_project.fetch("name")
+          project_number = config_project.fetch("number")
+
+          repository_owner = config_repository.fetch("owner")
+          repository_name = config_repository.fetch("name")
+          production_branch = config_repository.fetch("productionBranch")
+
+          expected_repository = "#{repository_owner}/#{repository_name}"
+          current_repository = ENV.fetch("REPOSITORY")
+
+          raise "Workflow may only run for #{expected_repository}; received #{current_repository}." unless current_repository == expected_repository
+          raise "Production branch must be master." unless production_branch == "master"
+
+          status_field_name = config_fields.fetch("status", "Status")
+          commits_field_name = config_fields.fetch("commits", "Commits")
+
+          excluded_label = config_labels.fetch("projectExclude", "project:exclude")
+          paused_label = config_labels.fetch("automationPaused", "automation:paused")
+          ai_working_label = config_ai_labels.fetch("working", "ai:working")
+          ai_approved_label = config_ai_labels.fetch("approved", "ai:approved")
+
+          protected_statuses = array_value(status_transitions, "safeguards")
+            .fetch("protectedStatuses", %w[Blocked Cancelled])
+
+          payload = JSON.parse(File.read(ENV.fetch("EVENT_PATH")))
+          event_name = ENV.fetch("EVENT_NAME")
+
+          source_event = event_name
+          source_action = nil
+          issue_number = nil
+          branch_name = nil
+          branch_prefix = nil
+          branch_issue_number = nil
+          branch_valid = false
+          commit_count = nil
+          status_target = nil
+          status_reason = nil
+          warnings = []
+          skipped_reasons = []
+
+          case event_name
+          when "issues"
+            source_action = payload.fetch("action")
+            issue_number = payload.dig("issue", "number")
+
+          when "push"
+            source_action = "push"
+
+            if payload["deleted"] == true
+              skipped_reasons << "Deleted branch pushes do not update Commits; scheduled drift reconciliation handles remaining linked work."
+            else
+              ref = payload.fetch("ref", "")
+              branch_name = ref.delete_prefix("refs/heads/")
+
+              branches = hash_value(branch_activity, "branches")
+              branch_naming = hash_value(branches, "naming")
+              branch_pattern = branch_naming.fetch("pattern")
+              issue_number_capture_group = hash_value(branches, "parsing")
+                .dig("issueNumber", "captureGroup") || 2
+
+              blocked_prefixes = array_value(branches, "blockedPrefixes")
+              production_branch_name = hash_value(branches, "production")
+                .fetch("branch", "master")
+
+              if branch_name == production_branch_name
+                skipped_reasons << "Push to production branch `#{production_branch}` does not represent active issue work."
+              elsif blocked_prefixes.any? { |prefix| branch_name.start_with?("#{prefix}/") }
+                skipped_reasons << "Release branches are prohibited and do not trigger Project automation."
+              else
+                match = Regexp.new(branch_pattern).match(branch_name)
+
+                if match
+                  branch_valid = true
+                  branch_prefix = match[1]
+                  branch_issue_number = match[issue_number_capture_group].to_i
+                  issue_number = branch_issue_number
+                else
+                  skipped_reasons << "Branch `#{branch_name}` does not match the configured GitHub Flow naming rule."
+                end
+              end
+            end
+
+          when "workflow_dispatch"
+            source_action = "manual-reconcile"
+            raw_issue_number = ENV.fetch("INPUT_ISSUE_NUMBER", "")
+
+            unless raw_issue_number.match?(/\A[1-9][0-9]*\z/)
+              raise "workflow_dispatch requires a positive numeric issue_number."
+            end
+
+            issue_number = raw_issue_number.to_i
+
+          else
+            raise "Unsupported event: #{event_name}"
+          end
+
+          unless issue_number&.positive?
+            summary = []
+            summary << "## Aerealith Project Status"
+            summary << ""
+            summary << "- **Source event:** `#{source_event}`"
+            summary << "- **Action:** No Project mutation"
+            summary << "- **Reason:** #{skipped_reasons.join(" ")}"
+
+            File.open(ENV.fetch("GITHUB_STEP_SUMMARY"), "a") do |file|
+              file.puts(summary.join("\n"))
+            end
+
+            exit 0
+          end
+
+          client = GitHubClient.new(ENV.fetch("PROJECT_TOKEN"))
+
+          project_query = <<~GRAPHQL
+            query(
+              $projectOwner: String!
+              $projectNumber: Int!
+              $repositoryOwner: String!
+              $repositoryName: String!
+              $issueNumber: Int!
+              $statusFieldName: String!
+              $commitsFieldName: String!
+            ) {
+              organization(login: $projectOwner) {
+                projectV2(number: $projectNumber) {
+                  id
+                  title
+
+                  fields(first: 100) {
+                    nodes {
+                      __typename
+
+                      ... on ProjectV2FieldCommon {
+                        id
+                        name
+                      }
+
+                      ... on ProjectV2SingleSelectField {
+                        options {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+
+              repository(owner: $repositoryOwner, name: $repositoryName) {
+                issue(number: $issueNumber) {
+                  id
+                  number
+                  state
+
+                  assignees(first: 100) {
+                    totalCount
+                  }
+
+                  labels(first: 100) {
+                    nodes {
+                      name
+                    }
+                  }
+
+                  projectItems(first: 100) {
+                    nodes {
+                      id
+                      isArchived
+
+                      project {
+                        id
+                      }
+
+                      statusValue: fieldValueByName(name: $statusFieldName) {
+                        ... on ProjectV2ItemFieldSingleSelectValue {
+                          name
+                        }
+                      }
+
+                      commitsValue: fieldValueByName(name: $commitsFieldName) {
+                        ... on ProjectV2ItemFieldNumberValue {
+                          number
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          GRAPHQL
+
+          result = client.graphql(
+            project_query,
+            {
+              "projectOwner" => project_owner,
+              "projectNumber" => project_number,
+              "repositoryOwner" => repository_owner,
+              "repositoryName" => repository_name,
+              "issueNumber" => issue_number,
+              "statusFieldName" => status_field_name,
+              "commitsFieldName" => commits_field_name,
+            },
+          )
+
+          live_project = result
+            .dig("organization", "projectV2")
+
+          raise "Could not find organization Project ##{project_number} under #{project_owner}." unless live_project
+          raise "Configured Project name `#{project_name}` does not match live Project `#{live_project["title"]}`." unless live_project["title"] == project_name
+
+          issue = result
+            .dig("repository", "issue")
+
+          raise "Could not find issue ##{issue_number} in #{expected_repository}." unless issue
+
+          labels = array_value(hash_value(issue, "labels"), "nodes")
+            .filter_map { |label| label["name"] if label.is_a?(Hash) }
+            .to_set
+
+          if labels.include?(excluded_label)
+            summary = []
+            summary << "## Aerealith Project Status"
+            summary << ""
+            summary << "- **Issue:** ##{issue_number}"
+            summary << "- **Source event:** `#{source_event}`"
+            summary << "- **Action:** Skipped"
+            summary << "- **Reason:** `#{excluded_label}` is present."
+
+            File.open(ENV.fetch("GITHUB_STEP_SUMMARY"), "a") do |file|
+              file.puts(summary.join("\n"))
+            end
+
+            exit 0
+          end
+
+          live_fields = array_value(hash_value(live_project, "fields"), "nodes")
+          fields_by_name = live_fields
+            .select { |field| field.is_a?(Hash) && present?(field["name"]) }
+            .group_by { |field| field["name"] }
+
+          status_field_matches = fields_by_name[status_field_name] || []
+          commits_field_matches = fields_by_name[commits_field_name] || []
+
+          raise "Project field `#{status_field_name}` is missing." if status_field_matches.empty?
+          raise "Project field `#{status_field_name}` exists more than once." if status_field_matches.length > 1
+
+          status_field = status_field_matches.first
+          status_options = array_value(status_field, "options")
+
+          if status_options.empty?
+            raise "Project field `#{status_field_name}` must be a single-select field."
+          end
+
+          project_item = array_value(hash_value(issue, "projectItems"), "nodes")
+            .find { |item| item.dig("project", "id") == live_project["id"] }
+
+          created_project_item = false
+          restored_project_item = false
+
+          if project_item.nil?
+            add_item_mutation = <<~GRAPHQL
+              mutation($projectId: ID!, $contentId: ID!) {
+                addProjectV2ItemById(
+                  input: {
+                    projectId: $projectId
+                    contentId: $contentId
+                  }
+                ) {
+                  item {
+                    id
+                  }
+                }
+              }
+            GRAPHQL
+
+            add_result = client.graphql(
+              add_item_mutation,
+              {
+                "projectId" => live_project.fetch("id"),
+                "contentId" => issue.fetch("id"),
+              },
+            )
+
+            project_item = {
+              "id" => add_result.dig("addProjectV2ItemById", "item", "id"),
+              "isArchived" => false,
+              "statusValue" => nil,
+              "commitsValue" => nil,
+            }
+
+            raise "GitHub did not return a Project item after adding issue ##{issue_number}." unless present?(project_item["id"])
+
+            created_project_item = true
+          elsif project_item["isArchived"] == true && issue["state"] == "OPEN"
+            unarchive_mutation = <<~GRAPHQL
+              mutation($projectId: ID!, $itemId: ID!) {
+                unarchiveProjectV2Item(
+                  input: {
+                    projectId: $projectId
+                    itemId: $itemId
+                  }
+                ) {
+                  item {
+                    id
+                  }
+                }
+              }
+            GRAPHQL
+
+            client.graphql(
+              unarchive_mutation,
+              {
+                "projectId" => live_project.fetch("id"),
+                "itemId" => project_item.fetch("id"),
+              },
+            )
+
+            restored_project_item = true
+          end
+
+          current_status = project_item
+            .dig("statusValue", "name")
+
+          current_status = "Inbox" unless present?(current_status)
+
+          current_commit_count = project_item
+            .dig("commitsValue", "number")
+
+          assignee_count = issue
+            .dig("assignees", "totalCount")
+            .to_i
+
+          paused = labels.include?(paused_label)
+          protected = protected_statuses.include?(current_status)
+
+          if event_name == "push" && branch_valid
+            base_ref = URI.encode_www_form_component(production_branch)
+            head_ref = URI.encode_www_form_component(branch_name)
+
+            comparison_response, comparison = client.get(
+              "/repos/#{repository_owner}/#{repository_name}/compare/#{base_ref}...#{head_ref}",
+            )
+
+            if comparison_response.is_a?(Net::HTTPSuccess)
+              commit_count = comparison["ahead_by"]
+
+              unless commit_count.is_a?(Numeric)
+                warnings << "GitHub comparison did not return an ahead_by commit count for `#{branch_name}`."
+              end
+            else
+              warnings << "Could not compare `#{production_branch}` with `#{branch_name}`; HTTP #{comparison_response.code}."
+            end
+
+            if paused
+              skipped_reasons << "Status update skipped because `#{paused_label}` is present."
+            elsif protected
+              skipped_reasons << "Status update skipped because current status `#{current_status}` is protected."
+            elsif assignee_count.zero?
+              skipped_reasons << "Status update skipped because issue ##{issue_number} has no assignee."
+            elsif %w[Inbox Backlog Ready].include?(current_status)
+              status_target = "In Progress"
+              status_reason = "Valid GitHub Flow branch received a remote push."
+            end
+          end
+
+          if event_name == "issues"
+            case source_action
+            when "closed"
+              status_target = "Done"
+              status_reason = "Issue was closed."
+
+            when "reopened"
+              if paused
+                skipped_reasons << "Reopen transition skipped because `#{paused_label}` is present."
+              elsif %w[Done Cancelled].include?(current_status)
+                status_target = "Backlog"
+                status_reason = "Issue was reopened."
+              end
+
+            when "labeled"
+              added_label = payload
+                .dig("label", "name")
+
+              if added_label == ai_working_label
+                if paused
+                  skipped_reasons << "AI work transition skipped because `#{paused_label}` is present."
+                elsif protected
+                  skipped_reasons << "AI work transition skipped because current status `#{current_status}` is protected."
+                elsif !labels.include?(ai_approved_label)
+                  skipped_reasons << "AI work transition skipped because `#{ai_approved_label}` is required."
+                elsif %w[Inbox Backlog Ready].include?(current_status)
+                  status_target = "In Progress"
+                  status_reason = "Approved AI work began."
+                end
+              end
+
+              if added_label == "status:testing"
+                if paused
+                  skipped_reasons << "Testing transition skipped because `#{paused_label}` is present."
+                elsif protected
+                  skipped_reasons << "Testing transition skipped because current status `#{current_status}` is protected."
+                elsif %w[In Progress In Review].include?(current_status)
+                  status_target = "Testing"
+                  status_reason = "Testing status label was applied."
+                end
+              end
+
+              if added_label == "status:qa"
+                if paused
+                  skipped_reasons << "QA transition skipped because `#{paused_label}` is present."
+                elsif protected
+                  skipped_reasons << "QA transition skipped because current status `#{current_status}` is protected."
+                elsif %w[In Review Testing].include?(current_status)
+                  status_target = "QA"
+                  status_reason = "QA status label was applied."
+                end
+              end
+            end
+          end
+
+          if event_name == "workflow_dispatch"
+            if labels.include?(ai_working_label) &&
+               labels.include?(ai_approved_label) &&
+               !paused &&
+               !protected &&
+               %w[Inbox Backlog Ready].include?(current_status)
+              status_target = "In Progress"
+              status_reason = "Manual reconciliation found approved active AI work."
+            elsif labels.include?("status:testing") &&
+                  !paused &&
+                  !protected &&
+                  %w[In Progress In Review].include?(current_status)
+              status_target = "Testing"
+              status_reason = "Manual reconciliation found testing status label."
+            elsif labels.include?("status:qa") &&
+                  !paused &&
+                  !protected &&
+                  %w[In Review Testing].include?(current_status)
+              status_target = "QA"
+              status_reason = "Manual reconciliation found QA status label."
+            end
+          end
+
+          update_field_mutation = <<~GRAPHQL
+            mutation(
+              $projectId: ID!
+              $itemId: ID!
+              $fieldId: ID!
+              $value: ProjectV2FieldValue!
+            ) {
+              updateProjectV2ItemFieldValue(
+                input: {
+                  projectId: $projectId
+                  itemId: $itemId
+                  fieldId: $fieldId
+                  value: $value
+                }
+              ) {
+                projectV2Item {
+                  id
+                }
+              }
+            }
+          GRAPHQL
+
+          status_updated = false
+          commits_updated = false
+
+          if present?(status_target) && status_target != current_status
+            status_option = status_options.find do |option|
+              option["name"] == status_target
+            end
+
+            raise "Status option `#{status_target}` does not exist in Project field `#{status_field_name}`." unless status_option
+
+            client.graphql(
+              update_field_mutation,
+              {
+                "projectId" => live_project.fetch("id"),
+                "itemId" => project_item.fetch("id"),
+                "fieldId" => status_field.fetch("id"),
+                "value" => {
+                  "singleSelectOptionId" => status_option.fetch("id"),
+                },
+              },
+            )
+
+            status_updated = true
+          end
+
+          if event_name == "push" &&
+             branch_valid &&
+             commit_count.is_a?(Numeric) &&
+             !labels.include?(excluded_label)
+
+            if commits_field_matches.empty?
+              warnings << "Project field `#{commits_field_name}` is missing; commit count was not updated."
+            elsif commits_field_matches.length > 1
+              raise "Project field `#{commits_field_name}` exists more than once."
+            elsif current_commit_count.to_f != commit_count.to_f
+              commits_field = commits_field_matches.first
+
+              client.graphql(
+                update_field_mutation,
+                {
+                  "projectId" => live_project.fetch("id"),
+                  "itemId" => project_item.fetch("id"),
+                  "fieldId" => commits_field.fetch("id"),
+                  "value" => {
+                    "number" => commit_count.to_f,
+                  },
+                },
+              )
+
+              commits_updated = true
+            end
+          end
+
+          summary = []
+          summary << "## Aerealith Project Status"
+          summary << ""
+          summary << "- **Issue:** ##{issue_number}"
+          summary << "- **Source event:** `#{source_event}`"
+          summary << "- **Source action:** `#{source_action}`" if present?(source_action)
+          summary << "- **Project item:** #{created_project_item ? "Created" : restored_project_item ? "Restored" : "Existing"}"
+          summary << "- **Current status:** `#{current_status}`"
+
+          if status_updated
+            summary << "- **New status:** `#{status_target}`"
+            summary << "- **Reason:** #{status_reason}"
+          else
+            summary << "- **Status update:** None"
+          end
+
+          if branch_valid
+            summary << "- **Branch:** `#{branch_name}`"
+            summary << "- **Branch prefix:** `#{branch_prefix}`"
+            summary << "- **Commits ahead of #{production_branch}:** `#{commit_count}`" if commit_count.is_a?(Numeric)
+            summary << "- **Commits field updated:** #{commits_updated ? "Yes" : "No"}"
+          end
+
+          summary << "- **Assignees:** `#{assignee_count}`"
+
+          unless skipped_reasons.empty?
+            summary << ""
+            summary << "### Skipped Rules"
+            skipped_reasons.uniq.each do |reason|
+              summary << "- #{reason}"
+            end
+          end
+
+          unless warnings.empty?
+            summary << ""
+            summary << "### Warnings"
+            warnings.uniq.each do |warning|
+              summary << "- #{warning}"
+            end
+          end
+
+          File.open(ENV.fetch("GITHUB_STEP_SUMMARY"), "a") do |file|
+            file.puts(summary.join("\n"))
+          end
+          RUBY

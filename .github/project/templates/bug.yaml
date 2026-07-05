@@ -1,0 +1,128 @@
+# .github/project/templates/bug.yaml
+
+schemaVersion: 1
+
+template:
+  key: bug
+  name: Bug
+  description: Broken, incorrect, or unexpected behavior in Aerealith.
+  appliesTo:
+    - issue
+
+project:
+  defaults:
+    status: Inbox
+    type: Bug
+    priority: Medium
+    effort: Medium
+    release: Unscheduled
+    aiTriage: Pending
+
+  fields:
+    area: null
+    iteration: null
+    startDate: null
+    targetDate: null
+    blockedReason: null
+    aiSummary: null
+
+labels:
+  add:
+    - type:bug
+
+  remove: []
+
+automation:
+  addToProject: true
+  runAiSummary: true
+  runDuplicateDetection: true
+  runAcceptanceCriteria: true
+  runEstimateSuggestion: false
+  includeInRoadmap: false
+
+  staleWork:
+    enabled: true
+
+  branchWork:
+    requiresAssigneeBeforeInProgress: true
+    validBranchPrefixes:
+      - fix
+      - hotfix
+
+issue:
+  title:
+    format: "[Bug] <short description>"
+
+  requiredSections:
+    - Summary
+    - Expected behavior
+    - Actual behavior
+    - Steps to reproduce
+    - Environment
+    - Additional context
+
+  suggestedSections:
+    - Screenshots or recordings
+    - Error messages
+    - Logs
+    - Related issues
+    - Possible cause
+    - Proposed fix
+
+triage:
+  priorityGuidance:
+    urgent:
+      - Production outage
+      - Active security incident
+      - Data loss or corruption
+      - Major authentication failure
+      - Critical payment or account failure
+
+    high:
+      - Significant user-facing regression
+      - Major feature unavailable
+      - Broad impact across Aerealith users
+      - Important integration failure
+
+    medium:
+      - Normal bug with a workaround
+      - Limited user impact
+      - Non-critical incorrect behavior
+
+    low:
+      - Minor visual defect
+      - Edge-case issue
+      - Cosmetic inconsistency
+      - Low-impact developer-experience issue
+
+  effortGuidance:
+    low:
+      - Known cause
+      - Small isolated fix
+      - Limited validation required
+
+    medium:
+      - Multiple related files or modules
+      - Moderate testing or integration work
+      - Some uncertainty around root cause
+
+    high:
+      - Cross-cutting regression
+      - Unclear root cause
+      - Requires architecture, migration, security, or deployment changes
+      - Should likely be split into follow-up issues
+
+validation:
+  expected:
+    - Reproduction steps are confirmed or clarified.
+    - The fix has appropriate automated or manual validation.
+    - Regression coverage is added when practical.
+    - Relevant documentation is updated when behavior changes.
+
+safeguards:
+  never:
+    - Close the issue automatically.
+    - Change priority automatically.
+    - Change area automatically.
+    - Mark the issue Done without an explicit lifecycle event.
+    - Override Blocked or Cancelled status.

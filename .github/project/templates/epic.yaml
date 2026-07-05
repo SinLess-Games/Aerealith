@@ -1,0 +1,149 @@
+# .github/project/templates/epic.yaml
+
+schemaVersion: 1
+
+template:
+  key: epic
+  name: Epic
+  description: Large Aerealith initiative made up of multiple related deliverables or sub-issues.
+  appliesTo:
+    - issue
+
+project:
+  defaults:
+    status: Backlog
+    type: Epic
+    priority: Medium
+    effort: High
+    release: Unscheduled
+    aiTriage: Pending
+
+  fields:
+    area: null
+    iteration: null
+    startDate: null
+    targetDate: null
+    blockedReason: null
+    aiSummary: null
+
+labels:
+  add:
+    - type:epic
+
+  remove: []
+
+automation:
+  addToProject: true
+  runAiSummary: true
+  runDuplicateDetection: true
+  runAcceptanceCriteria: true
+  runEstimateSuggestion: false
+  runImplementationPlan: true
+  includeInRoadmap: true
+
+  staleWork:
+    enabled: true
+
+  branchWork:
+    # An Epic should normally not move into active implementation merely because
+    # someone creates a branch. Its child issues should represent implementation.
+    requiresAssigneeBeforeInProgress: true
+    enabled: false
+
+  epicBreakdown:
+    enabled: true
+    requiresLabels:
+      - ai:approved
+      - ai:expand
+
+    createSubIssues: true
+    maximumSubIssues: 12
+
+    defaults:
+      status: Backlog
+      priority: inherit
+      area: inherit
+      iteration: inherit
+      release: inherit
+
+issue:
+  title:
+    format: "[Epic] <initiative name>"
+
+  requiredSections:
+    - Summary
+    - Problem or opportunity
+    - Intended outcome
+    - Scope
+    - Success criteria
+
+  suggestedSections:
+    - User impact
+    - Technical considerations
+    - Dependencies
+    - Risks
+    - Milestones
+    - Proposed sub-issues
+    - Rollout plan
+    - Release considerations
+    - Out of scope
+    - Related issues
+
+triage:
+  priorityGuidance:
+    urgent:
+      - Major production, security, or business-critical initiative requiring immediate coordination.
+      - Work required to resolve a severe outage, data-risk condition, or platform-wide failure.
+
+    high:
+      - Major initiative required for a near-term product, platform, or release goal.
+      - Cross-cutting work that blocks multiple important features or teams.
+
+    medium:
+      - Valuable planned initiative without an immediate incident or release blocker.
+      - Significant product or technical improvement that should be prioritized through normal planning.
+
+    low:
+      - Long-term initiative, exploratory work, or improvement without near-term delivery pressure.
+      - Work that should remain visible but is not currently scheduled.
+
+  effortGuidance:
+    low:
+      - Normally not appropriate for an Epic.
+      - Reconsider whether this should be a Feature, Task, Chore, or Documentation item instead.
+
+    medium:
+      - A bounded initiative with a small number of independently deliverable sub-issues.
+      - Limited cross-area coordination and low implementation uncertainty.
+
+    high:
+      - Multi-part initiative involving several deliverables, systems, users, or release considerations.
+      - Includes meaningful uncertainty, dependency management, rollout work, or architectural decisions.
+      - Should be broken into focused sub-issues before implementation begins.
+
+planning:
+  expected:
+    - The Epic has a clear problem, outcome, and bounded scope.
+    - The Epic identifies meaningful success criteria.
+    - Dependencies and risks are recorded when known.
+    - The Epic is broken into independently trackable sub-issues before broad implementation starts.
+    - Child issues can be assigned, estimated, reviewed, and released independently where practical.
+    - The roadmap reflects the intended iteration and release window when those decisions are made.
+
+validation:
+  expected:
+    - Each child issue has clear, testable acceptance criteria.
+    - Child work collectively supports the Epic success criteria.
+    - Dependencies are sequenced without circular relationships.
+    - Release, migration, observability, accessibility, security, and documentation work are included only when relevant.
+    - The Epic is not marked Done until all required child work is complete, cancelled, or intentionally deferred.
+
+safeguards:
+  never:
+    - Automatically mark the Epic Done.
+    - Automatically close the Epic.
+    - Automatically create sub-issues without ai:approved and ai:expand.
+    - Automatically change priority.
+    - Automatically change area.
+    - Automatically assign users.
+    - Override Blocked or Cancelled status.

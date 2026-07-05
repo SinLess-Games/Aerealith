@@ -1,0 +1,468 @@
+# .github/project/automations/release-lifecycle.yaml
+
+schemaVersion: 1
+
+# Declarative release lifecycle rules consumed by:
+# .github/workflows/102-project-status.yaml
+# .github/workflows/104-project-pr-lifecycle.yaml
+#
+# This automation handles GitHub Releases created from master.
+#
+# Aerealith does not use release branches.
+#
+# Release flow:
+#
+# PR merged into master
+# → Awaiting Release
+#
+# GitHub Release published from a master commit or tag
+# → Done
+#
+# Pre-releases do not complete work by default.
+# Draft releases do not change Project status.
+#
+# Production deployment remains the strongest completion signal. A published
+# GitHub Release can also complete work when the release contains the merged
+# PRs or commit range associated with those Project items.
+
+automation:
+  key: release-lifecycle
+  name: Release Lifecycle
+  enabled: true
+
+configFile: ../config.yaml
+fieldsFile: ../fields.yaml
+statusTransitionsFile: ./status-transitions.yaml
+issueLinkingFile: ./issue-linking.yaml
+deploymentLifecycleFile: ./deployment-lifecycle.yaml
+
+project:
+  owner: SinLess-Games
+  name: Aerealith Delivery
+  repository: SinLess-Games/Aerealith
+
+repository:
+  owner: SinLess-Games
+  name: Aerealith
+  productionBranch: master
+
+fields:
+  status: Status
+  release: Release
+  labels: Labels
+  linkedPullRequests: Linked pull requests
+  milestone: Milestone
+
+triggers:
+  - event: release
+    actions:
+      - created
+      - published
+      - edited
+      - unpublished
+      - deleted
+
+  - event: workflow_dispatch
+
+  # Recovery reconciliation for releases or Project updates missed by an
+  # earlier workflow failure.
+  - event: schedule
+    cron: "43 */6 * * *"
+
+releaseBranches:
+  allowed: false
+
+  blockedPrefixes:
+    - release/
+    - releases/
+
+  behavior:
+    # Releases must come from a tag or a commit reachable from master.
+    requireTagOrCommitReachableFromProductionBranch: true
+
+    # A tag named "release/v1.0.0" is rejected because that naming implies a
+    # release branch workflow. Tags should use normal semantic version names.
+    rejectTagPrefixes:
+      - release/
+      - releases/
+
+tagging:
+  enabled: true
+
+  allowedPatterns:
+    - '^v[0-9]+\.[0-9]+\.[0-9]+$'
+    - '^v[0-9]+\.[0-9]+\.[0-9]+-(alpha|beta|rc)\.[0-9]+$'
+
+  examples:
+    valid:
+      - v0.1.0
+      - v0.2.0
+      - v1.0.0
+      - v1.0.0-alpha.1
+      - v1.0.0-beta.2
+      - v1.0.0-rc.1
+
+    invalid:
+      - release/v0.1.0
+      - releases/v1.0.0
+      - 1.0.0
+      - v1
+      - v1.0
+      - production-v1.0.0
+
+  validation:
+    requireAnnotatedTag: false
+    requireTagReachableFromMaster: true
+    rejectInvalidTagWithoutFailingReleaseWorkflow: true
+
+releaseTypes:
+  draft:
+    enabled: true
+
+    actions:
+      updateProjectStatus: false
+      updateReleaseField: false
+      writeWorkflowSummary: true
+
+  prerelease:
+    enabled: true
+
+    actions:
+      updateProjectStatus: false
+      updateReleaseField: true
+      releaseFieldBehavior:
+        mode: markMatchingItems
+        valueSource: releaseTag
+      writeWorkflowSummary: true
+
+    notes: >-
+      Pre-releases are visible as release planning metadata but do not mark
+      items Done. Production deployment or a stable published release remains
+      required for completion.
+
+  stable:
+    enabled: true
+
+    actions:
+      updateProjectStatus: true
+      updateReleaseField: true
+      writeWorkflowSummary: true
+
+releaseField:
+  enabled: true
+  fieldName: Release
+
+  defaults:
+    unscheduled: Unscheduled
+    nextRelease: Next Release
+
+  mapping:
+    mode: releaseTag
+
+    # A published release tag such as v0.2.0 should match Project items whose
+    # Release field is v0.2.0.
+    normalize:
+      trimWhitespace: true
+      preserveLeadingV: true
+      caseSensitive: false
+
+  updateRules:
+    onReleaseCreated:
+      enabled: false
+
+    onPrereleasePublished:
+      enabled: true
+      updateMatchingItemsTo: "{release.tagName}"
+
+    onStableReleasePublished:
+      enabled: true
+      updateMatchingItemsTo: "{release.tagName}"
+
+    onReleaseUnpublished:
+      enabled: false
+
+releaseAssociation:
+  enabled: true
+
+  # A release can complete only work that is actually included in its code.
+  requireAssociatedWorkItem: true
+
+  matchPriority:
+    # Preferred:
+    # Project item Release field equals the published tag.
+    - projectReleaseField
+
+    # Strong association:
+    # The merged PR merge commit is reachable from the release tag.
+    - mergedPullRequestMergeCommitReachableFromTag
+
+    # Fallback:
+    # The merged PR is inside the commit range from the previous stable release
+    # tag through the new release tag.
+    - mergedPullRequestsSincePreviousStableRelease
+
+    # Fallback:
+    # An open or closed issue is linked to one of those merged PRs.
+    - linkedIssuesFromAssociatedPullRequests
+
+  commitRange:
+    enabled: true
+
+    base:
+      source: previousStableReleaseTag
+      fallback: initialRepositoryHistory
+
+    head:
+      source: currentReleaseTag
+
+    includeMergedPullRequestsOnly: true
+    requireBaseBranch: master
+
+  pullRequests:
+    includeMerged: true
+    includeOpen: false
+    includeClosedWithoutMerge: false
+    requireBaseBranch: master
+
+  issues:
+    includeOpen: true
+    includeClosedAwaitingRelease: true
+    includeDone: false
+    includeCancelled: false
+
+  maximumItemsPerRelease: 100
+
+  tooManyItemsBehavior:
+    action: skipProjectStatusUpdates
+    report: workflowSummary
+
+statusTransitions:
+  enabled: true
+
+  protectedStatuses:
+    - Blocked
+    - Cancelled
+
+  protectedLabels:
+    - automation:paused
+    - project:exclude
+
+  manualStatusChangesTakePriority: true
+
+  stableReleasePublished:
+    pullRequest:
+      targetStatus: Done
+      allowedFrom:
+        - Awaiting Release
+        - Deployment
+        - QA
+        - Testing
+
+    linkedIssue:
+      targetStatus: Done
+      allowedFrom:
+        - Awaiting Release
+        - Deployment
+        - QA
+        - Testing
+
+  prereleasePublished:
+    pullRequest:
+      statusChange: false
+
+    linkedIssue:
+      statusChange: false
+
+  releaseUnpublished:
+    enabled: false
+
+    # Do not roll work backward automatically if a release is unpublished.
+    # This should be a human decision because deployments may already have
+    # occurred and a later replacement release may be in progress.
+    statusChange: false
+
+releaseNotes:
+  enabled: true
+
+  source:
+    preferred:
+      - GitHub generated release notes
+      - release body
+      - associated merged pull requests
+
+  ai:
+    enabled: false
+
+    # AI release-note generation is intentionally left to ai-triage.yaml or a
+    # dedicated release workflow. This lifecycle file only governs status and
+    # Project metadata.
+
+  projectComments:
+    enabled: false
+
+  workflowSummary:
+    enabled: true
+
+    include:
+      - releaseName
+      - releaseTag
+      - releaseUrl
+      - releaseType
+      - targetCommitish
+      - associatedPullRequestNumbers
+      - associatedIssueNumbers
+      - previousStatuses
+      - targetStatuses
+      - skippedReason
+
+milestones:
+  enabled: true
+
+  behavior:
+    # GitHub milestone names may optionally match a release tag.
+    #
+    # Example:
+    # Milestone: v0.2.0
+    # Release tag: v0.2.0
+    #
+    # This gives the roadmap a clean visible release marker.
+    matchReleaseTag: true
+
+    updateOnStableReleasePublished:
+      closeMatchingMilestone: false
+
+    # Milestone completion remains a manual decision. A release can contain
+    # work outside a milestone, and a milestone can include deferred work.
+    requireManualClose: true
+
+productionDeploymentCoordination:
+  enabled: true
+
+  # Deployment success is authoritative when both automation systems observe
+  # the same work item.
+  precedence:
+    - productionDeploymentSucceeded
+    - stableReleasePublished
+
+  behavior:
+    # If deployment already marked an item Done, do not make a redundant update.
+    skipAlreadyDoneItems: true
+
+    # A stable release may complete items even when no deployment event exists,
+    # as long as they are confidently associated with the release.
+    stableReleaseMayCompleteUndeployedItems: true
+
+  fallback:
+    # This is useful for early Aerealith releases before a formal deployment
+    # integration is fully wired into GitHub environments.
+    allowStableReleaseAsCompletionSignal: true
+
+draftAndPrereleaseHandling:
+  draft:
+    createProjectItems: false
+    updateExistingItems: false
+    updateStatuses: false
+
+  prerelease:
+    updateExistingItems: true
+    updateStatuses: false
+    updateReleaseField: true
+
+  stable:
+    updateExistingItems: true
+    updateStatuses: true
+    updateReleaseField: true
+
+reconciliation:
+  enabled: true
+
+  schedule:
+    cron: "43 */6 * * *"
+
+  scope:
+    includeStableReleasesSinceDays: 90
+    includeProjectStatuses:
+      - Awaiting Release
+      - Deployment
+      - QA
+
+  actions:
+    - findRecentStableReleases
+    - validateReleaseTagPattern
+    - validateReleaseCommitReachabilityFromMaster
+    - associateMergedPullRequestsWithReleases
+    - associateLinkedIssuesWithMergedPullRequests
+    - repairMissedReleaseStatusTransitions
+    - skipProtectedItems
+    - writeWorkflowSummary
+
+forkPullRequests:
+  enabled: true
+
+  restrictions:
+    # Forks never publish trusted Aerealith releases and should not gain access
+    # to release mutation behavior or repository secrets.
+    useRepositorySecrets: false
+    writeProjectFieldsFromForkEvents: false
+    useExternalAiProviders: false
+    inspectUntrustedSourceCode: false
+
+permissions:
+  contents: read
+  issues: write
+  pullRequests: read
+  repositoryProjects: write
+
+safeguards:
+  never:
+    - createReleases
+    - publishReleases
+    - editReleases
+    - deleteReleases
+    - createTags
+    - deleteTags
+    - pushTags
+    - createReleaseBranches
+    - deleteBranches
+    - mergePullRequests
+    - closePullRequests
+    - closeIssues
+    - closeMilestonesAutomatically
+    - overrideBlockedStatus
+    - overrideCancelledStatus
+    - overrideAutomationPausedItems
+    - runExternalAiAnalysis
+    - checkoutOrRunUntrustedCode
+
+  skipWhen:
+    labels:
+      - project:exclude
+
+workflow:
+  concurrency:
+    enabled: true
+    groupFormat: "project-release-{repository}-{releaseTag}"
+    cancelInProgress: false
+
+  logging:
+    writeWorkflowSummary: true
+
+    include:
+      - releaseId
+      - releaseName
+      - releaseTag
+      - releaseTargetCommitish
+      - releasePrerelease
+      - releaseDraft
+      - releaseUrl
+      - previousStableReleaseTag
+      - associatedPullRequestNumbers
+      - associatedIssueNumbers
+      - previousStatuses
+      - targetStatuses
+      - skippedReason
+
+    exclude:
+      - accessTokens
+      - secrets
+      - sourceCode

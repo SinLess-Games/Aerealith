@@ -1,0 +1,251 @@
+# .github/project/views.yaml
+
+schemaVersion: 1
+
+# This file declares the intended GitHub Project views for Aerealith Delivery.
+#
+# GitHub Actions should use this as a desired-state contract:
+# - 100-project-sync.yaml validates field references and view definitions.
+# - 105-project-drift-check.yaml reports view drift.
+# - Initial view creation and layout configuration are bootstrapped in GitHub's UI.
+#
+# Field keys reference .github/project/fields.yaml.
+
+project:
+  owner: SinLess-Games
+  number: 3
+  name: Aerealith Delivery
+  repository: SinLess-Games/Aerealith
+
+sync:
+  mode: validate
+  matchViewsBy: name
+  reportDrift: true
+  failOnMissingRequiredView: true
+
+defaults:
+  repositoryFilter: SinLess-Games/Aerealith
+  includeArchivedItems: false
+  showFieldNames: true
+
+views:
+  - key: development_board
+    name: Development Board
+    description: Full Kanban workflow for all Aerealith delivery work.
+    layout: board
+    required: true
+
+    filter:
+      query: "repo:SinLess-Games/Aerealith"
+      includeArchivedItems: false
+
+    board:
+      columnField: status
+
+      visibleColumns:
+        - inbox
+        - backlog
+        - ready
+        - in_progress
+        - in_review
+        - testing
+        - qa
+        - awaiting_release
+        - deployment
+        - done
+        - blocked
+        - cancelled
+
+      grouping:
+        enabled: false
+
+      slicing:
+        enabled: false
+
+      sorting:
+        enabled: false
+
+      cardFields:
+        - type
+        - priority
+        - area
+        - assignees
+        - target_date
+        - linked_pull_requests
+        - blocked_reason
+
+      fieldSums:
+        - item_count
+
+  - key: planning_table
+    name: Planning Table
+    description: Active backlog, sprint planning, prioritization, and delivery tracking.
+    layout: table
+    required: true
+
+    filter:
+      query: >-
+        repo:SinLess-Games/Aerealith
+        -status:"Done"
+        -status:"Cancelled"
+      includeArchivedItems: false
+
+    table:
+      visibleFields:
+        - title
+        - status
+        - type
+        - priority
+        - area
+        - effort
+        - iteration
+        - release
+        - assignees
+        - reviewers
+        - linked_pull_requests
+        - start_date
+        - target_date
+        - milestone
+        - blocked_reason
+        - ai_triage
+        - commits
+
+      grouping:
+        field: iteration
+        direction: ascending
+        showEmptyGroups: false
+
+      sorting:
+        - field: priority
+          direction: ascending
+
+        - field: target_date
+          direction: ascending
+
+        - field: effort
+          direction: ascending
+
+      fieldSums:
+        - item_count
+        - commits
+
+  - key: product_roadmap
+    name: Product Roadmap
+    description: Iteration-based roadmap for product work, release planning, and delivery windows.
+    layout: roadmap
+    required: true
+
+    filter:
+      query: >-
+        repo:SinLess-Games/Aerealith
+        -is:pr
+        -status:"Done"
+        -status:"Cancelled"
+      includeArchivedItems: false
+      rules:
+        type:
+          include:
+            - Epic
+            - Feature
+            - Bug
+            - Security
+            - Task
+
+    roadmap:
+      timelineField: iteration
+      zoom: quarter
+
+      markers:
+        - iterations
+        - milestones
+
+      grouping:
+        field: release
+        direction: ascending
+        showEmptyGroups: true
+
+      slicing:
+        field: area
+
+      sorting:
+        - field: iteration
+          direction: ascending
+
+        - field: target_date
+          direction: ascending
+
+        - field: priority
+          direction: ascending
+
+      visibleFields:
+        - title
+        - status
+        - type
+        - area
+        - priority
+        - effort
+        - iteration
+        - release
+        - assignees
+        - start_date
+        - target_date
+        - milestone
+        - sub_issues_progress
+
+      fieldSums:
+        - item_count
+
+  - key: my_work
+    name: My Work
+    description: Personal active work queue for the currently signed-in contributor.
+    layout: board
+    required: true
+
+    filter:
+      query: >-
+        repo:SinLess-Games/Aerealith
+        assignee:@me
+        -status:"Done"
+        -status:"Cancelled"
+      includeArchivedItems: false
+
+    board:
+      columnField: status
+
+      visibleColumns:
+        - inbox
+        - backlog
+        - ready
+        - in_progress
+        - in_review
+        - testing
+        - qa
+        - awaiting_release
+        - deployment
+        - blocked
+
+      grouping:
+        enabled: false
+
+      slicing:
+        enabled: false
+
+      sorting:
+        enabled: false
+
+      cardFields:
+        - type
+        - priority
+        - area
+        - effort
+        - iteration
+        - release
+        - target_date
+        - reviewers
+        - linked_pull_requests
+        - blocked_reason
+        - commits
+
+      fieldSums:
+        - item_count
+        - commits

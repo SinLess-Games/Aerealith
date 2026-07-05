@@ -1,0 +1,980 @@
+# .github/project/automations/ai-triage.yaml
+
+schemaVersion: 1
+
+# Declarative AI workflow rules consumed by:
+# .github/workflows/103-project-ai-triage.yaml
+#
+# This automation uses AI to assist with planning, triage, issue quality,
+# pull request context, duplicate detection, and stale-work review.
+#
+# AI may advise aggressively, comment directly, and create approved
+# sub-issues. It must not silently make product or delivery decisions such as
+# changing Priority, Type, Area, release planning, or protected statuses.
+
+automation:
+  key: ai-triage
+  name: AI Triage and Planning
+  enabled: true
+
+configFile: ../config.yaml
+fieldsFile: ../fields.yaml
+labelsFile: ./labels.yaml
+statusTransitionsFile: ./status-transitions.yaml
+issueLinkingFile: ./issue-linking.yaml
+
+project:
+  owner: SinLess-Games
+  name: Aerealith Delivery
+  repository: SinLess-Games/Aerealith
+
+repository:
+  owner: SinLess-Games
+  name: Aerealith
+  productionBranch: master
+
+fields:
+  status: Status
+  priority: Priority
+  effort: Effort
+  type: Type
+  area: Area
+  iteration: Iteration
+  release: Release
+  blockedReason: Blocked reason
+  aiTriage: AI triage
+  aiSummary: AI summary
+  labels: Labels
+  assignees: Assignees
+  reviewers: Reviewers
+  linkedPullRequests: Linked pull requests
+  commits: Commits
+
+secrets:
+  githubToken: COPILOT_GITHUB_TOKEN
+  openaiToken: OPENAI_API_TOKEN
+  geminiApiKey: GEMINI_API_KEY
+
+providers:
+  primary:
+    name: openai
+    enabled: true
+    secret: OPENAI_API_TOKEN
+
+  fallback:
+    name: gemini
+    enabled: true
+    secret: GEMINI_API_KEY
+
+  github:
+    name: github
+    enabled: true
+    secret: COPILOT_GITHUB_TOKEN
+
+    # This token is used for GitHub API and ProjectV2 mutations only.
+    # It is not treated as an AI inference credential.
+    allowedActions:
+      - readIssues
+      - readPullRequests
+      - readProjectItems
+      - writeIssueComments
+      - writePullRequestComments
+      - createIssues
+      - createSubIssues
+      - updateProjectFields
+      - addLabels
+      - removeLabels
+
+providerRouting:
+  default:
+    provider: openai
+    fallbackProvider: gemini
+
+  tasks:
+    issueSummary:
+      provider: openai
+      fallbackProvider: gemini
+
+    duplicateDetection:
+      provider: gemini
+      fallbackProvider: openai
+
+    estimateSuggestion:
+      provider: openai
+      fallbackProvider: gemini
+
+    acceptanceCriteria:
+      provider: openai
+      fallbackProvider: gemini
+
+    implementationPlan:
+      provider: openai
+      fallbackProvider: gemini
+
+    epicBreakdown:
+      provider: gemini
+      fallbackProvider: openai
+
+    pullRequestDescriptionReview:
+      provider: openai
+      fallbackProvider: gemini
+
+    pullRequestSummary:
+      provider: openai
+      fallbackProvider: gemini
+
+    staleWorkReview:
+      provider: gemini
+      fallbackProvider: openai
+
+triggers:
+  - event: issues
+    actions:
+      - opened
+      - reopened
+      - edited
+      - labeled
+      - unlabeled
+      - assigned
+      - closed
+
+  - event: issue_comment
+    actions:
+      - created
+
+  - event: pull_request
+    actions:
+      - opened
+      - reopened
+      - edited
+      - synchronize
+      - ready_for_review
+      - converted_to_draft
+      - labeled
+      - unlabeled
+      - closed
+
+  - event: pull_request_review
+    actions:
+      - submitted
+
+  - event: schedule
+    cron: "23 8 * * *"
+
+  - event: workflow_dispatch
+
+scope:
+  include:
+    repositories:
+      - SinLess-Games/Aerealith
+
+    itemTypes:
+      - issue
+      - pull_request
+
+  exclude:
+    labels:
+      - ai:skip
+      - project:exclude
+
+    statuses:
+      - Cancelled
+
+  forkPullRequests:
+    allowAiAnalysis: false
+    allowExternalSecrets: false
+    allowProjectMutations: false
+    allowComments: false
+    allowIssueCreation: false
+    allowSubIssueCreation: false
+
+  trustedPullRequests:
+    requireHeadRepository:
+      owner: SinLess-Games
+      name: Aerealith
+
+inputPolicy:
+  enabled: true
+
+  allowedSources:
+    issue:
+      - title
+      - body
+      - labels
+      - assignees
+      - issueType
+      - projectFields
+      - linkedPullRequests
+      - parentIssue
+      - subIssues
+
+    pullRequest:
+      - title
+      - body
+      - labels
+      - assignees
+      - reviewers
+      - baseBranch
+      - headBranch
+      - changedFilesMetadata
+      - commitCount
+      - linkedIssues
+      - reviewState
+      - projectFields
+
+  pullRequestDiffs:
+    enabled: true
+
+    # Diffs may be used for trusted internal Aerealith branches only.
+    trustedInternalPullRequestsOnly: true
+
+    maximumFiles: 100
+    maximumChangedLines: 12000
+    maximumPatchCharacters: 60000
+
+    excludedPaths:
+      - ".env"
+      - ".env.*"
+      - "**/*.pem"
+      - "**/*.key"
+      - "**/*secret*"
+      - "**/*credentials*"
+      - "**/node_modules/**"
+      - "**/dist/**"
+      - "**/build/**"
+      - "**/.nx/**"
+
+  repositoryContext:
+    enabled: true
+
+    allowedPaths:
+      - "README.md"
+      - "CONTRIBUTING.md"
+      - "AGENTS.md"
+      - "docs/**"
+      - ".github/**"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "nx.json"
+
+    maximumFiles: 25
+    maximumCharactersPerFile: 12000
+    maximumTotalCharacters: 90000
+
+  redact:
+    enabled: true
+
+    patterns:
+      - "github_pat_[A-Za-z0-9_]+"
+      - "ghp_[A-Za-z0-9]+"
+      - "sk-[A-Za-z0-9_-]+"
+      - "AIza[A-Za-z0-9_-]+"
+      - "-----BEGIN [A-Z ]+ PRIVATE KEY-----"
+
+  neverSend:
+    - repositorySecrets
+    - workflowSecrets
+    - environmentSecrets
+    - decryptedCredentials
+    - privateKeys
+    - tokenValues
+    - rawGitHubEventPayloads
+
+limits:
+  maximumCallsPerItemPerDay: 2
+  maximumCommentsPerItemPerDay: 1
+  maximumSubIssuesPerParent: 12
+  maximumInputTokens: 20000
+  maximumOutputTokens: 2000
+  maximumWeeklyWorkflowRuns: 100
+  maximumDuplicateCandidates: 10
+  maximumStaleItemsPerRun: 25
+
+idempotency:
+  enabled: true
+
+  markerFormat: "<!-- aerealith-ai:{task}:{contentHash} -->"
+
+  behavior:
+    skipExistingEquivalentComment: true
+    updateExistingManagedProjectField: true
+    doNotDuplicateSubIssues: true
+
+labels:
+  skip: ai:skip
+  approved: ai:approved
+  expand: ai:expand
+  working: ai:working
+  paused: automation:paused
+  exclude: project:exclude
+  stale: stale
+
+projectFieldBehavior:
+  aiTriage:
+    pending: Pending
+    suggested: Suggested
+    approved: Approved
+    rejected: Rejected
+
+  aiSummary:
+    maximumLength: 500
+    updateWhen:
+      - issueOpened
+      - issueEdited
+      - pullRequestOpened
+      - pullRequestSynchronized
+      - explicitCommand
+
+  effort:
+    # AI may suggest an estimate but must not change the value automatically.
+    allowAutomaticUpdates: false
+
+  priority:
+    allowAutomaticUpdates: false
+
+  type:
+    allowAutomaticUpdates: false
+
+  area:
+    allowAutomaticUpdates: false
+
+  iteration:
+    allowAutomaticUpdates: false
+
+  release:
+    allowAutomaticUpdates: false
+
+statusBehavior:
+  aiWorking:
+    enabled: true
+
+    trigger:
+      label: ai:working
+
+    targetStatus: In Progress
+
+    requires:
+      - trustedInternalItem
+      - aiApprovedLabel
+      - assignedAiAgent
+
+    allowedFrom:
+      - Inbox
+      - Backlog
+      - Ready
+
+    protectedStatuses:
+      - Blocked
+      - Cancelled
+
+    protectedLabels:
+      - automation:paused
+      - project:exclude
+
+  never:
+    - moveToBlocked
+    - moveToCancelled
+    - moveToDone
+    - overrideBlocked
+    - overrideCancelled
+    - overrideAutomationPaused
+
+tasks:
+  issueSummary:
+    enabled: true
+
+    promptFile: ../prompts/issue-summary.md
+
+    appliesTo:
+      - issue
+
+    triggers:
+      - issues.opened
+      - issues.edited
+      - labels.added:ai:approved
+      - command:/project ai summarize
+
+    conditions:
+      - issueIsOpen: true
+      - labels:
+          excludes:
+            - ai:skip
+            - project:exclude
+
+    output:
+      projectField:
+        name: AI summary
+
+      comment:
+        enabled: false
+
+      aiTriage:
+        value: Suggested
+
+    instructions:
+      summarize:
+        - problem
+        - intendedOutcome
+        - importantConstraints
+        - notableDependencies
+        - unresolvedQuestions
+
+      style:
+        maximumBullets: 6
+        concise: true
+        noMarkdownHeading: true
+
+  duplicateDetection:
+    enabled: true
+
+    promptFile: ../prompts/duplicate-detection.md
+
+    appliesTo:
+      - issue
+
+    triggers:
+      - issues.opened
+      - issues.edited
+      - command:/project ai duplicates
+
+    conditions:
+      - issueIsOpen: true
+      - labels:
+          excludes:
+            - ai:skip
+            - project:exclude
+
+    search:
+      scope:
+        - openIssues
+        - recentlyClosedIssues
+
+      recentlyClosedWithinDays: 180
+      maximumCandidates: 10
+
+    output:
+      comment:
+        enabled: true
+
+        onlyWhen:
+          confidenceAtLeast: 0.75
+
+      aiTriage:
+        value: Suggested
+
+    safeguards:
+      never:
+        - closeIssue
+        - addDuplicateLabelAutomatically
+        - mergeIssuesAutomatically
+
+  estimateSuggestion:
+    enabled: true
+
+    promptFile: ../prompts/estimate-suggestion.md
+
+    appliesTo:
+      - issue
+
+    triggers:
+      - labels.added:ai:approved
+      - command:/project ai estimate
+
+    conditions:
+      - issueIsOpen: true
+      - labels:
+          excludes:
+            - ai:skip
+            - project:exclude
+
+    allowedEstimates:
+      - "1"
+      - "2"
+      - "3"
+      - "5"
+      - "8"
+      - "13"
+
+    output:
+      comment:
+        enabled: true
+
+      projectField:
+        name: Effort
+        allowAutomaticUpdate: false
+
+      aiTriage:
+        value: Suggested
+
+    instructions:
+      require:
+        - estimate
+        - confidence
+        - assumptions
+        - reasons
+
+      splitRecommendation:
+        whenEstimateAtLeast: 8
+
+  acceptanceCriteria:
+    enabled: true
+
+    promptFile: ../prompts/acceptance-criteria.md
+
+    appliesTo:
+      - issue
+
+    triggers:
+      - labels.added:ai:approved
+      - command:/project ai acceptance-criteria
+
+    conditions:
+      - issueIsOpen: true
+      - labels:
+          excludes:
+            - ai:skip
+            - project:exclude
+
+    output:
+      comment:
+        enabled: true
+
+      aiTriage:
+        value: Suggested
+
+    instructions:
+      include:
+        - functionalCriteria
+        - validationCriteria
+        - accessibilityCriteriaWhenRelevant
+        - securityCriteriaWhenRelevant
+        - explicitOutOfScopeItems
+
+      format:
+        useTaskList: true
+        maximumCriteria: 12
+
+  implementationPlan:
+    enabled: true
+
+    promptFile: ../prompts/implementation-plan.md
+
+    appliesTo:
+      - issue
+
+    triggers:
+      - labels.added:ai:approved
+      - command:/project ai plan
+
+    conditions:
+      - issueIsOpen: true
+      - labels:
+          excludes:
+            - ai:skip
+            - project:exclude
+
+    output:
+      comment:
+        enabled: true
+
+      aiTriage:
+        value: Suggested
+
+    instructions:
+      include:
+        - goal
+        - proposedApproach
+        - likelyFilesOrAreas
+        - implementationSteps
+        - validationSteps
+        - risks
+        - dependencies
+        - rollbackConsiderationsWhenRelevant
+
+      format:
+        maximumSteps: 12
+        avoidInventingUnverifiedFiles: true
+
+  epicBreakdown:
+    enabled: true
+
+    promptFile: ../prompts/epic-breakdown.md
+
+    appliesTo:
+      - issue
+
+    triggers:
+      - labels.added:ai:expand
+      - command:/project ai expand
+
+    conditions:
+      - issueIsOpen: true
+      - labels:
+          includes:
+            - ai:expand
+            - ai:approved
+
+          excludes:
+            - ai:skip
+            - project:exclude
+
+      - projectField:
+          name: Type
+          equals: Epic
+
+    output:
+      comment:
+        enabled: true
+
+      subIssues:
+        enabled: true
+        maximum: 12
+
+        createAutomatically: true
+
+        parentRelationship:
+          enabled: true
+          parent: sourceIssue
+
+        defaults:
+          status: Backlog
+          priority: Medium
+          release: inherit
+          iteration: inherit
+          area: inherit
+
+        titles:
+          prefix: "[Epic] "
+
+      aiTriage:
+        value: Approved
+
+    safeguards:
+      duplicateDetectionBeforeCreate: true
+      requireExplicitLabels:
+        - ai:expand
+        - ai:approved
+
+      never:
+        - createMoreThanMaximum
+        - createEmptySubIssue
+        - createSubIssueWithoutAcceptanceCriteria
+        - closeParentIssue
+
+  pullRequestDescriptionReview:
+    enabled: true
+
+    promptFile: ../prompts/pr-description-review.md
+
+    appliesTo:
+      - pull_request
+
+    triggers:
+      - pull_request.opened
+      - pull_request.edited
+      - pull_request.ready_for_review
+      - command:/project ai review-description
+
+    conditions:
+      - pullRequest:
+          state: open
+      - trustedInternalPullRequest: true
+      - labels:
+          excludes:
+            - ai:skip
+            - project:exclude
+
+    output:
+      comment:
+        enabled: true
+
+        onlyWhen:
+          missingRequiredContext: true
+
+      aiTriage:
+        value: Suggested
+
+    instructions:
+      checkFor:
+        - summaryOfChanges
+        - linkedIssue
+        - testingInformation
+        - breakingChanges
+        - deploymentNotesWhenRelevant
+        - rollbackNotesWhenRelevant
+
+      doNot:
+        - approvePullRequest
+        - requestChanges
+        - dismissReviews
+
+  pullRequestSummary:
+    enabled: true
+
+    promptFile: ../prompts/pr-summary.md
+
+    appliesTo:
+      - pull_request
+
+    triggers:
+      - pull_request.opened
+      - pull_request.synchronize
+      - pull_request.ready_for_review
+      - command:/project ai summarize-pr
+
+    conditions:
+      - pullRequest:
+          state: open
+      - trustedInternalPullRequest: true
+      - labels:
+          excludes:
+            - ai:skip
+            - project:exclude
+
+    output:
+      comment:
+        enabled: false
+
+      projectField:
+        name: AI summary
+
+      aiTriage:
+        value: Suggested
+
+    instructions:
+      include:
+        - purpose
+        - majorChanges
+        - validationStatus
+        - riskAreas
+        - linkedWork
+
+      maximumLength: 500
+
+  staleWorkReview:
+    enabled: true
+
+    promptFile: ../prompts/stale-item-review.md
+
+    appliesTo:
+      - issue
+      - pull_request
+
+    schedule:
+      firstReminderAfterDays: 14
+      labelAfterDays: 30
+      finalReminderAfterDays: 45
+
+    conditions:
+      - statusIn:
+          - Inbox
+          - Backlog
+          - Ready
+          - In Progress
+          - In Review
+          - Testing
+          - QA
+          - Awaiting Release
+          - Deployment
+
+      - labels:
+          excludes:
+            - ai:skip
+            - project:exclude
+            - automation:paused
+
+    output:
+      firstReminder:
+        comment: true
+        addLabel: false
+
+      staleReminder:
+        comment: true
+        addLabel: stale
+
+      finalReminder:
+        comment: true
+        addLabel: stale
+
+    safeguards:
+      never:
+        - closeIssue
+        - closePullRequest
+        - cancelProjectItem
+        - archiveProjectItem
+        - moveStatusAutomatically
+
+issueCreation:
+  enabled: true
+
+  # New issue creation is used only for approved Epic expansion.
+  #
+  # General AI-generated issues require a manually added ai:approved label and
+  # an explicit `/project ai create-issues` comment command.
+  createFromCommands:
+    enabled: true
+
+    command: /project ai create-issues
+
+    requires:
+      - ai:approved
+      - maintainerActor
+      - trustedInternalIssue
+
+    maximumIssues: 12
+
+    output:
+      parentRelationship:
+        enabled: true
+        parent: sourceIssue
+
+      projectDefaults:
+        status: Backlog
+        priority: Medium
+        release: inherit
+        iteration: inherit
+        area: inherit
+
+commands:
+  enabled: true
+
+  requiredActorAssociation:
+    - OWNER
+    - MEMBER
+    - COLLABORATOR
+
+  supported:
+    - command: /project ai summarize
+      task: issueSummary
+
+    - command: /project ai duplicates
+      task: duplicateDetection
+
+    - command: /project ai estimate
+      task: estimateSuggestion
+
+    - command: /project ai acceptance-criteria
+      task: acceptanceCriteria
+
+    - command: /project ai plan
+      task: implementationPlan
+
+    - command: /project ai expand
+      task: epicBreakdown
+
+    - command: /project ai review-description
+      task: pullRequestDescriptionReview
+
+    - command: /project ai summarize-pr
+      task: pullRequestSummary
+
+    - command: /project ai create-issues
+      task: issueCreation
+
+approval:
+  requiredFor:
+    - estimateSuggestion
+    - acceptanceCriteria
+    - implementationPlan
+    - epicBreakdown
+    - issueCreation
+
+  notRequiredFor:
+    - issueSummary
+    - duplicateDetection
+    - pullRequestDescriptionReview
+    - pullRequestSummary
+    - staleWorkReview
+
+  approvalLabel: ai:approved
+
+comments:
+  enabled: true
+
+  author:
+    displayName: Aerealith AI
+
+  include:
+    taskName: true
+    modelProvider: false
+    confidenceWhenAvailable: true
+    limitationsWhenRelevant: true
+
+  footer: >-
+    Generated by Aerealith AI automation. Review before relying on this output.
+
+  rateLimits:
+    maximumCommentsPerItemPerDay: 1
+    minimumMinutesBetweenComments: 60
+
+permissions:
+  contents: read
+  issues: write
+  pullRequests: write
+  repositoryProjects: write
+
+safeguards:
+  manualProjectChangesTakePriority: true
+
+  protectedStatuses:
+    - Blocked
+    - Cancelled
+
+  protectedLabels:
+    - automation:paused
+    - project:exclude
+    - ai:skip
+
+  never:
+    - mergePullRequests
+    - approvePullRequests
+    - requestChangesOnPullRequests
+    - dismissReviews
+    - closeIssues
+    - closePullRequests
+    - deleteIssues
+    - deletePullRequests
+    - deleteProjectItems
+    - changePriorityAutomatically
+    - changeTypeAutomatically
+    - changeAreaAutomatically
+    - changeIterationAutomatically
+    - changeReleaseAutomatically
+    - changeBlockedReasonAutomatically
+    - overrideBlockedStatus
+    - overrideCancelledStatus
+    - overrideAutomationPausedItems
+    - exposeSecrets
+    - logSensitiveInput
+    - runArbitraryRepositoryCode
+    - executeUntrustedPullRequestCode
+    - analyzeForkPullRequestDiffs
+
+workflow:
+  concurrency:
+    enabled: true
+    groupFormat: "project-ai-{repository}-{issueOrPullRequestNumber}"
+    cancelInProgress: false
+
+  logging:
+    writeWorkflowSummary: true
+
+    include:
+      - sourceEvent
+      - task
+      - provider
+      - itemNumber
+      - itemType
+      - projectItemFound
+      - commentsCreated
+      - fieldsUpdated
+      - subIssuesCreated
+      - skippedReason
+
+    exclude:
+      - accessTokens
+      - secrets
+      - rawPrompt
+      - rawModelResponse
+      - fullPullRequestDiff
+      - sourceCode

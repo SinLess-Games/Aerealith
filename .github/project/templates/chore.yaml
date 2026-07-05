@@ -1,0 +1,127 @@
+# .github/project/templates/chore.yaml
+
+schemaVersion: 1
+
+template:
+  key: chore
+  name: Chore
+  description: Maintenance, cleanup, tooling, dependency, configuration, or operational work.
+  appliesTo:
+    - issue
+
+project:
+  defaults:
+    status: Ready
+    type: Chore
+    priority: Low
+    effort: Low
+    release: Unscheduled
+    aiTriage: Pending
+
+  fields:
+    area: null
+    iteration: null
+    startDate: null
+    targetDate: null
+    blockedReason: null
+    aiSummary: null
+
+labels:
+  add:
+    - type:chore
+
+  remove: []
+
+automation:
+  addToProject: true
+  runAiSummary: true
+  runDuplicateDetection: false
+  runAcceptanceCriteria: false
+  runEstimateSuggestion: false
+  includeInRoadmap: false
+
+  staleWork:
+    enabled: true
+
+  branchWork:
+    requiresAssigneeBeforeInProgress: true
+    validBranchPrefixes:
+      - chore
+      - refactor
+      - build
+      - ci
+      - docs
+      - test
+
+issue:
+  title:
+    format: "[Chore] <short description>"
+
+  requiredSections:
+    - Summary
+    - Reason
+    - Scope
+    - Validation
+
+  suggestedSections:
+    - Affected areas
+    - Dependencies
+    - Rollback considerations
+    - Related issues
+    - Follow-up work
+
+triage:
+  priorityGuidance:
+    urgent:
+      - Production maintenance required immediately.
+      - Critical operational, infrastructure, or dependency issue.
+      - Security-related maintenance with immediate impact.
+
+    high:
+      - Important maintenance blocking active development.
+      - Required upgrade before a planned release.
+      - Tooling or infrastructure issue affecting multiple contributors.
+
+    medium:
+      - Planned maintenance with clear value.
+      - Configuration, tooling, or cleanup work needed soon.
+      - Dependency update requiring normal validation.
+
+    low:
+      - Routine cleanup.
+      - Non-urgent dependency update.
+      - Minor developer-experience improvement.
+      - Refactor with no immediate delivery impact.
+
+  effortGuidance:
+    low:
+      - Small isolated configuration, cleanup, or tooling change.
+      - Limited validation required.
+      - No expected cross-library or deployment impact.
+
+    medium:
+      - Multiple related files, packages, workflows, or configuration areas.
+      - Requires normal testing, CI validation, or dependency verification.
+      - May affect more than one development workflow.
+
+    high:
+      - Cross-cutting tooling, CI/CD, infrastructure, or dependency migration work.
+      - Requires coordinated validation across multiple areas.
+      - Has meaningful rollback, release, or security considerations.
+      - Should likely be split into smaller issues.
+
+validation:
+  expected:
+    - The stated maintenance goal is completed.
+    - Relevant checks, tests, builds, or workflows pass.
+    - Configuration remains valid and documented when needed.
+    - No unrelated product behavior changes are introduced.
+    - Rollback steps are known when the change affects infrastructure or deployment.
+
+safeguards:
+  never:
+    - Close the issue automatically.
+    - Change priority automatically.
+    - Change area automatically.
+    - Mark the issue Done without an explicit lifecycle event.
+    - Override Blocked or Cancelled status.

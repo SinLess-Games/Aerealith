@@ -1,0 +1,892 @@
+# .github/project/automations/drift-check.yaml
+
+schemaVersion: 1
+
+# Declarative Project health and drift rules consumed by:
+# .github/workflows/105-project-drift-check.yaml
+#
+# This automation verifies that:
+# - .github/project/** still agrees with the live GitHub Project.
+# - Required fields, labels, views, and statuses exist.
+# - Items are not stuck in obviously incorrect lifecycle states.
+# - Branch, PR, deployment, release, stale, and archive automation have not
+#   missed an event.
+#
+# Scheduled checks are read-only by default.
+# Safe repairs require an explicit workflow_dispatch run.
+# Destructive Project changes remain owned by config-sync.yaml.
+
+automation:
+  key: drift-check
+  name: Project Drift Check
+  enabled: true
+
+configFile: ../config.yaml
+fieldsFile: ../fields.yaml
+viewsFile: ../views.yaml
+labelsFile: ./labels.yaml
+
+automationFiles:
+  - ./auto-add-project.yaml
+  - ./status-transitions.yaml
+  - ./branch-activity.yaml
+  - ./pull-request-lifecycle.yaml
+  - ./deployment-lifecycle.yaml
+  - ./release-lifecycle.yaml
+  - ./issue-linking.yaml
+  - ./commit-tracking.yaml
+  - ./ai-triage.yaml
+  - ./stale-work.yaml
+  - ./archive-items.yaml
+  - ./labels.yaml
+  - ./dependencies.yaml
+  - ./config-sync.yaml
+  - ./drift-check.yaml
+
+project:
+  owner: SinLess-Games
+  name: Aerealith Delivery
+  repository: SinLess-Games/Aerealith
+
+repository:
+  owner: SinLess-Games
+  name: Aerealith
+  productionBranch: master
+
+triggers:
+  - event: schedule
+    # Runs every six hours.
+    cron: "37 */6 * * *"
+
+  - event: workflow_dispatch
+
+  - event: push
+    branches:
+      - master
+
+    paths:
+      - ".github/project/**"
+      - ".github/workflows/105-project-drift-check.yaml"
+
+manualDispatch:
+  enabled: true
+
+  inputs:
+    dryRun:
+      description: Report drift without changing Project items.
+      required: false
+      default: true
+      type: boolean
+
+    repairSafeDrift:
+      description: Apply safe item-level repairs without changing protected statuses.
+      required: false
+      default: false
+      type: boolean
+
+    scope:
+      description: Select the drift-check area to run.
+      required: false
+      default: all
+      type: choice
+
+      options:
+        - all
+        - configuration
+        - fields
+        - labels
+        - views
+        - issues
+        - pull-requests
+        - branches
+        - commits
+        - deployments
+        - releases
+        - stale-work
+        - archives
+
+    itemNumber:
+      description: Optional issue or pull request number for a targeted check.
+      required: false
+      type: string
+
+modes:
+  scheduled:
+    dryRun: true
+    repairSafeDrift: false
+    failWorkflowOnError: false
+    writeWorkflowSummary: true
+
+  pushToMaster:
+    dryRun: true
+    repairSafeDrift: false
+    failWorkflowOnError: true
+    writeWorkflowSummary: true
+
+  manual:
+    dryRunDefault: true
+    allowSafeRepair: true
+    failWorkflowOnError: false
+    writeWorkflowSummary: true
+
+scope:
+  includeArchivedItems: true
+
+  repositories:
+    - SinLess-Games/Aerealith
+
+  itemTypes:
+    - issue
+    - pull_request
+
+  statuses:
+    active:
+      - Inbox
+      - Backlog
+      - Ready
+      - In Progress
+      - In Review
+      - Testing
+      - QA
+      - Awaiting Release
+      - Deployment
+      - Blocked
+
+    terminal:
+      - Done
+      - Cancelled
+
+  protectedStatuses:
+    - Blocked
+    - Cancelled
+
+  protectedLabels:
+    - automation:paused
+    - project:exclude
+    - ai:skip
+
+configurationChecks:
+  enabled: true
+
+  requiredFiles:
+    - ../config.yaml
+    - ../fields.yaml
+    - ../views.yaml
+    - ./auto-add-project.yaml
+    - ./status-transitions.yaml
+    - ./branch-activity.yaml
+    - ./pull-request-lifecycle.yaml
+    - ./deployment-lifecycle.yaml
+    - ./release-lifecycle.yaml
+    - ./issue-linking.yaml
+    - ./commit-tracking.yaml
+    - ./ai-triage.yaml
+    - ./stale-work.yaml
+    - ./archive-items.yaml
+    - ./labels.yaml
+    - ./dependencies.yaml
+    - ./config-sync.yaml
+    - ./drift-check.yaml
+
+  checks:
+    - key: yaml-syntax
+      description: All Project configuration files must contain valid YAML.
+      severity: error
+
+    - key: matching-project-identity
+      description: Project owner, Project name, and repository must match across configuration files.
+      severity: error
+
+    - key: production-branch
+      description: All automation must use master as the production branch.
+      severity: error
+
+    - key: release-branches-disabled
+      description: Release branches and releases branch prefixes must remain disabled.
+      severity: error
+
+    - key: unique-automation-keys
+      description: Every automation file must have a unique automation key.
+      severity: error
+
+    - key: referenced-files-exist
+      description: Every referenced configuration, prompt, template, and automation file must exist.
+      severity: error
+
+    - key: referenced-fields-exist
+      description: Every configured Project field reference must exist in fields.yaml.
+      severity: error
+
+    - key: referenced-labels-exist
+      description: Every automation label reference must exist in labels.yaml.
+      severity: error
+
+    - key: referenced-statuses-exist
+      description: Every status used by an automation must exist in the Status field contract.
+      severity: error
+
+    - key: protected-statuses-consistent
+      description: Blocked and Cancelled must remain protected across every lifecycle automation.
+      severity: error
+
+    - key: no-external-ai-in-config-sync
+      description: config-sync and drift-check workflows must not use OpenAI or Gemini secrets.
+      severity: error
+
+fieldChecks:
+  enabled: true
+
+  requiredNativeFields:
+    - Title
+    - Status
+    - Assignees
+    - Labels
+    - Linked pull requests
+    - Repository
+
+  requiredOrganizationIssueFields:
+    - Priority
+    - Effort
+    - Start date
+    - Target date
+
+  requiredProjectFields:
+    - Type
+    - Area
+    - Iteration
+    - Release
+    - Blocked reason
+    - AI triage
+    - AI summary
+    - Commits
+
+  typeRequirements:
+    Type: singleSelect
+    Area: singleSelect
+    Iteration: iteration
+    Release: singleSelect
+    Blocked reason: text
+    AI triage: singleSelect
+    AI summary: text
+    Commits: number
+
+  statusRequirements:
+    field: Status
+
+    requiredOptions:
+      - Inbox
+      - Backlog
+      - Ready
+      - In Progress
+      - In Review
+      - Testing
+      - QA
+      - Awaiting Release
+      - Deployment
+      - Done
+      - Blocked
+      - Cancelled
+
+    protectedOptions:
+      - Blocked
+      - Cancelled
+
+  organizationIssueFieldRequirements:
+    Priority:
+      type: singleSelect
+
+      requiredOptions:
+        - Urgent
+        - High
+        - Medium
+        - Low
+
+    Effort:
+      type: singleSelect
+
+      requiredOptions:
+        - "1"
+        - "2"
+        - "3"
+        - "5"
+        - "8"
+        - "13"
+
+    Start date:
+      type: date
+
+    Target date:
+      type: date
+
+  checks:
+    - key: required-fields-exist
+      severity: error
+
+    - key: expected-field-types
+      severity: error
+
+    - key: required-field-options-exist
+      severity: error
+
+    - key: commits-is-number
+      severity: error
+
+    - key: iteration-is-iteration-field
+      severity: error
+
+    - key: blocked-reason-is-text
+      severity: error
+
+    - key: ai-summary-is-text
+      severity: error
+
+labelChecks:
+  enabled: true
+
+  requiredLabels:
+    - project:exclude
+    - automation:paused
+    - stale
+    - automation:testing
+    - status:testing
+    - status:qa
+    - ai:skip
+    - ai:approved
+    - ai:expand
+    - ai:working
+    - dependencies:dependabot
+    - deployment:failed
+
+  checks:
+    - key: managed-labels-exist
+      description: All labels required by Project automation must exist.
+      severity: error
+
+    - key: managed-label-mappings
+      description: Type, Area, dependency, and priority labels must map to valid Project field options.
+      severity: error
+
+    - key: one-type-label
+      description: Issues and pull requests should not have more than one type label.
+      severity: warning
+
+    - key: one-area-label
+      description: Issues and pull requests should normally have one primary area label.
+      severity: warning
+
+    - key: project-exclude-isolated
+      description: project:exclude items must not receive Project automation updates.
+      severity: error
+
+    - key: ai-skip-isolated
+      description: ai:skip items must never be sent to external AI providers.
+      severity: error
+
+viewChecks:
+  enabled: true
+
+  mode: validate-only
+
+  requiredViews:
+    - Development Board
+    - Planning Table
+    - Product Roadmap
+    - My Work
+
+  checks:
+    - key: required-views-exist
+      severity: warning
+
+    - key: expected-layout
+      severity: warning
+
+    - key: expected-filter
+      severity: warning
+
+    - key: expected-grouping
+      severity: warning
+
+    - key: expected-sorting
+      severity: warning
+
+    - key: expected-visible-fields
+      severity: warning
+
+    - key: expected-board-columns
+      severity: warning
+
+  behavior:
+    # Views are manually bootstrapped in GitHub's UI.
+    # This workflow reports differences but does not overwrite view layouts.
+    repairAutomatically: false
+    failWorkflowOnDrift: false
+
+projectItemChecks:
+  enabled: true
+
+  issueMembership:
+    enabled: true
+
+    checks:
+      - key: open-issues-present
+        description: Open issues without project:exclude should exist in the Project.
+        severity: warning
+
+      - key: closed-issues-retained
+        description: Recently closed issues should remain in the Project until archive policy applies.
+        severity: warning
+
+  pullRequestMembership:
+    enabled: true
+
+    checks:
+      - key: open-prs-present
+        description: Open pull requests without project:exclude should exist in the Project.
+        severity: warning
+
+      - key: merged-prs-retained
+        description: Recently merged pull requests should remain until release and archive rules complete.
+        severity: warning
+
+  requiredMetadata:
+    enabled: true
+
+    checks:
+      - key: missing-status
+        appliesTo:
+          - issue
+          - pull_request
+        severity: warning
+
+      - key: blocked-items-require-reason
+        when:
+          status: Blocked
+        requireField:
+          name: Blocked reason
+          notEmpty: true
+        severity: error
+
+      - key: stale-items-have-label
+        when:
+          inactiveForDaysAtLeast: 30
+        requireLabel: stale
+        severity: warning
+
+      - key: done-items-not-active
+        when:
+          status: Done
+        forbidOpenPullRequest: true
+        severity: warning
+
+      - key: cancelled-items-not-active
+        when:
+          status: Cancelled
+        forbidOpenPullRequest: true
+        severity: warning
+
+branchChecks:
+  enabled: true
+
+  productionBranch: master
+
+  blockedPrefixes:
+    - release/
+    - releases/
+
+  allowedPrefixes:
+    - feature/
+    - fix/
+    - hotfix/
+    - chore/
+    - docs/
+    - refactor/
+    - test/
+    - build/
+    - ci/
+    - perf/
+    - security/
+    - ai/
+
+  branchPattern: >-
+    ^(feature|fix|hotfix|chore|docs|refactor|test|build|ci|perf|security|ai)/
+    [1-9][0-9]*-[a-z0-9][a-z0-9-]*$
+
+  checks:
+    - key: no-release-branches
+      severity: error
+
+    - key: open-pr-branch-names
+      description: Open pull requests targeting master should use a valid branch name.
+      severity: warning
+
+    - key: assigned-issue-active-work
+      description: Assigned issues with valid active branches should be In Progress or later.
+      severity: warning
+
+    - key: active-branch-issue-reference
+      description: Valid work branches must reference an existing issue number.
+      severity: warning
+
+commitChecks:
+  enabled: true
+
+  field: Commits
+
+  checks:
+    - key: commits-match-open-pr-head
+      description: The Commits field should match the PR head branch commit count ahead of master.
+      severity: warning
+
+    - key: commits-are-non-negative
+      description: The Commits field may never be negative.
+      severity: error
+
+    - key: merged-pr-commit-count-preserved
+      description: Merged pull request items should retain their final commit count until archival.
+      severity: warning
+
+    - key: invalid-branch-no-commit-tracking
+      description: Invalid branches must not update a Project Commits field.
+      severity: warning
+
+pullRequestChecks:
+  enabled: true
+
+  statuses:
+    draft: In Progress
+    readyForReview: In Review
+    changesRequested: In Progress
+    merged: Awaiting Release
+    closedWithoutMerge: Cancelled
+
+  checks:
+    - key: draft-pr-status
+      severity: warning
+
+    - key: ready-pr-status
+      severity: warning
+
+    - key: requested-changes-status
+      severity: warning
+
+    - key: merged-pr-status
+      severity: warning
+
+    - key: closed-unmerged-pr-status
+      severity: warning
+
+    - key: linked-issue-state
+      description: Linked issues should not drift behind the active lifecycle of their associated PRs.
+      severity: warning
+
+    - key: protected-linked-items
+      description: Blocked, Cancelled, and paused linked issues must not be overwritten by PR lifecycle automation.
+      severity: error
+
+deploymentChecks:
+  enabled: true
+
+  environments:
+    staging:
+      expectedStatus: QA
+
+    production:
+      startedStatus: Deployment
+      succeededStatus: Done
+      failedStatus: QA
+
+  checks:
+    - key: staging-deployment-status
+      severity: warning
+
+    - key: production-deployment-started-status
+      severity: warning
+
+    - key: production-deployment-success-status
+      severity: warning
+
+    - key: failed-production-deployment-status
+      severity: warning
+
+    - key: deployment-only-affects-associated-work
+      description: Deployments must only update items tied to the deployed commit range or merged PRs.
+      severity: error
+
+releaseChecks:
+  enabled: true
+
+  productionBranch: master
+
+  tagPatterns:
+    - '^v[0-9]+\.[0-9]+\.[0-9]+$'
+    - '^v[0-9]+\.[0-9]+\.[0-9]+-(alpha|beta|rc)\.[0-9]+$'
+
+  blockedTagPrefixes:
+    - release/
+    - releases/
+
+  checks:
+    - key: release-tags-reachable-from-master
+      severity: error
+
+    - key: release-tags-match-pattern
+      severity: warning
+
+    - key: prerelease-does-not-complete-work
+      severity: error
+
+    - key: stable-release-completes-associated-items
+      severity: warning
+
+    - key: release-field-matches-published-tag
+      severity: warning
+
+    - key: no-release-branch-flow
+      severity: error
+
+staleWorkChecks:
+  enabled: true
+
+  thresholds:
+    firstReminderAfterDays: 14
+    staleLabelAfterDays: 30
+    finalReminderAfterDays: 45
+
+  checks:
+    - key: reminder-after-14-days
+      severity: warning
+
+    - key: stale-label-after-30-days
+      severity: warning
+
+    - key: final-reminder-after-45-days
+      severity: warning
+
+    - key: stale-label-removal-after-activity
+      severity: warning
+
+    - key: stale-work-no-status-mutation
+      description: Stale-work automation must never move, close, cancel, or archive an item.
+      severity: error
+
+archiveChecks:
+  enabled: true
+
+  policies:
+    doneAfterDays: 30
+    cancelledAfterDays: 14
+
+  neverArchiveStatuses:
+    - Blocked
+
+  checks:
+    - key: done-items-archived-on-time
+      severity: warning
+
+    - key: cancelled-items-archived-on-time
+      severity: warning
+
+    - key: blocked-items-never-archived
+      severity: error
+
+    - key: release-bound-items-protected
+      severity: error
+
+    - key: reopened-items-restored
+      severity: warning
+
+aiChecks:
+  enabled: true
+
+  secrets:
+    requiredForAiWorkflow:
+      - COPILOT_GITHUB_TOKEN
+      - OPENAI_API_TOKEN
+      - GEMINI_API_KEY
+
+    requiredForDriftWorkflow:
+      - COPILOT_GITHUB_TOKEN
+
+    forbiddenForDriftWorkflow:
+      - OPENAI_API_TOKEN
+      - GEMINI_API_KEY
+
+  checks:
+    - key: ai-skip-blocks-external-ai
+      severity: error
+
+    - key: fork-prs-no-ai-secrets
+      severity: error
+
+    - key: ai-never-changes-priority
+      severity: error
+
+    - key: ai-never-changes-type
+      severity: error
+
+    - key: ai-never-changes-area
+      severity: error
+
+    - key: ai-never-closes-items
+      severity: error
+
+    - key: ai-sub-issues-require-approval
+      severity: error
+
+    - key: ai-comments-idempotent
+      severity: warning
+
+safeRepair:
+  enabled: true
+
+  allowedOnlyWhen:
+    trigger: workflow_dispatch
+    dryRun: false
+    repairSafeDrift: true
+
+  allowedActions:
+    - addMissingProjectItemForOpenIssue
+    - addMissingProjectItemForOpenPullRequest
+    - refreshNativeProjectMetadata
+    - updateCommitCount
+    - applyStaleLabelWhenEligible
+    - removeAutomationAppliedStaleLabelAfterMeaningfulActivity
+    - restoreEligibleArchivedProjectItem
+    - synchronizeMissingLinkedPullRequestMetadata
+    - synchronizeMissingReviewerMetadata
+    - synchronizeMissingAssigneeMetadata
+
+  forbiddenActions:
+    - changeStatus
+    - changePriority
+    - changeType
+    - changeArea
+    - changeIteration
+    - changeRelease
+    - changeBlockedReason
+    - archiveProjectItem
+    - closeIssue
+    - closePullRequest
+    - mergePullRequest
+    - deleteProjectItem
+    - deleteIssue
+    - deletePullRequest
+    - deleteField
+    - deleteFieldOption
+    - deleteLabel
+    - modifyView
+    - createRelease
+    - createBranch
+    - deleteBranch
+
+  skipWhen:
+    statuses:
+      - Blocked
+      - Cancelled
+
+    labels:
+      - project:exclude
+      - automation:paused
+
+reporting:
+  enabled: true
+
+  workflowSummary:
+    enabled: true
+
+  pullRequestComment:
+    enabled: false
+
+  issueCreation:
+    enabled: false
+
+  grouping:
+    by:
+      - severity
+      - checkCategory
+
+  severity:
+    error:
+      failManualRepairRun: true
+      failPushToMasterRun: true
+      failScheduledRun: false
+
+    warning:
+      failManualRepairRun: false
+      failPushToMasterRun: false
+      failScheduledRun: false
+
+    info:
+      failManualRepairRun: false
+      failPushToMasterRun: false
+      failScheduledRun: false
+
+  include:
+    - checkedAt
+    - mode
+    - dryRun
+    - scope
+    - checkedItems
+    - errors
+    - warnings
+    - safeRepairsPlanned
+    - safeRepairsApplied
+    - skippedItems
+    - skippedReasons
+    - configurationDrift
+    - fieldDrift
+    - labelDrift
+    - viewDrift
+    - lifecycleDrift
+
+security:
+  enabled: true
+
+  secrets:
+    allowed:
+      - COPILOT_GITHUB_TOKEN
+
+    forbidden:
+      - OPENAI_API_TOKEN
+      - GEMINI_API_KEY
+
+  pullRequests:
+    checkoutHeadCode: false
+    executeHeadCode: false
+    usePullRequestTarget: false
+    inspectUntrustedDiffs: false
+    exposeSecretsToForks: false
+
+permissions:
+  contents: read
+  issues: write
+  pullRequests: write
+  repositoryProjects: write
+
+workflow:
+  concurrency:
+    enabled: true
+    groupFormat: "project-drift-check-{repository}"
+    cancelInProgress: false
+
+  logging:
+    writeWorkflowSummary: true
+
+    include:
+      - sourceEvent
+      - mode
+      - dryRun
+      - repairSafeDrift
+      - scope
+      - itemNumber
+      - checksRun
+      - errorCount
+      - warningCount
+      - repairCount
+      - skippedReason
+
+    exclude:
+      - accessTokens
+      - secrets
+      - rawGitHubEventPayloads
+      - sourceCode

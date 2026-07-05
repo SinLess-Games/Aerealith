@@ -1,0 +1,591 @@
+# .github/project/automations/deployment-lifecycle.yaml
+
+schemaVersion: 1
+
+# Declarative deployment lifecycle rules consumed by:
+# .github/workflows/102-project-status.yaml
+# .github/workflows/104-project-pr-lifecycle.yaml
+#
+# This automation tracks deployments created by GitHub Actions, Cloudflare,
+# or another deployment provider that reports GitHub deployment events.
+#
+# Deployment status behavior:
+#
+# Preview deployment:
+#   No Project Status transition by default.
+#
+# Staging deployment:
+#   In progress / successful → QA
+#   Failed / errored         → Testing
+#
+# Production deployment:
+#   In progress              → Deployment
+#   Successful               → Done
+#   Failed / errored         → QA
+#
+# A deployment must be associated with a merged pull request, linked issue,
+# or commit range before it may change Project status.
+
+automation:
+  key: deployment-lifecycle
+  name: Deployment Lifecycle
+  enabled: true
+
+configFile: ../config.yaml
+fieldsFile: ../fields.yaml
+statusTransitionsFile: ./status-transitions.yaml
+issueLinkingFile: ./issue-linking.yaml
+pullRequestLifecycleFile: ./pull-request-lifecycle.yaml
+
+project:
+  owner: SinLess-Games
+  name: Aerealith Delivery
+  repository: SinLess-Games/Aerealith
+
+repository:
+  owner: SinLess-Games
+  name: Aerealith
+  productionBranch: master
+
+fields:
+  status: Status
+  release: Release
+  labels: Labels
+  linkedPullRequests: Linked pull requests
+
+triggers:
+  - event: deployment
+
+  - event: deployment_status
+
+  - event: workflow_dispatch
+
+  # Recovery reconciliation for deployments that were missed because of a
+  # provider delay, failed GitHub event, or workflow outage.
+  - event: schedule
+    cron: "31 */6 * * *"
+
+deploymentSources:
+  # GitHub Actions environments automatically create GitHub deployment records
+  # when a workflow job targets an environment.
+  githubActions:
+    enabled: true
+
+  # Allows Cloudflare or another external provider to report GitHub deployment
+  # and deployment_status events through its GitHub integration, GitHub App,
+  # webhook relay, or deployment API integration.
+  externalProviders:
+    enabled: true
+
+  # A deployment must contain a usable ref or SHA before this automation can
+  # associate it with merged pull requests and linked issues.
+  requireCommitShaOrRef: true
+
+environments:
+  preview:
+    names:
+      - preview
+      - Preview
+
+    aliases:
+      - development
+      - Development
+      - dev
+      - Dev
+
+    enabled: true
+
+    projectStatus:
+      enabled: false
+
+    deploymentStatuses:
+      started:
+        - pending
+        - in_progress
+
+      succeeded:
+        - success
+
+      failed:
+        - failure
+        - error
+
+  staging:
+    names:
+      - staging
+      - Staging
+
+    aliases:
+      - test
+      - Test
+      - qa
+      - QA
+
+    enabled: true
+
+    projectStatus:
+      enabled: true
+
+    deploymentStatuses:
+      started:
+        - pending
+        - in_progress
+
+      succeeded:
+        - success
+
+      failed:
+        - failure
+        - error
+
+    transitions:
+      started:
+        targetStatus: QA
+
+        allowedFrom:
+          - In Progress
+          - In Review
+          - Testing
+          - Awaiting Release
+
+      succeeded:
+        targetStatus: QA
+
+        allowedFrom:
+          - In Progress
+          - In Review
+          - Testing
+          - Awaiting Release
+          - QA
+
+      failed:
+        targetStatus: Testing
+
+        allowedFrom:
+          - QA
+          - Awaiting Release
+          - Deployment
+
+  production:
+    names:
+      - production
+      - Production
+
+    aliases:
+      - prod
+      - Prod
+
+    enabled: true
+
+    projectStatus:
+      enabled: true
+
+    deploymentStatuses:
+      started:
+        - pending
+        - in_progress
+
+      succeeded:
+        - success
+
+      failed:
+        - failure
+        - error
+
+    transitions:
+      started:
+        targetStatus: Deployment
+
+        allowedFrom:
+          - Awaiting Release
+          - QA
+          - Testing
+
+      succeeded:
+        targetStatus: Done
+
+        allowedFrom:
+          - Awaiting Release
+          - Deployment
+          - QA
+          - Testing
+
+      failed:
+        targetStatus: QA
+
+        allowedFrom:
+          - Deployment
+          - Awaiting Release
+          - QA
+
+deploymentAssociation:
+  enabled: true
+
+  # Deployment association is intentionally conservative.
+  #
+  # A deployment may change Project state only when it can be tied to actual
+  # Aerealith delivery work. This prevents a random deploy of master from
+  # moving unrelated Project items to Done.
+  requireAssociatedWorkItem: true
+
+  matchPriority:
+    # Best option:
+    # Match deployment SHA to a merged PR merge commit SHA.
+    - mergedPullRequestMergeCommit
+
+    # Next best option:
+    # Find merged PRs included in the commit range since the previous
+    # successful deployment for the same environment.
+    - commitsSincePreviousSuccessfulDeployment
+
+    # Fallback:
+    # Match the deployment branch to a PR head branch.
+    - pullRequestHeadBranch
+
+    # Final fallback:
+    # Match a valid GitHub Flow branch name such as feature/123-name.
+    - validBranchIssueReference
+
+  deploymentCommitRange:
+    enabled: true
+
+    # This is primarily used for staging and production deployments from master.
+    #
+    # Example:
+    #
+    # Previous successful production SHA: abc123
+    # Current deployment SHA: def456
+    #
+    # The workflow compares:
+    #
+    # abc123...def456
+    #
+    # Then finds merged PRs included in that range and updates only their
+    # Project items and linked issues.
+    base:
+      source: previousSuccessfulDeployment
+      fallback: previousSuccessfulProductionDeployment
+
+    head:
+      source: currentDeploymentSha
+
+    includeMergedPullRequestsOnly: true
+    requireBaseBranch: master
+
+  pullRequestAssociation:
+    enabled: true
+
+    includeMergedPullRequests: true
+    includeOpenPullRequests: false
+
+    includeClosedUnmergedPullRequests: false
+
+    requireBaseBranch: master
+
+  issueAssociation:
+    enabled: true
+
+    sources:
+      - linkedPullRequests
+      - githubDevelopmentSidebar
+      - githubClosingKeywords
+      - validBranchIssueReference
+
+    includeOpenIssues: true
+    includeClosedIssuesAwaitingRelease: true
+
+    includeDoneIssues: false
+    includeCancelledIssues: false
+
+  maximumItemsPerDeployment: 100
+
+  tooManyItemsBehavior:
+    action: skipProjectStatusUpdates
+    report: workflowSummary
+
+statusSynchronization:
+  enabled: true
+
+  syncPullRequestItems: true
+  syncLinkedIssueItems: true
+
+  syncParentIssues: false
+  syncSubIssues: false
+
+  # A single deployment can contain multiple PRs and issues.
+  # Each matching item receives an independent lifecycle update.
+  aggregateBy:
+    - pullRequest
+    - linkedIssue
+
+  onlyUpdateWhenCurrentStatusIsAllowed: true
+
+  # A Project item that has a protected status can still receive deployment
+  # metadata and workflow reporting, but automation must not move its status.
+  protectedStatuses:
+    - Blocked
+    - Cancelled
+
+  protectedLabels:
+    - automation:paused
+    - project:exclude
+
+  manualStatusChangesTakePriority: true
+
+previewDeployments:
+  enabled: true
+
+  # Preview deployments are useful for visibility but should not automatically
+  # move items into Testing or QA because preview environments can be generated
+  # for every pull request update.
+  statusUpdates:
+    enabled: false
+
+  workflowSummary:
+    enabled: true
+
+  metadata:
+    includeDeploymentUrl: true
+    includeEnvironmentName: true
+    includeDeploymentSha: true
+
+stagingDeployments:
+  enabled: true
+
+  onCreated:
+    updateProjectStatus: true
+    status: QA
+
+  onInProgress:
+    updateProjectStatus: true
+    status: QA
+
+  onSuccess:
+    updateProjectStatus: true
+    status: QA
+
+  onFailure:
+    updateProjectStatus: true
+    status: Testing
+
+  failureBehavior:
+    addLabel: false
+    labelName: deployment:failed
+
+    comment:
+      enabled: true
+      maxCommentsPerItemPerDay: 1
+
+      template: |
+        Staging deployment failed.
+
+        Environment: {environment}
+        Deployment: {deploymentUrl}
+        Commit: {sha}
+        Status: {state}
+
+productionDeployments:
+  enabled: true
+
+  onCreated:
+    updateProjectStatus: true
+    status: Deployment
+
+  onInProgress:
+    updateProjectStatus: true
+    status: Deployment
+
+  onSuccess:
+    updateProjectStatus: true
+    status: Done
+
+  onFailure:
+    updateProjectStatus: true
+    status: QA
+
+  successBehavior:
+    clearBlockedReason: false
+
+    archive:
+      enabled: false
+
+    comment:
+      enabled: false
+
+  failureBehavior:
+    addLabel: false
+    labelName: deployment:failed
+
+    comment:
+      enabled: true
+      maxCommentsPerItemPerDay: 1
+
+      template: |
+        Production deployment failed.
+
+        Environment: {environment}
+        Deployment: {deploymentUrl}
+        Commit: {sha}
+        Status: {state}
+
+releaseFieldBehavior:
+  enabled: true
+
+  # Deployment status is always the delivery authority.
+  #
+  # The Release field remains planning metadata and is not changed by a
+  # deployment workflow. release-lifecycle.yaml handles published GitHub
+  # releases separately.
+  updateReleaseField: false
+
+  # A production deployment may complete work regardless of whether a Release
+  # field is set, as long as the deployment is associated with that work item.
+  requireReleaseFieldForProductionCompletion: false
+
+deploymentMetadata:
+  enabled: true
+
+  # GitHub ProjectV2 does not have a built-in deployment field. Keep the useful
+  # deployment context in workflow summaries and optional issue/PR comments
+  # rather than creating a fragile custom field for every transient deploy.
+  writeToProjectFields: false
+
+  issueComment:
+    enabled: false
+
+  pullRequestComment:
+    enabled: false
+
+  workflowSummary:
+    enabled: true
+
+    include:
+      - environment
+      - deploymentState
+      - deploymentUrl
+      - deploymentSha
+      - deploymentRef
+      - associatedPullRequests
+      - associatedIssues
+      - previousStatus
+      - targetStatus
+      - skippedReason
+
+failureRecovery:
+  enabled: true
+
+  # When a failed production deployment is retried and later succeeds, the
+  # success event moves the associated work from QA or Deployment to Done.
+  retrySuccessMayCompleteItems: true
+
+  # Do not automatically roll an item backward because an older deployment
+  # later reports a failure after a newer successful deployment already exists.
+  ignoreOutOfOrderOlderDeploymentStatuses: true
+
+  ordering:
+    compareBy:
+      - deploymentCreatedAt
+      - deploymentStatusCreatedAt
+
+    newestDeploymentWins: true
+
+reconciliation:
+  enabled: true
+
+  schedule:
+    cron: "31 */6 * * *"
+
+  scope:
+    environments:
+      - staging
+      - production
+
+    includeRecentDeploymentsSinceDays: 14
+
+    includeProjectStatuses:
+      - QA
+      - Awaiting Release
+      - Deployment
+
+  actions:
+    - findRecentDeploymentStatuses
+    - associateDeploymentsWithMergedPullRequests
+    - associatePullRequestsWithLinkedIssues
+    - repairMissedStatusTransitions
+    - skipProtectedItems
+    - writeWorkflowSummary
+
+forkPullRequests:
+  enabled: true
+
+  restrictions:
+    # Forks cannot safely mutate Project fields through a privileged workflow.
+    #
+    # Deployment tracking only operates after work is merged into master or
+    # deployed by a trusted internal workflow.
+    writeProjectFieldsFromForkEvents: false
+    useRepositorySecrets: false
+    useExternalAiProviders: false
+    inspectUntrustedSourceCode: false
+
+permissions:
+  contents: read
+  deployments: read
+  issues: write
+  pullRequests: write
+  repositoryProjects: write
+
+safeguards:
+  never:
+    - createDeployments
+    - approveDeployments
+    - rejectDeployments
+    - cancelDeployments
+    - retryDeployments
+    - deployCode
+    - rollbackDeployments
+    - modifyEnvironmentProtectionRules
+    - modifyEnvironmentSecrets
+    - createBranches
+    - deleteBranches
+    - createPullRequests
+    - mergePullRequests
+    - closePullRequests
+    - closeIssues
+    - overrideBlockedStatus
+    - overrideCancelledStatus
+    - overrideAutomationPausedItems
+    - runExternalAiAnalysis
+    - checkoutOrRunUntrustedDeploymentCode
+
+  skipWhen:
+    labels:
+      - project:exclude
+
+workflow:
+  concurrency:
+    enabled: true
+    groupFormat: "project-deployment-{repository}-{environment}-{deploymentId}"
+    cancelInProgress: false
+
+  logging:
+    writeWorkflowSummary: true
+
+    include:
+      - deploymentId
+      - deploymentEnvironment
+      - deploymentState
+      - deploymentRef
+      - deploymentSha
+      - deploymentUrl
+      - associatedPullRequestNumbers
+      - associatedIssueNumbers
+      - previousStatuses
+      - targetStatuses
+      - skippedReason
+
+    exclude:
+      - accessTokens
+      - secrets
+      - sourceCode
+      - deploymentPayloadSecrets

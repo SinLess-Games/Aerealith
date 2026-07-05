@@ -1,0 +1,710 @@
+# .github/project/automations/labels.yaml
+
+schemaVersion: 1
+
+# Declarative GitHub label contract consumed by:
+# .github/workflows/100-project-sync.yaml
+# .github/workflows/101-project-auto-add.yaml
+# .github/workflows/102-project-status.yaml
+# .github/workflows/103-project-ai-triage.yaml
+# .github/workflows/104-project-pr-lifecycle.yaml
+# .github/workflows/105-project-drift-check.yaml
+#
+# Labels are used for:
+# - Initial Project metadata mapping.
+# - Workflow controls.
+# - AI permissions and restrictions.
+# - Explicit testing and QA transitions.
+# - Area routing.
+# - Issue filtering and project views.
+#
+# This file is intentionally additive by default.
+# It may create or update managed labels, but it must never delete labels that
+# are not declared here.
+
+automation:
+  key: labels
+  name: Repository Labels
+  enabled: true
+
+configFile: ../config.yaml
+fieldsFile: ../fields.yaml
+autoAddFile: ./auto-add-project.yaml
+
+repository:
+  owner: SinLess-Games
+  name: Aerealith
+
+sync:
+  createMissing: true
+  updateColors: true
+  updateDescriptions: true
+
+  # Never automatically delete labels. Old labels may still be attached to
+  # historic issues, pull requests, discussions, or external integrations.
+  deleteUnknownLabels: false
+
+  # If a managed label is renamed later, add a migration entry rather than
+  # silently replacing it.
+  renameManagedLabelsAutomatically: false
+
+defaults:
+  appliesTo:
+    - issue
+    - pull_request
+
+  permissions:
+    maintainersMayApply: true
+    contributorsMayApply: true
+    automationMayApply: true
+    aiMayApply: false
+
+categories:
+  project:
+    description: Labels that control Project membership and automation behavior.
+
+  automation:
+    description: Labels that explicitly trigger or pause workflow automation.
+
+  ai:
+    description: Labels that control AI-assisted analysis and work creation.
+
+  type:
+    description: Labels that map issues and pull requests to Aerealith work categories.
+
+  area:
+    description: Labels that map work to an Aerealith technical or product area.
+
+  dependency:
+    description: Labels for dependency, package maintenance, and Dependabot work.
+
+  deployment:
+    description: Labels for deployment and environment-related exceptions.
+
+  priority:
+    description: Optional labels for issue-template and quick-triage workflows.
+
+labels:
+  #
+  # Project and workflow control
+  #
+
+  - key: project_exclude
+    name: project:exclude
+    category: project
+    color: "6B7280"
+    description: Do not add this issue or pull request to the Aerealith Delivery Project.
+    appliesTo:
+      - issue
+      - pull_request
+    automation:
+      projectMembership: exclude
+      statusUpdates: disabled
+      aiProcessing: disabled
+      commitTracking: disabled
+      archiveHandling: disabled
+    permissions:
+      contributorsMayApply: false
+      maintainersMayApply: true
+      automationMayApply: true
+      aiMayApply: false
+
+  - key: automation_paused
+    name: automation:paused
+    category: automation
+    color: "F59E0B"
+    description: Pause automatic status transitions for this item until the label is removed.
+    appliesTo:
+      - issue
+      - pull_request
+    automation:
+      statusUpdates: disabled
+      projectMembership: enabled
+      aiProcessing: enabled
+      commitTracking: enabled
+      deploymentTracking: enabled
+    permissions:
+      contributorsMayApply: false
+      maintainersMayApply: true
+      automationMayApply: false
+      aiMayApply: false
+
+  - key: stale
+    name: stale
+    category: automation
+    color: "9CA3AF"
+    description: This work item has been inactive and needs maintainer attention.
+    appliesTo:
+      - issue
+      - pull_request
+    automation:
+      appliedBy:
+        - stale-work
+      removedWhen:
+        - itemActivityDetected
+        - statusChanged
+        - maintainerRemovesLabel
+    permissions:
+      contributorsMayApply: false
+      maintainersMayApply: true
+      automationMayApply: true
+      aiMayApply: false
+
+  - key: automation_testing
+    name: automation:testing
+    category: automation
+    color: "0284C7"
+    description: Allow successful configured test workflows to move this item into Testing.
+    appliesTo:
+      - issue
+      - pull_request
+    automation:
+      testingTransition: enabled
+    permissions:
+      contributorsMayApply: false
+      maintainersMayApply: true
+      automationMayApply: true
+      aiMayApply: false
+
+  - key: status_testing
+    name: status:testing
+    category: automation
+    color: "0369A1"
+    description: Explicitly move this item into Testing through Project automation.
+    appliesTo:
+      - issue
+      - pull_request
+    automation:
+      statusTransition:
+        target: Testing
+    permissions:
+      contributorsMayApply: false
+      maintainersMayApply: true
+      automationMayApply: true
+      aiMayApply: false
+
+  - key: status_qa
+    name: status:qa
+    category: automation
+    color: "7C3AED"
+    description: Explicitly move this item into QA through Project automation.
+    appliesTo:
+      - issue
+      - pull_request
+    automation:
+      statusTransition:
+        target: QA
+    permissions:
+      contributorsMayApply: false
+      maintainersMayApply: true
+      automationMayApply: true
+      aiMayApply: false
+
+  #
+  # AI workflow control
+  #
+
+  - key: ai_skip
+    name: ai:skip
+    category: ai
+    color: "4B5563"
+    description: Never send this item or its content to external AI providers.
+    appliesTo:
+      - issue
+      - pull_request
+    automation:
+      aiProcessing: disabled
+      aiComments: disabled
+      aiPlanning: disabled
+      aiPullRequestAnalysis: disabled
+    permissions:
+      contributorsMayApply: false
+      maintainersMayApply: true
+      automationMayApply: false
+      aiMayApply: false
+
+  - key: ai_approved
+    name: ai:approved
+    category: ai
+    color: "16A34A"
+    description: A maintainer approved AI-generated analysis or planning output for this item.
+    appliesTo:
+      - issue
+      - pull_request
+    automation:
+      aiApproval: granted
+    permissions:
+      contributorsMayApply: false
+      maintainersMayApply: true
+      automationMayApply: true
+      aiMayApply: false
+
+  - key: ai_expand
+    name: ai:expand
+    category: ai
+    color: "0F766E"
+    description: Allow AI automation to propose or create approved sub-issues from this item.
+    appliesTo:
+      - issue
+    automation:
+      aiSubIssueCreation: enabled
+      requiresMaintainerApproval: true
+    permissions:
+      contributorsMayApply: false
+      maintainersMayApply: true
+      automationMayApply: false
+      aiMayApply: false
+
+  - key: ai_working
+    name: ai:working
+    category: ai
+    color: "2563EB"
+    description: An approved AI agent has started active implementation work for this item.
+    appliesTo:
+      - issue
+      - pull_request
+    automation:
+      statusTransition:
+        target: In Progress
+      requires:
+        - approvedAiAgent
+    permissions:
+      contributorsMayApply: false
+      maintainersMayApply: true
+      automationMayApply: true
+      aiMayApply: true
+
+  #
+  # Work type labels
+  #
+  # GitHub's native Issue Type field remains the preferred classification
+  # mechanism for issues. These labels exist for:
+  # - Pull requests, which do not use organization Issue Types.
+  # - Issue template defaults.
+  # - Project auto-add and filtering rules.
+  #
+
+  - key: type_epic
+    name: type:epic
+    category: type
+    color: "6D28D9"
+    description: Large initiative made up of multiple related issues or sub-issues.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      type: Epic
+
+  - key: type_feature
+    name: type:feature
+    category: type
+    color: "1D4ED8"
+    description: New user-facing capability or meaningful product improvement.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      type: Feature
+
+  - key: type_bug
+    name: type:bug
+    category: type
+    color: "DC2626"
+    description: Incorrect, broken, or unexpected behavior.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      type: Bug
+
+  - key: type_task
+    name: type:task
+    category: type
+    color: "0F766E"
+    description: Defined engineering, operational, or product work.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      type: Task
+
+  - key: type_chore
+    name: type:chore
+    category: type
+    color: "6B7280"
+    description: Maintenance work without a direct product behavior change.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      type: Chore
+
+  - key: type_documentation
+    name: type:documentation
+    category: type
+    color: "0369A1"
+    description: Documentation, guides, references, or developer experience content.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      type: Documentation
+      area: Documentation
+
+  - key: type_security
+    name: type:security
+    category: type
+    color: "B91C1C"
+    description: Security remediation, hardening, vulnerability, or access-control work.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      type: Security
+      area: Security
+
+  #
+  # Area labels
+  #
+  # Each label maps to the exact Area field option used by Aerealith Delivery.
+  #
+
+  - key: area_frontend
+    name: area:frontend
+    category: area
+    color: "1D4ED8"
+    description: Website, web application, docs site, and developer portal user interface work.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      area: Frontend
+
+  - key: area_api
+    name: area:api
+    category: area
+    color: "2563EB"
+    description: HTTP, tRPC, GraphQL, WebSocket, and service API work.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      area: API
+
+  - key: area_core
+    name: area:core
+    category: area
+    color: "4338CA"
+    description: Shared core entities, types, errors, constants, contracts, and configuration.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      area: Core
+
+  - key: area_database
+    name: area:database
+    category: area
+    color: "7C3AED"
+    description: Database entities, schema, migrations, validation, and persistence work.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      area: Database
+
+  - key: area_ui
+    name: area:ui
+    category: area
+    color: "0E7490"
+    description: Shared components, design system, accessibility, and styling work.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      area: UI
+
+  - key: area_content
+    name: area:content
+    category: area
+    color: "0F766E"
+    description: Content libraries, localization, translations, and managed content.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      area: Content
+
+  - key: area_documentation
+    name: area:documentation
+    category: area
+    color: "0369A1"
+    description: Documentation, architecture notes, contributor guides, and API references.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      area: Documentation
+
+  - key: area_devsecops
+    name: area:devsecops
+    category: area
+    color: "B45309"
+    description: CI/CD, Cloudflare, Docker, deployment, infrastructure, secrets, and platform security.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      area: DevSecOps
+
+  - key: area_integrations
+    name: area:integrations
+    category: area
+    color: "7E22CE"
+    description: External providers, webhooks, OAuth, third-party APIs, and platform integrations.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      area: Integrations
+
+  - key: area_dependencies
+    name: area:dependencies
+    category: area
+    color: "4B5563"
+    description: Dependency upgrades, package maintenance, Dependabot, and supply-chain work.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      area: Dependencies
+
+  - key: area_security
+    name: area:security
+    category: area
+    color: "991B1B"
+    description: Authentication, authorization, secrets, vulnerability, and security-policy work.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      area: Security
+
+  - key: area_tooling
+    name: area:tooling
+    category: area
+    color: "475569"
+    description: Nx, pnpm, linting, testing, GitHub Actions, and developer workflow tooling.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      area: Tooling
+
+  - key: area_services
+    name: area:services
+    category: area
+    color: "155E75"
+    description: Backend services, Workers, service orchestration, and internal runtime systems.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      area: Services
+
+  - key: area_discord_bot
+    name: area:discord-bot
+    category: area
+    color: "5865F2"
+    description: Aerealith AI Discord bot, moderation, tickets, personas, and Discord server tooling.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      area: Integrations
+
+  #
+  # Dependency and deployment labels
+  #
+
+  - key: dependencies_dependabot
+    name: dependencies:dependabot
+    category: dependency
+    color: "475569"
+    description: Dependency maintenance work opened or managed by Dependabot.
+    appliesTo:
+      - pull_request
+      - issue
+    projectMapping:
+      type: Chore
+      area: Dependencies
+      priority: Low
+      status: Ready
+    automation:
+      dependenciesWorkflow: enabled
+      aiProcessing: disabled
+
+  - key: dependencies_update
+    name: dependencies:update
+    category: dependency
+    color: "64748B"
+    description: Manual dependency, package, runtime, or lockfile update work.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      type: Chore
+      area: Dependencies
+
+  - key: deployment_failed
+    name: deployment:failed
+    category: deployment
+    color: "B91C1C"
+    description: The related staging or production deployment failed and needs attention.
+    appliesTo:
+      - issue
+      - pull_request
+    automation:
+      appliedBy:
+        - deployment-lifecycle
+      defaultStatus: QA
+    permissions:
+      contributorsMayApply: false
+      maintainersMayApply: true
+      automationMayApply: true
+      aiMayApply: false
+
+  #
+  # Optional quick-triage labels.
+  #
+  # Priority fields remain the source of truth. These labels are useful for
+  # Issue Forms, fast triage, and human-readable GitHub searches.
+  #
+
+  - key: priority_urgent
+    name: priority:urgent
+    category: priority
+    color: "B91C1C"
+    description: Immediate production, security, or major user-impacting priority.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      priority: Urgent
+
+  - key: priority_high
+    name: priority:high
+    category: priority
+    color: "EA580C"
+    description: Important work that should be scheduled soon.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      priority: High
+
+  - key: priority_medium
+    name: priority:medium
+    category: priority
+    color: "CA8A04"
+    description: Standard planned work.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      priority: Medium
+
+  - key: priority_low
+    name: priority:low
+    category: priority
+    color: "16A34A"
+    description: Nice-to-have work with no near-term urgency.
+    appliesTo:
+      - issue
+      - pull_request
+    projectMapping:
+      priority: Low
+
+validation:
+  enabled: true
+
+  rules:
+    - key: one_type_label
+      description: An item should not have more than one type label.
+      category: type
+      maximumApplied: 1
+      action: report
+
+    - key: one_area_label
+      description: An item should normally have one primary area label.
+      category: area
+      maximumApplied: 1
+      action: report
+
+    - key: blocked_status_requires_reason
+      description: Blocked items must include a Blocked reason Project field value.
+      when:
+        projectField:
+          name: Status
+          equals: Blocked
+      require:
+        projectField:
+          name: Blocked reason
+          notEmpty: true
+      action: report
+
+    - key: exclude_disables_automation
+      description: project:exclude disables Project and AI automation.
+      when:
+        labels:
+          includes: project:exclude
+      require:
+        automation:
+          projectMembership: exclude
+          statusUpdates: disabled
+          aiProcessing: disabled
+      action: enforce
+
+    - key: ai_skip_disables_ai
+      description: ai:skip must prevent external AI processing.
+      when:
+        labels:
+          includes: ai:skip
+      require:
+        automation:
+          aiProcessing: disabled
+      action: enforce
+
+safeguards:
+  never:
+    - deleteUnknownLabels
+    - removeLabelsFromItemsAutomatically
+    - applyAiApprovalLabelsWithoutMaintainerApproval
+    - applyProjectExcludeWithoutMaintainerApproval
+    - applyAutomationPausedWithoutMaintainerApproval
+    - applyAiSkipWithoutMaintainerApproval
+
+workflow:
+  permissions:
+    issues: write
+    pullRequests: write
+    repositoryProjects: write
+
+  concurrency:
+    enabled: true
+    groupFormat: "project-labels-{repository}"
+    cancelInProgress: false
+
+  logging:
+    writeWorkflowSummary: true
+
+    include:
+      - createdLabels
+      - updatedLabels
+      - missingLabels
+      - validationWarnings
+      - skippedReason
+
+    exclude:
+      - accessTokens
+      - secrets

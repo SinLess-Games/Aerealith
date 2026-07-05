@@ -1,0 +1,149 @@
+# .github/project/templates/task.yaml
+
+schemaVersion: 1
+
+template:
+  key: task
+  name: Task
+  description: Defined engineering, operational, product, or delivery work for Aerealith.
+  appliesTo:
+    - issue
+
+project:
+  defaults:
+    status: Ready
+    type: Task
+    priority: Medium
+    effort: Medium
+    release: Unscheduled
+    aiTriage: Pending
+
+  fields:
+    area: null
+    iteration: null
+    startDate: null
+    targetDate: null
+    blockedReason: null
+    aiSummary: null
+
+labels:
+  add:
+    - type:task
+
+  remove: []
+
+automation:
+  addToProject: true
+  runAiSummary: true
+  runDuplicateDetection: false
+  runAcceptanceCriteria: true
+  runEstimateSuggestion: false
+  runImplementationPlan: true
+  includeInRoadmap: false
+
+  staleWork:
+    enabled: true
+
+  branchWork:
+    requiresAssigneeBeforeInProgress: true
+    validBranchPrefixes:
+      - feature
+      - fix
+      - hotfix
+      - chore
+      - docs
+      - refactor
+      - test
+      - build
+      - ci
+      - perf
+      - security
+      - ai
+
+issue:
+  title:
+    format: "[Task] <short description>"
+
+  requiredSections:
+    - Summary
+    - Intended outcome
+    - Scope
+    - Validation
+
+  suggestedSections:
+    - Background
+    - Technical considerations
+    - Dependencies
+    - Risks
+    - Related issues
+    - Out of scope
+    - Rollout considerations
+    - Rollback considerations
+
+triage:
+  priorityGuidance:
+    urgent:
+      - Required to address an active production, security, or platform-blocking issue.
+      - Required immediately to unblock critical delivery work.
+      - Required for an immediate incident response or recovery action.
+
+    high:
+      - Important work that blocks a planned feature, release, or major contributor workflow.
+      - Significant operational, technical, or product impact.
+      - Work that should be scheduled in the near term.
+
+    medium:
+      - Normal planned engineering or operational work.
+      - A well-defined improvement with clear value but no immediate deadline.
+      - Work suitable for normal iteration planning.
+
+    low:
+      - Optional cleanup, optimization, or improvement.
+      - Low-impact internal work with no near-term delivery requirement.
+      - Work that should remain visible but does not need immediate scheduling.
+
+  effortGuidance:
+    low:
+      - Small, focused task with a clear outcome.
+      - Limited implementation uncertainty.
+      - One primary area of change and straightforward validation.
+
+    medium:
+      - Task touching multiple related files, modules, workflows, or services.
+      - Requires normal testing, validation, or coordination.
+      - Has manageable uncertainty but remains reasonably scoped.
+
+    high:
+      - Cross-cutting task involving multiple major areas or delivery stages.
+      - Requires significant architecture, migration, security, deployment, or rollout coordination.
+      - Contains unresolved dependencies or should likely be split into smaller tasks or an Epic.
+
+planning:
+  expected:
+    - The intended outcome is clear and observable.
+    - The task scope is bounded.
+    - The relevant Area is assigned before implementation begins.
+    - Dependencies and risks are recorded when known.
+    - Acceptance criteria or validation expectations are clear.
+    - Iteration and Release are assigned when planning decisions are made.
+    - High-effort tasks are reviewed for splitting before implementation starts.
+
+validation:
+  expected:
+    - The stated task outcome is completed.
+    - Relevant tests, checks, builds, or workflow validations pass.
+    - User-facing changes include accessibility validation when relevant.
+    - Authentication, authorization, external input, privacy, and secret handling are reviewed when relevant.
+    - Documentation is updated when the task changes public, contributor, or developer workflows.
+    - Migration, rollout, deployment, and rollback considerations are documented when relevant.
+    - No unrelated work is included without an explicit scope update.
+
+safeguards:
+  never:
+    - Close the issue automatically.
+    - Change priority automatically.
+    - Change area automatically.
+    - Change iteration automatically.
+    - Change release automatically.
+    - Mark the issue Done without an explicit lifecycle event.
+    - Override Blocked or Cancelled status.

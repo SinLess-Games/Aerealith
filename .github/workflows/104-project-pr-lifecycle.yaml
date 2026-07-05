@@ -1,0 +1,864 @@
+# .github/workflows/104-project-pr-lifecycle.yaml
+
+name: 104 · Project PR Lifecycle
+
+run-name: >-
+  Project PR Lifecycle ·
+  ${{
+    github.event.pull_request.number ||
+    inputs.pr_number ||
+    github.run_id
+  }}
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - converted_to_draft
+      - ready_for_review
+      - closed
+
+  pull_request_review:
+    types:
+      - submitted
+
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Pull request number to reconcile.
+        required: true
+        type: string
+
+concurrency:
+  group: >-
+    project-pr-lifecycle-${{ github.repository }}-${{
+      github.event.pull_request.number ||
+      inputs.pr_number ||
+      github.run_id
+    }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  lifecycle:
+    name: Update Pull Request Lifecycle
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      PROJECT_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+
+    steps:
+      - name: Confirm Project token is available
+        id: token
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          if [[ -z "${PROJECT_TOKEN}" ]]; then
+            {
+              echo "can_run=false"
+              echo "reason=COPILOT_GITHUB_TOKEN is unavailable for this run."
+            } >> "${GITHUB_OUTPUT}"
+
+            {
+              echo "## Aerealith Project PR Lifecycle"
+              echo
+              echo "Skipped: \`COPILOT_GITHUB_TOKEN\` is unavailable."
+              echo
+              echo "No Project item, field, issue, or pull request metadata was changed."
+            } >> "${GITHUB_STEP_SUMMARY}"
+
+            exit 0
+          fi
+
+          {
+            echo "can_run=true"
+            echo "reason=Allowed"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Checkout trusted Project configuration
+        if: steps.token.outputs.can_run == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout: |
+            .github/project
+          sparse-checkout-cone-mode: true
+
+      - name: Process pull request lifecycle
+        if: steps.token.outputs.can_run == 'true'
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_PATH: ${{ github.event_path }}
+          REPOSITORY: ${{ github.repository }}
+          INPUT_PR_NUMBER: ${{ inputs.pr_number }}
+        run: |
+          set -Eeuo pipefail
+
+          ruby <<'RUBY'
+          require "json"
+          require "net/http"
+          require "set"
+          require "uri"
+          require "yaml"
+
+          PROJECT_ROOT = File.expand_path(".github/project", Dir.pwd)
+
+          def read_yaml(relative_path, required: true)
+            path = File.join(PROJECT_ROOT, relative_path)
+
+            unless File.file?(path)
+              raise "Missing Project configuration file: #{relative_path}" if required
+
+              return {}
+            end
+
+            YAML.safe_load(
+              File.read(path),
+              permitted_classes: [],
+              permitted_symbols: [],
+              aliases: false,
+            ) || {}
+          end
+
+          def hash_value(value, key)
+            result = value[key]
+
+            result.is_a?(Hash) ? result : {}
+          end
+
+          def array_value(value, key)
+            result = value[key]
+
+            result.is_a?(Array) ? result : []
+          end
+
+          def present?(value)
+            !value.nil? && !value.to_s.strip.empty?
+          end
+
+          def label_names(content)
+            array_value(hash_value(content, "labels"), "nodes")
+              .filter_map do |label|
+                label["name"] if label.is_a?(Hash)
+              end
+              .to_set
+          end
+
+          def project_item_for(content, project_id)
+            array_value(hash_value(content, "projectItems"), "nodes")
+              .find do |item|
+                item.dig("project", "id") == project_id
+              end
+          end
+
+          def status_name(project_item)
+            project_item
+              &.dig("statusValue", "name")
+              .to_s
+          end
+
+          class GitHubClient
+            API_VERSION = "2022-11-28".freeze
+
+            def initialize(token)
+              @token = token
+            end
+
+            def graphql(query, variables = {})
+              response = request(
+                method: :post,
+                uri: URI("https://api.github.com/graphql"),
+                body: {
+                  query: query,
+                  variables: variables,
+                },
+              )
+
+              unless response.is_a?(Net::HTTPSuccess)
+                raise "GitHub GraphQL request failed with HTTP #{response.code}: #{response.body}"
+              end
+
+              payload = JSON.parse(response.body)
+
+              if payload["errors"]&.any?
+                messages = payload["errors"]
+                  .map { |error| error["message"] }
+                  .join("; ")
+
+                raise "GitHub GraphQL returned errors: #{messages}"
+              end
+
+              payload.fetch("data")
+            end
+
+            private
+
+            def request(method:, uri:, body:)
+              request_class = {
+                post: Net::HTTP::Post,
+              }.fetch(method)
+
+              request = request_class.new(uri)
+              request["Accept"] = "application/vnd.github+json"
+              request["Authorization"] = "Bearer #{@token}"
+              request["X-GitHub-Api-Version"] = API_VERSION
+              request["User-Agent"] = "Aerealith-Project-PR-Lifecycle"
+              request["Content-Type"] = "application/json"
+              request.body = JSON.generate(body)
+
+              Net::HTTP.start(
+                uri.hostname,
+                uri.port,
+                use_ssl: uri.scheme == "https",
+              ) do |http|
+                http.request(request)
+              end
+            end
+          end
+
+          ADD_PROJECT_ITEM_MUTATION = <<~GRAPHQL
+            mutation($projectId: ID!, $contentId: ID!) {
+              addProjectV2ItemById(
+                input: {
+                  projectId: $projectId
+                  contentId: $contentId
+                }
+              ) {
+                item {
+                  id
+                }
+              }
+            }
+          GRAPHQL
+
+          UPDATE_STATUS_MUTATION = <<~GRAPHQL
+            mutation(
+              $projectId: ID!
+              $itemId: ID!
+              $fieldId: ID!
+              $optionId: String!
+            ) {
+              updateProjectV2ItemFieldValue(
+                input: {
+                  projectId: $projectId
+                  itemId: $itemId
+                  fieldId: $fieldId
+                  value: {
+                    singleSelectOptionId: $optionId
+                  }
+                }
+              ) {
+                projectV2Item {
+                  id
+                }
+              }
+            }
+          GRAPHQL
+
+          def ensure_project_item(client:, project_id:, content_id:, current_item:)
+            return current_item.fetch("id") if current_item
+
+            result = client.graphql(
+              ADD_PROJECT_ITEM_MUTATION,
+              {
+                "projectId" => project_id,
+                "contentId" => content_id,
+              },
+            )
+
+            item_id = result
+              .dig("addProjectV2ItemById", "item", "id")
+
+            raise "GitHub did not return a Project item ID." unless present?(item_id)
+
+            item_id
+          end
+
+          def update_status(
+            client:,
+            project_id:,
+            item_id:,
+            status_field:,
+            target_status:
+          )
+            options = Array(status_field["options"])
+
+            option = options.find do |candidate|
+              candidate["name"] == target_status
+            end
+
+            unless option
+              raise "Status option `#{target_status}` does not exist."
+            end
+
+            client.graphql(
+              UPDATE_STATUS_MUTATION,
+              {
+                "projectId" => project_id,
+                "itemId" => item_id,
+                "fieldId" => status_field.fetch("id"),
+                "optionId" => option.fetch("id"),
+              },
+            )
+          end
+
+          config = read_yaml("config.yaml")
+          lifecycle_config = read_yaml(
+            "automations/pull-request-lifecycle.yaml",
+            required: false,
+          )
+
+          project_config = hash_value(config, "project")
+          repository_config = hash_value(config, "repository")
+          fields_config = hash_value(config, "fields")
+          labels_config = hash_value(config, "labels")
+          safeguards = hash_value(lifecycle_config, "safeguards")
+
+          project_owner = project_config.fetch("owner")
+          project_name = project_config.fetch("name")
+          project_number = project_config.fetch("number")
+
+          repository_owner = repository_config.fetch("owner")
+          repository_name = repository_config.fetch("name")
+          production_branch = repository_config.fetch("productionBranch")
+
+          expected_repository = "#{repository_owner}/#{repository_name}"
+          current_repository = ENV.fetch("REPOSITORY")
+
+          unless current_repository == expected_repository
+            raise "Workflow may only run for #{expected_repository}; received #{current_repository}."
+          end
+
+          unless production_branch == "master"
+            raise "Aerealith production branch must be `master`."
+          end
+
+          status_field_name = fields_config.fetch("status", "Status")
+
+          excluded_label = labels_config.fetch(
+            "projectExclude",
+            "project:exclude",
+          )
+
+          paused_label = labels_config.fetch(
+            "automationPaused",
+            "automation:paused",
+          )
+
+          protected_statuses = safeguards.fetch(
+            "protectedStatuses",
+            %w[
+              Blocked
+              Cancelled
+            ],
+          )
+
+          payload = JSON.parse(File.read(ENV.fetch("EVENT_PATH")))
+          event_name = ENV.fetch("EVENT_NAME")
+
+          source_action = nil
+          review_state = nil
+          pr_number = nil
+
+          case event_name
+          when "pull_request"
+            source_action = payload.fetch("action")
+            pr_number = payload.dig("pull_request", "number")
+
+          when "pull_request_review"
+            source_action = payload.fetch("action")
+            review_state = payload
+              .dig("review", "state")
+              .to_s
+              .upcase
+
+            pr_number = payload
+              .dig("pull_request", "number")
+
+          when "workflow_dispatch"
+            source_action = "manual-reconcile"
+            raw_pr_number = ENV
+              .fetch("INPUT_PR_NUMBER", "")
+              .strip
+
+            unless raw_pr_number.match?(/\A[1-9][0-9]*\z/)
+              raise "workflow_dispatch requires a positive numeric pr_number."
+            end
+
+            pr_number = raw_pr_number.to_i
+
+          else
+            raise "Unsupported event: #{event_name}"
+          end
+
+          unless pr_number.is_a?(Integer) && pr_number.positive?
+            raise "Could not determine a valid pull request number."
+          end
+
+          client = GitHubClient.new(
+            ENV.fetch("PROJECT_TOKEN"),
+          )
+
+          query = <<~GRAPHQL
+            query(
+              $projectOwner: String!
+              $projectNumber: Int!
+              $repositoryOwner: String!
+              $repositoryName: String!
+              $pullRequestNumber: Int!
+              $statusFieldName: String!
+            ) {
+              organization(login: $projectOwner) {
+                projectV2(number: $projectNumber) {
+                  id
+                  title
+
+                  fields(first: 100) {
+                    nodes {
+                      __typename
+
+                      ... on ProjectV2FieldCommon {
+                        id
+                        name
+                      }
+
+                      ... on ProjectV2SingleSelectField {
+                        options {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+
+              repository(
+                owner: $repositoryOwner
+                name: $repositoryName
+              ) {
+                pullRequest(number: $pullRequestNumber) {
+                  id
+                  number
+                  state
+                  merged
+                  isDraft
+                  isCrossRepository
+                  baseRefName
+                  headRefName
+
+                  author {
+                    login
+                  }
+
+                  labels(first: 100) {
+                    nodes {
+                      name
+                    }
+                  }
+
+                  projectItems(first: 100) {
+                    nodes {
+                      id
+
+                      project {
+                        id
+                      }
+
+                      statusValue: fieldValueByName(
+                        name: $statusFieldName
+                      ) {
+                        ... on ProjectV2ItemFieldSingleSelectValue {
+                          name
+                        }
+                      }
+                    }
+                  }
+
+                  closingIssuesReferences(first: 50) {
+                    nodes {
+                      id
+                      number
+                      state
+
+                      repository {
+                        nameWithOwner
+                      }
+
+                      labels(first: 100) {
+                        nodes {
+                          name
+                        }
+                      }
+
+                      projectItems(first: 100) {
+                        nodes {
+                          id
+
+                          project {
+                            id
+                          }
+
+                          statusValue: fieldValueByName(
+                            name: $statusFieldName
+                          ) {
+                            ... on ProjectV2ItemFieldSingleSelectValue {
+                              name
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          GRAPHQL
+
+          result = client.graphql(
+            query,
+            {
+              "projectOwner" => project_owner,
+              "projectNumber" => project_number,
+              "repositoryOwner" => repository_owner,
+              "repositoryName" => repository_name,
+              "pullRequestNumber" => pr_number,
+              "statusFieldName" => status_field_name,
+            },
+          )
+
+          project = result
+            .dig("organization", "projectV2")
+
+          unless project
+            raise "Could not find organization Project ##{project_number} for #{project_owner}."
+          end
+
+          unless project["title"] == project_name
+            raise "Configured Project name `#{project_name}` does not match live Project `#{project["title"]}`."
+          end
+
+          pull_request = result
+            .dig("repository", "pullRequest")
+
+          unless pull_request
+            raise "Could not find pull request ##{pr_number} in #{expected_repository}."
+          end
+
+          summary = []
+          summary << "## Aerealith Project PR Lifecycle"
+          summary << ""
+          summary << "- **Pull request:** ##{pr_number}"
+          summary << "- **Source event:** `#{event_name}`"
+          summary << "- **Source action:** `#{source_action}`"
+
+          if pull_request["isCrossRepository"] == true
+            summary << "- **Action:** Skipped"
+            summary << "- **Reason:** Cross-repository pull requests never receive Project mutations from this workflow."
+
+            File.open(ENV.fetch("GITHUB_STEP_SUMMARY"), "a") do |file|
+              file.puts(summary.join("\n"))
+            end
+
+            exit 0
+          end
+
+          author = pull_request
+            .dig("author", "login")
+            .to_s
+
+          if %w[dependabot dependabot[bot]].include?(author)
+            summary << "- **Action:** Skipped"
+            summary << "- **Reason:** Dependabot pull requests are handled by dependency automation."
+
+            File.open(ENV.fetch("GITHUB_STEP_SUMMARY"), "a") do |file|
+              file.puts(summary.join("\n"))
+            end
+
+            exit 0
+          end
+
+          if pull_request["baseRefName"] != production_branch
+            summary << "- **Action:** Skipped"
+            summary << "- **Reason:** Pull request targets `#{pull_request["baseRefName"]}`, not production branch `#{production_branch}`."
+
+            File.open(ENV.fetch("GITHUB_STEP_SUMMARY"), "a") do |file|
+              file.puts(summary.join("\n"))
+            end
+
+            exit 0
+          end
+
+          pr_labels = label_names(pull_request)
+
+          if pr_labels.include?(excluded_label)
+            summary << "- **Action:** Skipped"
+            summary << "- **Reason:** `#{excluded_label}` is present."
+
+            File.open(ENV.fetch("GITHUB_STEP_SUMMARY"), "a") do |file|
+              file.puts(summary.join("\n"))
+            end
+
+            exit 0
+          end
+
+          project_fields = array_value(
+            hash_value(project, "fields"),
+            "nodes",
+          )
+
+          status_field = project_fields.find do |field|
+            field["name"] == status_field_name &&
+              field["options"].is_a?(Array)
+          end
+
+          unless status_field
+            raise "Project field `#{status_field_name}` must exist as a single-select field."
+          end
+
+          project_id = project.fetch("id")
+          current_pr_item = project_item_for(
+            pull_request,
+            project_id,
+          )
+
+          pr_item_id = ensure_project_item(
+            client: client,
+            project_id: project_id,
+            content_id: pull_request.fetch("id"),
+            current_item: current_pr_item,
+          )
+
+          pr_was_added = current_pr_item.nil?
+
+          current_pr_status = status_name(current_pr_item)
+          current_pr_status = "Inbox" unless present?(current_pr_status)
+
+          target_pr_status = nil
+          transition_reason = nil
+
+          case event_name
+          when "pull_request"
+            case source_action
+            when "opened", "reopened"
+              if pull_request["state"] == "OPEN"
+                target_pr_status =
+                  pull_request["isDraft"] == true ?
+                    "In Progress" :
+                    "In Review"
+
+                transition_reason =
+                  pull_request["isDraft"] == true ?
+                    "Pull request is a draft." :
+                    "Pull request is ready for review."
+              end
+
+            when "converted_to_draft"
+              target_pr_status = "In Progress"
+              transition_reason = "Pull request was converted to draft."
+
+            when "ready_for_review"
+              target_pr_status = "In Review"
+              transition_reason = "Pull request was marked ready for review."
+
+            when "closed"
+              if pull_request["merged"] == true
+                target_pr_status = "Awaiting Release"
+                transition_reason = "Pull request merged into master."
+              else
+                target_pr_status = "Cancelled"
+                transition_reason = "Pull request was closed without merging."
+              end
+            end
+
+          when "pull_request_review"
+            if source_action == "submitted" &&
+               review_state == "CHANGES_REQUESTED"
+              target_pr_status = "In Progress"
+              transition_reason = "Changes were requested during review."
+            end
+
+          when "workflow_dispatch"
+            if pull_request["state"] == "CLOSED"
+              if pull_request["merged"] == true
+                target_pr_status = "Awaiting Release"
+                transition_reason = "Manual reconciliation found a merged pull request."
+              else
+                target_pr_status = "Cancelled"
+                transition_reason = "Manual reconciliation found an unmerged closed pull request."
+              end
+            elsif pull_request["isDraft"] == true
+              target_pr_status = "In Progress"
+              transition_reason = "Manual reconciliation found a draft pull request."
+            else
+              target_pr_status = "In Review"
+              transition_reason = "Manual reconciliation found an open review-ready pull request."
+            end
+          end
+
+          pr_status_updated = false
+          skipped_transitions = []
+          linked_issue_updates = []
+          warnings = []
+
+          if present?(target_pr_status) &&
+             target_pr_status != current_pr_status
+
+            if protected_statuses.include?(current_pr_status)
+              skipped_transitions << "PR status is protected: `#{current_pr_status}`."
+
+            elsif pr_labels.include?(paused_label) &&
+                  target_pr_status != "Cancelled"
+              skipped_transitions << "PR status update skipped because `#{paused_label}` is present."
+
+            else
+              update_status(
+                client: client,
+                project_id: project_id,
+                item_id: pr_item_id,
+                status_field: status_field,
+                target_status: target_pr_status,
+              )
+
+              pr_status_updated = true
+            end
+          end
+
+          should_restore_linked_issues =
+            event_name == "pull_request" &&
+            source_action == "closed" &&
+            pull_request["merged"] != true
+
+          if should_restore_linked_issues
+            linked_issues = array_value(
+              hash_value(pull_request, "closingIssuesReferences"),
+              "nodes",
+            )
+
+            linked_issues.each do |issue|
+              issue_number = issue.fetch("number")
+              issue_state = issue["state"]
+              issue_repository = issue
+                .dig("repository", "nameWithOwner")
+
+              if issue_repository != expected_repository
+                linked_issue_updates << "##{issue_number}: skipped cross-repository issue"
+                next
+              end
+
+              if issue_state != "OPEN"
+                linked_issue_updates << "##{issue_number}: skipped because the issue is closed"
+                next
+              end
+
+              issue_labels = label_names(issue)
+
+              if issue_labels.include?(excluded_label)
+                linked_issue_updates << "##{issue_number}: skipped because `#{excluded_label}` is present"
+                next
+              end
+
+              if issue_labels.include?(paused_label)
+                linked_issue_updates << "##{issue_number}: skipped because `#{paused_label}` is present"
+                next
+              end
+
+              issue_item = project_item_for(
+                issue,
+                project_id,
+              )
+
+              issue_status = status_name(issue_item)
+              issue_status = "Inbox" unless present?(issue_status)
+
+              if protected_statuses.include?(issue_status)
+                linked_issue_updates << "##{issue_number}: skipped because status `#{issue_status}` is protected"
+                next
+              end
+
+              if issue_status == "Done"
+                linked_issue_updates << "##{issue_number}: skipped because status is already Done"
+                next
+              end
+
+              issue_item_id = ensure_project_item(
+                client: client,
+                project_id: project_id,
+                content_id: issue.fetch("id"),
+                current_item: issue_item,
+              )
+
+              if issue_status == "Ready"
+                linked_issue_updates << "##{issue_number}: already Ready"
+                next
+              end
+
+              update_status(
+                client: client,
+                project_id: project_id,
+                item_id: issue_item_id,
+                status_field: status_field,
+                target_status: "Ready",
+              )
+
+              linked_issue_updates << "##{issue_number}: moved to Ready"
+            end
+          end
+
+          summary << "- **Project item:** #{pr_was_added ? "Added to Project" : "Already in Project"}"
+          summary << "- **Current status:** `#{current_pr_status}`"
+
+          if pr_status_updated
+            summary << "- **New status:** `#{target_pr_status}`"
+            summary << "- **Reason:** #{transition_reason}"
+          elsif present?(target_pr_status)
+            summary << "- **Status update:** Not applied"
+          else
+            summary << "- **Status update:** No lifecycle transition matched this event"
+          end
+
+          if should_restore_linked_issues
+            summary << ""
+            summary << "### Linked Issue Recovery"
+
+            if linked_issue_updates.empty?
+              summary << "- No linked open issues required a status update."
+            else
+              linked_issue_updates.each do |entry|
+                summary << "- #{entry}"
+              end
+            end
+          end
+
+          unless skipped_transitions.empty?
+            summary << ""
+            summary << "### Protected or Paused Transitions"
+
+            skipped_transitions.uniq.each do |reason|
+              summary << "- #{reason}"
+            end
+          end
+
+          unless warnings.empty?
+            summary << ""
+            summary << "### Warnings"
+
+            warnings.uniq.each do |warning|
+              summary << "- #{warning}"
+            end
+          end
+
+          File.open(ENV.fetch("GITHUB_STEP_SUMMARY"), "a") do |file|
+            file.puts(summary.join("\n"))
+          end
+          RUBY
