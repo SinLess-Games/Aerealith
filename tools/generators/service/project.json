@@ -1,0 +1,47 @@
+{
+  "name": "service-generator",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "tools/generators/service/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/tools/generators/service",
+        "main": "tools/generators/service/src/index.ts",
+        "tsConfig": "tools/generators/service/tsconfig.lib.json",
+        "assets": [
+          "tools/generators/service/*.md",
+          {
+            "input": "./tools/generators/service/src",
+            "glob": "**/!(*.ts)",
+            "output": "./src"
+          },
+          {
+            "input": "./tools/generators/service/src",
+            "glob": "**/*.d.ts",
+            "output": "./src"
+          },
+          {
+            "input": "./tools/generators/service",
+            "glob": "generators.json",
+            "output": "."
+          },
+          {
+            "input": "./tools/generators/service",
+            "glob": "executors.json",
+            "output": "."
+          }
+        ]
+      }
+    },
+    "test": {
+      "executor": "@nx/vitest:test",
+      "options": {
+        "configFile": "tools/generators/service/vitest.config.mts"
+      }
+    }
+  }
+}

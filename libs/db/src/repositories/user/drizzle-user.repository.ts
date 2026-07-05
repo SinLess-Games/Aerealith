@@ -1,6 +1,6 @@
 // libs/db/src/repositories/user/drizzle-user.repository.ts
 
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm'
 
 import {
   UserEntity,
@@ -8,41 +8,37 @@ import {
   type UserLifecycleStatus,
   type UserRole,
   type UserTier,
-} from '@aerealith-ai/core';
+} from '@aerealith-ai/core'
 
-import type { DatabaseClient } from '../../client';
-import {
-  usersTable,
-  type NewUserRow,
-  type UserRow,
-} from '../../schema';
+import type { DatabaseClient } from '../../client'
+import { usersTable, type NewUserRow, type UserRow } from '../../schema'
 
 export type CreateUserInput = {
-  username: string;
-  email: string;
-  passwordHash?: string | null;
+  username: string
+  email: string
+  passwordHash?: string | null
 
-  status?: UserLifecycleStatus;
-  emailVerified?: boolean;
-  emailVerifiedAt?: Date | null;
+  status?: UserLifecycleStatus
+  emailVerified?: boolean
+  emailVerifiedAt?: Date | null
 
-  role?: UserRole;
-  tier?: UserTier;
+  role?: UserRole
+  tier?: UserTier
 
-  metadata?: Record<string, unknown>;
-};
+  metadata?: Record<string, unknown>
+}
 
 export type UpdateUserInput = {
-  username?: string;
-  email?: string;
-  metadata?: Record<string, unknown>;
-};
+  username?: string
+  email?: string
+  metadata?: Record<string, unknown>
+}
 
 export type UpdateUserAdminInput = {
-  status?: UserLifecycleStatus;
-  role?: UserRole;
-  tier?: UserTier;
-};
+  status?: UserLifecycleStatus
+  role?: UserRole
+  tier?: UserTier
+}
 
 /**
  * Drizzle persistence for primary user accounts.
@@ -55,21 +51,21 @@ export class DrizzleUserRepository {
   constructor(private readonly database: DatabaseClient) {}
 
   async findById(id: string): Promise<UserContract | null> {
-    const row = await this.findRowById(id);
+    const row = await this.findRowById(id)
 
-    return row ? toUserContract(row) : null;
+    return row ? toUserContract(row) : null
   }
 
   async findByEmail(email: string): Promise<UserContract | null> {
-    const row = await this.findRowByEmail(email);
+    const row = await this.findRowByEmail(email)
 
-    return row ? toUserContract(row) : null;
+    return row ? toUserContract(row) : null
   }
 
   async findByUsername(username: string): Promise<UserContract | null> {
-    const row = await this.findRowByUsername(username);
+    const row = await this.findRowByUsername(username)
 
-    return row ? toUserContract(row) : null;
+    return row ? toUserContract(row) : null
   }
 
   /**
@@ -79,9 +75,9 @@ export class DrizzleUserRepository {
    * the password hash.
    */
   async findEntityById(id: string): Promise<UserEntity | null> {
-    const row = await this.findRowById(id);
+    const row = await this.findRowById(id)
 
-    return row ? toUserEntity(row) : null;
+    return row ? toUserEntity(row) : null
   }
 
   /**
@@ -91,9 +87,9 @@ export class DrizzleUserRepository {
    * the password hash.
    */
   async findEntityByEmail(email: string): Promise<UserEntity | null> {
-    const row = await this.findRowByEmail(email);
+    const row = await this.findRowByEmail(email)
 
-    return row ? toUserEntity(row) : null;
+    return row ? toUserEntity(row) : null
   }
 
   /**
@@ -102,25 +98,23 @@ export class DrizzleUserRepository {
    * Never return this value directly from an API route because it includes
    * the password hash.
    */
-  async findEntityByUsername(
-    username: string,
-  ): Promise<UserEntity | null> {
-    const row = await this.findRowByUsername(username);
+  async findEntityByUsername(username: string): Promise<UserEntity | null> {
+    const row = await this.findRowByUsername(username)
 
-    return row ? toUserEntity(row) : null;
+    return row ? toUserEntity(row) : null
   }
 
   async create(input: CreateUserInput): Promise<UserContract> {
     const [row] = await this.database
       .insert(usersTable)
       .values(toNewUserRow(input))
-      .returning();
+      .returning()
 
     if (!row) {
-      throw new Error('Failed to create user.');
+      throw new Error('Failed to create user.')
     }
 
-    return toUserContract(row);
+    return toUserContract(row)
   }
 
   /**
@@ -133,10 +127,10 @@ export class DrizzleUserRepository {
     id: string,
     input: UpdateUserInput,
   ): Promise<UserContract | null> {
-    const values = createUserUpdateValues(input);
+    const values = createUserUpdateValues(input)
 
     if (Object.keys(values).length === 0) {
-      return this.findById(id);
+      return this.findById(id)
     }
 
     const [row] = await this.database
@@ -145,15 +139,10 @@ export class DrizzleUserRepository {
         ...values,
         updatedAt: new Date(),
       })
-      .where(
-        and(
-          eq(usersTable.id, id),
-          isNull(usersTable.deletedAt),
-        ),
-      )
-      .returning();
+      .where(and(eq(usersTable.id, id), isNull(usersTable.deletedAt)))
+      .returning()
 
-    return row ? toUserContract(row) : null;
+    return row ? toUserContract(row) : null
   }
 
   /**
@@ -163,10 +152,10 @@ export class DrizzleUserRepository {
     id: string,
     input: UpdateUserAdminInput,
   ): Promise<UserContract | null> {
-    const values = createAdminUpdateValues(input);
+    const values = createAdminUpdateValues(input)
 
     if (Object.keys(values).length === 0) {
-      return this.findById(id);
+      return this.findById(id)
     }
 
     const [row] = await this.database
@@ -175,15 +164,10 @@ export class DrizzleUserRepository {
         ...values,
         updatedAt: new Date(),
       })
-      .where(
-        and(
-          eq(usersTable.id, id),
-          isNull(usersTable.deletedAt),
-        ),
-      )
-      .returning();
+      .where(and(eq(usersTable.id, id), isNull(usersTable.deletedAt)))
+      .returning()
 
-    return row ? toUserContract(row) : null;
+    return row ? toUserContract(row) : null
   }
 
   /**
@@ -201,17 +185,12 @@ export class DrizzleUserRepository {
         passwordHash: passwordHash?.trim() || null,
         updatedAt: new Date(),
       })
-      .where(
-        and(
-          eq(usersTable.id, id),
-          isNull(usersTable.deletedAt),
-        ),
-      )
+      .where(and(eq(usersTable.id, id), isNull(usersTable.deletedAt)))
       .returning({
         id: usersTable.id,
-      });
+      })
 
-    return row !== undefined;
+    return row !== undefined
   }
 
   async markEmailVerified(
@@ -225,15 +204,10 @@ export class DrizzleUserRepository {
         emailVerifiedAt: verifiedAt,
         updatedAt: verifiedAt,
       })
-      .where(
-        and(
-          eq(usersTable.id, id),
-          isNull(usersTable.deletedAt),
-        ),
-      )
-      .returning();
+      .where(and(eq(usersTable.id, id), isNull(usersTable.deletedAt)))
+      .returning()
 
-    return row ? toUserContract(row) : null;
+    return row ? toUserContract(row) : null
   }
 
   async clearEmailVerification(id: string): Promise<UserContract | null> {
@@ -244,19 +218,14 @@ export class DrizzleUserRepository {
         emailVerifiedAt: null,
         updatedAt: new Date(),
       })
-      .where(
-        and(
-          eq(usersTable.id, id),
-          isNull(usersTable.deletedAt),
-        ),
-      )
-      .returning();
+      .where(and(eq(usersTable.id, id), isNull(usersTable.deletedAt)))
+      .returning()
 
-    return row ? toUserContract(row) : null;
+    return row ? toUserContract(row) : null
   }
 
   async softDelete(id: string): Promise<boolean> {
-    const now = new Date();
+    const now = new Date()
 
     const [row] = await this.database
       .update(usersTable)
@@ -264,32 +233,22 @@ export class DrizzleUserRepository {
         deletedAt: now,
         updatedAt: now,
       })
-      .where(
-        and(
-          eq(usersTable.id, id),
-          isNull(usersTable.deletedAt),
-        ),
-      )
+      .where(and(eq(usersTable.id, id), isNull(usersTable.deletedAt)))
       .returning({
         id: usersTable.id,
-      });
+      })
 
-    return row !== undefined;
+    return row !== undefined
   }
 
   private async findRowById(id: string): Promise<UserRow | null> {
     const [row] = await this.database
       .select()
       .from(usersTable)
-      .where(
-        and(
-          eq(usersTable.id, id),
-          isNull(usersTable.deletedAt),
-        ),
-      )
-      .limit(1);
+      .where(and(eq(usersTable.id, id), isNull(usersTable.deletedAt)))
+      .limit(1)
 
-    return row ?? null;
+    return row ?? null
   }
 
   private async findRowByEmail(email: string): Promise<UserRow | null> {
@@ -302,14 +261,12 @@ export class DrizzleUserRepository {
           isNull(usersTable.deletedAt),
         ),
       )
-      .limit(1);
+      .limit(1)
 
-    return row ?? null;
+    return row ?? null
   }
 
-  private async findRowByUsername(
-    username: string,
-  ): Promise<UserRow | null> {
+  private async findRowByUsername(username: string): Promise<UserRow | null> {
     const [row] = await this.database
       .select()
       .from(usersTable)
@@ -319,14 +276,14 @@ export class DrizzleUserRepository {
           isNull(usersTable.deletedAt),
         ),
       )
-      .limit(1);
+      .limit(1)
 
-    return row ?? null;
+    return row ?? null
   }
 }
 
 function toNewUserRow(input: CreateUserInput): NewUserRow {
-  const emailVerified = input.emailVerified ?? false;
+  const emailVerified = input.emailVerified ?? false
 
   return {
     username: normalizeUsername(input.username),
@@ -337,54 +294,52 @@ function toNewUserRow(input: CreateUserInput): NewUserRow {
 
     emailVerified,
     emailVerifiedAt: emailVerified
-      ? input.emailVerifiedAt ?? new Date()
+      ? (input.emailVerifiedAt ?? new Date())
       : null,
 
     role: input.role,
     tier: input.tier,
 
     metadata: input.metadata ?? {},
-  };
+  }
 }
 
-function createUserUpdateValues(
-  input: UpdateUserInput,
-): Partial<NewUserRow> {
-  const values: Partial<NewUserRow> = {};
+function createUserUpdateValues(input: UpdateUserInput): Partial<NewUserRow> {
+  const values: Partial<NewUserRow> = {}
 
   if (input.username !== undefined) {
-    values.username = normalizeUsername(input.username);
+    values.username = normalizeUsername(input.username)
   }
 
   if (input.email !== undefined) {
-    values.email = normalizeEmail(input.email);
+    values.email = normalizeEmail(input.email)
   }
 
   if (input.metadata !== undefined) {
-    values.metadata = input.metadata;
+    values.metadata = input.metadata
   }
 
-  return values;
+  return values
 }
 
 function createAdminUpdateValues(
   input: UpdateUserAdminInput,
 ): Partial<NewUserRow> {
-  const values: Partial<NewUserRow> = {};
+  const values: Partial<NewUserRow> = {}
 
   if (input.status !== undefined) {
-    values.status = input.status;
+    values.status = input.status
   }
 
   if (input.role !== undefined) {
-    values.role = input.role;
+    values.role = input.role
   }
 
   if (input.tier !== undefined) {
-    values.tier = input.tier;
+    values.tier = input.tier
   }
 
-  return values;
+  return values
 }
 
 function toUserEntity(row: UserRow): UserEntity {
@@ -406,7 +361,7 @@ function toUserEntity(row: UserRow): UserEntity {
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     deletedAt: row.deletedAt,
-  });
+  })
 }
 
 function toUserContract(row: UserRow): UserContract {
@@ -420,13 +375,13 @@ function toUserContract(row: UserRow): UserContract {
     tier: row.tier as UserTier,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
-  };
+  }
 }
 
 function normalizeUsername(username: string): string {
-  return username.trim().toLowerCase();
+  return username.trim().toLowerCase()
 }
 
 function normalizeEmail(email: string): string {
-  return email.trim().toLowerCase();
+  return email.trim().toLowerCase()
 }

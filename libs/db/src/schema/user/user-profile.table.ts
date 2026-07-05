@@ -9,7 +9,7 @@ import {
   uniqueIndex,
   uuid,
   varchar,
-} from 'drizzle-orm/pg-core';
+} from 'drizzle-orm/pg-core'
 
 import type {
   Country,
@@ -21,10 +21,10 @@ import type {
   UserProfileFieldVisibility,
   UserProfileLanguage,
   UserProfileLink,
-} from '@aerealith-ai/core';
+} from '@aerealith-ai/core'
 
-import { profileStatusDbEnum } from '../../enums';
-import { usersTable } from './user.table';
+import { profileStatusDbEnum } from '../../enums'
+import { usersTable } from './user.table'
 
 /**
  * Stores a user's public profile and owner-visible profile details.
@@ -73,9 +73,7 @@ export const userProfilesTable = pgTable(
 
     bio: text('bio'),
 
-    status: profileStatusDbEnum('status')
-      .default('pending_setup')
-      .notNull(),
+    status: profileStatusDbEnum('status').default('pending_setup').notNull(),
 
     fieldVisibility: jsonb('field_visibility')
       .$type<UserProfileFieldVisibility>()
@@ -117,10 +115,7 @@ export const userProfilesTable = pgTable(
 
     websiteUrl: text('website_url'),
 
-    links: jsonb('links')
-      .$type<UserProfileLink[]>()
-      .default([])
-      .notNull(),
+    links: jsonb('links').$type<UserProfileLink[]>().default([]).notNull(),
 
     createdAt: timestamp('created_at', {
       withTimezone: true,
@@ -148,8 +143,8 @@ export const userProfilesTable = pgTable(
     index('user_profiles_country_index').on(table.country),
     index('user_profiles_created_at_index').on(table.createdAt),
   ],
-);
+)
 
-export type UserProfileRow = typeof userProfilesTable.$inferSelect;
+export type UserProfileRow = typeof userProfilesTable.$inferSelect
 
-export type NewUserProfileRow = typeof userProfilesTable.$inferInsert;
+export type NewUserProfileRow = typeof userProfilesTable.$inferInsert

@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "generators": {
+    "service": {
+      "factory": "./src/index",
+      "schema": "./src/schema.json",
+      "description": "Create a new Hono-based service under apps/services"
+    }
+  }
+}

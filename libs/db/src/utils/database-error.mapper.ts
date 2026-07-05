@@ -4,18 +4,18 @@ import {
   AerealithError,
   CommonErrorCode,
   HttpErrorCode,
-} from '@aerealith-ai/core';
+} from '@aerealith-ai/core'
 
 type DatabaseErrorLike = {
-  code?: unknown;
-  constraint?: unknown;
-  message?: unknown;
-};
+  code?: unknown
+  constraint?: unknown
+  message?: unknown
+}
 
 const PostgresErrorCode = {
   ForeignKeyViolation: '23503',
   UniqueViolation: '23505',
-} as const;
+} as const
 
 /**
  * Converts a database error into a safe application error.
@@ -25,10 +25,10 @@ const PostgresErrorCode = {
  */
 export function mapDatabaseError(error: unknown): AerealithError {
   if (error instanceof AerealithError) {
-    return error;
+    return error
   }
 
-  const databaseError = getDatabaseError(error);
+  const databaseError = getDatabaseError(error)
 
   if (databaseError?.code === PostgresErrorCode.UniqueViolation) {
     return new AerealithError('A record with this value already exists.', {
@@ -38,7 +38,7 @@ export function mapDatabaseError(error: unknown): AerealithError {
         constraint: databaseError.constraint,
       },
       cause: error,
-    });
+    })
   }
 
   if (databaseError?.code === PostgresErrorCode.ForeignKeyViolation) {
@@ -52,7 +52,7 @@ export function mapDatabaseError(error: unknown): AerealithError {
         },
         cause: error,
       },
-    );
+    )
   }
 
   return new AerealithError('A database operation failed.', {
@@ -62,13 +62,13 @@ export function mapDatabaseError(error: unknown): AerealithError {
       databaseCode: databaseError?.code,
     },
     cause: error,
-  });
+  })
 }
 
 function getDatabaseError(error: unknown): DatabaseErrorLike | null {
   if (typeof error !== 'object' || error === null) {
-    return null;
+    return null
   }
 
-  return error as DatabaseErrorLike;
+  return error as DatabaseErrorLike
 }

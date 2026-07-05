@@ -6,11 +6,11 @@ Aerealith is currently developed from the `master` branch. Until a versioned
 release support matrix is published, security fixes are applied to the latest
 maintained source on that branch.
 
-| Version or branch | Security support |
-| --- | --- |
-| `master` | :white_check_mark: |
-| Release versions explicitly marked as supported | :white_check_mark: |
-| Older commits, feature branches, and unsupported releases | :x: |
+| Version or branch                                         | Security support   |
+| --------------------------------------------------------- | ------------------ |
+| `master`                                                  | :white_check_mark: |
+| Release versions explicitly marked as supported           | :white_check_mark: |
+| Older commits, feature branches, and unsupported releases | :x:                |
 
 ## Reporting a Vulnerability
 

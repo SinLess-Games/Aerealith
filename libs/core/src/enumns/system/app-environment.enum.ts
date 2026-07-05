@@ -10,18 +10,18 @@ export const AppEnvironment = {
   Preview: 'preview',
   Staging: 'staging',
   Production: 'production',
-} as const;
+} as const
 
 export type AppEnvironment =
-  (typeof AppEnvironment)[keyof typeof AppEnvironment];
+  (typeof AppEnvironment)[keyof typeof AppEnvironment]
 
-export const DefaultAppEnvironment = AppEnvironment.Development;
+export const DefaultAppEnvironment = AppEnvironment.Development
 
-export const AppEnvironmentValues = Object.values(AppEnvironment);
+export const AppEnvironmentValues = Object.values(AppEnvironment)
 
 export function isAppEnvironment(value: unknown): value is AppEnvironment {
   return (
     typeof value === 'string' &&
     AppEnvironmentValues.includes(value as AppEnvironment)
-  );
+  )
 }

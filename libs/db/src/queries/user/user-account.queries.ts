@@ -1,8 +1,8 @@
 // libs/db/src/queries/user/user-account.queries.ts
 
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm'
 
-import { userAccountsTable } from '../../schema';
+import { userAccountsTable } from '../../schema'
 
 /**
  * Builds a query condition for an active user account by ID.
@@ -10,10 +10,7 @@ import { userAccountsTable } from '../../schema';
  * Soft-deleted accounts are excluded.
  */
 export function activeUserAccountById(id: string) {
-  return and(
-    eq(userAccountsTable.id, id),
-    isNull(userAccountsTable.deletedAt),
-  );
+  return and(eq(userAccountsTable.id, id), isNull(userAccountsTable.deletedAt))
 }
 
 /**
@@ -30,7 +27,7 @@ export function activeUserAccountByProviderAccount(
     eq(userAccountsTable.provider, normalizeProvider(provider)),
     eq(userAccountsTable.accountId, accountId.trim()),
     isNull(userAccountsTable.deletedAt),
-  );
+  )
 }
 
 /**
@@ -42,7 +39,7 @@ export function activeUserAccountsByUserId(userId: string) {
   return and(
     eq(userAccountsTable.userId, userId),
     isNull(userAccountsTable.deletedAt),
-  );
+  )
 }
 
 /**
@@ -50,9 +47,9 @@ export function activeUserAccountsByUserId(userId: string) {
  * including soft-deleted accounts.
  */
 export function userAccountsByUserId(userId: string) {
-  return eq(userAccountsTable.userId, userId);
+  return eq(userAccountsTable.userId, userId)
 }
 
 function normalizeProvider(provider: string): string {
-  return provider.trim().toLowerCase();
+  return provider.trim().toLowerCase()
 }

@@ -1,9 +1,9 @@
 // libs/db/src/queries/user/user-consent.queries.ts
 
-import type { UserConsentType } from '@aerealith-ai/core';
-import { and, eq, isNull } from 'drizzle-orm';
+import type { UserConsentType } from '@aerealith-ai/core'
+import { and, eq, isNull } from 'drizzle-orm'
 
-import { userConsentsTable } from '../../schema';
+import { userConsentsTable } from '../../schema'
 
 /**
  * Builds a query condition for an active user consent by ID.
@@ -11,10 +11,7 @@ import { userConsentsTable } from '../../schema';
  * Soft-deleted consent records are excluded.
  */
 export function activeUserConsentById(id: string) {
-  return and(
-    eq(userConsentsTable.id, id),
-    isNull(userConsentsTable.deletedAt),
-  );
+  return and(eq(userConsentsTable.id, id), isNull(userConsentsTable.deletedAt))
 }
 
 /**
@@ -30,7 +27,7 @@ export function activeUserConsentByUserIdAndType(
     eq(userConsentsTable.userId, userId),
     eq(userConsentsTable.type, type),
     isNull(userConsentsTable.deletedAt),
-  );
+  )
 }
 
 /**
@@ -42,7 +39,7 @@ export function activeUserConsentsByUserId(userId: string) {
   return and(
     eq(userConsentsTable.userId, userId),
     isNull(userConsentsTable.deletedAt),
-  );
+  )
 }
 
 /**
@@ -50,5 +47,5 @@ export function activeUserConsentsByUserId(userId: string) {
  * including soft-deleted records.
  */
 export function userConsentsByUserId(userId: string) {
-  return eq(userConsentsTable.userId, userId);
+  return eq(userConsentsTable.userId, userId)
 }

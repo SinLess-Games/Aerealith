@@ -92,3 +92,6 @@ docs/.vitepress/dist/
 docs/.docusaurus/
 storybook-static/
 **/storybook-static/
+
+# Generator templates
+tools/generators/service/templates/

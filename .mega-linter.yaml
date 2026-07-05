@@ -182,5 +182,11 @@ DOCKERFILE_HADOLINT_FILTER_REGEX_EXCLUDE: *excluded_paths
 ACTION_ACTIONLINT_FILTER_REGEX_EXCLUDE: *excluded_paths
 ACTION_ZIZMOR_FILTER_REGEX_EXCLUDE: *excluded_paths
 
+# GitHub Code Quality is in public preview and requires code-quality: write.
+# MegaLinter's bundled actionlint release does not recognize that new scope yet,
+# so ignore only its exact stale-permission diagnostic.
+ACTION_ACTIONLINT_ARGUMENTS: >-
+  -ignore 'unknown permission scope "code-quality"'
+
 ACTION_ZIZMOR_UNSECURED_ENV_VARIABLES:
   - GITHUB_TOKEN

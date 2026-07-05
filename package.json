@@ -3,6 +3,20 @@
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
+  "engines": {
+    "node": "25.9.0",
+    "pnpm": "11.5.2"
+  },
+  "nx": {
+    "includedScripts": []
+  },
+  "engines": {
+    "node": "25.9.0",
+    "pnpm": "11.5.2"
+  },
+  "nx": {
+    "includedScripts": []
+  },
   "scripts": {
     "prepare": "husky",
     "nx": "nx",
@@ -39,6 +53,7 @@
     "frontend:deploy:preview": "wrangler versions upload --config apps/frontend/wrangler.toml",
     "frontend:deploy:staging": "wrangler versions upload --config apps/frontend/wrangler.toml --preview-alias staging",
     "frontend:deploy:production": "wrangler deploy --config apps/frontend/wrangler.toml",
+    "services:new": "nx g @aerealith/service-generator:service --name",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
     "fix": "pnpm format && pnpm lint:fix",
     "clean": "nx reset && rimraf dist coverage .nx/cache",
@@ -62,14 +77,17 @@
     "@nx/eslint-plugin": "23.0.0",
     "@nx/js": "23.0.0",
     "@nx/playwright": "^23.0.0",
+    "@nx/plugin": "23.0.0",
     "@nx/react": "^23.0.0",
     "@nx/vite": "^23.0.0",
     "@nx/vitest": "^23.0.0",
     "@nx/web": "23.0.0",
     "@nx/workspace": "23.0.0",
     "@playwright/test": "^1.61.0",
+    "@swc-node/register": "^1.11.1",
+    "@swc-node/register": "^1.11.1",
     "@swc/cli": "~0.8.0",
-    "@swc/core": "~1.15.5",
+    "@swc/core": "~1.15.0",
     "@swc/helpers": "~0.5.18",
     "@testing-library/dom": "10.4.0",
     "@testing-library/react": "16.3.0",
@@ -85,6 +103,8 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^10.5.0",
     "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.0.0",
+    "globals": "^16.0.0",
     "eslint-plugin-drizzle": "^0.2.3",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",

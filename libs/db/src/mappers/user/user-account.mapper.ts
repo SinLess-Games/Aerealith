@@ -1,21 +1,13 @@
 // libs/db/src/mappers/user/user-account.mapper.ts
 
-import {
-  UserAccountEntity,
-  type UserAccountContract,
-} from '@aerealith-ai/core';
+import { UserAccountEntity, type UserAccountContract } from '@aerealith-ai/core'
 
-import type {
-  NewUserAccountRow,
-  UserAccountRow,
-} from '../../schema';
+import type { NewUserAccountRow, UserAccountRow } from '../../schema'
 
 /**
  * Converts a database user-account row into the core entity.
  */
-export function toUserAccountEntity(
-  row: UserAccountRow,
-): UserAccountEntity {
+export function toUserAccountEntity(row: UserAccountRow): UserAccountEntity {
   return new UserAccountEntity({
     id: row.id,
     userId: row.userId,
@@ -28,7 +20,7 @@ export function toUserAccountEntity(
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     deletedAt: row.deletedAt,
-  });
+  })
 }
 
 /**
@@ -48,7 +40,7 @@ export function toUserAccountContract(
     connectedAt: entity.connectedAt.toISOString(),
     createdAt: entity.createdAt.toISOString(),
     updatedAt: entity.updatedAt.toISOString(),
-  };
+  }
 }
 
 /**
@@ -67,5 +59,5 @@ export function toNewUserAccountRow(
     managementUrl: entity.managementUrl,
     status: entity.status,
     connectedAt: entity.connectedAt,
-  };
+  }
 }

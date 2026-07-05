@@ -1,14 +1,14 @@
 // libs/db/src/mappers/user/user-profile.mapper.spec.ts
 
-import { UserProfileEntity } from '@aerealith-ai/core';
-import { describe, expect, it } from 'vitest';
+import { UserProfileEntity } from '@aerealith-ai/core'
+import { describe, expect, it } from 'vitest'
 
-import type { UserProfileRow } from '../../schema';
+import type { UserProfileRow } from '../../schema'
 import {
   toNewUserProfileRow,
   toUserProfileContract,
   toUserProfileEntity,
-} from './user-profile.mapper';
+} from './user-profile.mapper'
 
 const defaultFieldVisibility = {
   avatarUrl: 'public',
@@ -23,7 +23,7 @@ const defaultFieldVisibility = {
   locationLabel: 'public',
   pronouns: 'public',
   websiteUrl: 'public',
-} as UserProfileRow['fieldVisibility'];
+} as UserProfileRow['fieldVisibility']
 
 function createUserProfileRow(
   overrides: Partial<UserProfileRow> = {},
@@ -65,16 +65,16 @@ function createUserProfileRow(
     deletedAt: null,
 
     ...overrides,
-  };
+  }
 }
 
 describe('user profile mapper', () => {
   it('converts a database row into a user profile entity', () => {
-    const row = createUserProfileRow();
+    const row = createUserProfileRow()
 
-    const entity = toUserProfileEntity(row);
+    const entity = toUserProfileEntity(row)
 
-    expect(entity).toBeInstanceOf(UserProfileEntity);
+    expect(entity).toBeInstanceOf(UserProfileEntity)
 
     expect(entity).toEqual(
       expect.objectContaining({
@@ -113,18 +113,18 @@ describe('user profile mapper', () => {
         updatedAt: row.updatedAt,
         deletedAt: row.deletedAt,
       }),
-    );
-  });
+    )
+  })
 
   it('applies default visibility rules when the stored visibility map is empty', () => {
     const entity = toUserProfileEntity(
       createUserProfileRow({
         fieldVisibility: {} as UserProfileRow['fieldVisibility'],
       }),
-    );
+    )
 
-    expect(entity.fieldVisibility).toEqual(defaultFieldVisibility);
-  });
+    expect(entity.fieldVisibility).toEqual(defaultFieldVisibility)
+  })
 
   it('preserves nullable profile fields when converting to an entity', () => {
     const row = createUserProfileRow({
@@ -141,37 +141,37 @@ describe('user profile mapper', () => {
       romanticOrientation: null,
       sexAttitude: null,
       websiteUrl: null,
-    });
+    })
 
-    const entity = toUserProfileEntity(row);
+    const entity = toUserProfileEntity(row)
 
-    expect(entity.middleName).toBeNull();
-    expect(entity.pronouns).toBeNull();
-    expect(entity.avatarUrl).toBeNull();
-    expect(entity.bannerUrl).toBeNull();
-    expect(entity.bio).toBeNull();
-    expect(entity.locationLabel).toBeNull();
-    expect(entity.country).toBeNull();
-    expect(entity.websiteUrl).toBeNull();
-  });
+    expect(entity.middleName).toBeNull()
+    expect(entity.pronouns).toBeNull()
+    expect(entity.avatarUrl).toBeNull()
+    expect(entity.bannerUrl).toBeNull()
+    expect(entity.bio).toBeNull()
+    expect(entity.locationLabel).toBeNull()
+    expect(entity.country).toBeNull()
+    expect(entity.websiteUrl).toBeNull()
+  })
 
   it('preserves a soft-deletion timestamp when converting to an entity', () => {
-    const deletedAt = new Date('2026-06-21T00:00:00.000Z');
+    const deletedAt = new Date('2026-06-21T00:00:00.000Z')
 
     const entity = toUserProfileEntity(
       createUserProfileRow({
         deletedAt,
       }),
-    );
+    )
 
-    expect(entity.deletedAt).toBe(deletedAt);
-  });
+    expect(entity.deletedAt).toBe(deletedAt)
+  })
 
   it('converts a user profile entity into a database insert row', () => {
-    const row = createUserProfileRow();
-    const entity = toUserProfileEntity(row);
+    const row = createUserProfileRow()
+    const entity = toUserProfileEntity(row)
 
-    const newRow = toNewUserProfileRow(entity);
+    const newRow = toNewUserProfileRow(entity)
 
     expect(newRow).toEqual({
       userId: row.userId,
@@ -203,14 +203,14 @@ describe('user profile mapper', () => {
       languages: row.languages,
       websiteUrl: row.websiteUrl,
       links: row.links,
-    });
-  });
+    })
+  })
 
   it('converts an entity into a user profile contract', () => {
-    const row = createUserProfileRow();
-    const entity = toUserProfileEntity(row);
+    const row = createUserProfileRow()
+    const entity = toUserProfileEntity(row)
 
-    const contract = toUserProfileContract(entity);
+    const contract = toUserProfileContract(entity)
 
     expect(contract).toEqual(
       expect.objectContaining({
@@ -248,35 +248,35 @@ describe('user profile mapper', () => {
         createdAt: row.createdAt.toISOString(),
         updatedAt: row.updatedAt.toISOString(),
       }),
-    );
-  });
+    )
+  })
 
   it('does not expose the soft-deletion timestamp in the contract', () => {
     const entity = toUserProfileEntity(
       createUserProfileRow({
         deletedAt: new Date('2026-06-21T00:00:00.000Z'),
       }),
-    );
+    )
 
-    const contract = toUserProfileContract(entity);
+    const contract = toUserProfileContract(entity)
 
-    expect(contract).not.toHaveProperty('deletedAt');
-  });
+    expect(contract).not.toHaveProperty('deletedAt')
+  })
 
   it('preserves profile status through every mapper boundary', () => {
     const row = createUserProfileRow({
       status: 'active' as UserProfileRow['status'],
-    });
+    })
 
-    const entity = toUserProfileEntity(row);
-    const contract = toUserProfileContract(entity);
+    const entity = toUserProfileEntity(row)
+    const contract = toUserProfileContract(entity)
 
-    expect(entity.status).toBe('active');
-    expect(contract.status).toBe('active');
-  });
+    expect(entity.status).toBe('active')
+    expect(contract.status).toBe('active')
+  })
 
   it('preserves profile links and language preferences through every mapper boundary', () => {
-    const languages: UserProfileRow['languages'] = [];
+    const languages: UserProfileRow['languages'] = []
 
     const links = [
       {
@@ -287,20 +287,20 @@ describe('user profile mapper', () => {
         label: 'GitHub',
         url: 'https://github.com/Sinless777',
       },
-    ] as UserProfileRow['links'];
+    ] as UserProfileRow['links']
 
     const row = createUserProfileRow({
       languages,
       links,
-    });
+    })
 
-    const entity = toUserProfileEntity(row);
-    const contract = toUserProfileContract(entity);
+    const entity = toUserProfileEntity(row)
+    const contract = toUserProfileContract(entity)
 
-    expect(entity.languages).toEqual(languages);
-    expect(entity.links).toEqual(links);
+    expect(entity.languages).toEqual(languages)
+    expect(entity.links).toEqual(links)
 
-    expect(contract.languages).toEqual(languages);
-    expect(contract.links).toEqual(links);
-  });
-});
+    expect(contract.languages).toEqual(languages)
+    expect(contract.links).toEqual(links)
+  })
+})

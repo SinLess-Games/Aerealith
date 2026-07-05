@@ -1,8 +1,8 @@
 // libs/db/src/enums/user-role.db-enum.ts
 
-import { pgEnum } from 'drizzle-orm/pg-core';
+import { pgEnum } from 'drizzle-orm/pg-core'
 
-import { UserRole } from '@aerealith-ai/core';
+import { UserRole } from '@aerealith-ai/core'
 
 /**
  * PostgreSQL enum for user authorization roles.
@@ -13,4 +13,4 @@ import { UserRole } from '@aerealith-ai/core';
 export const userRoleDbEnum = pgEnum(
   'user_role',
   Object.values(UserRole) as [string, ...string[]],
-);
+)

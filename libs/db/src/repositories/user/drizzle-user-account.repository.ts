@@ -1,34 +1,31 @@
 // libs/db/src/repositories/user/drizzle-user-account.repository.ts
 
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm'
 
-import type {
-  UserAccountContract,
-  UserAccountStatus,
-} from '@aerealith-ai/core';
+import type { UserAccountContract, UserAccountStatus } from '@aerealith-ai/core'
 
-import type { DatabaseClient } from '../../client';
+import type { DatabaseClient } from '../../client'
 import {
   type NewUserAccountRow,
   type UserAccountRow,
   userAccountsTable,
-} from '../../schema';
+} from '../../schema'
 
 export type CreateUserAccountInput = {
-  userId: string;
-  provider: string;
-  accountId: string;
-  displayName: string;
-  managementUrl?: string | null;
-  status?: UserAccountStatus;
-  connectedAt?: Date;
-};
+  userId: string
+  provider: string
+  accountId: string
+  displayName: string
+  managementUrl?: string | null
+  status?: UserAccountStatus
+  connectedAt?: Date
+}
 
 export type UpdateUserAccountInput = {
-  displayName?: string;
-  managementUrl?: string | null;
-  status?: UserAccountStatus;
-};
+  displayName?: string
+  managementUrl?: string | null
+  status?: UserAccountStatus
+}
 
 /**
  * Drizzle persistence for accounts linked to an Aerealith user.
@@ -44,14 +41,11 @@ export class DrizzleUserAccountRepository {
       .select()
       .from(userAccountsTable)
       .where(
-        and(
-          eq(userAccountsTable.id, id),
-          isNull(userAccountsTable.deletedAt),
-        ),
+        and(eq(userAccountsTable.id, id), isNull(userAccountsTable.deletedAt)),
       )
-      .limit(1);
+      .limit(1)
 
-    return row ? toUserAccountContract(row) : null;
+    return row ? toUserAccountContract(row) : null
   }
 
   async findByProviderAccount(
@@ -68,9 +62,9 @@ export class DrizzleUserAccountRepository {
           isNull(userAccountsTable.deletedAt),
         ),
       )
-      .limit(1);
+      .limit(1)
 
-    return row ? toUserAccountContract(row) : null;
+    return row ? toUserAccountContract(row) : null
   }
 
   async findAllByUserId(userId: string): Promise<UserAccountContract[]> {
@@ -82,34 +76,32 @@ export class DrizzleUserAccountRepository {
           eq(userAccountsTable.userId, userId),
           isNull(userAccountsTable.deletedAt),
         ),
-      );
+      )
 
-    return rows.map(toUserAccountContract);
+    return rows.map(toUserAccountContract)
   }
 
-  async create(
-    input: CreateUserAccountInput,
-  ): Promise<UserAccountContract> {
+  async create(input: CreateUserAccountInput): Promise<UserAccountContract> {
     const [row] = await this.database
       .insert(userAccountsTable)
       .values(toNewUserAccountRow(input))
-      .returning();
+      .returning()
 
     if (!row) {
-      throw new Error('Failed to create user account.');
+      throw new Error('Failed to create user account.')
     }
 
-    return toUserAccountContract(row);
+    return toUserAccountContract(row)
   }
 
   async update(
     id: string,
     input: UpdateUserAccountInput,
   ): Promise<UserAccountContract | null> {
-    const values = createUpdateValues(input);
+    const values = createUpdateValues(input)
 
     if (Object.keys(values).length === 0) {
-      return this.findById(id);
+      return this.findById(id)
     }
 
     const [row] = await this.database
@@ -119,14 +111,11 @@ export class DrizzleUserAccountRepository {
         updatedAt: new Date(),
       })
       .where(
-        and(
-          eq(userAccountsTable.id, id),
-          isNull(userAccountsTable.deletedAt),
-        ),
+        and(eq(userAccountsTable.id, id), isNull(userAccountsTable.deletedAt)),
       )
-      .returning();
+      .returning()
 
-    return row ? toUserAccountContract(row) : null;
+    return row ? toUserAccountContract(row) : null
   }
 
   async softDelete(id: string): Promise<boolean> {
@@ -137,22 +126,17 @@ export class DrizzleUserAccountRepository {
         updatedAt: new Date(),
       })
       .where(
-        and(
-          eq(userAccountsTable.id, id),
-          isNull(userAccountsTable.deletedAt),
-        ),
+        and(eq(userAccountsTable.id, id), isNull(userAccountsTable.deletedAt)),
       )
       .returning({
         id: userAccountsTable.id,
-      });
+      })
 
-    return row !== undefined;
+    return row !== undefined
   }
 }
 
-function toNewUserAccountRow(
-  input: CreateUserAccountInput,
-): NewUserAccountRow {
+function toNewUserAccountRow(input: CreateUserAccountInput): NewUserAccountRow {
   return {
     userId: input.userId.trim(),
     provider: normalizeProvider(input.provider),
@@ -161,32 +145,30 @@ function toNewUserAccountRow(
     managementUrl: normalizeOptionalString(input.managementUrl),
     status: input.status ?? 'active',
     connectedAt: input.connectedAt ?? new Date(),
-  };
+  }
 }
 
 function createUpdateValues(
   input: UpdateUserAccountInput,
 ): Partial<NewUserAccountRow> {
-  const values: Partial<NewUserAccountRow> = {};
+  const values: Partial<NewUserAccountRow> = {}
 
   if (input.displayName !== undefined) {
-    values.displayName = input.displayName.trim();
+    values.displayName = input.displayName.trim()
   }
 
   if (input.managementUrl !== undefined) {
-    values.managementUrl = normalizeOptionalString(input.managementUrl);
+    values.managementUrl = normalizeOptionalString(input.managementUrl)
   }
 
   if (input.status !== undefined) {
-    values.status = input.status;
+    values.status = input.status
   }
 
-  return values;
+  return values
 }
 
-function toUserAccountContract(
-  row: UserAccountRow,
-): UserAccountContract {
+function toUserAccountContract(row: UserAccountRow): UserAccountContract {
   return {
     id: row.id,
     provider: row.provider,
@@ -196,17 +178,17 @@ function toUserAccountContract(
     connectedAt: row.connectedAt.toISOString(),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
-  };
+  }
 }
 
 function normalizeProvider(provider: string): string {
-  return provider.trim().toLowerCase();
+  return provider.trim().toLowerCase()
 }
 
 function normalizeOptionalString(
   value: string | null | undefined,
 ): string | null {
-  const normalized = value?.trim();
+  const normalized = value?.trim()
 
-  return normalized || null;
+  return normalized || null
 }

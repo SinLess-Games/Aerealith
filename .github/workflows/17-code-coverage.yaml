@@ -31,9 +31,8 @@ on:
 
   workflow_dispatch:
 
-permissions:
-  contents: read
-  code-quality: write
+# Every job must declare only the permissions it needs.
+permissions: {}
 
 concurrency:
   group: code-coverage-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -44,10 +43,10 @@ defaults:
     shell: bash
 
 env:
-  CI: 'true'
-  NX_DAEMON: 'false'
-  NODE_VERSION: '25.9.0'
-  PNPM_VERSION: '11.5.2'
+  CI: "true"
+  NX_DAEMON: "false"
+  NODE_VERSION: "25.9.0"
+  PNPM_VERSION: "11.5.2"
   COVERAGE_DIRECTORY: coverage/code-quality
   COBERTURA_REPORT: coverage/code-quality/cobertura.xml
 
@@ -56,6 +55,12 @@ jobs:
     name: Vitest Coverage
     runs-on: ubuntu-latest
     timeout-minutes: 30
+
+    permissions:
+      contents: read
+
+    outputs:
+      cobertura_available: ${{ steps.cobertura.outputs.available }}
 
     steps:
       - name: Check out pull request head
@@ -88,14 +93,26 @@ jobs:
 
           nx_bin="$GITHUB_WORKSPACE/node_modules/.bin/nx"
           projects_file="$RUNNER_TEMP/coverage-projects.txt"
+          projects_json="$RUNNER_TEMP/coverage-projects.json"
 
           if [[ ! -x "$nx_bin" ]]; then
             echo "::error::Nx executable was not found at $nx_bin."
             exit 1
           fi
 
-          "$nx_bin" show projects --withTarget=test |
-            awk 'NF { print }' |
+          # Nx 23 emits a JSON array. Request that format explicitly and keep
+          # ANSI sequences out of the machine-readable output.
+          FORCE_COLOR=0 "$nx_bin" show projects --withTarget=test --json \
+            > "$projects_json"
+
+          if ! jq -e \
+            'type == "array" and all(.[]; type == "string")' \
+            "$projects_json" >/dev/null; then
+            echo '::error::Nx did not return a valid JSON array of test projects.'
+            exit 1
+          fi
+
+          jq -r '.[] | select(test("<%.*%>") | not)' "$projects_json" |
             sort -u > "$projects_file"
 
           if [[ ! -s "$projects_file" ]]; then
@@ -139,7 +156,8 @@ jobs:
               --coverage.reportOnFailure=true \
               --coverage.reportsDirectory="$reports_directory" \
               --coverage.reporter=text-summary \
-              --coverage.reporter=cobertura; then
+              --coverage.reporter=cobertura \
+              </dev/null; then
               failures=1
               echo "::error::Vitest failed for project: $project"
             fi
@@ -335,23 +353,42 @@ jobs:
           retention-days: 30
           compression-level: 6
 
-      - name: Upload coverage to GitHub Code Quality
-        if: >-
-          always() &&
-          !cancelled() &&
-          steps.cobertura.outputs.available == 'true' &&
-          (
-            github.event_name != 'pull_request' ||
-            github.event.pull_request.head.repo.full_name == github.repository
-          )
-        uses: actions/upload-code-coverage@v1
-        with:
-          file: ${{ steps.cobertura.outputs.file }}
-          language: JavaScript
-          label: code-coverage/vitest
-
       - name: Fail when Vitest failed
         if: always() && steps.vitest.outputs.tests_passed != 'true'
         run: |
           echo '::error::One or more Vitest projects failed. Review the grouped Vitest output above.'
           exit 1
+
+  upload-code-quality:
+    name: Upload Code Quality Coverage
+    needs: coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    if: >-
+      always() &&
+      !cancelled() &&
+      needs.coverage.outputs.cobertura_available == 'true' &&
+      (
+        github.event_name != 'pull_request' ||
+        github.event.pull_request.head.repo.full_name == github.repository
+      )
+
+    permissions:
+      contents: read
+      pull-requests: read
+      code-quality: write
+
+    steps:
+      - name: Download combined coverage artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: code-coverage-${{ github.run_id }}
+          path: ${{ env.COVERAGE_DIRECTORY }}
+
+      - name: Upload coverage to GitHub Code Quality
+        uses: actions/upload-code-coverage@b51da2c3c1b23e04d2d6477cfc34350b1f5cd3e9 # v1.2.0
+        with:
+          file: ${{ env.COBERTURA_REPORT }}
+          language: TypeScript
+          label: code-coverage/vitest

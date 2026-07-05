@@ -1,7 +1,7 @@
 // libs/db/src/transactions/with-transaction.ts
 
-import type { DatabaseClient } from '../client';
-import type { TransactionCallback } from './transaction.types';
+import type { DatabaseClient } from '../client'
+import type { TransactionCallback } from './transaction.types'
 
 /**
  * Runs database work inside a transaction.
@@ -13,5 +13,5 @@ export async function withTransaction<TResult>(
   database: DatabaseClient,
   callback: TransactionCallback<TResult>,
 ): Promise<TResult> {
-  return database.transaction((transaction) => callback(transaction));
+  return database.transaction((transaction) => callback(transaction))
 }

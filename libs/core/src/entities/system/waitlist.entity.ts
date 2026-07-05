@@ -1,26 +1,26 @@
 // libs/core/src/entities/system/waitlist.entity.ts
 
-import { BaseEntity, type BaseEntityInput } from '../base.entity';
+import { BaseEntity, type BaseEntityInput } from '../base.entity'
 
 export type WaitlistInput = BaseEntityInput & {
-  email: string;
-};
+  email: string
+}
 
 export class WaitlistEntity extends BaseEntity {
-  email: string;
+  email: string
 
   constructor(input: WaitlistInput) {
-    super(input);
+    super(input)
 
-    this.email = this.normalizeEmail(input.email);
+    this.email = this.normalizeEmail(input.email)
   }
 
   updateEmail(email: string): void {
-    this.email = this.normalizeEmail(email);
-    this.touch();
+    this.email = this.normalizeEmail(email)
+    this.touch()
   }
 
   private normalizeEmail(email: string): string {
-    return email.trim().toLowerCase();
+    return email.trim().toLowerCase()
   }
 }

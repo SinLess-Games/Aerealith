@@ -3,21 +3,21 @@
 /**
  * A JSON primitive value.
  */
-export type JsonPrimitive = string | number | boolean | null;
+export type JsonPrimitive = string | number | boolean | null
 
 /**
  * A JSON object.
  */
 export type JsonObject = {
-  [key: string]: JsonValue;
-};
+  [key: string]: JsonValue
+}
 
 /**
  * A JSON array.
  */
-export type JsonArray = JsonValue[];
+export type JsonArray = JsonValue[]
 
 /**
  * Any valid JSON-compatible value.
  */
-export type JsonValue = JsonPrimitive | JsonObject | JsonArray;
+export type JsonValue = JsonPrimitive | JsonObject | JsonArray
