@@ -439,7 +439,6 @@ labels:
   relationshipHints:
     implementation:
       - implementation
-      - linked:implementation
 
     dependency:
       - dependency

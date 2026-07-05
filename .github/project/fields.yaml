@@ -21,7 +21,7 @@ project:
 
 defaults:
   priority: Medium
-  effort: 3
+  effort: Medium
   release: Unscheduled
   aiTriage: Pending
 
@@ -420,16 +420,14 @@ projectFields:
   - key: commits
     name: Commits
     source: projectField
-    type: text
+    type: number
     required: false
     editable: false
     sync:
       mode: reconcile
-    description: Automation-maintained commit activity summary.
+    description: Automation-maintained count of commits on the pull request branch.
     automation:
       managed: true
-      format: "{count} commits · latest: {sha}"
-      maximumLength: 120
 
 rules:
   - name: blocked-items-require-a-reason

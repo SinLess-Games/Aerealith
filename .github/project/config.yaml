@@ -167,7 +167,7 @@ fields:
 
 defaults:
   priority: Medium
-  effort: "3"
+  effort: Medium
   release: Unscheduled
   aiTriage: Pending
 

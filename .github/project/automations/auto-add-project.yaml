@@ -44,7 +44,7 @@ issues:
     status: Inbox
     fields:
       priority: Medium
-      effort: "3"
+      effort: Medium
       release: Unscheduled
       aiTriage: Pending
 
@@ -131,8 +131,6 @@ issues:
         any:
           - labels:
               includes: type:documentation
-          - labels:
-              includes: type:docs
           - issueType: Documentation
       addToProject: true
       status: Ready
@@ -171,7 +169,6 @@ issues:
                 - type:task
                 - type:chore
                 - type:documentation
-                - type:docs
                 - type:security
           - issueType:
               empty: true
@@ -296,10 +293,6 @@ labels:
       type: Chore
 
     type:documentation:
-      type: Documentation
-      area: Docs
-
-    type:docs:
       type: Documentation
       area: Docs
 

@@ -52,7 +52,7 @@ jobs:
 
     steps:
       - name: Checkout Project configuration
-        uses: actions/checkout@v4
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 1
@@ -213,19 +213,19 @@ jobs:
             errors << "Release branch prefixes must not appear in `branching.allowedPrefixes`."
           end
 
-          expected_statuses = %w[
-            Inbox
-            Backlog
-            Ready
-            In Progress
-            In Review
-            Testing
-            QA
-            Awaiting Release
-            Deployment
-            Done
-            Blocked
-            Cancelled
+          expected_statuses = [
+            "Inbox",
+            "Backlog",
+            "Ready",
+            "In Progress",
+            "In Review",
+            "Testing",
+            "QA",
+            "Awaiting Release",
+            "Deployment",
+            "Done",
+            "Blocked",
+            "Cancelled",
           ].freeze
 
           system_fields = fetch_array(fields, "systemFields")
@@ -317,7 +317,7 @@ jobs:
             end
           end
 
-          %w[Start date Target date].each do |field_name|
+          ["Start date", "Target date"].each do |field_name|
             field = organization_issue_fields.find do |entry|
               entry.is_a?(Hash) && entry["name"] == field_name
             end
