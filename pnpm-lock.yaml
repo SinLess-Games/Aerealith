@@ -102,8 +102,8 @@ importers:
         specifier: ^21.2.0
         version: 21.2.0
       "@eslint/js":
-        specifier: ^9.8.0
-        version: 9.39.4
+        specifier: ^10.0.0
+        version: 10.0.1(eslint@10.5.0(jiti@2.7.0))
       "@nx/devkit":
         specifier: 23.0.1
         version: 23.0.1(nx@23.0.1(@swc-node/register@1.11.1(@swc/core@1.15.41(@swc/helpers@0.5.23))(@swc/types@0.1.27)(typescript@6.0.3))(@swc/core@1.15.41(@swc/helpers@0.5.23)))
@@ -2487,12 +2487,17 @@ packages:
       }
     engines: { node: ^20.19.0 || ^22.13.0 || >=24 }
 
-  "@eslint/js@9.39.4":
+  "@eslint/js@10.0.1":
     resolution:
       {
-        integrity: sha512-nE7DEIchvtiFTwBw4Lfbu59PG+kCofhjsKaCWzxTpt4lfRjRMqG6uMBzKXuEcyXhOHoUp9riAm7/aWYGhXZ9cw==,
+        integrity: sha512-zeR9k5pd4gxjZ0abRoIaxdc7I3nDktoXZk2qOv9gCNWx3mVwEn32VRhyLaRsDiJjTs0xq/T8mfPtyuXu7GWBcA==,
       }
-    engines: { node: ^18.18.0 || ^20.9.0 || >=21.1.0 }
+    engines: { node: ^20.19.0 || ^22.13.0 || >=24 }
+    peerDependencies:
+      eslint: ^10.0.0
+    peerDependenciesMeta:
+      eslint:
+        optional: true
 
   "@eslint/object-schema@3.0.5":
     resolution:
@@ -14441,7 +14446,9 @@ snapshots:
     dependencies:
       "@types/json-schema": 7.0.15
 
-  "@eslint/js@9.39.4": {}
+  "@eslint/js@10.0.1(eslint@10.5.0(jiti@2.7.0))":
+    optionalDependencies:
+      eslint: 10.5.0(jiti@2.7.0)
 
   "@eslint/object-schema@3.0.5": {}
 
