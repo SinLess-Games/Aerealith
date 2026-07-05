@@ -1,0 +1,321 @@
+# .github/project/automations/branch-activity.yaml
+
+schemaVersion: 1
+
+# Declarative branch-activity rules consumed by:
+# .github/workflows/102-project-status.yaml
+#
+# This automation detects active work from GitHub Flow branch pushes.
+#
+# A local checkout cannot be observed by GitHub, so the first qualifying
+# remote push is the authoritative signal that assigned work has started.
+
+automation:
+  key: branch-activity
+  name: Branch Activity
+  enabled: true
+
+  configFile: ../config.yaml
+  fieldsFile: ../fields.yaml
+
+project:
+  owner: SinLess-Games
+  name: Aerealith Delivery
+  repository: SinLess-Games/Aerealith
+
+fields:
+  status: Status
+  assignees: Assignees
+  labels: Labels
+  commits: Commits
+
+branches:
+  strategy: github-flow
+
+  production:
+    branch: master
+    ignoreActivity: true
+
+  allowedPrefixes:
+    - feature
+    - fix
+    - hotfix
+    - chore
+    - docs
+    - refactor
+    - test
+    - build
+    - ci
+    - perf
+    - security
+    - ai
+
+  blockedPrefixes:
+    - release
+    - releases
+
+  naming:
+    issueNumberRequired: true
+
+    format: "<prefix>/<issue-number>-<short-description>"
+
+    pattern: "^(feature|fix|hotfix|chore|docs|refactor|test|build|ci|perf|security|ai)/[1-9][0-9]*-[a-z0-9][a-z0-9-]*$"
+
+    examples:
+      valid:
+        - feature/123-project-automation
+        - fix/456-status-transition-bug
+        - hotfix/789-production-login-failure
+        - chore/321-update-dependencies
+        - docs/654-project-workflow-guide
+        - refactor/987-core-error-system
+        - test/111-project-status-tests
+        - build/222-update-docker-build
+        - ci/333-project-workflow-validation
+        - perf/444-api-response-cache
+        - security/555-rotate-project-token
+        - ai/666-issue-implementation-plan
+
+      invalid:
+        - feature/project-automation
+        - feature/123_Project_Automation
+        - feature/0-invalid-issue-number
+        - release/v0.1.0
+        - releases/v1.0.0
+        - master
+        - develop
+        - feature/123
+
+  parsing:
+    issueNumber:
+      source: branchName
+      captureGroup: 2
+      required: true
+
+    prefix:
+      source: branchName
+      captureGroup: 1
+      required: true
+
+  validation:
+    rejectBlockedPrefixes: true
+    rejectInvalidBranchNames: false
+
+    # Invalid branch names should not block a push by themselves.
+    # They simply do not trigger Project automation.
+    #
+    # Branch protection and pull-request validation can enforce the naming
+    # convention separately if you want to make invalid branch names fail CI.
+    onInvalidBranchName:
+      projectAutomation: skip
+      commitTracking: skip
+      statusTransition: skip
+      report: workflowSummary
+
+triggers:
+  - event: push
+
+    branches:
+      include:
+        - feature/**
+        - fix/**
+        - hotfix/**
+        - chore/**
+        - docs/**
+        - refactor/**
+        - test/**
+        - build/**
+        - ci/**
+        - perf/**
+        - security/**
+        - ai/**
+
+      exclude:
+        - master
+        - release/**
+        - releases/**
+
+    ignore:
+      deletedBranches: true
+      tagPushes: true
+
+projectItem:
+  ensureExists: true
+
+  # If an issue was somehow missed by auto-add automation, a valid branch push
+  # can add it to the Project before processing its active-work transition.
+  #
+  # project:exclude always wins.
+  skipLabels:
+    - "project:exclude"
+
+  match:
+    source: issueNumberFromBranch
+    itemType: issue
+    repository: SinLess-Games/Aerealith
+
+activeWork:
+  enabled: true
+
+  firstQualifyingPush:
+    enabled: true
+
+    # GitHub's push event has `created: true` when the pushed ref was created.
+    # If an event was missed, the workflow may still transition an item from a
+    # planning state after any later qualifying push.
+    primarySignal: push.created
+    fallbackSignal: push.received
+
+    requires:
+      issueAssignee: true
+      validBranchName: true
+      issueNumberMatch: true
+      projectItem: true
+
+    skippedWhen:
+      statuses:
+        - Blocked
+        - Cancelled
+
+      labels:
+        - "automation:paused"
+        - "project:exclude"
+
+    transitions:
+      allowedFrom:
+        - Inbox
+        - Backlog
+        - Ready
+
+      targetStatus: In Progress
+
+    whenIssueHasNoAssignee:
+      statusChange: skip
+      commitTracking: update
+      report: workflowSummary
+
+    whenIssueIsAlreadyActive:
+      statusChange: skip
+      commitTracking: update
+
+    whenIssueIsInReviewOrLater:
+      statusChange: skip
+      commitTracking: update
+
+    actions:
+      - ensureProjectItem
+      - setStatus
+      - updateCommitCount
+      - writeWorkflowSummary
+
+commitTracking:
+  enabled: true
+
+  field: Commits
+  fieldType: number
+
+  source:
+    branch: event.ref
+    baseBranch: master
+
+  # Count commits reachable from the active work branch that are not already
+  # reachable from master. This avoids counting the entire repository history.
+  calculation:
+    mode: commitsAheadOfBaseBranch
+    includeMergeCommits: true
+    minimumValue: 0
+
+  updateOn:
+    - push.created
+    - push.received
+
+  skippedWhen:
+    labels:
+      - "project:exclude"
+
+  protectedStatuses:
+    # Commit count may still update on Blocked items so the board reflects
+    # activity, but it must never change their status automatically.
+    - Blocked
+    - Cancelled
+
+  actions:
+    - updateProjectNumberField
+    - writeWorkflowSummary
+
+branchToIssueRules:
+  enabled: true
+
+  onePrimaryIssuePerBranch: true
+
+  issueReference:
+    source: branchName
+    format: "<prefix>/<issue-number>-<short-description>"
+
+  pullRequestLinking:
+    enabled: true
+
+    # The PR lifecycle automation handles status movement once a PR is opened.
+    # This automation only establishes the branch-to-issue relationship.
+    syncOnPullRequestOpen: true
+    syncOnPullRequestReopen: true
+
+  linkedIssueBehavior:
+    updateOnlyReferencedIssue: true
+    doNotInferAdditionalIssuesFromCommitMessages: true
+
+safeguards:
+  protectedStatuses:
+    - Blocked
+    - Cancelled
+
+  pauseLabels:
+    - "automation:paused"
+
+  excludeLabels:
+    - "project:exclude"
+
+  manualStatusChangesTakePriority: true
+
+  never:
+    - createReleaseBranches
+    - renameBranches
+    - deleteBranches
+    - assignUsersAutomatically
+    - removeAssignees
+    - removeLabels
+    - overrideBlockedStatus
+    - overrideCancelledStatus
+    - runAiAnalysis
+    - checkoutOrRunUntrustedBranchCode
+
+workflow:
+  permissions:
+    contents: read
+    issues: write
+    pullRequests: read
+    repositoryProjects: write
+
+  concurrency:
+    enabled: true
+    groupFormat: "project-branch-{repository}-{branch}"
+    cancelInProgress: false
+
+  logging:
+    writeWorkflowSummary: true
+
+    include:
+      - branchName
+      - branchPrefix
+      - issueNumber
+      - projectItemFound
+      - issueAssigneeCount
+      - previousStatus
+      - targetStatus
+      - commitCount
+
+    exclude:
+      - accessTokens
+      - secrets
+      - fullCommitMessages
+      - sourceCode

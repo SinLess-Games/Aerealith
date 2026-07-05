@@ -1,0 +1,515 @@
+# .github/project/automations/issue-linking.yaml
+
+schemaVersion: 1
+
+# Declarative linked-work rules consumed by:
+# .github/workflows/102-project-status.yaml
+# .github/workflows/104-project-pr-lifecycle.yaml
+#
+# This file defines how Aerealith identifies and synchronizes related issues
+# and pull requests without allowing one item to blindly overwrite another.
+#
+# Important:
+# - A pull request may link to multiple issues.
+# - An issue may have multiple pull requests.
+# - Native GitHub links are always preferred over branch-name inference.
+# - Status synchronization is event-based and protected by aggregation rules.
+# - Blocked, Cancelled, automation:paused, and project:exclude always win.
+
+automation:
+  key: issue-linking
+  name: Issue and Pull Request Linking
+  enabled: true
+
+configFile: ../config.yaml
+fieldsFile: ../fields.yaml
+statusTransitionsFile: ./status-transitions.yaml
+pullRequestLifecycleFile: ./pull-request-lifecycle.yaml
+
+project:
+  owner: SinLess-Games
+  name: Aerealith Delivery
+  repository: SinLess-Games/Aerealith
+
+repository:
+  owner: SinLess-Games
+  name: Aerealith
+  productionBranch: master
+
+fields:
+  status: Status
+  area: Area
+  iteration: Iteration
+  release: Release
+  aiTriage: AI triage
+  aiSummary: AI summary
+  commits: Commits
+  labels: Labels
+  assignees: Assignees
+  reviewers: Reviewers
+  linkedPullRequests: Linked pull requests
+  parentIssue: Parent issue
+  subIssuesProgress: Sub-issues progress
+
+linking:
+  enabled: true
+
+  sources:
+    # GitHub-native links are authoritative.
+    #
+    # Examples:
+    # - Development sidebar links
+    # - PR body references recognized by GitHub
+    # - Linked issues returned by GitHub GraphQL
+    - key: github-native
+      priority: 100
+      enabled: true
+
+    # Closing keywords create native links and may automatically close an
+    # issue after a PR merges into master.
+    - key: closing-keywords
+      priority: 90
+      enabled: true
+
+    # Branch names are a fallback for normal GitHub Flow work.
+    #
+    # Example:
+    # feature/123-project-automation
+    # → Issue #123
+    - key: branch-name
+      priority: 80
+      enabled: true
+
+    # Commit-message inference is intentionally disabled. A commit can mention
+    # many issues and should not silently create work relationships.
+    - key: commit-message
+      priority: 0
+      enabled: false
+
+  branchName:
+    enabled: true
+
+    format: "<prefix>/<issue-number>-<short-description>"
+
+    pattern: >-
+      ^(feature|fix|hotfix|chore|docs|refactor|test|build|ci|perf|security|ai)/
+      ([1-9][0-9]*)-[a-z0-9][a-z0-9-]*$
+
+    issueNumberCaptureGroup: 2
+
+  closingKeywords:
+    enabled: true
+
+    recognized:
+      - close
+      - closes
+      - closed
+      - fix
+      - fixes
+      - fixed
+      - resolve
+      - resolves
+      - resolved
+
+    # Use closing keywords only when you deliberately want GitHub to close the
+    # issue immediately after the PR merges into master.
+    #
+    # For work that must remain in Awaiting Release until production deploys,
+    # use a Development sidebar link or language such as:
+    #
+    # Related to #123
+    # Implements #123
+    # Part of #123
+    #
+    # Do not use "Fixes #123" for those items.
+    closeIssueOnMergeByDefault: false
+
+    preferredNonClosingReferences:
+      - "Related to #<issue-number>"
+      - "Implements #<issue-number>"
+      - "Part of #<issue-number>"
+
+relationships:
+  issueToPullRequest:
+    enabled: true
+
+    maximumLinkedPullRequestsPerIssue: 20
+
+    # Issues may have more than one active PR. The workflow must aggregate
+    # their current states rather than allowing a single PR to cause churn.
+    statusAggregation:
+      enabled: true
+
+      precedence:
+        - Deployment
+        - Awaiting Release
+        - QA
+        - Testing
+        - In Review
+        - In Progress
+        - Ready
+        - Backlog
+        - Inbox
+
+      activePullRequestStates:
+        - open
+
+      ignoredPullRequestStates:
+        - closed
+
+  pullRequestToIssue:
+    enabled: true
+
+    maximumLinkedIssuesPerPullRequest: 20
+
+    requireSameRepository: true
+
+    allowCrossRepositoryLinks: false
+
+projectItems:
+  ensureLinkedIssuesExist: true
+  ensureLinkedPullRequestsExist: true
+
+  addMissingIssueToProject:
+    enabled: true
+    defaultStatus: Inbox
+
+  addMissingPullRequestToProject:
+    enabled: true
+
+  duplicateHandling:
+    mode: reuseExistingProjectItem
+
+metadataSync:
+  enabled: true
+
+  # Do not create fake custom fields for data GitHub already owns.
+  nativeFields:
+    useAssignees: true
+    useReviewers: true
+    useLinkedPullRequests: true
+    useParentIssue: true
+    useSubIssuesProgress: true
+
+  issueToPullRequest:
+    enabled: true
+
+    # These Project fields can safely be copied to a PR Project item.
+    #
+    # Priority, Effort, Start date, Target date, and GitHub-native Issue Type
+    # are issue fields and do not reliably apply to pull requests. Do not try
+    # to force-copy them into PR items.
+    copyFields:
+      - Area
+      - Iteration
+      - Release
+
+    # AI fields belong to the specific work item and must remain separate.
+    doNotCopyFields:
+      - Status
+      - AI triage
+      - AI summary
+      - Commits
+      - Blocked reason
+
+    overwritePolicy:
+      onlyWhenTargetEmpty: true
+      neverOverwriteHumanEditedValues: true
+
+  pullRequestToIssue:
+    enabled: true
+
+    copyFields: []
+
+    # PR metadata is reflected through GitHub-native Project fields rather than
+    # copied into custom fields on the Issue.
+    nativeMetadata:
+      - Linked pull requests
+      - Assignees
+      - Reviewers
+
+statusSync:
+  enabled: true
+
+  protectedStatuses:
+    - Blocked
+    - Cancelled
+
+  protectedLabels:
+    - automation:paused
+    - project:exclude
+
+  generalRules:
+    # A Project item with a protected status or label may still receive native
+    # metadata updates, but its status cannot be changed automatically.
+    protectedItemsReceiveMetadataUpdates: true
+
+    # Do not downgrade a work item merely because an older linked PR changes.
+    allowStatusDowngrades: false
+
+    # Status changes must be caused by clear lifecycle events, not by a generic
+    # metadata update or a simple relink.
+    requireExplicitLifecycleEvent: true
+
+  issueFromPullRequest:
+    enabled: true
+
+    draftOpened:
+      targetStatus: In Progress
+      allowedFrom:
+        - Inbox
+        - Backlog
+        - Ready
+      onlyWhen:
+        allLinkedPullRequestsAreNotFurtherAheadThan: In Progress
+
+    readyForReview:
+      targetStatus: In Review
+      allowedFrom:
+        - Inbox
+        - Backlog
+        - Ready
+        - In Progress
+      onlyWhen:
+        anyLinkedPullRequestMatches:
+          state: open
+          draft: false
+
+    changesRequested:
+      targetStatus: In Progress
+      allowedFrom:
+        - In Review
+        - Testing
+        - QA
+      onlyWhen:
+        noOtherLinkedPullRequestMatches:
+          state: open
+          draft: false
+          statusIn:
+            - In Review
+            - Testing
+            - QA
+
+    testingStarted:
+      targetStatus: Testing
+      allowedFrom:
+        - In Progress
+        - In Review
+      onlyWhen:
+        anyLinkedPullRequestMatches:
+          state: open
+          status: Testing
+
+    qaStarted:
+      targetStatus: QA
+      allowedFrom:
+        - In Review
+        - Testing
+      onlyWhen:
+        anyLinkedPullRequestMatches:
+          state: open
+          status: QA
+
+    pullRequestMerged:
+      targetStatus: Awaiting Release
+      allowedFrom:
+        - In Progress
+        - In Review
+        - Testing
+        - QA
+      onlyWhen:
+        allRequiredLinkedPullRequestsMerged: true
+        issueIsOpen: true
+
+    pullRequestClosedWithoutMerge:
+      targetStatus: Ready
+      allowedFrom:
+        - In Progress
+        - In Review
+        - Testing
+        - QA
+      onlyWhen:
+        issueIsOpen: true
+        noOpenLinkedPullRequests: true
+        noMergedLinkedPullRequestsAwaitingRelease: true
+
+  pullRequestFromIssue:
+    enabled: true
+
+    # Branch activity controls the issue's move to In Progress. This rule only
+    # ensures a linked open PR does not remain behind the issue's active state.
+    issueMovedToInProgress:
+      targetStatus: In Progress
+      allowedFrom:
+        - Inbox
+        - Backlog
+        - Ready
+      onlyWhen:
+        pullRequestIsDraft: true
+
+    issueMovedToInReview:
+      targetStatus: In Review
+      allowedFrom:
+        - Inbox
+        - Backlog
+        - Ready
+        - In Progress
+      onlyWhen:
+        pullRequestIsOpen: true
+        pullRequestIsDraft: false
+
+releaseAndDeployment:
+  enabled: true
+
+  # A linked issue should not be completed when the PR merges. It moves to
+  # Awaiting Release and remains there until a production deployment succeeds
+  # or the configured GitHub Release is published.
+  mergedPullRequest:
+    pullRequestStatus: Awaiting Release
+    issueStatus: Awaiting Release
+
+  productionDeploymentStarted:
+    pullRequestStatus: Deployment
+    issueStatus: Deployment
+
+  productionDeploymentSucceeded:
+    pullRequestStatus: Done
+    issueStatus: Done
+
+  releasePublished:
+    pullRequestStatus: Done
+    issueStatus: Done
+
+issueClosure:
+  enabled: true
+
+  # If someone closes an issue manually, keep GitHub's native closed state as
+  # the authoritative record and move its Project item to Done.
+  manuallyClosedIssue:
+    status: Done
+
+  # GitHub may close issues automatically when a PR merged into master uses
+  # "Fixes #123" or another closing keyword.
+  #
+  # This preserves the release lifecycle by keeping the Project item at
+  # Awaiting Release rather than prematurely setting it to Done.
+  automaticallyClosedByMergedPullRequest:
+    status: Awaiting Release
+    onlyWhen:
+      linkedMergedPullRequestExists: true
+      productionDeploymentNotCompleted: true
+
+  # Once a production deployment or release completes, closed linked issues
+  # move to Done.
+  releasedIssue:
+    status: Done
+
+subIssues:
+  enabled: true
+
+  parentStatusAggregation:
+    enabled: true
+
+    # The parent is not automatically marked Done unless all child issues are
+    # Done or Cancelled and no active child remains.
+    completeParentWhen:
+      allChildrenIn:
+        - Done
+        - Cancelled
+
+      noActiveChildren: true
+
+    targetStatus: Done
+
+  parentProtection:
+    doNotOverrideStatuses:
+      - Blocked
+      - Cancelled
+
+labels:
+  excluded:
+    - project:exclude
+
+  paused:
+    - automation:paused
+
+  aiSkip:
+    - ai:skip
+
+  relationshipHints:
+    implementation:
+      - implementation
+
+    dependency:
+      - dependency
+      - blocked-by
+
+validation:
+  enabled: true
+
+  invalidLinkHandling:
+    crossRepositoryLink:
+      action: ignore
+      report: workflowSummary
+
+    missingIssue:
+      action: ignore
+      report: workflowSummary
+
+    tooManyLinkedItems:
+      action: skipStatusSync
+      report: workflowSummary
+
+    invalidBranchReference:
+      action: ignore
+      report: workflowSummary
+
+safeguards:
+  manualStatusChangesTakePriority: true
+
+  never:
+    - createIssuesWithoutExplicitAiApproval
+    - createPullRequests
+    - mergePullRequests
+    - closePullRequests
+    - deleteIssues
+    - deletePullRequests
+    - removeGitHubNativeLinks
+    - overwriteBlockedStatus
+    - overwriteCancelledStatus
+    - overwriteAutomationPausedItems
+    - copyIssueOnlyFieldsToPullRequests
+    - inferLinksFromCommitMessages
+    - runAiAnalysisForForkPullRequests
+    - checkoutOrRunUntrustedPullRequestCode
+
+workflow:
+  permissions:
+    contents: read
+    issues: write
+    pullRequests: write
+    repositoryProjects: write
+
+  concurrency:
+    enabled: true
+    groupFormat: "project-link-{repository}-{issueOrPullRequestNumber}"
+    cancelInProgress: false
+
+  logging:
+    writeWorkflowSummary: true
+
+    include:
+      - sourceItemNumber
+      - sourceItemType
+      - linkedIssueNumbers
+      - linkedPullRequestNumbers
+      - linkSource
+      - previousStatuses
+      - targetStatuses
+      - skippedReason
+
+    exclude:
+      - accessTokens
+      - secrets
+      - fullCommitMessages
+      - sourceCode

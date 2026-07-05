@@ -1,0 +1,678 @@
+# .github/project/automations/pull-request-lifecycle.yaml
+
+schemaVersion: 1
+
+# Declarative pull-request lifecycle rules consumed by:
+# .github/workflows/104-project-pr-lifecycle.yaml
+#
+# This file controls Project behavior for pull requests opened against master.
+# It works with:
+# - status-transitions.yaml for allowed status movement
+# - issue-linking.yaml for linked issue synchronization
+# - deployment-lifecycle.yaml for staging and production lifecycle events
+#
+# Pull requests and linked issues share the same workflow vocabulary, but a
+# pull request is never allowed to overwrite a linked issue that is Blocked,
+# Cancelled, or paused by a maintainer.
+
+automation:
+  key: pull-request-lifecycle
+  name: Pull Request Lifecycle
+  enabled: true
+
+configFile: ../config.yaml
+fieldsFile: ../fields.yaml
+statusTransitionsFile: ./status-transitions.yaml
+
+project:
+  owner: SinLess-Games
+  name: Aerealith Delivery
+  repository: SinLess-Games/Aerealith
+
+repository:
+  owner: SinLess-Games
+  name: Aerealith
+  productionBranch: master
+
+fields:
+  status: Status
+  type: Work Type
+  area: Area
+  iteration: Iteration
+  release: Release
+  priority: Priority
+  assignees: Assignees
+  reviewers: Reviewers
+  labels: Labels
+  linkedPullRequests: Linked pull requests
+  commits: Commits
+
+triggers:
+  - event: pull_request
+    actions:
+      - opened
+      - reopened
+      - ready_for_review
+      - converted_to_draft
+      - closed
+      - edited
+      - labeled
+      - unlabeled
+      - synchronize
+
+  - event: pull_request_review
+    actions:
+      - submitted
+      - dismissed
+
+  - event: pull_request_review_comment
+    actions:
+      - created
+
+scope:
+  baseBranches:
+    include:
+      - master
+
+  ignore:
+    draftOnly: false
+
+    labels:
+      - project:exclude
+
+    authors:
+      # Dependabot behavior is owned by dependencies.yaml.
+      - dependabot[bot]
+
+    headBranchPrefixes:
+      - release/
+      - releases/
+
+projectItem:
+  ensureExists: true
+
+  addToProject:
+    on:
+      - opened
+      - reopened
+      - ready_for_review
+      - converted_to_draft
+
+  duplicateHandling:
+    mode: reuseExistingItem
+
+  defaults:
+    priority: Medium
+    release: Unscheduled
+    aiTriage: Pending
+
+branchPolicy:
+  strategy: github-flow
+
+  baseBranch:
+    required: master
+
+  headBranch:
+    allowPrefixes:
+      - feature/
+      - fix/
+      - hotfix/
+      - chore/
+      - docs/
+      - refactor/
+      - test/
+      - build/
+      - ci/
+      - perf/
+      - security/
+      - ai/
+
+    denyPrefixes:
+      - release/
+      - releases/
+
+  invalidBranchBehavior:
+    projectAutomation: skipStatusUpdates
+    report: workflowSummary
+
+statusMapping:
+  draftOpened:
+    pullRequest: In Progress
+    linkedIssues: In Progress
+
+  convertedToDraft:
+    pullRequest: In Progress
+    linkedIssues: In Progress
+
+  readyForReview:
+    pullRequest: In Review
+    linkedIssues: In Review
+
+  reopenedDraft:
+    pullRequest: In Progress
+    linkedIssues: In Progress
+
+  reopenedReadyForReview:
+    pullRequest: In Review
+    linkedIssues: In Review
+
+  changesRequested:
+    pullRequest: In Progress
+    linkedIssues: In Progress
+
+  approved:
+    pullRequest: In Review
+    linkedIssues: In Review
+
+  merged:
+    pullRequest: Awaiting Release
+    linkedIssues: Awaiting Release
+
+  closedWithoutMerge:
+    pullRequest: Cancelled
+    linkedIssues: Ready
+
+lifecycle:
+  - key: draft-pr-opened
+    name: Draft pull request begins implementation work
+    enabled: true
+
+    trigger:
+      event: pull_request.opened
+
+    appliesTo:
+      - pull_request
+
+    conditions:
+      - pullRequest:
+          draft: true
+          state: open
+      - baseBranch: master
+      - labels:
+          excludes:
+            - automation:paused
+            - project:exclude
+
+    actions:
+      - ensureProjectItem
+      - setStatus:
+          value: In Progress
+      - syncLinkedIssues:
+          value: In Progress
+          onlyWhenOpen: true
+          onlyWhenNotProtected: true
+      - syncNativeMetadata
+      - writeWorkflowSummary
+
+    priority: 100
+
+  - key: non-draft-pr-opened
+    name: Ready-for-review pull request enters review
+    enabled: true
+
+    trigger:
+      event: pull_request.opened
+
+    appliesTo:
+      - pull_request
+
+    conditions:
+      - pullRequest:
+          draft: false
+          state: open
+      - baseBranch: master
+      - labels:
+          excludes:
+            - automation:paused
+            - project:exclude
+
+    actions:
+      - ensureProjectItem
+      - setStatus:
+          value: In Review
+      - syncLinkedIssues:
+          value: In Review
+          onlyWhenOpen: true
+          onlyWhenNotProtected: true
+      - syncNativeMetadata
+      - writeWorkflowSummary
+
+    priority: 95
+
+  - key: pull-request-marked-ready-for-review
+    name: Draft pull request marked ready for review
+    enabled: true
+
+    trigger:
+      event: pull_request.ready_for_review
+
+    appliesTo:
+      - pull_request
+
+    conditions:
+      - pullRequest:
+          draft: false
+          state: open
+      - baseBranch: master
+      - labels:
+          excludes:
+            - automation:paused
+            - project:exclude
+
+    actions:
+      - ensureProjectItem
+      - setStatus:
+          value: In Review
+      - syncLinkedIssues:
+          value: In Review
+          onlyWhenOpen: true
+          onlyWhenNotProtected: true
+      - syncNativeMetadata
+      - writeWorkflowSummary
+
+    priority: 90
+
+  - key: pull-request-converted-to-draft
+    name: Pull request returned to draft
+    enabled: true
+
+    trigger:
+      event: pull_request.converted_to_draft
+
+    appliesTo:
+      - pull_request
+
+    conditions:
+      - pullRequest:
+          draft: true
+          state: open
+      - baseBranch: master
+      - labels:
+          excludes:
+            - automation:paused
+            - project:exclude
+
+    actions:
+      - setStatus:
+          value: In Progress
+      - syncLinkedIssues:
+          value: In Progress
+          onlyWhenOpen: true
+          onlyWhenNotProtected: true
+      - syncNativeMetadata
+      - writeWorkflowSummary
+
+    priority: 90
+
+  - key: pull-request-reopened-as-draft
+    name: Reopened draft pull request resumes implementation
+    enabled: true
+
+    trigger:
+      event: pull_request.reopened
+
+    appliesTo:
+      - pull_request
+
+    conditions:
+      - pullRequest:
+          draft: true
+          state: open
+      - baseBranch: master
+      - labels:
+          excludes:
+            - automation:paused
+            - project:exclude
+
+    actions:
+      - ensureProjectItem
+      - setStatus:
+          value: In Progress
+      - syncLinkedIssues:
+          value: In Progress
+          onlyWhenOpen: true
+          onlyWhenNotProtected: true
+      - syncNativeMetadata
+      - writeWorkflowSummary
+
+    priority: 85
+
+  - key: pull-request-reopened-ready-for-review
+    name: Reopened ready-for-review pull request resumes review
+    enabled: true
+
+    trigger:
+      event: pull_request.reopened
+
+    appliesTo:
+      - pull_request
+
+    conditions:
+      - pullRequest:
+          draft: false
+          state: open
+      - baseBranch: master
+      - labels:
+          excludes:
+            - automation:paused
+            - project:exclude
+
+    actions:
+      - ensureProjectItem
+      - setStatus:
+          value: In Review
+      - syncLinkedIssues:
+          value: In Review
+          onlyWhenOpen: true
+          onlyWhenNotProtected: true
+      - syncNativeMetadata
+      - writeWorkflowSummary
+
+    priority: 85
+
+  - key: review-changes-requested
+    name: Requested changes return work to implementation
+    enabled: true
+
+    trigger:
+      event: pull_request_review.submitted
+      reviewState: changes_requested
+
+    appliesTo:
+      - pull_request
+
+    conditions:
+      - pullRequest:
+          state: open
+      - baseBranch: master
+      - labels:
+          excludes:
+            - automation:paused
+            - project:exclude
+
+    actions:
+      - setStatus:
+          value: In Progress
+      - syncLinkedIssues:
+          value: In Progress
+          onlyWhenOpen: true
+          onlyWhenNotProtected: true
+      - syncNativeMetadata
+      - writeWorkflowSummary
+
+    priority: 80
+
+  - key: review-approved
+    name: Approved pull request remains in review until testing begins
+    enabled: true
+
+    trigger:
+      event: pull_request_review.submitted
+      reviewState: approved
+
+    appliesTo:
+      - pull_request
+
+    conditions:
+      - pullRequest:
+          state: open
+          draft: false
+      - baseBranch: master
+
+    actions:
+      - ensureProjectItem
+      - setStatusWhenCurrentIn:
+          statuses:
+            - Inbox
+            - Backlog
+            - Ready
+            - In Progress
+          value: In Review
+      - syncNativeMetadata
+      - writeWorkflowSummary
+
+    priority: 75
+
+  - key: pull-request-synchronized
+    name: Pull request updates refresh linked metadata
+    enabled: true
+
+    trigger:
+      event: pull_request.synchronize
+
+    appliesTo:
+      - pull_request
+
+    conditions:
+      - pullRequest:
+          state: open
+      - baseBranch: master
+
+    actions:
+      - ensureProjectItem
+      - syncNativeMetadata
+      - syncLinkedIssues:
+          metadataOnly: true
+          onlyWhenOpen: true
+      - writeWorkflowSummary
+
+    priority: 70
+
+  - key: pull-request-merged
+    name: Merged pull request awaits release
+    enabled: true
+
+    trigger:
+      event: pull_request.closed
+      merged: true
+
+    appliesTo:
+      - pull_request
+
+    conditions:
+      - baseBranch: master
+      - labels:
+          excludes:
+            - automation:paused
+            - project:exclude
+
+    actions:
+      - ensureProjectItem
+      - setStatus:
+          value: Awaiting Release
+      - syncLinkedIssues:
+          value: Awaiting Release
+          onlyWhenOpen: true
+          onlyWhenNotProtected: true
+      - syncNativeMetadata
+      - writeWorkflowSummary
+
+    priority: 60
+
+  - key: pull-request-closed-without-merge
+    name: Unmerged pull request is cancelled
+    enabled: true
+
+    trigger:
+      event: pull_request.closed
+      merged: false
+
+    appliesTo:
+      - pull_request
+
+    conditions:
+      - baseBranch: master
+      - labels:
+          excludes:
+            - project:exclude
+
+    actions:
+      - ensureProjectItem
+      - setStatus:
+          value: Cancelled
+      - syncLinkedIssues:
+          value: Ready
+          onlyWhenOpen: true
+          onlyWhenNotProtected: true
+      - syncNativeMetadata
+      - writeWorkflowSummary
+
+    priority: 60
+
+linkedIssues:
+  enabled: true
+
+  discovery:
+    sources:
+      - githubClosingKeywords
+      - developmentSidebarLinks
+
+    closingKeywords:
+      - close
+      - closes
+      - closed
+      - fix
+      - fixes
+      - fixed
+      - resolve
+      - resolves
+      - resolved
+
+  sync:
+    enabled: true
+
+    fields:
+      inheritFromIssueToPullRequest:
+        - Work Type
+        - Area
+        - Priority
+        - Iteration
+        - Release
+
+      doNotOverwriteOnPullRequest:
+        - Status
+        - Commits
+        - AI summary
+        - AI triage
+
+      syncFromPullRequestToIssue:
+        - linkedPullRequests
+        - assignees
+        - reviewers
+
+    statusProtection:
+      doNotOverwriteStatuses:
+        - Blocked
+        - Cancelled
+
+      doNotOverwriteWhenLabelsPresent:
+        - automation:paused
+        - project:exclude
+
+reviewers:
+  enabled: true
+
+  behavior:
+    useNativeGitHubReviewersField: true
+    createCustomReviewersField: false
+    updateProjectMetadataOn:
+      - pull_request.review_requested
+      - pull_request.review_request_removed
+      - pull_request_review.submitted
+
+checks:
+  testing:
+    enabled: true
+
+    # Passing CI alone does not force a status change. It only allows the
+    # dedicated testing transition when the item explicitly opts into it.
+    trigger:
+      event: check_suite.completed
+      conclusion: success
+
+    requiresAnyLabel:
+      - automation:testing
+      - status:testing
+
+    action:
+      setStatus:
+        value: Testing
+        onlyWhenCurrentIn:
+          - In Progress
+          - In Review
+
+safeguards:
+  protectedStatuses:
+    - Blocked
+    - Cancelled
+
+  pauseLabels:
+    - automation:paused
+
+  excludeLabels:
+    - project:exclude
+
+  manualStatusChangesTakePriority: true
+
+  never:
+    - mergePullRequests
+    - approvePullRequests
+    - requestReviewersAutomatically
+    - dismissReviews
+    - closeIssuesAutomatically
+    - closePullRequestsAutomatically
+    - changePriorityAutomatically
+    - changeTypeAutomatically
+    - changeAreaAutomatically
+    - overrideBlockedStatus
+    - overrideCancelledStatus
+    - runAiAnalysisForForkPullRequests
+    - checkoutOrRunUntrustedPullRequestCode
+
+forkPullRequests:
+  enabled: true
+
+  restrictions:
+    useRepositorySecrets: false
+    useExternalAiProviders: false
+    writeProjectFields: false
+    writeIssueComments: false
+    writePullRequestComments: false
+    checkoutHeadRefWithPrivilegedToken: false
+
+  allowedActions:
+    - validateBranchName
+    - createWorkflowSummary
+    - readPullRequestMetadata
+
+workflow:
+  permissions:
+    contents: read
+    issues: write
+    pullRequests: write
+    repositoryProjects: write
+
+  concurrency:
+    enabled: true
+    groupFormat: "project-pr-{repository}-{pullRequestNumber}"
+    cancelInProgress: false
+
+  logging:
+    writeWorkflowSummary: true
+
+    include:
+      - pullRequestNumber
+      - pullRequestState
+      - pullRequestDraftState
+      - headBranch
+      - baseBranch
+      - linkedIssueNumbers
+      - reviewState
+      - previousStatus
+      - targetStatus
+
+    exclude:
+      - accessTokens
+      - secrets
+      - fullDiff
+      - sourceCode

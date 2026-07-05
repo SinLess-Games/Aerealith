@@ -1,0 +1,343 @@
+# .github/project/config.yaml
+
+schemaVersion: 1
+
+project:
+  owner: SinLess-Games
+  number: 3
+  name: Aerealith Delivery
+  scope: organization
+  defaultRepository: SinLess-Games/Aerealith
+
+repository:
+  owner: SinLess-Games
+  name: Aerealith
+  productionBranch: master
+
+branching:
+  strategy: github-flow
+
+  production:
+    branch: master
+    protected: true
+
+  releaseBranches:
+    allowed: false
+    blockedPrefixes:
+      - release
+      - releases
+
+  allowedPrefixes:
+    - feature
+    - fix
+    - hotfix
+    - chore
+    - docs
+    - refactor
+    - test
+    - build
+    - ci
+    - perf
+    - security
+    - ai
+
+  branchName:
+    issueNumberRequired: true
+    format: "<prefix>/<issue-number>-<short-description>"
+    pattern: "^(feature|fix|hotfix|chore|docs|refactor|test|build|ci|perf|security|ai)/[1-9][0-9]*-[a-z0-9][a-z0-9-]*$"
+
+  examples:
+    - feature/123-project-automation
+    - fix/456-project-status-sync
+    - hotfix/789-production-login-failure
+    - chore/321-update-pnpm-dependencies
+    - docs/654-project-workflow-guide
+    - refactor/987-core-error-system
+    - test/111-project-status-tests
+    - ci/222-update-github-actions
+    - security/333-rotate-project-token
+    - ai/444-generate-implementation-plan
+
+pullRequests:
+  defaultBaseBranch: master
+
+  statuses:
+    draftOpened: In Progress
+    readyForReview: In Review
+    changesRequested: In Progress
+    approved: In Review
+    merged: Awaiting Release
+    closedWithoutMerge: Cancelled
+    reopened: In Progress
+
+  linkedIssues:
+    mergedPullRequest: Awaiting Release
+    closedWithoutMerge: Ready
+
+statuses:
+  fieldName: Status
+
+  lifecycle:
+    - Inbox
+    - Backlog
+    - Ready
+    - In Progress
+    - In Review
+    - Testing
+    - QA
+    - Awaiting Release
+    - Deployment
+    - Done
+
+  alternate:
+    - Blocked
+    - Cancelled
+
+  protected:
+    - Blocked
+    - Cancelled
+
+  initialStatus:
+    issueTypes:
+      Bug: Inbox
+      Feature: Backlog
+      Task: Ready
+      Chore: Ready
+      Documentation: Ready
+      Security: Ready
+      Epic: Backlog
+
+    pullRequests:
+      draft: In Progress
+      readyForReview: In Review
+      dependabot: Ready
+
+  transitions:
+    branchWorkStarted:
+      status: In Progress
+      requiresAssignee: true
+      requiresFirstRemotePush: true
+
+    aiWorkStarted:
+      status: In Progress
+      requiredLabel: ai:working
+
+    testingStarted:
+      status: Testing
+
+    qaStarted:
+      status: QA
+
+    mergeCompleted:
+      status: Awaiting Release
+
+    productionDeploymentStarted:
+      status: Deployment
+
+    productionDeploymentSucceeded:
+      status: Done
+
+    issueClosed:
+      status: Done
+
+fields:
+  status: Status
+  priority: Priority
+  effort: Effort
+  startDate: Start date
+  targetDate: Target date
+
+  type: Work Type
+  area: Area
+  iteration: Iteration
+  release: Release
+  blockedReason: Blocked reason
+  aiTriage: AI triage
+  aiSummary: AI summary
+  commits: Commits
+
+  native:
+    assignees: Assignees
+    reviewers: Reviewers
+    labels: Labels
+    milestone: Milestone
+    linkedPullRequests: Linked pull requests
+    parentIssue: Parent issue
+    subIssuesProgress: Sub-issues progress
+
+defaults:
+  priority: Medium
+  effort: Medium
+  release: Unscheduled
+  aiTriage: Pending
+
+iterations:
+  enabled: true
+  durationDays: 14
+  firstStartDate: "2026-07-06"
+  titleFormat: Sprint "{number}"
+
+releases:
+  enabled: true
+  fieldName: Release
+  useMilestones: true
+
+  defaults:
+    - Unscheduled
+    - Next Release
+
+autoAdd:
+  enabled: true
+
+  issues:
+    enabled: true
+    excludeLabels:
+      - project:exclude
+
+  pullRequests:
+    enabled: true
+    includeDrafts: true
+    includeReadyForReview: true
+    includeDependabot: true
+
+  dependabot:
+    defaults:
+      status: Ready
+      type: Chore
+      area: Dependencies
+      priority: Low
+
+activeWork:
+  branchActivity:
+    enabled: true
+    requiresAssignee: true
+    requiresIssueReference: true
+    firstPushMovesToInProgress: true
+
+  commitTracking:
+    enabled: true
+    fieldName: Commits
+    countOnly: true
+    minimumValue: 0
+
+blockedWork:
+  fieldName: Blocked reason
+  requiredWhenStatusIs: Blocked
+
+  automation:
+    mayOverrideBlocked: false
+    mayOverrideCancelled: false
+
+labels:
+  projectExclude: project:exclude
+  automationPaused: automation:paused
+  stale: stale
+
+  ai:
+    skip: ai:skip
+    approved: ai:approved
+    expand: ai:expand
+    working: ai:working
+
+ai:
+  enabled: true
+
+  providers:
+    primary: openai
+    fallback: gemini
+
+  secrets:
+    githubToken: COPILOT_GITHUB_TOKEN
+    openaiToken: OPENAI_API_TOKEN
+    geminiApiKey: GEMINI_API_KEY
+
+  permissions:
+    generateIssueSummary: true
+    detectDuplicates: true
+    suggestEstimates: true
+    generateAcceptanceCriteria: true
+    generateImplementationPlan: true
+    reviewPullRequestDescription: true
+    summarizePullRequestChanges: true
+    detectStaleWork: true
+    commentOnIssues: true
+    commentOnPullRequests: true
+
+    createSubIssues:
+      enabled: true
+      requiredLabel: ai:expand
+
+    beginImplementationWork:
+      enabled: true
+      requiredLabel: ai:working
+
+  restrictions:
+    mayChangePriority: false
+    mayChangeType: false
+    mayChangeArea: false
+    mayCloseIssues: false
+    mayMergePullRequests: false
+    mayDeleteWork: false
+    mayOverrideBlocked: false
+    mayOverrideCancelled: false
+    mayRunArbitraryRepositoryCode: false
+
+  limits:
+    maximumCallsPerItemPerDay: 2
+    maximumCommentsPerItemPerDay: 1
+    maximumSubIssuesPerParent: 12
+    maximumInputTokens: 20000
+    maximumOutputTokens: 2000
+    maximumWeeklyWorkflowRuns: 100
+
+  forkPullRequests:
+    allowSecrets: false
+    allowCodeAnalysis: false
+    requireMaintainerApproval: true
+
+staleWork:
+  enabled: true
+
+  reminders:
+    firstAfterDays: 14
+    labelAfterDays: 30
+    finalReminderAfterDays: 45
+
+  statusChanges:
+    enabled: false
+
+archive:
+  enabled: true
+
+  doneAfterDays: 30
+  cancelledAfterDays: 14
+
+  neverArchiveStatuses:
+    - Blocked
+
+  preserveWhen:
+    hasRelease: true
+    releaseNotCompleted: true
+
+sync:
+  dryRunOnPullRequest: true
+  applySafeChangesOnMaster: true
+  requireManualDispatchForDestructiveChanges: true
+
+  reconcileSchedule:
+    hourly: true
+    nightly: true
+    weekly: true
+
+safety:
+  manualStatusChangesTakePriority: true
+
+  automationDoesNotOverride:
+    - Blocked
+    - Cancelled
+
+  pauseAutomationLabel: automation:paused
+
+  concurrency:
+    enabled: true
+    groupFormat: project-item-{itemNumber}

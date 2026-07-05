@@ -1,0 +1,588 @@
+# .github/project/automations/stale-work.yaml
+
+schemaVersion: 1
+
+# Declarative stale-work rules consumed by:
+# .github/workflows/103-project-ai-triage.yaml
+# .github/workflows/105-project-drift-check.yaml
+#
+# This automation identifies Project work that has gone quiet, posts measured
+# reminders, and applies the `stale` label when human attention is needed.
+#
+# It never closes, cancels, archives, or moves Project items automatically.
+# Stale work can still be important work.
+
+automation:
+  key: stale-work
+  name: Stale Work Management
+  enabled: true
+
+configFile: ../config.yaml
+fieldsFile: ../fields.yaml
+labelsFile: ../../labels.yaml
+aiTriageFile: ./ai-triage.yaml
+
+project:
+  owner: SinLess-Games
+  name: Aerealith Delivery
+  repository: SinLess-Games/Aerealith
+
+repository:
+  owner: SinLess-Games
+  name: Aerealith
+  productionBranch: master
+
+fields:
+  status: Status
+  priority: Priority
+  iteration: Iteration
+  release: Release
+  blockedReason: Blocked reason
+  aiTriage: AI triage
+  aiSummary: AI summary
+  labels: Labels
+  assignees: Assignees
+  reviewers: Reviewers
+  linkedPullRequests: Linked pull requests
+  commits: Commits
+
+labels:
+  stale: stale
+  paused: automation:paused
+  excluded: project:exclude
+  aiSkip: ai:skip
+
+triggers:
+  - event: schedule
+    # Runs daily at 14:23 UTC.
+    # Keep this away from other scheduled Project reconciliation workflows.
+    cron: "23 14 * * *"
+
+  - event: issues
+    actions:
+      - edited
+      - reopened
+      - assigned
+      - unassigned
+      - labeled
+      - unlabeled
+      - closed
+
+  - event: issue_comment
+    actions:
+      - created
+
+  - event: pull_request
+    actions:
+      - opened
+      - reopened
+      - edited
+      - synchronize
+      - ready_for_review
+      - converted_to_draft
+      - closed
+      - labeled
+      - unlabeled
+
+  - event: pull_request_review
+    actions:
+      - submitted
+
+  - event: workflow_dispatch
+
+scope:
+  repositories:
+    - SinLess-Games/Aerealith
+
+  itemTypes:
+    - issue
+    - pull_request
+
+  includeStatuses:
+    - Inbox
+    - Backlog
+    - Ready
+    - In Progress
+    - In Review
+    - Testing
+    - QA
+    - Awaiting Release
+    - Deployment
+    - Blocked
+
+  excludeStatuses:
+    - Done
+    - Cancelled
+
+  excludeLabels:
+    - project:exclude
+    - automation:paused
+
+  includeArchivedItems: false
+
+activity:
+  enabled: true
+
+  # "Meaningful activity" means human or approved agent work that indicates
+  # the item is being actively considered, implemented, reviewed, or updated.
+  #
+  # Bot-generated comments, workflow field writes, and stale labels must not
+  # reset the stale timer or the automation would keep postponing itself.
+  meaningfulEvents:
+    issue:
+      - opened
+      - reopened
+      - edited
+      - assigned
+      - unassigned
+      - milestoneChanged
+      - projectFieldChangedByHuman
+      - labelChangedByHuman
+      - commentCreatedByHuman
+      - linkedPullRequestChanged
+      - branchPushed
+      - commitPushed
+
+    pullRequest:
+      - opened
+      - reopened
+      - edited
+      - readyForReview
+      - convertedToDraft
+      - synchronize
+      - reviewRequested
+      - reviewSubmittedByHuman
+      - commentCreatedByHuman
+      - branchPushed
+      - commitPushed
+
+  ignoredEvents:
+    - projectFieldChangedByAutomation
+    - labelChangedByAutomation
+    - staleLabelApplied
+    - staleLabelRemoved
+    - automatedComment
+    - workflowSummaryWritten
+    - aiCommentWithIdempotencyMarker
+
+  ignoredActors:
+    - github-actions[bot]
+    - dependabot[bot]
+
+  ignoredCommentMarkers:
+    - "<!-- aerealith-ai:"
+    - "<!-- aerealith-stale:"
+    - "<!-- aerealith-project:"
+
+  lastActivityCalculation:
+    mode: mostRecentMeaningfulEvent
+
+    fallback:
+      # This should only be used when the GitHub timeline cannot provide a
+      # more precise meaningful activity event.
+      source: item.updatedAt
+
+    includeCommitActivity: true
+    includeReviewActivity: true
+    includeHumanProjectFieldChanges: true
+    includeHumanLabelChanges: true
+
+thresholds:
+  firstReminder:
+    afterDays: 14
+
+    action:
+      comment: true
+      addLabel: false
+      updateProjectFields: false
+      notifyAssignees: false
+
+    message:
+      normal: |
+        This item has not had meaningful activity for {inactiveDays} days.
+
+        Please confirm whether it is still active, needs to be blocked, should
+        move back to the backlog, or can be closed.
+
+      blocked: |
+        This blocked item has not had meaningful activity for {inactiveDays} days.
+
+        Please review the blocker and update the Blocked reason, status, or
+        next action when there is new information.
+
+  stale:
+    afterDays: 30
+
+    action:
+      comment: true
+      addLabel: true
+      label: stale
+      updateProjectFields: false
+      notifyAssignees: false
+
+    message:
+      normal: |
+        This item has been inactive for {inactiveDays} days and is now marked
+        as stale.
+
+        Please update it, move it to the appropriate status, add a blocker, or
+        close it when it is no longer needed.
+
+      blocked: |
+        This blocked item has been inactive for {inactiveDays} days and is now
+        marked as stale.
+
+        Please verify that the blocker is still valid and update the Blocked
+        reason or next action.
+
+  finalReminder:
+    afterDays: 45
+
+    action:
+      comment: true
+      addLabel: true
+      label: stale
+      updateProjectFields: false
+
+      # No automatic @mention is used because the assignee may be intentionally
+      # unavailable or the item may be unassigned.
+      notifyAssignees: false
+
+      workflowSummary: true
+
+    message:
+      normal: |
+        This item has been inactive for {inactiveDays} days.
+
+        It remains open and has not been closed automatically. A maintainer
+        should decide whether to resume it, reprioritize it, block it, return it
+        to the backlog, or cancel it.
+
+      blocked: |
+        This blocked item has been inactive for {inactiveDays} days.
+
+        It remains open and has not been changed automatically. A maintainer
+        should verify the blocker, ownership, and intended next action.
+
+repeatBehavior:
+  enabled: true
+
+  # Prevent daily reminder spam after the item becomes stale.
+  #
+  # The automation comments only at 14, 30, and 45 days unless new meaningful
+  # activity occurs and the item becomes stale again later.
+  maxCommentsPerStaleCycle: 3
+
+  minimumDaysBetweenComments: 14
+
+  escalationOrder:
+    - firstReminder
+    - stale
+    - finalReminder
+
+  resetCycleWhen:
+    - meaningfulHumanActivity
+    - meaningfulApprovedAiAgentActivity
+    - staleLabelRemovedAfterMeaningfulActivity
+    - itemReopened
+
+staleLabelLifecycle:
+  enabled: true
+
+  label: stale
+
+  apply:
+    atDaysInactive: 30
+
+  remove:
+    enabled: true
+
+    when:
+      - meaningfulHumanActivity
+      - meaningfulApprovedAiAgentActivity
+      - itemClosed
+      - itemStatusChangedToDone
+      - itemStatusChangedToCancelled
+
+    onlyWhenAppliedByAutomation: true
+
+  # A manual stale-label removal without meaningful activity does not reset the
+  # stale timer. This keeps the label meaningful instead of turning it into a
+  # permanent manual override.
+  manualRemovalWithoutActivity:
+    resetCycle: false
+    reapplyAtNextEligibleScan: true
+
+blockedItems:
+  enabled: true
+
+  includeInStaleChecks: true
+
+  # Blocked work is never automatically moved or closed. It receives separate,
+  # more appropriate reminder wording.
+  statusChangesAllowed: false
+
+  requireBlockedReason: true
+
+  missingBlockedReason:
+    action:
+      comment: true
+      addLabel: false
+
+      message: |
+        This item is marked Blocked but does not have a Blocked reason.
+
+        Add a concise explanation of the dependency, decision, or external
+        condition preventing progress.
+
+  protectFrom:
+    - automaticStatusTransitions
+    - automaticArchival
+    - automaticCancellation
+    - automaticClosure
+
+pullRequests:
+  enabled: true
+
+  include:
+    states:
+      - open
+
+  exclude:
+    authors:
+      - dependabot[bot]
+
+  staleDraftPullRequests:
+    enabled: true
+
+    message: |
+      This draft pull request has not had meaningful activity for {inactiveDays}
+      days.
+
+      Please update it, mark it ready for review, convert it back into an issue,
+      or close it if the work is no longer continuing.
+
+  staleReadyForReviewPullRequests:
+    enabled: true
+
+    message: |
+      This pull request has been waiting without meaningful activity for
+      {inactiveDays} days.
+
+      Please review it, request changes, update it, or close it if it is no
+      longer needed.
+
+issues:
+  enabled: true
+
+  include:
+    states:
+      - open
+
+  # Closed issues are handled by archive-items.yaml and do not receive stale
+  # reminders here.
+  includeClosedIssuesAwaitingRelease: false
+
+ai:
+  enabled: true
+
+  task: staleWorkReview
+
+  # AI may enrich the stale reminder with concise context, but the reminder
+  # still works without any AI provider.
+  useAiForCommentContext: true
+
+  conditions:
+    labels:
+      excludes:
+        - ai:skip
+        - project:exclude
+        - automation:paused
+
+  allowedInput:
+    - title
+    - status
+    - assignees
+    - labels
+    - lastMeaningfulActivityAt
+    - inactiveDays
+    - blockedReason
+    - iteration
+    - release
+    - linkedPullRequests
+    - aiSummary
+
+  output:
+    maximumCharacters: 600
+    maximumBullets: 4
+
+    include:
+      - conciseCurrentContext
+      - suggestedHumanNextAction
+      - blockerReminderWhenRelevant
+
+  restrictions:
+    mayChangeStatus: false
+    mayApplyLabels: false
+    mayCloseIssues: false
+    mayClosePullRequests: false
+    mayArchiveItems: false
+    mayCreateIssues: false
+    mayCreateSubIssues: false
+    mayUpdatePriority: false
+    mayUpdateType: false
+    mayUpdateArea: false
+    mayUpdateIteration: false
+    mayUpdateRelease: false
+
+forkPullRequests:
+  enabled: true
+
+  restrictions:
+    allowExternalAi: false
+    allowComments: false
+    allowProjectMutations: false
+    useRepositorySecrets: false
+    inspectDiffs: false
+    inspectSourceCode: false
+
+projectBehavior:
+  # Stale automation should make the board clearer, not create churn.
+  mayChangeStatus: false
+  mayChangePriority: false
+  mayChangeType: false
+  mayChangeArea: false
+  mayChangeIteration: false
+  mayChangeRelease: false
+  mayChangeBlockedReason: false
+  mayArchiveItems: false
+  mayCloseItems: false
+  mayCancelItems: false
+
+notifications:
+  enabled: true
+
+  issueComments:
+    enabled: true
+
+  pullRequestComments:
+    enabled: true
+
+  workflowSummary:
+    enabled: true
+
+  teamMentions:
+    enabled: false
+
+  assigneeMentions:
+    enabled: false
+
+idempotency:
+  enabled: true
+
+  markerFormat: "<!-- aerealith-stale:{stage}:{contentHash} -->"
+
+  behavior:
+    skipEquivalentExistingComment: true
+    skipAlreadyProcessedStageInCurrentCycle: true
+    doNotDuplicateStaleLabel: true
+
+reconciliation:
+  enabled: true
+
+  schedule:
+    cron: "23 14 * * *"
+
+  scope:
+    includeOpenIssues: true
+    includeOpenPullRequests: true
+    includeBlockedItems: true
+
+    statuses:
+      - Inbox
+      - Backlog
+      - Ready
+      - In Progress
+      - In Review
+      - Testing
+      - QA
+      - Awaiting Release
+      - Deployment
+      - Blocked
+
+  actions:
+    - findEligibleProjectItems
+    - calculateLastMeaningfulActivity
+    - removeResolvedStaleLabels
+    - validateBlockedReasons
+    - applyFirstReminder
+    - applyStaleReminder
+    - applyFinalReminder
+    - skipProtectedAndExcludedItems
+    - writeWorkflowSummary
+
+  updateOnlyWhenChanged: true
+
+safeguards:
+  protectedStatuses:
+    - Done
+    - Cancelled
+
+  protectedLabels:
+    - project:exclude
+    - automation:paused
+
+  never:
+    - closeIssues
+    - closePullRequests
+    - cancelProjectItems
+    - archiveProjectItems
+    - moveProjectStatus
+    - changePriority
+    - changeType
+    - changeArea
+    - changeIteration
+    - changeRelease
+    - clearBlockedReason
+    - removeAssignees
+    - removeReviewers
+    - mergePullRequests
+    - deleteIssues
+    - deletePullRequests
+    - runExternalAiForForkPullRequests
+    - checkoutOrRunUntrustedCode
+
+permissions:
+  contents: read
+  issues: write
+  pullRequests: write
+  repositoryProjects: write
+
+workflow:
+  concurrency:
+    enabled: true
+    groupFormat: "project-stale-{repository}-{issueOrPullRequestNumber}"
+    cancelInProgress: false
+
+  logging:
+    writeWorkflowSummary: true
+
+    include:
+      - sourceEvent
+      - itemNumber
+      - itemType
+      - currentStatus
+      - lastMeaningfulActivityAt
+      - inactiveDays
+      - staleStage
+      - staleLabelApplied
+      - staleLabelRemoved
+      - aiContextUsed
+      - skippedReason
+
+    exclude:
+      - accessTokens
+      - secrets
+      - rawAiPrompt
+      - rawAiResponse
+      - sourceCode

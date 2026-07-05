@@ -1,0 +1,603 @@
+# .github/project/automations/status-transitions.yaml
+
+schemaVersion: 1
+
+# Declarative status-transition rules consumed by:
+# .github/workflows/102-project-status.yaml
+# .github/workflows/104-project-pr-lifecycle.yaml
+#
+# This file defines when automation may move an item between Project statuses.
+# Human changes always take priority unless a later GitHub event is unambiguous,
+# such as an item being closed, a pull request merging, or a production
+# deployment succeeding.
+
+automation:
+  key: status-transitions
+  name: Project Status Transitions
+  enabled: true
+
+project:
+  owner: SinLess-Games
+  number: 3
+  name: Aerealith Delivery
+  repository: SinLess-Games/Aerealith
+
+fields:
+  status: Status
+  blockedReason: Blocked reason
+  assignees: Assignees
+  labels: Labels
+  linkedPullRequests: Linked pull requests
+
+statuses:
+  lifecycle:
+    - Inbox
+    - Backlog
+    - Ready
+    - In Progress
+    - In Review
+    - Testing
+    - QA
+    - Awaiting Release
+    - Deployment
+    - Done
+
+  alternate:
+    - Blocked
+    - Cancelled
+
+  protected:
+    - Blocked
+    - Cancelled
+
+safeguards:
+  # Automation does not move an item out of these statuses.
+  protectedStatuses:
+    - Blocked
+    - Cancelled
+
+  # This label pauses non-terminal status movement for a specific item.
+  pauseLabels:
+    - automation:paused
+
+  # These events are allowed to override an ordinary manual status move.
+  terminalEvents:
+    - issue.closed
+    - pull_request.merged
+    - deployment.production.succeeded
+    - release.published
+
+  # A missing status should be treated as Inbox for transition matching.
+  emptyStatusFallback: Inbox
+
+  # All transitions are idempotent.
+  skipWhenAlreadyAtTargetStatus: true
+
+  # A transition must never remove an existing Blocked reason automatically.
+  preserveBlockedReason: true
+
+transitions:
+  #
+  # Issue intake and planning
+  #
+
+  - key: issue-reopened
+    name: Reopened issues return to active planning
+    enabled: true
+    appliesTo:
+      - issue
+    trigger:
+      event: issues.reopened
+    from:
+      - Done
+      - Cancelled
+    to: Backlog
+    conditions:
+      - field: Labels
+        excludes: automation:paused
+    actions:
+      - setStatus
+      - clearBlockedReason
+    priority: 100
+
+  #
+  # Active development
+  #
+
+  - key: branch-work-started
+    name: Assigned issue starts when its GitHub Flow branch receives a first push
+    enabled: true
+    appliesTo:
+      - issue
+    trigger:
+      event: branch.first_push
+    from:
+      - Inbox
+      - Backlog
+      - Ready
+    to: In Progress
+    conditions:
+      - field: Assignees
+        notEmpty: true
+      - branch:
+          mustMatchConfiguredPattern: true
+          requiresIssueNumber: true
+          mustReferenceCurrentIssue: true
+      - field: Labels
+        excludes: automation:paused
+    actions:
+      - setStatus
+      - updateCommitCount
+    priority: 90
+
+  - key: ai-work-started
+    name: AI agent begins approved implementation work
+    enabled: true
+    appliesTo:
+      - issue
+      - pull_request
+    trigger:
+      event: labels.labeled
+      label: ai:working
+    from:
+      - Inbox
+      - Backlog
+      - Ready
+    to: In Progress
+    conditions:
+      - field: Labels
+        includes: ai:working
+      - field: Labels
+        excludes: automation:paused
+    actions:
+      - setStatus
+    priority: 85
+
+  - key: pull-request-opened-as-draft
+    name: Draft pull request begins active implementation
+    enabled: true
+    appliesTo:
+      - pull_request
+    trigger:
+      event: pull_request.opened
+    from:
+      - Inbox
+      - Backlog
+      - Ready
+      - In Review
+      - Testing
+      - QA
+    to: In Progress
+    conditions:
+      - pullRequest:
+          draft: true
+      - field: Labels
+        excludes: automation:paused
+    actions:
+      - setStatus
+      - syncLinkedIssues
+    priority: 80
+
+  - key: pull-request-converted-to-draft
+    name: Pull request moved back to draft returns to implementation
+    enabled: true
+    appliesTo:
+      - pull_request
+    trigger:
+      event: pull_request.converted_to_draft
+    from:
+      - In Review
+      - Testing
+      - QA
+    to: In Progress
+    conditions:
+      - field: Labels
+        excludes: automation:paused
+    actions:
+      - setStatus
+      - syncLinkedIssues
+    priority: 80
+
+  - key: review-changes-requested
+    name: Requested pull request changes return work to implementation
+    enabled: true
+    appliesTo:
+      - pull_request
+    trigger:
+      event: pull_request_review.submitted
+      reviewState: changes_requested
+    from:
+      - In Review
+      - Testing
+      - QA
+      - Awaiting Release
+    to: In Progress
+    conditions:
+      - field: Labels
+        excludes: automation:paused
+    actions:
+      - setStatus
+      - syncLinkedIssues
+    priority: 80
+
+  #
+  # Review and validation
+  #
+
+  - key: pull-request-ready-for-review
+    name: Pull request ready for review enters review
+    enabled: true
+    appliesTo:
+      - pull_request
+    trigger:
+      event: pull_request.ready_for_review
+    from:
+      - Inbox
+      - Backlog
+      - Ready
+      - In Progress
+      - Testing
+      - QA
+    to: In Review
+    conditions:
+      - pullRequest:
+          draft: false
+          state: open
+      - field: Labels
+        excludes: automation:paused
+    actions:
+      - setStatus
+      - syncLinkedIssues
+    priority: 75
+
+  - key: pull-request-opened-ready-for-review
+    name: Newly opened non-draft pull request enters review
+    enabled: true
+    appliesTo:
+      - pull_request
+    trigger:
+      event: pull_request.opened
+    from:
+      - Inbox
+      - Backlog
+      - Ready
+      - In Progress
+    to: In Review
+    conditions:
+      - pullRequest:
+          draft: false
+          state: open
+      - field: Labels
+        excludes: automation:paused
+    actions:
+      - setStatus
+      - syncLinkedIssues
+    priority: 75
+
+  - key: testing-started
+    name: Testing begins after an explicit testing signal
+    enabled: true
+    appliesTo:
+      - issue
+      - pull_request
+    trigger:
+      any:
+        - event: labels.labeled
+          label: status:testing
+        - event: workflow_run.completed
+          workflow: test
+          conclusion: success
+          requiresLabel: automation:testing
+    from:
+      - In Progress
+      - In Review
+    to: Testing
+    conditions:
+      - field: Labels
+        excludes: automation:paused
+    actions:
+      - setStatus
+      - syncLinkedIssues
+    priority: 70
+
+  - key: qa-started
+    name: Staging validation begins QA
+    enabled: true
+    appliesTo:
+      - issue
+      - pull_request
+    trigger:
+      any:
+        - event: labels.labeled
+          label: status:qa
+        - event: deployment.created
+          environment: staging
+        - event: deployment_status.created
+          environment: staging
+          state: in_progress
+    from:
+      - In Review
+      - Testing
+    to: QA
+    conditions:
+      - field: Labels
+        excludes: automation:paused
+    actions:
+      - setStatus
+      - syncLinkedIssues
+    priority: 70
+
+  #
+  # Merge, release, and deployment
+  #
+
+  - key: pull-request-merged
+    name: Merged pull request awaits release
+    enabled: true
+    appliesTo:
+      - pull_request
+    trigger:
+      event: pull_request.closed
+      merged: true
+      baseBranch: master
+    from:
+      - Inbox
+      - Backlog
+      - Ready
+      - In Progress
+      - In Review
+      - Testing
+      - QA
+    to: Awaiting Release
+    conditions:
+      - field: Labels
+        excludes: automation:paused
+    actions:
+      - setStatus
+      - syncLinkedIssues:
+          status: Awaiting Release
+          onlyWhenOpen: true
+    priority: 60
+
+  - key: production-deployment-started
+    name: Production deployment starts deployment tracking
+    enabled: true
+    appliesTo:
+      - issue
+      - pull_request
+    trigger:
+      any:
+        - event: deployment.created
+          environment: production
+        - event: deployment_status.created
+          environment: production
+          state: in_progress
+    from:
+      - Awaiting Release
+      - QA
+      - Testing
+    to: Deployment
+    conditions:
+      - field: Labels
+        excludes: automation:paused
+    actions:
+      - setStatus
+      - syncLinkedIssues
+    priority: 55
+
+  - key: production-deployment-succeeded
+    name: Successful production deployment completes work
+    enabled: true
+    appliesTo:
+      - issue
+      - pull_request
+    trigger:
+      event: deployment_status.created
+      environment: production
+      state: success
+    from:
+      - Awaiting Release
+      - Deployment
+      - QA
+    to: Done
+    conditions: []
+    actions:
+      - setStatus
+      - syncLinkedIssues:
+          status: Done
+          onlyWhenOpen: true
+      - clearBlockedReason
+    priority: 50
+
+  - key: release-published
+    name: Published GitHub release completes release-bound work
+    enabled: true
+    appliesTo:
+      - issue
+      - pull_request
+    trigger:
+      event: release.published
+    from:
+      - Awaiting Release
+      - Deployment
+    to: Done
+    conditions:
+      - release:
+          matchesProjectReleaseField: true
+    actions:
+      - setStatus
+      - syncLinkedIssues:
+          status: Done
+          onlyWhenOpen: true
+      - clearBlockedReason
+    priority: 50
+
+  #
+  # Explicit closure behavior
+  #
+
+  - key: issue-closed
+    name: Closed issue is completed
+    enabled: true
+    appliesTo:
+      - issue
+    trigger:
+      event: issues.closed
+    from:
+      - Inbox
+      - Backlog
+      - Ready
+      - In Progress
+      - In Review
+      - Testing
+      - QA
+      - Awaiting Release
+      - Deployment
+      - Blocked
+    to: Done
+    conditions: []
+    actions:
+      - setStatus
+      - clearBlockedReason
+    priority: 40
+
+  - key: pull-request-closed-without-merge
+    name: Unmerged pull request is cancelled
+    enabled: true
+    appliesTo:
+      - pull_request
+    trigger:
+      event: pull_request.closed
+      merged: false
+    from:
+      - Inbox
+      - Backlog
+      - Ready
+      - In Progress
+      - In Review
+      - Testing
+      - QA
+      - Awaiting Release
+      - Deployment
+    to: Cancelled
+    conditions: []
+    actions:
+      - setStatus
+      - syncLinkedIssues:
+          status: Ready
+          onlyWhenOpen: true
+          onlyWhenNotBlocked: true
+      - clearBlockedReason
+    priority: 40
+
+manualTransitions:
+  enabled: true
+
+  allowed:
+    Inbox:
+      - Backlog
+      - Ready
+      - In Progress
+      - Blocked
+      - Cancelled
+
+    Backlog:
+      - Ready
+      - In Progress
+      - Blocked
+      - Cancelled
+
+    Ready:
+      - Backlog
+      - In Progress
+      - Blocked
+      - Cancelled
+
+    In Progress:
+      - Ready
+      - In Review
+      - Testing
+      - QA
+      - Blocked
+      - Cancelled
+
+    In Review:
+      - In Progress
+      - Testing
+      - QA
+      - Awaiting Release
+      - Blocked
+      - Cancelled
+
+    Testing:
+      - In Progress
+      - In Review
+      - QA
+      - Awaiting Release
+      - Blocked
+      - Cancelled
+
+    QA:
+      - In Progress
+      - In Review
+      - Testing
+      - Awaiting Release
+      - Deployment
+      - Blocked
+      - Cancelled
+
+    Awaiting Release:
+      - In Progress
+      - QA
+      - Deployment
+      - Done
+      - Blocked
+      - Cancelled
+
+    Deployment:
+      - Awaiting Release
+      - Done
+      - Blocked
+      - Cancelled
+
+    Done:
+      - Backlog
+      - Ready
+      - In Progress
+
+    Blocked:
+      - Backlog
+      - Ready
+      - In Progress
+      - In Review
+      - Testing
+      - QA
+      - Awaiting Release
+      - Deployment
+      - Cancelled
+
+    Cancelled:
+      - Backlog
+      - Ready
+      - In Progress
+
+validation:
+  requireBlockedReasonWhenStatusIsBlocked: true
+
+  protectedStatusRules:
+    - status: Blocked
+      automationMayExit: false
+    - status: Cancelled
+      automationMayExit: false
+
+  invalidTransitions:
+    - from: Inbox
+      to: Done
+    - from: Backlog
+      to: Done
+    - from: Ready
+      to: Done
+    - from: In Progress
+      to: Done
+    - from: In Review
+      to: Done

@@ -1,0 +1,829 @@
+# .github/workflows/101-project-auto-add.yaml
+
+name: 101 · Project Auto Add
+
+run-name: >-
+  Project Auto Add ·
+  ${{ github.event.issue.number || github.event.pull_request.number || inputs.item_number || github.run_id }}
+
+on:
+  issues:
+    types:
+      - opened
+      - reopened
+      - edited
+      - labeled
+      - closed
+
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - edited
+      - labeled
+      - ready_for_review
+      - converted_to_draft
+      - closed
+
+  workflow_dispatch:
+    inputs:
+      item_type:
+        description: GitHub item type to add or reconcile.
+        required: true
+        type: choice
+        default: issue
+        options:
+          - issue
+          - pull_request
+
+      item_number:
+        description: Issue or pull request number.
+        required: true
+        type: string
+
+concurrency:
+  group: >-
+    project-auto-add-${{ github.repository }}-${{
+      github.event.issue.number ||
+      github.event.pull_request.number ||
+      inputs.item_number ||
+      github.run_id
+    }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  auto-add:
+    name: Add Project Item
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      PROJECT_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+
+    steps:
+      - name: Decide whether Project mutation is allowed
+        id: gate
+        shell: bash
+        env:
+          EVENT_PATH: ${{ github.event_path }}
+          EVENT_NAME: ${{ github.event_name }}
+          REPOSITORY: ${{ github.repository }}
+          INPUT_ITEM_TYPE: ${{ inputs.item_type }}
+          INPUT_ITEM_NUMBER: ${{ inputs.item_number }}
+        run: |
+          set -Eeuo pipefail
+
+          ruby <<'RUBY'
+          require "json"
+
+          event_name = ENV.fetch("EVENT_NAME")
+          event_path = ENV.fetch("EVENT_PATH")
+          repository = ENV.fetch("REPOSITORY")
+          token = ENV.fetch("PROJECT_TOKEN", "")
+          output_path = ENV.fetch("GITHUB_OUTPUT")
+          summary_path = ENV.fetch("GITHUB_STEP_SUMMARY")
+
+          payload = JSON.parse(File.read(event_path))
+          reason = nil
+
+          if token.empty?
+            reason = "COPILOT_GITHUB_TOKEN is unavailable for this run."
+          elsif event_name == "pull_request"
+            head_repository = payload.dig("pull_request", "head", "repo", "full_name")
+
+            if head_repository != repository
+              reason = "Fork pull requests do not receive Project mutations from this workflow."
+            end
+          elsif event_name == "workflow_dispatch"
+            item_type = ENV.fetch("INPUT_ITEM_TYPE", "")
+            item_number = ENV.fetch("INPUT_ITEM_NUMBER", "")
+
+            unless %w[issue pull_request].include?(item_type)
+              reason = "workflow_dispatch requires item_type to be issue or pull_request."
+            end
+
+            unless item_number.match?(/\A[1-9][0-9]*\z/)
+              reason = "workflow_dispatch requires a positive numeric item_number."
+            end
+          end
+
+          allowed = reason.nil?
+
+          File.open(output_path, "a") do |file|
+            file.puts("can_mutate=#{allowed}")
+            file.puts("reason=#{reason || "Allowed"}")
+          end
+
+          unless allowed
+            File.open(summary_path, "a") do |file|
+              file.puts("## Aerealith Project Auto Add")
+              file.puts
+              file.puts("Skipped: #{reason}")
+              file.puts
+              file.puts("No Project item, label, issue field, or status was changed.")
+            end
+          end
+          RUBY
+
+      - name: Checkout trusted Project configuration
+        if: steps.gate.outputs.can_mutate == 'true'
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: master
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout: |
+            .github/project
+          sparse-checkout-cone-mode: true
+
+      - name: Add item and initialize Project metadata
+        if: steps.gate.outputs.can_mutate == 'true'
+        shell: bash
+        env:
+          EVENT_PATH: ${{ github.event_path }}
+          EVENT_NAME: ${{ github.event_name }}
+          REPOSITORY: ${{ github.repository }}
+          INPUT_ITEM_TYPE: ${{ inputs.item_type }}
+          INPUT_ITEM_NUMBER: ${{ inputs.item_number }}
+        run: |
+          set -Eeuo pipefail
+
+          ruby <<'RUBY'
+          require "json"
+          require "net/http"
+          require "set"
+          require "uri"
+          require "yaml"
+
+          PROJECT_ROOT = File.expand_path(".github/project", Dir.pwd)
+
+          def read_yaml(relative_path)
+            full_path = File.join(PROJECT_ROOT, relative_path)
+
+            raise "Missing Project configuration file: #{relative_path}" unless File.file?(full_path)
+
+            YAML.safe_load(
+              File.read(full_path),
+              permitted_classes: [],
+              permitted_symbols: [],
+              aliases: false,
+            ) || {}
+          end
+
+          def hash_value(value, key)
+            result = value[key]
+
+            result.is_a?(Hash) ? result : {}
+          end
+
+          def array_value(value, key)
+            result = value[key]
+
+            result.is_a?(Array) ? result : []
+          end
+
+          def deep_copy(value)
+            Marshal.load(Marshal.dump(value))
+          end
+
+          def merge_hashes(base, override)
+            deep_copy(base).merge(override)
+          end
+
+          def normalize_labels(content)
+            array_value(hash_value(content, "labels"), "nodes")
+              .filter_map { |label| label["name"] if label.is_a?(Hash) }
+              .to_set
+          end
+
+          def matches_label_rule?(rule, labels)
+            return true unless rule.is_a?(Hash)
+
+            includes = rule["includes"]
+            excludes = rule["excludes"]
+
+            includes_match =
+              if includes.nil?
+                true
+              elsif includes.is_a?(Array)
+                includes.any? { |label| labels.include?(label) }
+              else
+                labels.include?(includes)
+              end
+
+            excludes_match =
+              if excludes.nil?
+                true
+              elsif excludes.is_a?(Array)
+                excludes.none? { |label| labels.include?(label) }
+              else
+                !labels.include?(excludes)
+              end
+
+            includes_match && excludes_match
+          end
+
+          def condition_matches?(condition, context)
+            return true unless condition.is_a?(Hash)
+
+            if condition["labels"]
+              return false unless matches_label_rule?(condition["labels"], context.fetch(:labels))
+            end
+
+            if condition.key?("issueType")
+              issue_type_rule = condition["issueType"]
+              issue_type = context[:issue_type]
+
+              if issue_type_rule.is_a?(Hash) && issue_type_rule["empty"] == true
+                return false unless issue_type.nil? || issue_type.empty?
+              elsif issue_type_rule.is_a?(String)
+                return false unless issue_type == issue_type_rule
+              end
+            end
+
+            if condition.key?("author")
+              return false unless context[:author] == condition["author"]
+            end
+
+            if condition.key?("headBranch")
+              head_branch_rule = condition["headBranch"]
+
+              if head_branch_rule.is_a?(Hash) && head_branch_rule["startsWith"]
+                return false unless context[:head_branch].to_s.start_with?(head_branch_rule["startsWith"])
+              end
+            end
+
+            if condition.key?("pullRequest")
+              pull_request_rule = condition["pullRequest"]
+
+              if pull_request_rule.key?("draft")
+                return false unless context[:draft] == pull_request_rule["draft"]
+              end
+
+              if pull_request_rule.key?("state")
+                return false unless context[:state].to_s.downcase == pull_request_rule["state"].to_s.downcase
+              end
+            end
+
+            true
+          end
+
+          def rule_matches?(rule, context)
+            conditions = hash_value(rule, "when")
+
+            if conditions["any"].is_a?(Array)
+              return conditions["any"].any? { |condition| condition_matches?(condition, context) }
+            end
+
+            if conditions["all"].is_a?(Array)
+              return conditions["all"].all? { |condition| condition_matches?(condition, context) }
+            end
+
+            condition_matches?(conditions, context)
+          end
+
+          def select_rule(rules, context)
+            array_value({ "rules" => rules }, "rules")
+              .sort_by { |rule| -(rule["priority"] || 0) }
+              .find { |rule| rule_matches?(rule, context) }
+          end
+
+          class GitHubClient
+            API_VERSION = "2022-11-28".freeze
+
+            def initialize(token)
+              @token = token
+            end
+
+            def graphql(query, variables = {})
+              response = request(
+                method: :post,
+                uri: URI("https://api.github.com/graphql"),
+                body: {
+                  query: query,
+                  variables: variables,
+                },
+              )
+
+              unless response.is_a?(Net::HTTPSuccess)
+                raise "GitHub GraphQL request failed with HTTP #{response.code}: #{response.body}"
+              end
+
+              payload = JSON.parse(response.body)
+
+              if payload["errors"]&.any?
+                messages = payload["errors"].map { |error| error["message"] }.join("; ")
+                raise "GitHub GraphQL returned errors: #{messages}"
+              end
+
+              payload.fetch("data")
+            end
+
+            private
+
+            def request(method:, uri:, body:)
+              request_class = {
+                post: Net::HTTP::Post,
+              }.fetch(method)
+
+              request = request_class.new(uri)
+              request["Accept"] = "application/vnd.github+json"
+              request["Authorization"] = "Bearer #{@token}"
+              request["X-GitHub-Api-Version"] = API_VERSION
+              request["User-Agent"] = "Aerealith-Project-Auto-Add"
+              request["Content-Type"] = "application/json"
+              request.body = JSON.generate(body)
+
+              Net::HTTP.start(
+                uri.hostname,
+                uri.port,
+                use_ssl: uri.scheme == "https",
+              ) do |http|
+                http.request(request)
+              end
+            end
+          end
+
+          config = read_yaml("config.yaml")
+          automation = read_yaml("automations/auto-add-project.yaml")
+
+          config_project = hash_value(config, "project")
+          config_repository = hash_value(config, "repository")
+          config_fields = hash_value(config, "fields")
+
+          project_owner = config_project.fetch("owner")
+          project_name = config_project.fetch("name")
+          project_number = config_project.fetch("number")
+
+          repository_owner = config_repository.fetch("owner")
+          repository_name = config_repository.fetch("name")
+          production_branch = config_repository.fetch("productionBranch")
+
+          expected_repository = "#{repository_owner}/#{repository_name}"
+          current_repository = ENV.fetch("REPOSITORY")
+
+          raise "Workflow may only run for #{expected_repository}; received #{current_repository}." unless current_repository == expected_repository
+          raise "Production branch must be master." unless production_branch == "master"
+
+          payload = JSON.parse(File.read(ENV.fetch("EVENT_PATH")))
+          event_name = ENV.fetch("EVENT_NAME")
+
+          item_type =
+            if event_name == "workflow_dispatch"
+              ENV.fetch("INPUT_ITEM_TYPE")
+            elsif payload.key?("issue")
+              "issue"
+            elsif payload.key?("pull_request")
+              "pull_request"
+            else
+              raise "Unsupported event payload for Project auto-add."
+            end
+
+          item_number =
+            if event_name == "workflow_dispatch"
+              ENV.fetch("INPUT_ITEM_NUMBER").to_i
+            elsif item_type == "issue"
+              payload.fetch("issue").fetch("number")
+            else
+              payload.fetch("pull_request").fetch("number")
+            end
+
+          raise "Item number must be a positive integer." unless item_number.positive?
+
+          client = GitHubClient.new(ENV.fetch("PROJECT_TOKEN"))
+
+          project_query = <<~GRAPHQL
+            query(
+              $repositoryOwner: String!
+              $repositoryName: String!
+              $projectOwner: String!
+              $projectNumber: Int!
+              $itemNumber: Int!
+            ) {
+              organization(login: $projectOwner) {
+                projectV2(number: $projectNumber) {
+                  id
+                  title
+                  fields(first: 100) {
+                    nodes {
+                      __typename
+                      ... on ProjectV2Field {
+                        id
+                        name
+                      }
+                      ... on ProjectV2SingleSelectField {
+                        id
+                        name
+                        options {
+                          id
+                          name
+                        }
+                      }
+                      ... on ProjectV2IterationField {
+                        id
+                        name
+                      }
+                    }
+                  }
+                }
+
+                issueFields(first: 100) {
+                  nodes {
+                    __typename
+                    ... on IssueFieldSingleSelect {
+                      id
+                      name
+                      options {
+                        id
+                        name
+                      }
+                    }
+                    ... on IssueFieldDate {
+                      id
+                      name
+                    }
+                    ... on IssueFieldNumber {
+                      id
+                      name
+                    }
+                    ... on IssueFieldText {
+                      id
+                      name
+                    }
+                  }
+                }
+              }
+
+              repository(owner: $repositoryOwner, name: $repositoryName) {
+                issueOrPullRequest(number: $itemNumber) {
+                  __typename
+
+                  ... on Issue {
+                    id
+                    number
+                    state
+                    issueType {
+                      name
+                    }
+                    labels(first: 100) {
+                      nodes {
+                        name
+                      }
+                    }
+                    projectItems(first: 100) {
+                      nodes {
+                        id
+                        project {
+                          id
+                        }
+                      }
+                    }
+                  }
+
+                  ... on PullRequest {
+                    id
+                    number
+                    state
+                    merged
+                    isDraft
+                    baseRefName
+                    headRefName
+                    author {
+                      login
+                    }
+                    labels(first: 100) {
+                      nodes {
+                        name
+                      }
+                    }
+                    projectItems(first: 100) {
+                      nodes {
+                        id
+                        project {
+                          id
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          GRAPHQL
+
+          result = client.graphql(
+            project_query,
+            {
+              "repositoryOwner" => repository_owner,
+              "repositoryName" => repository_name,
+              "projectOwner" => project_owner,
+              "projectNumber" => project_number,
+              "itemNumber" => item_number,
+            },
+          )
+
+          organization = result.fetch("organization")
+          live_project = organization.fetch("projectV2")
+
+          raise "Could not find Project ##{project_number} under #{project_owner}." unless live_project
+          raise "Configured Project name `#{project_name}` does not match live Project `#{live_project["title"]}`." unless live_project["title"] == project_name
+
+          content = result.dig("repository", "issueOrPullRequest")
+
+          raise "Could not find #{item_type} ##{item_number}." unless content
+          raise "Expected #{item_type}, received #{content["__typename"]}." unless content["__typename"] == (item_type == "issue" ? "Issue" : "PullRequest")
+
+          if item_type == "pull_request" && content["baseRefName"] != production_branch
+            File.open(ENV.fetch("GITHUB_STEP_SUMMARY"), "a") do |file|
+              file.puts("## Aerealith Project Auto Add")
+              file.puts
+              file.puts("Skipped pull request ##{item_number}: base branch is `#{content["baseRefName"]}`, not `#{production_branch}`.")
+            end
+
+            exit 0
+          end
+
+          labels = normalize_labels(content)
+          excluded_label = "project:exclude"
+
+          if labels.include?(excluded_label)
+            File.open(ENV.fetch("GITHUB_STEP_SUMMARY"), "a") do |file|
+              file.puts("## Aerealith Project Auto Add")
+              file.puts
+              file.puts("Skipped #{item_type.tr("_", " ")} ##{item_number}: `#{excluded_label}` is present.")
+            end
+
+            exit 0
+          end
+
+          context = {
+            labels: labels,
+            issue_type: content.dig("issueType", "name"),
+            author: content.dig("author", "login"),
+            head_branch: content["headRefName"],
+            draft: content["isDraft"],
+            state: content["state"],
+          }
+
+          category_key = item_type == "issue" ? "issues" : "pullRequests"
+          category = hash_value(automation, category_key)
+          default_rule = hash_value(category, "default")
+          matched_rule = select_rule(array_value(category, "rules"), context)
+
+          desired_status = matched_rule&.fetch("status", nil) || default_rule["status"]
+          desired_fields = merge_hashes(
+            hash_value(default_rule, "fields"),
+            hash_value(matched_rule || {}, "fields"),
+          )
+
+          if item_type == "issue" && content["state"] == "CLOSED"
+            desired_status = "Done"
+          end
+
+          if item_type == "pull_request"
+            if content["merged"] == true
+              desired_status = "Awaiting Release"
+            elsif content["state"] == "CLOSED"
+              desired_status = "Cancelled"
+            end
+          end
+
+          live_fields = array_value(hash_value(live_project, "fields"), "nodes")
+          project_fields_by_name = live_fields
+            .select { |field| field.is_a?(Hash) && field["name"].is_a?(String) }
+            .group_by { |field| field["name"] }
+
+          existing_project_item = array_value(hash_value(content, "projectItems"), "nodes")
+            .find { |item| item.dig("project", "id") == live_project["id"] }
+
+          project_item_id = existing_project_item&.fetch("id")
+          created_project_item = false
+
+          unless project_item_id
+            add_item_mutation = <<~GRAPHQL
+              mutation($projectId: ID!, $contentId: ID!) {
+                addProjectV2ItemById(
+                  input: {
+                    projectId: $projectId
+                    contentId: $contentId
+                  }
+                ) {
+                  item {
+                    id
+                  }
+                }
+              }
+            GRAPHQL
+
+            add_result = client.graphql(
+              add_item_mutation,
+              {
+                "projectId" => live_project.fetch("id"),
+                "contentId" => content.fetch("id"),
+              },
+            )
+
+            project_item_id = add_result
+              .dig("addProjectV2ItemById", "item", "id")
+
+            raise "GitHub did not return a Project item ID after adding #{item_type} ##{item_number}." if project_item_id.nil?
+
+            created_project_item = true
+          end
+
+          warnings = []
+          updated_project_fields = []
+          updated_issue_fields = []
+
+          status_field_name = config_fields.fetch("status", "Status")
+          type_field_name = config_fields.fetch("type", "Work Type")
+          area_field_name = config_fields.fetch("area", "Area")
+          release_field_name = config_fields.fetch("release", "Release")
+          ai_triage_field_name = config_fields.fetch("aiTriage", "AI triage")
+          priority_field_name = config_fields.fetch("priority", "Priority")
+          effort_field_name = config_fields.fetch("effort", "Effort")
+
+          project_field_values = {
+            status_field_name => desired_status,
+            type_field_name => desired_fields["type"],
+            area_field_name => desired_fields["area"],
+            release_field_name => desired_fields["release"],
+            ai_triage_field_name => desired_fields["aiTriage"],
+          }.compact
+
+          if created_project_item
+            update_project_field_mutation = <<~GRAPHQL
+              mutation(
+                $projectId: ID!
+                $itemId: ID!
+                $fieldId: ID!
+                $optionId: String!
+              ) {
+                updateProjectV2ItemFieldValue(
+                  input: {
+                    projectId: $projectId
+                    itemId: $itemId
+                    fieldId: $fieldId
+                    value: {
+                      singleSelectOptionId: $optionId
+                    }
+                  }
+                ) {
+                  projectV2Item {
+                    id
+                  }
+                }
+              }
+            GRAPHQL
+
+            project_field_values.each do |field_name, desired_value|
+              matching_fields = project_fields_by_name[field_name] || []
+
+              if matching_fields.empty?
+                warnings << "Project field `#{field_name}` was not found; skipped value `#{desired_value}`."
+                next
+              end
+
+              if matching_fields.length > 1
+                raise "Project contains multiple fields named `#{field_name}`."
+              end
+
+              field = matching_fields.first
+              options = field["options"]
+
+              unless options.is_a?(Array)
+                warnings << "Project field `#{field_name}` is not a single-select field; skipped value `#{desired_value}`."
+                next
+              end
+
+              option = options.find { |candidate| candidate["name"] == desired_value }
+
+              unless option
+                warnings << "Project field `#{field_name}` is missing option `#{desired_value}`."
+                next
+              end
+
+              client.graphql(
+                update_project_field_mutation,
+                {
+                  "projectId" => live_project.fetch("id"),
+                  "itemId" => project_item_id,
+                  "fieldId" => field.fetch("id"),
+                  "optionId" => option.fetch("id"),
+                },
+              )
+
+              updated_project_fields << "#{field_name}: #{desired_value}"
+            end
+
+            if item_type == "issue"
+              issue_fields = array_value(organization, "issueFields")
+
+              issue_fields_by_name = issue_fields
+                .select { |field| field.is_a?(Hash) && field["name"].is_a?(String) }
+                .group_by { |field| field["name"] }
+
+              issue_field_values = {
+                priority_field_name => desired_fields["priority"],
+                effort_field_name => desired_fields["effort"],
+              }.compact
+
+              issue_field_inputs = []
+
+              issue_field_values.each do |field_name, desired_value|
+                matching_fields = issue_fields_by_name[field_name] || []
+
+                if matching_fields.empty?
+                  warnings << "Organization Issue Field `#{field_name}` was not found; skipped value `#{desired_value}`."
+                  next
+                end
+
+                if matching_fields.length > 1
+                  raise "Organization contains multiple Issue Fields named `#{field_name}`."
+                end
+
+                field = matching_fields.first
+                options = field["options"]
+
+                unless options.is_a?(Array)
+                  warnings << "Organization Issue Field `#{field_name}` is not a single-select field; skipped value `#{desired_value}`."
+                  next
+                end
+
+                option = options.find { |candidate| candidate["name"] == desired_value }
+
+                unless option
+                  warnings << "Organization Issue Field `#{field_name}` is missing option `#{desired_value}`."
+                  next
+                end
+
+                issue_field_inputs << {
+                  "fieldId" => field.fetch("id"),
+                  "singleSelectOptionId" => option.fetch("id"),
+                }
+
+                updated_issue_fields << "#{field_name}: #{desired_value}"
+              end
+
+              unless issue_field_inputs.empty?
+                update_issue_fields_mutation = <<~GRAPHQL
+                  mutation($input: SetIssueFieldValueInput!) {
+                    setIssueFieldValue(input: $input) {
+                      issue {
+                        id
+                      }
+                    }
+                  }
+                GRAPHQL
+
+                client.graphql(
+                  update_issue_fields_mutation,
+                  {
+                    "input" => {
+                      "issueId" => content.fetch("id"),
+                      "issueFields" => issue_field_inputs,
+                    },
+                  },
+                )
+              end
+            end
+          end
+
+          summary = []
+          summary << "## Aerealith Project Auto Add"
+          summary << ""
+          summary << "- **Item:** #{item_type.tr("_", " ")} ##{item_number}"
+          summary << "- **Project:** #{project_owner} / #{project_name}"
+          summary << "- **Action:** #{created_project_item ? "Added to Project" : "Already present in Project"}"
+          summary << "- **Matched rule:** #{matched_rule ? "`#{matched_rule["key"]}`" : "`default`"}"
+
+          if created_project_item
+            if updated_project_fields.empty?
+              summary << "- **Project fields initialized:** none"
+            else
+              summary << "- **Project fields initialized:** #{updated_project_fields.map { |value| "`#{value}`" }.join(", ")}"
+            end
+
+            if updated_issue_fields.empty?
+              summary << "- **Issue Fields initialized:** none"
+            else
+              summary << "- **Issue Fields initialized:** #{updated_issue_fields.map { |value| "`#{value}`" }.join(", ")}"
+            end
+          else
+            summary << "- **Metadata behavior:** Existing values preserved"
+          end
+
+          unless warnings.empty?
+            summary << ""
+            summary << "### Warnings"
+            warnings.each { |warning| summary << "- #{warning}" }
+          end
+
+          File.open(ENV.fetch("GITHUB_STEP_SUMMARY"), "a") do |file|
+            file.puts(summary.join("\n"))
+          end
+          RUBY

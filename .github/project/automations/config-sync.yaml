@@ -1,0 +1,689 @@
+# .github/project/automations/config-sync.yaml
+
+schemaVersion: 1
+
+# Declarative Project configuration synchronization rules consumed by:
+# .github/workflows/100-project-sync.yaml
+#
+# This automation treats .github/project/** as the source of intended Project
+# configuration. It validates changes in pull requests, applies safe changes
+# after merge to master, and requires manual approval for destructive changes.
+#
+# Project fields and labels can be reconciled automatically.
+# Project views are validated for drift because view creation and layout changes
+# are intentionally bootstrapped through the GitHub UI.
+
+automation:
+  key: config-sync
+  name: Project Configuration Sync
+  enabled: true
+
+projectConfig:
+  configFile: ../config.yaml
+  fieldsFile: ../fields.yaml
+  viewsFile: ../views.yaml
+  labelsFile: ../../labels.yaml
+  labelerFile: ../../labeler.yaml
+
+  automationFiles:
+    - ./auto-add-project.yaml
+    - ./status-transitions.yaml
+    - ./branch-activity.yaml
+    - ./pull-request-lifecycle.yaml
+    - ./deployment-lifecycle.yaml
+    - ./release-lifecycle.yaml
+    - ./issue-linking.yaml
+    - ./commit-tracking.yaml
+    - ./ai-triage.yaml
+    - ./stale-work.yaml
+    - ./archive-items.yaml
+    - ../../labels.yaml
+    - ../../labeler.yaml
+    - ./dependencies.yaml
+    - ./config-sync.yaml
+    - ./drift-check.yaml
+
+  promptDirectory: ../prompts
+  templateDirectory: ../templates
+
+repository:
+  owner: SinLess-Games
+  name: Aerealith
+  productionBranch: master
+
+project:
+  owner: SinLess-Games
+  name: Aerealith Delivery
+  scope: organization
+
+triggers:
+  - event: pull_request
+    actions:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+    paths:
+      - ".github/project/**"
+      - ".github/workflows/100-project-sync.yaml"
+
+  - event: push
+    branches:
+      - master
+
+    paths:
+      - ".github/project/**"
+      - ".github/workflows/100-project-sync.yaml"
+
+  - event: workflow_dispatch
+
+  - event: schedule
+    cron: "7 3 * * 1"
+
+modes:
+  pullRequest:
+    name: Validate and plan
+    dryRun: true
+    applyChanges: false
+    writePullRequestComment: true
+    writeWorkflowSummary: true
+    failOnValidationError: true
+    failOnDrift: false
+
+  master:
+    name: Apply safe changes
+    dryRun: false
+    applySafeChanges: true
+    writeWorkflowSummary: true
+    failOnValidationError: true
+    failOnDrift: false
+
+  manual:
+    name: Manual reconciliation
+    dryRunDefault: true
+    allowApplySafeChanges: true
+    allowDestructiveChanges: true
+    writeWorkflowSummary: true
+
+  scheduled:
+    name: Weekly health validation
+    dryRun: true
+    applyChanges: false
+    writeWorkflowSummary: true
+    failOnValidationError: false
+    failOnDrift: false
+
+manualDispatch:
+  enabled: true
+
+  inputs:
+    dryRun:
+      description: Report planned changes without changing the Project.
+      required: false
+      default: true
+      type: boolean
+
+    applySafeChanges:
+      description: Apply safe field, option, label, and configuration changes.
+      required: false
+      default: false
+      type: boolean
+
+    allowDestructiveChanges:
+      description: Allow approved destructive operations such as field-option removal.
+      required: false
+      default: false
+      type: boolean
+
+    target:
+      description: Configuration area to synchronize.
+      required: false
+      default: all
+      type: choice
+
+      options:
+        - all
+        - fields
+        - labels
+        - views
+        - automations
+        - prompts
+        - templates
+
+    confirmation:
+      description: Required only for destructive changes. Enter APPLY-DESTRUCTIVE-CHANGES.
+      required: false
+      type: string
+
+destructiveChanges:
+  enabled: false
+
+  # Destructive changes are never applied from pull requests, pushes to master,
+  # or scheduled checks. They require workflow_dispatch and explicit text
+  # confirmation.
+  allowedOnlyWhen:
+    trigger: workflow_dispatch
+    dryRun: false
+    allowDestructiveChanges: true
+    confirmation: APPLY-DESTRUCTIVE-CHANGES
+
+  operations:
+    - removeProjectField
+    - removeProjectFieldOption
+    - renameProjectField
+    - renameProjectFieldOption
+    - deleteManagedLabel
+    - archiveProjectItemsForMigration
+    - changeIterationConfiguration
+    - changeProjectOwnership
+    - changeProjectNumber
+
+  safeguards:
+    createBackupReport: true
+    requireWorkflowSummary: true
+    maximumOperationsPerRun: 10
+    stopOnFirstFailure: true
+
+validation:
+  enabled: true
+
+  yaml:
+    enabled: true
+
+    files:
+      - ../config.yaml
+      - ../fields.yaml
+      - ../views.yaml
+      - ./auto-add-project.yaml
+      - ./status-transitions.yaml
+      - ./branch-activity.yaml
+      - ./pull-request-lifecycle.yaml
+      - ./deployment-lifecycle.yaml
+      - ./release-lifecycle.yaml
+      - ./issue-linking.yaml
+      - ./commit-tracking.yaml
+      - ./ai-triage.yaml
+      - ./stale-work.yaml
+      - ./archive-items.yaml
+      - ../../labels.yaml
+      - ../../labeler.yaml
+      - ./dependencies.yaml
+      - ./config-sync.yaml
+      - ./drift-check.yaml
+
+  requiredFiles:
+    - ../config.yaml
+    - ../fields.yaml
+    - ../views.yaml
+    - ./auto-add-project.yaml
+    - ./status-transitions.yaml
+    - ./branch-activity.yaml
+    - ./pull-request-lifecycle.yaml
+    - ./deployment-lifecycle.yaml
+    - ./release-lifecycle.yaml
+    - ./issue-linking.yaml
+    - ./commit-tracking.yaml
+    - ./ai-triage.yaml
+    - ./stale-work.yaml
+    - ./archive-items.yaml
+    - ../../labels.yaml
+    - ../../labeler.yaml
+    - ./dependencies.yaml
+    - ./config-sync.yaml
+    - ./drift-check.yaml
+
+  configurationRules:
+    - key: matching-project-identity
+      description: Project owner and name must match across all Project configuration files.
+      action: error
+
+    - key: matching-repository-identity
+      description: Repository owner and name must match across all automation files.
+      action: error
+
+    - key: production-branch-is-master
+      description: All branch and release automation must use master as the production branch.
+      action: error
+
+    - key: no-release-branches
+      description: Release branches and releases branch prefixes must remain disabled.
+      action: error
+
+    - key: all-referenced-fields-exist
+      description: Every field referenced by views and automations must exist in fields.yaml.
+      action: error
+
+    - key: all-referenced-statuses-exist
+      description: Every status referenced by automations must exist in the Status field contract.
+      action: error
+
+    - key: all-referenced-labels-exist
+      description: Every label referenced by automations must exist in labels.yaml.
+      action: error
+
+    - key: all-referenced-prompts-exist
+      description: Every AI prompt file referenced by ai-triage.yaml must exist.
+      action: error
+
+    - key: all-referenced-templates-exist
+      description: Every template file referenced by configuration must exist.
+      action: warning
+
+    - key: protected-statuses-remain-protected
+      description: Blocked and Cancelled must remain protected from automatic status overrides.
+      action: error
+
+    - key: commits-is-number-field
+      description: The Commits Project field must remain a number field.
+      action: error
+
+    - key: iteration-is-iteration-field
+      description: The Iteration Project field must remain an iteration field.
+      action: error
+
+    - key: no-duplicate-field-keys
+      description: Field keys must be unique across system, organization Issue, and Project fields.
+      action: error
+
+    - key: no-duplicate-label-names
+      description: Managed label names must be unique.
+      action: error
+
+    - key: no-duplicate-view-keys
+      description: View keys and view names must be unique.
+      action: error
+
+    - key: ai-secrets-never-required-for-forks
+      description: External AI secrets must not be enabled for fork pull requests.
+      action: error
+
+schema:
+  enabled: true
+
+  # The workflow validates file shape and semantic references internally.
+  # Add external JSON Schema files here later if you decide to maintain them.
+  externalSchemas:
+    enabled: false
+    directory: ../schemas
+
+projectReconciliation:
+  enabled: true
+
+  safeOperations:
+    fields:
+      - createMissingProjectField
+      - createMissingSingleSelectOption
+      - createMissingIterationField
+      - validateExistingProjectFieldType
+      - validateExistingFieldOptions
+      - validateFieldDescriptions
+
+    labels:
+      - createMissingManagedLabel
+      - updateManagedLabelColor
+      - updateManagedLabelDescription
+      - validateManagedLabels
+
+    projectItems:
+      - none
+
+    automations:
+      - validateConfigurationOnly
+
+    views:
+      - validateViewExists
+      - validateViewLayout
+      - validateViewFilter
+      - validateViewGrouping
+      - validateViewSorting
+      - validateVisibleFields
+
+  unsafeOperations:
+    fields:
+      - deleteProjectField
+      - deleteFieldOption
+      - renameProjectField
+      - renameFieldOption
+      - changeFieldType
+      - convertFieldType
+      - alterIterationStartDate
+      - alterIterationDuration
+
+    labels:
+      - deleteManagedLabel
+      - renameManagedLabel
+      - removeManagedLabelFromItems
+
+    views:
+      - createView
+      - deleteView
+      - renameView
+      - changeViewLayout
+      - overwriteViewFilters
+      - overwriteViewGrouping
+      - overwriteViewSorting
+
+  behavior:
+    createMissingSafeResources: true
+    updateExistingSafeResources: true
+    reportUnsafeDifferences: true
+    applyUnsafeDifferencesAutomatically: false
+
+fields:
+  enabled: true
+
+  source: ../fields.yaml
+
+  reconcile:
+    createMissingFields: true
+    createMissingOptions: true
+    updateDescriptions: true
+    validateTypes: true
+    validateRequiredFields: true
+
+  neverAutomatically:
+    - deleteFields
+    - renameFields
+    - changeFieldTypes
+    - deleteFieldOptions
+    - renameFieldOptions
+    - changeOrganizationIssueFields
+    - replaceExistingIterationSchedules
+
+  requiredProjectFields:
+    - Work Type
+    - Area
+    - Iteration
+    - Release
+    - Blocked reason
+    - AI triage
+    - AI summary
+    - Commits
+
+  requiredNativeFields:
+    - Title
+    - Status
+    - Assignees
+    - Labels
+    - Linked pull requests
+    - Repository
+
+  requiredOrganizationIssueFields:
+    - Priority
+    - Effort
+    - Start date
+    - Target date
+
+labels:
+  enabled: true
+
+  source: ../../labels.yaml
+  rules: ../../labeler.yaml
+
+  reconcile:
+    createMissing: true
+    updateManagedDescriptions: true
+    updateManagedColors: true
+    validateMappings: true
+
+  neverAutomatically:
+    - deleteUnknownLabels
+    - renameExistingLabels
+    - removeLabelsFromIssues
+    - removeLabelsFromPullRequests
+
+views:
+  enabled: true
+
+  source: ../views.yaml
+
+  mode: validate-only
+
+  requiredViews:
+    - Development Board
+    - Planning Table
+    - Product Roadmap
+    - My Work
+
+  validate:
+    - viewExists
+    - layoutMatches
+    - filterMatches
+    - groupingMatches
+    - sortingMatches
+    - requiredFieldsVisible
+    - requiredColumnsVisible
+
+  driftBehavior:
+    reportAs:
+      - workflowSummary
+      - pullRequestComment
+
+    failPullRequest: false
+    failMasterSync: false
+
+automations:
+  enabled: true
+
+  sourceDirectory: .
+
+  validate:
+    - requiredFilesExist
+    - uniqueAutomationKeys
+    - referencedFilesExist
+    - referencedLabelsExist
+    - referencedFieldsExist
+    - referencedStatusesExist
+    - productionBranchMatches
+    - noReleaseBranchesAllowed
+    - protectedStatusRulesMatch
+
+  dependencyOrder:
+    - ../../labels.yaml
+    - ../../labeler.yaml
+    - auto-add-project.yaml
+    - status-transitions.yaml
+    - branch-activity.yaml
+    - pull-request-lifecycle.yaml
+    - issue-linking.yaml
+    - commit-tracking.yaml
+    - dependencies.yaml
+    - deployment-lifecycle.yaml
+    - release-lifecycle.yaml
+    - ai-triage.yaml
+    - stale-work.yaml
+    - archive-items.yaml
+    - drift-check.yaml
+
+prompts:
+  enabled: true
+
+  directory: ../prompts
+
+  requiredFiles:
+    - issue-summary.md
+    - duplicate-detection.md
+    - estimate-suggestion.md
+    - acceptance-criteria.md
+    - implementation-plan.md
+    - epic-breakdown.md
+    - pr-description-review.md
+    - pr-summary.md
+    - stale-item-review.md
+
+  validate:
+    - fileExists
+    - fileNotEmpty
+    - noSecretPatterns
+    - noTokenPatterns
+    - maximumFileLength
+
+  limits:
+    maximumCharactersPerPrompt: 30000
+
+templates:
+  enabled: true
+
+  directory: ../templates
+
+  expectedFiles:
+    expectedFiles:
+      - bug.yaml
+      - feature.yaml
+      - task.yaml
+      - chore.yaml
+      - documentation.yaml
+      - security.yaml
+      - epic.yaml
+
+  validate:
+    - yamlSyntax
+    - uniqueTemplateKeys
+    - referencedFieldsExist
+    - referencedLabelsExist
+
+pullRequestReporting:
+  enabled: true
+
+  comment:
+    enabled: true
+    updateExistingComment: true
+
+    marker: "<!-- aerealith-project-config-sync -->"
+
+    include:
+      - validationResult
+      - safeChangesPlanned
+      - unsafeChangesDetected
+      - missingFields
+      - missingLabels
+      - missingViews
+      - invalidReferences
+      - branchPolicyWarnings
+      - securityWarnings
+
+  workflowSummary:
+    enabled: true
+
+driftReporting:
+  enabled: true
+
+  severities:
+    error:
+      - missingRequiredField
+      - invalidFieldType
+      - missingProtectedStatus
+      - missingRequiredLabel
+      - invalidProductionBranch
+      - releaseBranchEnabled
+      - invalidSecretPolicy
+
+    warning:
+      - missingOptionalLabel
+      - missingView
+      - viewLayoutMismatch
+      - viewFilterMismatch
+      - staleFieldDescription
+      - staleLabelDescription
+      - missingPromptFile
+      - missingTemplateFile
+
+    info:
+      - unusedLabel
+      - unusedField
+      - optionalViewDifference
+
+security:
+  enabled: true
+
+  pullRequests:
+    checkoutHeadCode: false
+    runRepositoryCodeFromPullRequest: false
+    usePullRequestTarget: false
+    useExternalAiSecrets: false
+    useCopilotGithubTokenForUntrustedCode: false
+
+  master:
+    checkoutCode: true
+    runConfigurationValidationOnly: true
+    useExternalAiSecrets: false
+
+  secrets:
+    allowed:
+      - COPILOT_GITHUB_TOKEN
+
+    forbidden:
+      - OPENAI_API_TOKEN
+      - GEMINI_API_KEY
+
+    reason: >-
+      Project configuration synchronization does not need external AI access.
+      It only needs GitHub API access for Project and label reconciliation.
+
+  logs:
+    redact:
+      - github_pat_[A-Za-z0-9_]+
+      - ghp_[A-Za-z0-9]+
+      - sk-[A-Za-z0-9_-]+
+      - AIza[A-Za-z0-9_-]+
+
+permissions:
+  contents: read
+  issues: write
+  pullRequests: write
+  repositoryProjects: write
+
+concurrency:
+  enabled: true
+  groupFormat: "project-config-sync-{repository}"
+  cancelInProgress: false
+
+safeguards:
+  never:
+    - deleteProjectFieldsAutomatically
+    - deleteProjectFieldOptionsAutomatically
+    - renameProjectFieldsAutomatically
+    - renameProjectFieldOptionsAutomatically
+    - changeFieldTypesAutomatically
+    - deleteLabelsAutomatically
+    - renameLabelsAutomatically
+    - deleteViewsAutomatically
+    - createViewsAutomatically
+    - overwriteViewLayoutsAutomatically
+    - archiveProjectItems
+    - deleteProjectItems
+    - modifyIssueContent
+    - modifyPullRequestContent
+    - mergePullRequests
+    - closeIssues
+    - closePullRequests
+    - createReleaseBranches
+    - modifyMasterBranchProtection
+    - exposeSecrets
+    - callExternalAiProviders
+    - checkoutOrRunUntrustedCode
+
+logging:
+  writeWorkflowSummary: true
+
+  include:
+    - sourceEvent
+    - mode
+    - dryRun
+    - changedConfigurationFiles
+    - validationErrors
+    - validationWarnings
+    - safeChangesPlanned
+    - safeChangesApplied
+    - unsafeChangesDetected
+    - fieldDrift
+    - labelDrift
+    - viewDrift
+    - skippedReason
+
+  exclude:
+    - accessTokens
+    - secrets
+    - rawGitHubEventPayloads
+    - sourceCode

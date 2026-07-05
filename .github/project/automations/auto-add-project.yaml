@@ -1,0 +1,346 @@
+# .github/project/automations/auto-add-project.yaml
+
+schemaVersion: 1
+
+# Declarative rules consumed by:
+# .github/workflows/101-project-auto-add.yaml
+#
+# GitHub does not automatically execute files in .github/project/**.
+# The workflow reads this file and applies these rules through the GitHub API.
+
+automation:
+  key: auto-add-project
+  name: Auto Add Project Items
+  enabled: true
+  project:
+    owner: SinLess-Games
+    number: 3
+    name: Aerealith Delivery
+    repository: SinLess-Games/Aerealith
+
+  safeguards:
+    excludeLabels:
+      - project:exclude
+
+    skipArchivedItems: true
+    avoidDuplicateProjectItems: true
+
+    protectedStatuses:
+      - Blocked
+      - Cancelled
+
+issues:
+  enabled: true
+
+  triggers:
+    - opened
+    - reopened
+    - labeled
+    - edited
+    - closed
+
+  default:
+    addToProject: true
+    status: Inbox
+    fields:
+      priority: Medium
+      effort: Medium
+      release: Unscheduled
+      aiTriage: Pending
+
+  rules:
+    - key: bug
+      name: Bug reports
+      priority: 100
+      when:
+        any:
+          - labels:
+              includes: type:bug
+          - issueType: Bug
+      addToProject: true
+      status: Inbox
+      fields:
+        priority: High
+        type: Bug
+        aiTriage: Pending
+
+    - key: feature
+      name: Feature requests
+      priority: 90
+      when:
+        any:
+          - labels:
+              includes: type:feature
+          - issueType: Feature
+      addToProject: true
+      status: Backlog
+      fields:
+        priority: Medium
+        type: Feature
+        aiTriage: Pending
+
+    - key: epic
+      name: Epics
+      priority: 85
+      when:
+        any:
+          - labels:
+              includes: type:epic
+          - issueType: Epic
+      addToProject: true
+      status: Backlog
+      fields:
+        priority: Medium
+        type: Epic
+        aiTriage: Pending
+
+    - key: task
+      name: Engineering tasks
+      priority: 80
+      when:
+        any:
+          - labels:
+              includes: type:task
+          - issueType: Task
+      addToProject: true
+      status: Ready
+      fields:
+        priority: Medium
+        type: Task
+        aiTriage: Pending
+
+    - key: chore
+      name: Chores
+      priority: 75
+      when:
+        any:
+          - labels:
+              includes: type:chore
+          - issueType: Chore
+      addToProject: true
+      status: Ready
+      fields:
+        priority: Low
+        type: Chore
+        aiTriage: Pending
+
+    - key: documentation
+      name: Documentation work
+      priority: 70
+      when:
+        any:
+          - labels:
+              includes: type:documentation
+          - issueType: Documentation
+      addToProject: true
+      status: Ready
+      fields:
+        priority: Medium
+        type: Documentation
+        area: Docs
+        aiTriage: Pending
+
+    - key: security
+      name: Security work
+      priority: 65
+      when:
+        any:
+          - labels:
+              includes: type:security
+          - issueType: Security
+      addToProject: true
+      status: Ready
+      fields:
+        priority: High
+        type: Security
+        area: Security
+        aiTriage: Pending
+
+    - key: untyped
+      name: Untyped issues
+      priority: 1
+      when:
+        all:
+          - labels:
+              excludes:
+                - type:bug
+                - type:feature
+                - type:epic
+                - type:task
+                - type:chore
+                - type:documentation
+                - type:security
+          - issueType:
+              empty: true
+      addToProject: true
+      status: Inbox
+      fields:
+        priority: Medium
+        aiTriage: Pending
+
+  closeBehavior:
+    enabled: true
+    whenIssueClosed:
+      status: Done
+      archive: false
+
+pullRequests:
+  enabled: true
+
+  triggers:
+    - opened
+    - reopened
+    - ready_for_review
+    - converted_to_draft
+    - closed
+    - labeled
+    - edited
+
+  default:
+    addToProject: true
+    fields:
+      priority: Medium
+      release: Unscheduled
+      aiTriage: Pending
+
+  rules:
+    - key: dependabot
+      name: Dependabot pull requests
+      priority: 100
+      when:
+        any:
+          - author: dependabot[bot]
+          - headBranch:
+              startsWith: dependabot/
+      addToProject: true
+      status: Ready
+      fields:
+        type: Chore
+        area: Dependencies
+        priority: Low
+        aiTriage: Pending
+
+    - key: draft
+      name: Draft pull requests
+      priority: 90
+      when:
+        pullRequest:
+          draft: true
+      addToProject: true
+      status: In Progress
+
+    - key: ready_for_review
+      name: Ready-for-review pull requests
+      priority: 80
+      when:
+        pullRequest:
+          draft: false
+          state: open
+      addToProject: true
+      status: In Review
+
+  closeBehavior:
+    enabled: true
+
+    merged:
+      status: Awaiting Release
+      archive: false
+
+    closedWithoutMerge:
+      status: Cancelled
+      archive: false
+
+linkedWork:
+  enabled: true
+
+  issueToPullRequest:
+    enabled: true
+    behavior:
+      inheritPriority: true
+      inheritType: true
+      inheritArea: true
+      inheritRelease: true
+      inheritIteration: true
+
+  pullRequestToIssue:
+    enabled: true
+
+    readyForReview:
+      status: In Review
+
+    merged:
+      status: Awaiting Release
+
+    closedWithoutMerge:
+      status: Ready
+      onlyWhenIssueIsOpen: true
+
+labels:
+  mapping:
+    type:bug:
+      type: Bug
+
+    type:feature:
+      type: Feature
+
+    type:epic:
+      type: Epic
+
+    type:task:
+      type: Task
+
+    type:chore:
+      type: Chore
+
+    type:documentation:
+      type: Documentation
+      area: Docs
+
+    type:security:
+      type: Security
+      area: Security
+
+    area:frontend:
+      area: Frontend
+
+    area:api:
+      area: API
+
+    area:core:
+      area: Core
+
+    area:db:
+      area: DB
+
+    area:ui:
+      area: UI
+
+    area:content:
+      area: Content
+
+    area:flags:
+      area: Flags
+
+    area:observability:
+      area: Observability
+
+    area:docs:
+      area: Docs
+
+    area:devops:
+      area: DevSecOps
+
+    area:integrations:
+      area: Integrations
+
+    area:dependencies:
+      area: Dependencies
+
+    area:security:
+      area: Security
+
+    area:tooling:
+      area: Tooling
+
+    area:services:
+      area: Services

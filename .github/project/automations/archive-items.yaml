@@ -1,0 +1,487 @@
+# .github/project/automations/archive-items.yaml
+
+schemaVersion: 1
+
+# Declarative archive rules consumed by:
+# .github/workflows/105-project-drift-check.yaml
+#
+# Archiving removes completed or cancelled items from normal Project views
+# without deleting the underlying GitHub issue or pull request.
+#
+# Archive behavior is intentionally conservative:
+# - Done items archive after 30 days.
+# - Cancelled items archive after 14 days.
+# - Blocked items never archive automatically.
+# - Release-bound work does not archive until its release is complete.
+# - Reopened items are restored automatically when possible.
+# - Archiving never closes, deletes, cancels, or modifies repository work.
+
+automation:
+  key: archive-items
+  name: Archive Project Items
+  enabled: true
+
+configFile: ../config.yaml
+fieldsFile: ../fields.yaml
+labelsFile: ../../labels.yaml
+issueLinkingFile: ./issue-linking.yaml
+deploymentLifecycleFile: ./deployment-lifecycle.yaml
+releaseLifecycleFile: ./release-lifecycle.yaml
+
+project:
+  owner: SinLess-Games
+  name: Aerealith Delivery
+  repository: SinLess-Games/Aerealith
+
+repository:
+  owner: SinLess-Games
+  name: Aerealith
+  productionBranch: master
+
+fields:
+  status: Status
+  release: Release
+  iteration: Iteration
+  labels: Labels
+  milestone: Milestone
+  linkedPullRequests: Linked pull requests
+  parentIssue: Parent issue
+  subIssuesProgress: Sub-issues progress
+
+labels:
+  excluded: project:exclude
+  paused: automation:paused
+
+triggers:
+  - event: schedule
+    # Runs daily at 01:41 UTC.
+    cron: "41 1 * * *"
+
+  - event: issues
+    actions:
+      - reopened
+      - closed
+
+  - event: pull_request
+    actions:
+      - reopened
+      - closed
+
+  - event: workflow_dispatch
+
+scope:
+  repositories:
+    - SinLess-Games/Aerealith
+
+  includeArchivedItems: true
+
+  itemTypes:
+    - issue
+    - pull_request
+
+  eligibleStatuses:
+    - Done
+    - Cancelled
+
+  excludedStatuses:
+    - Inbox
+    - Backlog
+    - Ready
+    - In Progress
+    - In Review
+    - Testing
+    - QA
+    - Awaiting Release
+    - Deployment
+    - Blocked
+
+  excludedLabels:
+    - project:exclude
+
+archiveRules:
+  done:
+    enabled: true
+
+    status: Done
+
+    archiveAfterDays: 30
+
+    completionTimestamp:
+      # The workflow should use the first valid matching lifecycle-completion
+      # event rather than generic Project item updatedAt timestamps.
+      #
+      # This prevents AI summaries, label changes, or metadata updates from
+      # accidentally resetting the archive clock.
+      sources:
+        - productionDeploymentSucceededAt
+        - stableReleasePublishedAt
+        - issueClosedAt
+        - pullRequestMergedAt
+        - projectStatusTransitionedToDoneAt
+
+      fallback:
+        source: projectStatusTransitionedToDoneAt
+        required: true
+
+    requirements:
+      - noOpenLinkedPullRequests
+      - noActiveDeployment
+      - noPendingRelease
+      - noProtectedStatus
+      - noExcludedLabel
+
+  cancelled:
+    enabled: true
+
+    status: Cancelled
+
+    archiveAfterDays: 14
+
+    cancellationTimestamp:
+      sources:
+        - pullRequestClosedAt
+        - projectStatusTransitionedToCancelledAt
+
+      fallback:
+        source: projectStatusTransitionedToCancelledAt
+        required: true
+
+    requirements:
+      - noOpenLinkedPullRequests
+      - noProtectedStatus
+      - noExcludedLabel
+
+protectedItems:
+  statuses:
+    - Blocked
+
+  labels:
+    - automation:paused
+    - project:exclude
+
+  behavior:
+    archive: false
+    unarchive: false
+    report: workflowSummary
+
+releaseProtection:
+  enabled: true
+
+  releaseField:
+    name: Release
+
+  unscheduledValues:
+    - Unscheduled
+
+  pendingReleaseStatuses:
+    - Awaiting Release
+    - Deployment
+
+  rules:
+    # Never archive an item assigned to a release that has not been published.
+    - key: assigned-release-not-published
+      when:
+        releaseField:
+          notIn:
+            - Unscheduled
+            - ""
+      require:
+        release:
+          published: true
+      archive: false
+
+    # Never archive active release lifecycle statuses.
+    - key: active-release-lifecycle
+      when:
+        statusIn:
+          - Awaiting Release
+          - Deployment
+      archive: false
+
+    # Do not archive work that has an open GitHub milestone.
+    - key: open-milestone
+      when:
+        milestone:
+          state: open
+      archive: false
+
+linkedWorkProtection:
+  enabled: true
+
+  pullRequests:
+    preventArchiveWhen:
+      - linkedPullRequestOpen
+      - linkedPullRequestInReview
+      - linkedPullRequestAwaitingRelease
+      - linkedPullRequestDeploymentActive
+
+  issues:
+    preventArchiveWhen:
+      - linkedIssueOpen
+      - linkedIssueBlocked
+      - linkedIssueHasOpenPullRequest
+
+hierarchyProtection:
+  enabled: true
+
+  parentIssues:
+    # A completed parent should remain visible while it has active children.
+    preventArchiveWhen:
+      - activeSubIssuesExist
+      - subIssueStatusIn:
+          - Inbox
+          - Backlog
+          - Ready
+          - In Progress
+          - In Review
+          - Testing
+          - QA
+          - Awaiting Release
+          - Deployment
+          - Blocked
+
+  subIssues:
+    # Completed children can archive normally as long as they do not have
+    # open linked pull requests or active release/deployment work.
+    allowArchiveWhenParentIsActive: true
+
+completionDetection:
+  enabled: true
+
+  issue:
+    done:
+      sources:
+        - productionDeploymentSucceeded
+        - stableReleasePublished
+        - issueClosed
+        - statusTransitionToDone
+
+    cancelled:
+      sources:
+        - statusTransitionToCancelled
+
+  pullRequest:
+    done:
+      sources:
+        - productionDeploymentSucceeded
+        - stableReleasePublished
+        - pullRequestMerged
+        - statusTransitionToDone
+
+    cancelled:
+      sources:
+        - pullRequestClosedWithoutMerge
+        - statusTransitionToCancelled
+
+  projectStatusTracking:
+    enabled: true
+
+    # Project field mutation workflows should record lifecycle transitions in
+    # their own workflow state so archive timing is based on the real terminal
+    # transition, not generic item updates.
+    #
+    # This is an implementation contract for:
+    # - 102-project-status.yaml
+    # - 104-project-pr-lifecycle.yaml
+    # - 105-project-drift-check.yaml
+    trackStatuses:
+      - Done
+      - Cancelled
+
+    stateKeyFormat: "project-item-{itemId}-status-{status}"
+
+unarchiveRules:
+  enabled: true
+
+  restoreWhen:
+    - issueReopened
+    - pullRequestReopened
+    - statusMovedOutOfDone
+    - statusMovedOutOfCancelled
+    - linkedPullRequestOpened
+    - linkedPullRequestReopened
+    - manualRestoreDetected
+
+  restoredStatusBehavior:
+    # Restoring an archived Project item must not overwrite its current status.
+    preserveCurrentStatus: true
+
+  skipWhen:
+    labels:
+      - project:exclude
+
+  actions:
+    - restoreProjectItem
+    - writeWorkflowSummary
+
+manualDispatch:
+  enabled: true
+
+  inputs:
+    dryRun:
+      description: Report eligible items without archiving them.
+      required: false
+      default: true
+      type: boolean
+
+    includeDone:
+      description: Include Done items in this archive run.
+      required: false
+      default: true
+      type: boolean
+
+    includeCancelled:
+      description: Include Cancelled items in this archive run.
+      required: false
+      default: true
+      type: boolean
+
+    forceItemNumber:
+      description: Optional issue or pull request number for a targeted archive check.
+      required: false
+      type: string
+
+archiveExecution:
+  enabled: true
+
+  dryRunOnPullRequest: true
+
+  scheduledRuns:
+    dryRun: false
+
+  manualRuns:
+    defaultDryRun: true
+    allowArchiveWhenDryRunFalse: true
+
+  operation:
+    action: archiveProjectItem
+
+  duplicateHandling:
+    skipAlreadyArchivedItems: true
+
+  batch:
+    maximumItemsPerRun: 50
+
+    tooManyItemsBehavior:
+      action: stopAndReport
+      report: workflowSummary
+
+  order:
+    # Cancelled work archives first because it is no longer active and does not
+    # need to wait for a release lifecycle.
+    - Cancelled
+    - Done
+
+reconciliation:
+  enabled: true
+
+  schedule:
+    cron: "41 1 * * *"
+
+  scope:
+    includeStatuses:
+      - Done
+      - Cancelled
+      - Awaiting Release
+      - Deployment
+      - Blocked
+
+    includeArchivedItems: true
+
+    lookbackDays: 180
+
+  actions:
+    - findArchivedItemsThatShouldBeRestored
+    - findDoneItemsEligibleForArchive
+    - findCancelledItemsEligibleForArchive
+    - validateReleaseCompletion
+    - validateLinkedWorkState
+    - validateParentAndSubIssueState
+    - skipProtectedItems
+    - archiveEligibleItems
+    - restoreEligibleItems
+    - writeWorkflowSummary
+
+  updateOnlyWhenChanged: true
+
+notifications:
+  enabled: true
+
+  issueComments:
+    enabled: false
+
+  pullRequestComments:
+    enabled: false
+
+  workflowSummary:
+    enabled: true
+
+  include:
+    - archivedItemNumbers
+    - restoredItemNumbers
+    - skippedItemNumbers
+    - skipReasons
+    - archiveEligibilityDates
+    - releaseProtectionResults
+
+safeguards:
+  manualStatusChangesTakePriority: true
+
+  never:
+    - closeIssues
+    - reopenIssues
+    - closePullRequests
+    - reopenPullRequests
+    - mergePullRequests
+    - deleteIssues
+    - deletePullRequests
+    - deleteProjectItems
+    - changeProjectStatus
+    - changePriority
+    - changeType
+    - changeArea
+    - changeIteration
+    - changeRelease
+    - removeAssignees
+    - removeReviewers
+    - removeLabels
+    - modifyMilestones
+    - overrideBlockedStatus
+    - overrideCancelledStatus
+    - overrideAutomationPausedItems
+    - runExternalAiAnalysis
+    - checkoutOrRunUntrustedCode
+
+permissions:
+  contents: read
+  issues: read
+  pullRequests: read
+  repositoryProjects: write
+
+workflow:
+  concurrency:
+    enabled: true
+    groupFormat: "project-archive-{repository}"
+    cancelInProgress: false
+
+  logging:
+    writeWorkflowSummary: true
+
+    include:
+      - sourceEvent
+      - itemNumber
+      - itemType
+      - currentStatus
+      - terminalStatusTimestamp
+      - archiveEligibleAt
+      - releaseFieldValue
+      - milestoneState
+      - linkedPullRequestState
+      - archived
+      - restored
+      - skippedReason
+
+    exclude:
+      - accessTokens
+      - secrets
+      - sourceCode

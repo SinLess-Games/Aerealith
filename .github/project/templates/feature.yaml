@@ -1,0 +1,150 @@
+# .github/project/templates/feature.yaml
+
+schemaVersion: 1
+
+template:
+  key: feature
+  name: Feature
+  description: New user-facing capability or meaningful Aerealith product improvement.
+  appliesTo:
+    - issue
+
+project:
+  defaults:
+    status: Backlog
+    type: Feature
+    priority: Medium
+    effort: Medium
+    release: Unscheduled
+    aiTriage: Pending
+
+  fields:
+    area: null
+    iteration: null
+    startDate: null
+    targetDate: null
+    blockedReason: null
+    aiSummary: null
+
+labels:
+  add:
+    - type:feature
+
+  remove: []
+
+automation:
+  addToProject: true
+  runAiSummary: true
+  runDuplicateDetection: true
+  runAcceptanceCriteria: true
+  runEstimateSuggestion: false
+  runImplementationPlan: true
+  includeInRoadmap: true
+
+  staleWork:
+    enabled: true
+
+  branchWork:
+    requiresAssigneeBeforeInProgress: true
+    validBranchPrefixes:
+      - feature
+      - fix
+      - hotfix
+      - docs
+      - refactor
+      - test
+      - ai
+
+issue:
+  title:
+    format: "[Feature] <short description>"
+
+  requiredSections:
+    - Summary
+    - Problem or opportunity
+    - Intended outcome
+    - Scope
+    - Acceptance criteria
+
+  suggestedSections:
+    - User stories
+    - User impact
+    - Technical considerations
+    - Accessibility considerations
+    - Security considerations
+    - Analytics or observability
+    - Rollout plan
+    - Release considerations
+    - Dependencies
+    - Risks
+    - Out of scope
+    - Related issues
+
+triage:
+  priorityGuidance:
+    urgent:
+      - Required to resolve a critical production, security, or severe customer-impacting problem.
+      - Required immediately to restore a major product capability.
+      - Required for an active release, contractual, or platform-blocking commitment.
+
+    high:
+      - Important feature required for near-term product delivery.
+      - Work that materially unblocks other planned Aerealith features.
+      - Significant user-facing improvement with clear near-term value.
+
+    medium:
+      - Normal planned product work.
+      - Valuable feature with a defined outcome but no immediate delivery pressure.
+      - Improvement appropriate for backlog prioritization and iteration planning.
+
+    low:
+      - Nice-to-have capability.
+      - Experimental or optional product improvement.
+      - Feature with limited current user impact or no near-term release need.
+
+  effortGuidance:
+    low:
+      - Focused feature enhancement with limited scope.
+      - One clear user flow or isolated capability.
+      - Few affected areas and straightforward validation.
+
+    medium:
+      - Feature touching multiple related components, modules, or workflows.
+      - Requires normal testing, accessibility review, documentation, or integration validation.
+      - Has manageable uncertainty and can remain one planned work item.
+
+    high:
+      - Broad or cross-cutting feature affecting multiple major areas.
+      - Requires substantial architecture, security, database, API, frontend, rollout, or deployment coordination.
+      - Has unresolved dependencies or should likely be split into an Epic with child issues.
+
+planning:
+  expected:
+    - The intended user or maintainer outcome is clear.
+    - The feature scope is bounded.
+    - Acceptance criteria describe observable completed behavior.
+    - Dependencies and risks are documented when known.
+    - The feature has an Area before implementation begins.
+    - Iteration and Release are assigned when planning decisions are made.
+    - High-effort features are reviewed for conversion into an Epic or split into smaller issues.
+
+validation:
+  expected:
+    - Acceptance criteria are validated before completion.
+    - Relevant unit, integration, or end-to-end coverage is added or updated where practical.
+    - User-facing changes are reviewed for accessibility when relevant.
+    - Authentication, authorization, external input, privacy, and secret handling are reviewed when relevant.
+    - Logging, metrics, tracing, or error reporting are considered when the feature affects operational behavior.
+    - Documentation is updated when the feature changes public, developer, or contributor workflows.
+    - Rollout, migration, and rollback considerations are documented when relevant.
+
+safeguards:
+  never:
+    - Close the issue automatically.
+    - Change priority automatically.
+    - Change area automatically.
+    - Change iteration automatically.
+    - Change release automatically.
+    - Mark the issue Done without an explicit lifecycle event.
+    - Override Blocked or Cancelled status.
+    - Create sub-issues automatically unless the Feature is explicitly converted into an approved Epic.

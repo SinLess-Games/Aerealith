@@ -1,0 +1,127 @@
+# .github/project/templates/documentation.yaml
+
+schemaVersion: 1
+
+template:
+  key: documentation
+  name: Documentation
+  description: Documentation, guides, architecture notes, API references, onboarding material, or developer experience content.
+  appliesTo:
+    - issue
+
+project:
+  defaults:
+    status: Ready
+    type: Documentation
+    priority: Medium
+    effort: Low
+    area: Documentation
+    release: Unscheduled
+    aiTriage: Pending
+
+  fields:
+    iteration: null
+    startDate: null
+    targetDate: null
+    blockedReason: null
+    aiSummary: null
+
+labels:
+  add:
+    - type:documentation
+    - area:documentation
+
+  remove: []
+
+automation:
+  addToProject: true
+  runAiSummary: true
+  runDuplicateDetection: false
+  runAcceptanceCriteria: true
+  runEstimateSuggestion: false
+  includeInRoadmap: false
+
+  staleWork:
+    enabled: true
+
+  branchWork:
+    requiresAssigneeBeforeInProgress: true
+    validBranchPrefixes:
+      - docs
+      - feature
+      - fix
+      - chore
+
+issue:
+  title:
+    format: "[Docs] <short description>"
+
+  requiredSections:
+    - Summary
+    - Audience
+    - Scope
+    - Validation
+
+  suggestedSections:
+    - Source material
+    - Affected documentation
+    - Screenshots or examples
+    - Related issues
+    - Follow-up documentation
+    - Accessibility considerations
+    - Versioning or release notes
+
+triage:
+  priorityGuidance:
+    urgent:
+      - Missing documentation blocks a production, security, or incident response process.
+      - Incorrect documentation could cause data loss, security exposure, or serious user harm.
+      - Required instructions are unavailable during an active outage.
+
+    high:
+      - Documentation blocks contributors, users, support, or release work.
+      - Public or developer documentation is materially incorrect for an active feature.
+      - Required onboarding or migration guidance is missing.
+
+    medium:
+      - Important documentation improvement with a clear audience and near-term value.
+      - Architecture, API, contributor, or workflow documentation needs updating.
+      - Existing documentation is incomplete or becoming outdated.
+
+    low:
+      - Minor wording, formatting, navigation, or clarity improvement.
+      - Optional examples or supplementary documentation.
+      - Low-impact internal knowledge cleanup.
+
+  effortGuidance:
+    low:
+      - Small correction, focused guide update, or single-page documentation change.
+      - Existing source material is accurate and readily available.
+      - Validation is limited to link, formatting, and content review.
+
+    medium:
+      - Multiple related documents, examples, diagrams, or references need coordinated updates.
+      - Requires confirming behavior with implementation, product, or architecture context.
+      - Includes meaningful contributor, API, onboarding, or workflow documentation.
+
+    high:
+      - Broad documentation overhaul spanning multiple audiences or product areas.
+      - Requires substantial research, architecture clarification, migration guidance, or release coordination.
+      - Includes a large documentation system restructure or should likely be split into focused issues.
+
+validation:
+  expected:
+    - The intended audience can complete the documented task or understand the documented concept.
+    - Technical claims match the confirmed implementation or approved architecture context.
+    - Links, commands, examples, and code snippets are checked when present.
+    - Formatting, headings, and navigation follow the repository documentation conventions.
+    - User-facing documentation considers accessibility and readability where relevant.
+    - Related documentation is updated when the change would otherwise leave contradictory guidance.
+
+safeguards:
+  never:
+    - Close the issue automatically.
+    - Change priority automatically.
+    - Change area automatically.
+    - Mark the issue Done without an explicit lifecycle event.
+    - Override Blocked or Cancelled status.

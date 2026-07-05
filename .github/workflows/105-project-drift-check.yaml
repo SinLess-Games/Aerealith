@@ -1,0 +1,1167 @@
+# .github/workflows/105-project-drift-check.yaml
+
+name: 105 · Project Drift Check
+
+run-name: Project Drift Check · ${{ inputs.scope || 'all' }}
+
+on:
+  schedule:
+    # Daily at 15:17 UTC. Avoids the top-of-hour Actions traffic spike.
+    - cron: "17 15 * * *"
+
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: Select what to audit.
+        required: true
+        type: choice
+        default: all
+        options:
+          - all
+          - configuration
+          - work-items
+
+      fail_on_drift:
+        description: Fail the workflow when drift is found.
+        required: true
+        type: boolean
+        default: true
+
+concurrency:
+  group: project-drift-check-${{ github.repository }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  audit:
+    name: Audit Aerealith Delivery
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      PROJECT_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+      DRIFT_SCOPE: ${{ inputs.scope }}
+      FAIL_ON_DRIFT: ${{ inputs.fail_on_drift }}
+
+    steps:
+      - name: Checkout trusted Project configuration
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: master
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout: |
+            .github/project
+            .github/labels.yaml
+            .github/labeler.yaml
+          sparse-checkout-cone-mode: true
+
+      - name: Audit Project drift
+        id: audit
+        shell: bash
+        env:
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -Eeuo pipefail
+
+          ruby <<'RUBY'
+          require "json"
+          require "net/http"
+          require "set"
+          require "uri"
+          require "yaml"
+
+          PROJECT_ROOT = File.expand_path(".github/project", Dir.pwd)
+          REPORT_PATH = File.join(
+            ENV.fetch("RUNNER_TEMP"),
+            "aerealith-project-drift-report.json",
+          )
+
+          def read_yaml(relative_path, required: true)
+            path = File.join(PROJECT_ROOT, relative_path)
+
+            unless File.file?(path)
+              raise "Missing Project configuration file: .github/project/#{relative_path}" if required
+
+              return {}
+            end
+
+            YAML.safe_load(
+              File.read(path),
+              permitted_classes: [],
+              permitted_symbols: [],
+              aliases: false,
+            ) || {}
+          end
+
+          def hash_value(value, key)
+            return {} unless value.is_a?(Hash)
+
+            result = value[key]
+
+            result.is_a?(Hash) ? result : {}
+          end
+
+          def array_value(value, key)
+            return [] unless value.is_a?(Hash)
+
+            result = value[key]
+
+            result.is_a?(Array) ? result : []
+          end
+
+          def present?(value)
+            !value.nil? && !value.to_s.strip.empty?
+          end
+
+          def normalize_color(value)
+            value
+              .to_s
+              .delete_prefix("#")
+              .downcase
+          end
+
+          def label_names(content)
+            array_value(hash_value(content, "labels"), "nodes")
+              .filter_map do |label|
+                label["name"] if label.is_a?(Hash)
+              end
+              .to_set
+          end
+
+          def status_name(project_item)
+            project_item
+              &.dig("statusValue", "name")
+              .to_s
+          end
+
+          def field_type_name(value)
+            case value.to_s
+            when "singleSelect"
+              "SINGLE_SELECT"
+            when "text"
+              "TEXT"
+            when "number"
+              "NUMBER"
+            when "date"
+              "DATE"
+            when "iteration"
+              "ITERATION"
+            else
+              value.to_s.upcase
+            end
+          end
+
+          class GitHubClient
+            API_VERSION = "2022-11-28".freeze
+
+            def initialize(token)
+              @token = token
+            end
+
+            def graphql(query, variables = {})
+              response, payload = request(
+                method: :post,
+                uri: URI("https://api.github.com/graphql"),
+                body: {
+                  query: query,
+                  variables: variables,
+                },
+              )
+
+              unless response.is_a?(Net::HTTPSuccess)
+                raise "GitHub GraphQL request failed with HTTP #{response.code}: #{response.body}"
+              end
+
+              if payload["errors"]&.any?
+                messages = payload["errors"]
+                  .map { |error| error["message"] }
+                  .join("; ")
+
+                raise "GitHub GraphQL returned errors: #{messages}"
+              end
+
+              payload.fetch("data")
+            end
+
+            def get(path)
+              request(
+                method: :get,
+                uri: URI("https://api.github.com#{path}"),
+                body: nil,
+              )
+            end
+
+            private
+
+            def request(method:, uri:, body:)
+              request_class = {
+                get: Net::HTTP::Get,
+                post: Net::HTTP::Post,
+              }.fetch(method)
+
+              request = request_class.new(uri)
+              request["Accept"] = "application/vnd.github+json"
+              request["Authorization"] = "Bearer #{@token}"
+              request["X-GitHub-Api-Version"] = API_VERSION
+              request["User-Agent"] = "Aerealith-Project-Drift-Check"
+
+              if body
+                request["Content-Type"] = "application/json"
+                request.body = JSON.generate(body)
+              end
+
+              response = Net::HTTP.start(
+                uri.hostname,
+                uri.port,
+                use_ssl: uri.scheme == "https",
+              ) do |http|
+                http.request(request)
+              end
+
+              payload =
+                begin
+                  JSON.parse(response.body)
+                rescue JSON::ParserError
+                  {}
+                end
+
+              [response, payload]
+            end
+          end
+
+          def fetch_project_items(
+            client:,
+            project_owner:,
+            project_number:,
+            status_field_name:
+          )
+            query = <<~GRAPHQL
+              query(
+                $projectOwner: String!
+                $projectNumber: Int!
+                $cursor: String
+                $statusFieldName: String!
+              ) {
+                organization(login: $projectOwner) {
+                  projectV2(number: $projectNumber) {
+                    items(first: 100, after: $cursor) {
+                      pageInfo {
+                        hasNextPage
+                        endCursor
+                      }
+
+                      nodes {
+                        id
+                        isArchived
+
+                        statusValue: fieldValueByName(name: $statusFieldName) {
+                          ... on ProjectV2ItemFieldSingleSelectValue {
+                            name
+                          }
+                        }
+
+                        content {
+                          __typename
+
+                          ... on Issue {
+                            id
+                            number
+                            state
+
+                            repository {
+                              nameWithOwner
+                            }
+
+                            labels(first: 100) {
+                              nodes {
+                                name
+                              }
+                            }
+                          }
+
+                          ... on PullRequest {
+                            id
+                            number
+                            state
+                            merged
+                            isDraft
+                            baseRefName
+                            headRefName
+                            isCrossRepository
+
+                            author {
+                              login
+                            }
+
+                            repository {
+                              nameWithOwner
+                            }
+
+                            labels(first: 100) {
+                              nodes {
+                                name
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            GRAPHQL
+
+            items = []
+            cursor = nil
+
+            loop do
+              result = client.graphql(
+                query,
+                {
+                  "projectOwner" => project_owner,
+                  "projectNumber" => project_number,
+                  "cursor" => cursor,
+                  "statusFieldName" => status_field_name,
+                },
+              )
+
+              connection = result
+                .dig("organization", "projectV2", "items")
+
+              raise "Could not read Project items." unless connection
+
+              items.concat(connection.fetch("nodes"))
+
+              page_info = connection.fetch("pageInfo")
+
+              break unless page_info["hasNextPage"]
+
+              cursor = page_info["endCursor"]
+            end
+
+            items
+          end
+
+          def fetch_open_issues(
+            client:,
+            repository_owner:,
+            repository_name:
+          )
+            query = <<~GRAPHQL
+              query(
+                $repositoryOwner: String!
+                $repositoryName: String!
+                $cursor: String
+              ) {
+                repository(
+                  owner: $repositoryOwner
+                  name: $repositoryName
+                ) {
+                  issues(
+                    first: 100
+                    after: $cursor
+                    states: OPEN
+                  ) {
+                    pageInfo {
+                      hasNextPage
+                      endCursor
+                    }
+
+                    nodes {
+                      id
+                      number
+
+                      labels(first: 100) {
+                        nodes {
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            GRAPHQL
+
+            issues = []
+            cursor = nil
+
+            loop do
+              result = client.graphql(
+                query,
+                {
+                  "repositoryOwner" => repository_owner,
+                  "repositoryName" => repository_name,
+                  "cursor" => cursor,
+                },
+              )
+
+              connection = result
+                .dig("repository", "issues")
+
+              raise "Could not read open repository issues." unless connection
+
+              issues.concat(connection.fetch("nodes"))
+
+              page_info = connection.fetch("pageInfo")
+
+              break unless page_info["hasNextPage"]
+
+              cursor = page_info["endCursor"]
+            end
+
+            issues
+          end
+
+          def fetch_open_pull_requests(
+            client:,
+            repository_owner:,
+            repository_name:
+          )
+            query = <<~GRAPHQL
+              query(
+                $repositoryOwner: String!
+                $repositoryName: String!
+                $cursor: String
+              ) {
+                repository(
+                  owner: $repositoryOwner
+                  name: $repositoryName
+                ) {
+                  pullRequests(
+                    first: 100
+                    after: $cursor
+                    states: OPEN
+                  ) {
+                    pageInfo {
+                      hasNextPage
+                      endCursor
+                    }
+
+                    nodes {
+                      id
+                      number
+                      baseRefName
+                      isDraft
+
+                      author {
+                        login
+                      }
+
+                      labels(first: 100) {
+                        nodes {
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            GRAPHQL
+
+            pull_requests = []
+            cursor = nil
+
+            loop do
+              result = client.graphql(
+                query,
+                {
+                  "repositoryOwner" => repository_owner,
+                  "repositoryName" => repository_name,
+                  "cursor" => cursor,
+                },
+              )
+
+              connection = result
+                .dig("repository", "pullRequests")
+
+              raise "Could not read open repository pull requests." unless connection
+
+              pull_requests.concat(connection.fetch("nodes"))
+
+              page_info = connection.fetch("pageInfo")
+
+              break unless page_info["hasNextPage"]
+
+              cursor = page_info["endCursor"]
+            end
+
+            pull_requests
+          end
+
+          def fetch_repository_labels(
+            client:,
+            repository_owner:,
+            repository_name:
+          )
+            labels = []
+            page = 1
+
+            loop do
+              response, payload = client.get(
+                "/repos/#{repository_owner}/#{repository_name}/labels?per_page=100&page=#{page}",
+              )
+
+              unless response.is_a?(Net::HTTPSuccess)
+                raise "Could not read repository labels: HTTP #{response.code}."
+              end
+
+              break unless payload.is_a?(Array)
+
+              labels.concat(payload)
+
+              break if payload.length < 100
+
+              page += 1
+            end
+
+            labels
+          end
+
+          def append_finding(findings, category, message)
+            findings[category] ||= []
+            findings[category] << message
+          end
+
+          def append_markdown_findings(lines, title, findings)
+            return if findings.empty?
+
+            lines << ""
+            lines << "### #{title}"
+
+            findings.first(100).each do |finding|
+              lines << "- #{finding}"
+            end
+
+            remaining = findings.length - 100
+
+            if remaining.positive?
+              lines << "- …and #{remaining} more."
+            end
+          end
+
+          scope = ENV.fetch("DRIFT_SCOPE", "").strip
+          scope = "all" if scope.empty?
+
+          unless %w[all configuration work-items].include?(scope)
+            raise "DRIFT_SCOPE must be all, configuration, or work-items."
+          end
+
+          fail_on_drift_value = ENV
+            .fetch("FAIL_ON_DRIFT", "")
+            .strip
+            .downcase
+
+          fail_on_drift =
+            fail_on_drift_value.empty? ||
+            %w[true 1 yes].include?(fail_on_drift_value)
+
+          findings = {}
+          warnings = []
+          report = {
+            "scope" => scope,
+            "driftFound" => false,
+            "findings" => findings,
+            "warnings" => warnings,
+          }
+
+          begin
+            project_token = ENV.fetch("PROJECT_TOKEN", "").strip
+
+            raise "COPILOT_GITHUB_TOKEN is required to query the organization Project." if project_token.empty?
+
+            config = read_yaml("config.yaml")
+            fields_document = read_yaml("fields.yaml")
+            labels_path = File.expand_path(".github/labels.yaml", Dir.pwd)
+            labels_document = YAML.safe_load_file(labels_path, aliases: false) || []
+
+            project_config = hash_value(config, "project")
+            repository_config = hash_value(config, "repository")
+            fields_config = hash_value(config, "fields")
+            labels_config = hash_value(config, "labels")
+
+            project_owner = project_config.fetch("owner").to_s
+            project_name = project_config.fetch("name").to_s
+            project_number = project_config.fetch("number")
+
+            repository_owner = repository_config.fetch("owner").to_s
+            repository_name = repository_config.fetch("name").to_s
+            production_branch = repository_config.fetch("productionBranch").to_s
+
+            expected_repository = "#{repository_owner}/#{repository_name}"
+
+            unless ENV.fetch("REPOSITORY") == expected_repository
+              raise "Workflow may only run in #{expected_repository}."
+            end
+
+            unless project_number.is_a?(Integer)
+              raise "project.number must be an integer in .github/project/config.yaml."
+            end
+
+            unless production_branch == "master"
+              append_finding(
+                findings,
+                "Configuration",
+                "Production branch must be `master`; found `#{production_branch}`.",
+              )
+            end
+
+            status_field_name = fields_config.fetch("status", "Status")
+            excluded_label = labels_config.fetch(
+              "projectExclude",
+              "project:exclude",
+            )
+
+            paused_label = labels_config.fetch(
+              "automationPaused",
+              "automation:paused",
+            )
+
+            protected_statuses = %w[
+              Blocked
+              Cancelled
+            ].freeze
+
+            client = GitHubClient.new(project_token)
+
+            metadata_query = <<~GRAPHQL
+              query(
+                $projectOwner: String!
+                $projectNumber: Int!
+              ) {
+                organization(login: $projectOwner) {
+                  projectV2(number: $projectNumber) {
+                    id
+                    title
+                    closed
+
+                    repositories(first: 100) {
+                      nodes {
+                        nameWithOwner
+                      }
+                    }
+
+                    fields(first: 100) {
+                      nodes {
+                        __typename
+
+                        ... on ProjectV2Field {
+                          id
+                          name
+                          dataType
+                        }
+
+                        ... on ProjectV2SingleSelectField {
+                          id
+                          name
+                          dataType
+
+                          options {
+                            id
+                            name
+                          }
+                        }
+
+                        ... on ProjectV2IterationField {
+                          id
+                          name
+                          dataType
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            GRAPHQL
+
+            metadata_result = client.graphql(
+              metadata_query,
+              {
+                "projectOwner" => project_owner,
+                "projectNumber" => project_number,
+              },
+            )
+
+            project = metadata_result
+              .dig("organization", "projectV2")
+
+            raise "Could not find Project ##{project_number} under #{project_owner}." unless project
+
+            report["project"] = {
+              "owner" => project_owner,
+              "name" => project["title"],
+              "number" => project_number,
+              "repository" => expected_repository,
+            }
+
+            if %w[all configuration].include?(scope)
+              if project["title"] != project_name
+                append_finding(
+                  findings,
+                  "Project",
+                  "Project title is `#{project["title"]}`; expected `#{project_name}`.",
+                )
+              end
+
+              if project["closed"] == true
+                append_finding(
+                  findings,
+                  "Project",
+                  "Project `#{project_name}` is closed.",
+                )
+              end
+
+              linked_repositories = array_value(
+                hash_value(project, "repositories"),
+                "nodes",
+              ).filter_map do |repository|
+                repository["nameWithOwner"] if repository.is_a?(Hash)
+              end
+
+              unless linked_repositories.include?(expected_repository)
+                append_finding(
+                  findings,
+                  "Project",
+                  "Repository `#{expected_repository}` is not linked to the Project.",
+                )
+              end
+
+              live_fields = array_value(
+                hash_value(project, "fields"),
+                "nodes",
+              ).select do |field|
+                field.is_a?(Hash) && present?(field["name"])
+              end
+
+              live_fields_by_name = live_fields.group_by do |field|
+                field["name"]
+              end
+
+              expected_project_fields = array_value(
+                fields_document,
+                "projectFields",
+              ).select do |field|
+                field.is_a?(Hash) && present?(field["name"])
+              end
+
+              expected_project_fields.each do |expected_field|
+                field_name = expected_field.fetch("name")
+                expected_type = field_type_name(expected_field.fetch("type"))
+                matching_fields = live_fields_by_name[field_name] || []
+
+                if matching_fields.empty?
+                  append_finding(
+                    findings,
+                    "Project Fields",
+                    "Missing Project field `#{field_name}`.",
+                  )
+
+                  next
+                end
+
+                if matching_fields.length > 1
+                  append_finding(
+                    findings,
+                    "Project Fields",
+                    "Project field `#{field_name}` exists #{matching_fields.length} times.",
+                  )
+
+                  next
+                end
+
+                live_field = matching_fields.first
+                live_type = live_field["dataType"].to_s
+
+                if live_type != expected_type
+                  append_finding(
+                    findings,
+                    "Project Fields",
+                    "Project field `#{field_name}` is `#{live_type}`; expected `#{expected_type}`.",
+                  )
+                end
+
+                next unless expected_type == "SINGLE_SELECT"
+
+                if expected_field["source"] == "organizationIssueField"
+                  warnings << "Field `#{field_name}` is derived from an organization Issue Field; its options are not available through the Projects API."
+                  next
+                end
+
+                expected_options = array_value(
+                  expected_field,
+                  "options",
+                ).filter_map do |option|
+                  option["name"] if option.is_a?(Hash)
+                end
+
+                live_options = Array(live_field["options"])
+                  .filter_map do |option|
+                    option["name"] if option.is_a?(Hash)
+                  end
+
+                expected_options.each do |option_name|
+                  next if live_options.include?(option_name)
+
+                  append_finding(
+                    findings,
+                    "Project Field Options",
+                    "Field `#{field_name}` is missing option `#{option_name}`.",
+                  )
+                end
+              end
+
+              status_definition = array_value(
+                fields_document,
+                "systemFields",
+              ).find do |field|
+                field.is_a?(Hash) && field["name"] == status_field_name
+              end
+
+              if status_definition.nil?
+                append_finding(
+                  findings,
+                  "Project Fields",
+                  "Missing `#{status_field_name}` definition in fields.yaml systemFields.",
+                )
+              else
+                live_status_field = (live_fields_by_name[status_field_name] || []).first
+
+                if live_status_field.nil?
+                  append_finding(
+                    findings,
+                    "Project Fields",
+                    "Live Project is missing the GitHub-managed `#{status_field_name}` field.",
+                  )
+                else
+                  expected_statuses = array_value(
+                    status_definition,
+                    "options",
+                  ).filter_map do |option|
+                    option["name"] if option.is_a?(Hash)
+                  end
+
+                  live_statuses = Array(live_status_field["options"])
+                    .filter_map do |option|
+                      option["name"] if option.is_a?(Hash)
+                    end
+
+                  expected_statuses.each do |status|
+                    next if live_statuses.include?(status)
+
+                    append_finding(
+                      findings,
+                      "Status Options",
+                      "Status field is missing `#{status}`.",
+                    )
+                  end
+                end
+              end
+
+              expected_labels = Array(labels_document).filter_map do |label|
+                next unless label.is_a?(Hash)
+                next unless present?(label["name"])
+
+                {
+                  "name" => label["name"].to_s,
+                  "color" => normalize_color(label["color"]),
+                  "description" => label["description"].to_s,
+                }
+              end
+
+              live_labels = fetch_repository_labels(
+                client: client,
+                repository_owner: repository_owner,
+                repository_name: repository_name,
+              )
+
+              live_labels_by_name = live_labels
+                .select { |label| label.is_a?(Hash) && present?(label["name"]) }
+                .to_h do |label|
+                  [label["name"], label]
+                end
+
+              expected_labels.each do |expected_label|
+                label_name = expected_label.fetch("name")
+                live_label = live_labels_by_name[label_name]
+
+                if live_label.nil?
+                  append_finding(
+                    findings,
+                    "Labels",
+                    "Missing managed label `#{label_name}`.",
+                  )
+
+                  next
+                end
+
+                expected_color = expected_label.fetch("color")
+                live_color = normalize_color(live_label["color"])
+
+                if present?(expected_color) && expected_color != live_color
+                  append_finding(
+                    findings,
+                    "Labels",
+                    "Label `#{label_name}` color is `#{live_color}`; expected `#{expected_color}`.",
+                  )
+                end
+
+                expected_description = expected_label.fetch("description").strip
+                live_description = live_label["description"].to_s.strip
+
+                if present?(expected_description) &&
+                   expected_description != live_description
+                  append_finding(
+                    findings,
+                    "Labels",
+                    "Label `#{label_name}` description does not match labels.yaml.",
+                  )
+                end
+              end
+            end
+
+            if %w[all work-items].include?(scope)
+              project_items = fetch_project_items(
+                client: client,
+                project_owner: project_owner,
+                project_number: project_number,
+                status_field_name: status_field_name,
+              )
+
+              repository_project_items = project_items.select do |project_item|
+                content = project_item["content"]
+
+                content.is_a?(Hash) &&
+                  content.dig("repository", "nameWithOwner") == expected_repository
+              end
+
+              project_items_by_content_id = repository_project_items
+                .select do |project_item|
+                  present?(project_item.dig("content", "id"))
+                end
+                .to_h do |project_item|
+                  [project_item.dig("content", "id"), project_item]
+                end
+
+              open_issues = fetch_open_issues(
+                client: client,
+                repository_owner: repository_owner,
+                repository_name: repository_name,
+              )
+
+              open_pull_requests = fetch_open_pull_requests(
+                client: client,
+                repository_owner: repository_owner,
+                repository_name: repository_name,
+              )
+
+              (open_issues + open_pull_requests).each do |item|
+                item_labels = label_names(item)
+
+                next if item_labels.include?(excluded_label)
+                next if project_items_by_content_id.key?(item["id"])
+
+                item_type =
+                  item.key?("isDraft") ?
+                    "Pull request" :
+                    "Issue"
+
+                append_finding(
+                  findings,
+                  "Missing Project Items",
+                  "#{item_type} ##{item["number"]} is open but missing from Aerealith Delivery.",
+                )
+              end
+
+              repository_project_items.each do |project_item|
+                content = project_item["content"]
+                content_type = content["__typename"]
+                content_number = content["number"]
+                content_labels = label_names(content)
+                current_status = status_name(project_item)
+                current_status = "Unassigned" unless present?(current_status)
+
+                if project_item["isArchived"] == true &&
+                   content["state"] == "OPEN"
+                  append_finding(
+                    findings,
+                    "Archived Active Work",
+                    "#{content_type} ##{content_number} is open but archived in the Project.",
+                  )
+                end
+
+                next if content_labels.include?(excluded_label)
+                next if content_labels.include?(paused_label)
+                next if protected_statuses.include?(current_status)
+
+                case content_type
+                when "Issue"
+                  if content["state"] == "CLOSED" &&
+                     current_status != "Done"
+                    append_finding(
+                      findings,
+                      "Issue Lifecycle",
+                      "Closed issue ##{content_number} is `#{current_status}`; expected `Done`.",
+                    )
+                  end
+
+                  if content["state"] == "OPEN" &&
+                     current_status == "Done"
+                    append_finding(
+                      findings,
+                      "Issue Lifecycle",
+                      "Open issue ##{content_number} is still marked `Done`.",
+                    )
+                  end
+
+                when "PullRequest"
+                  next unless content["baseRefName"] == production_branch
+
+                  author = content
+                    .dig("author", "login")
+                    .to_s
+
+                  if %w[dependabot dependabot[bot]].include?(author)
+                    next
+                  end
+
+                  acceptable_statuses =
+                    if content["merged"] == true
+                      [
+                        "Awaiting Release",
+                        "QA",
+                        "Deployment",
+                        "Done",
+                      ]
+                    elsif content["state"] == "CLOSED"
+                      [
+                        "Cancelled",
+                      ]
+                    elsif content["isDraft"] == true
+                      [
+                        "In Progress",
+                      ]
+                    else
+                      [
+                        "In Review",
+                        "Testing",
+                        "QA",
+                      ]
+                    end
+
+                  next if acceptable_statuses.include?(current_status)
+
+                  expected_status = acceptable_statuses.first
+
+                  append_finding(
+                    findings,
+                    "Pull Request Lifecycle",
+                    "Pull request ##{content_number} is `#{current_status}`; expected `#{expected_status}`.",
+                  )
+                end
+              end
+            end
+
+            findings.each_value(&:uniq!)
+            findings.delete_if { |_category, entries| entries.empty? }
+
+            report["driftFound"] = findings.any?
+            report["findings"] = findings
+            report["warnings"] = warnings
+
+            markdown = []
+            markdown << "## Aerealith Project Drift Check"
+            markdown << ""
+            markdown << "- **Project:** `#{project_owner} / #{project_name}`"
+            markdown << "- **Repository:** `#{expected_repository}`"
+            markdown << "- **Scope:** `#{scope}`"
+            markdown << "- **Mode:** Read-only"
+            markdown << "- **Views:** Not audited; view layout remains a manual visual decision."
+            markdown << ""
+
+            if findings.empty?
+              markdown << "✅ No drift found."
+            else
+              total_findings = findings.values.flatten.length
+
+              markdown << "❌ Found `#{total_findings}` drift issue#{total_findings == 1 ? "" : "s"}."
+
+              findings.each do |category, entries|
+                append_markdown_findings(
+                  markdown,
+                  category,
+                  entries,
+                )
+              end
+            end
+
+            unless warnings.empty?
+              markdown << ""
+              markdown << "### Warnings"
+
+              warnings.uniq.first(100).each do |warning|
+                markdown << "- #{warning}"
+              end
+            end
+
+            File.open(ENV.fetch("GITHUB_STEP_SUMMARY"), "a") do |file|
+              file.puts(markdown.join("\n"))
+              file.puts
+            end
+
+            File.write(
+              REPORT_PATH,
+              JSON.pretty_generate(report) + "\n",
+            )
+
+            File.open(ENV.fetch("GITHUB_OUTPUT"), "a") do |file|
+              file.puts("drift_found=#{findings.any?}")
+              file.puts("drift_count=#{findings.values.flatten.length}")
+            end
+          rescue StandardError => error
+            report["driftFound"] = true
+            report["fatalError"] = error.message
+
+            File.write(
+              REPORT_PATH,
+              JSON.pretty_generate(report) + "\n",
+            )
+
+            File.open(ENV.fetch("GITHUB_STEP_SUMMARY"), "a") do |file|
+              file.puts("## Aerealith Project Drift Check")
+              file.puts
+              file.puts("❌ Audit failed.")
+              file.puts
+              file.puts("- #{error.message}")
+              file.puts
+            end
+
+            File.open(ENV.fetch("GITHUB_OUTPUT"), "a") do |file|
+              file.puts("drift_found=true")
+              file.puts("drift_count=1")
+            end
+          end
+          RUBY
+
+      - name: Upload drift report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: aerealith-project-drift-${{ github.run_id }}
+          path: ${{ runner.temp }}/aerealith-project-drift-report.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Fail when drift is detected
+        if: >-
+          steps.audit.outputs.drift_found == 'true' &&
+          env.FAIL_ON_DRIFT != 'false'
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          echo "::error::Aerealith Project drift detected: ${{ steps.audit.outputs.drift_count }} finding(s)."
+          exit 1
