@@ -13,13 +13,13 @@ export const UserTier = {
   PremiumPlus: 'premium_plus',
   Pro: 'pro',
   ProPlus: 'pro_plus',
-} as const;
+} as const
 
-export type UserTier = (typeof UserTier)[keyof typeof UserTier];
+export type UserTier = (typeof UserTier)[keyof typeof UserTier]
 
-export const DefaultUserTier = UserTier.Basic;
+export const DefaultUserTier = UserTier.Basic
 
-export const UserTierValues = Object.values(UserTier);
+export const UserTierValues = Object.values(UserTier)
 
 export const UserTierRank = {
   [UserTier.Basic]: 1,
@@ -28,8 +28,8 @@ export const UserTierRank = {
   [UserTier.PremiumPlus]: 4,
   [UserTier.Pro]: 5,
   [UserTier.ProPlus]: 6,
-} as const satisfies Record<UserTier, number>;
+} as const satisfies Record<UserTier, number>
 
 export function isUserTier(value: unknown): value is UserTier {
-  return typeof value === 'string' && UserTierValues.includes(value as UserTier);
+  return typeof value === 'string' && UserTierValues.includes(value as UserTier)
 }

@@ -221,15 +221,33 @@ jobs:
           set -euo pipefail
 
           nx_bin="$GITHUB_WORKSPACE/node_modules/.bin/nx"
+          vitest_bin="$GITHUB_WORKSPACE/node_modules/.bin/vitest"
           projects_file="$RUNNER_TEMP/sonar-test-projects.txt"
+          projects_json="$RUNNER_TEMP/sonar-test-projects.json"
 
-          if [[ ! -x "$nx_bin" ]]; then
-            echo "::error::Nx binary was not found: $nx_bin"
+          if [[ ! -x "$nx_bin" ]] || [[ ! -x "$vitest_bin" ]]; then
+            echo "::error::Required test binaries were not found. Nx: $nx_bin; Vitest: $vitest_bin"
             exit 1
           fi
 
-          "$nx_bin" show projects --withTarget=test |
-            awk 'NF { print }' |
+          # FORCE_COLOR is enabled globally for readable task logs, but ANSI
+          # sequences make Nx's JSON output invalid. Disable color only for
+          # this machine-readable command and request JSON explicitly.
+          FORCE_COLOR=0 "$nx_bin" show projects --withTarget=test --json \
+            > "$projects_json"
+
+          if ! jq -e \
+            'type == "array" and all(.[]; type == "string")' \
+            "$projects_json" >/dev/null; then
+            echo '::error::Nx did not return a valid JSON array of test projects.'
+            exit 1
+          fi
+
+          # Generator templates contain placeholder project.json files that
+          # Nx discovers as literal projects (for example,
+          # "<%= projectName %>"). They are source templates, not runnable
+          # workspace projects, so exclude them from the coverage matrix.
+          jq -r '.[] | select(test("<%.*%>") | not)' "$projects_json" |
             sort -u > "$projects_file"
 
           test_project_count="$(wc -l < "$projects_file" | tr -d ' ')"
@@ -260,15 +278,65 @@ jobs:
           while IFS= read -r project; do
             [[ -n "$project" ]] || continue
 
+            project_configuration="$(
+              FORCE_COLOR=0 "$nx_bin" show project "$project" --json
+            )"
+            project_root="$(
+              jq -er '.root | strings | select(length > 0)' \
+                <<< "$project_configuration"
+            )"
+            test_executor="$(
+              jq -r '.targets.test.executor // ""' \
+                <<< "$project_configuration"
+            )"
+            coverage_directory="$GITHUB_WORKSPACE/coverage/$project_root"
+            expected_lcov="$coverage_directory/lcov.info"
+
             echo "::group::Vitest coverage: $project"
 
-            "$nx_bin" run "$project:test" \
-              --skip-nx-cache \
-              --output-style=stream \
-              -- \
-              --coverage.enabled=true \
-              --coverage.reporter=lcov \
-              --coverage.reporter=json-summary
+            if [[ "$test_executor" == '@nx/vitest:test' ]]; then
+              # Nx's deprecated explicit Vitest executor drops coverage output
+              # path overrides. Invoke Vitest directly for these projects so
+              # the report is guaranteed to remain inside the workspace.
+              "$vitest_bin" run \
+                --config "$GITHUB_WORKSPACE/$project_root/vitest.config.mts" \
+                --coverage.enabled=true \
+                --coverage.reportsDirectory="$coverage_directory" \
+                --coverage.reporter=lcov \
+                --coverage.reporter=json-summary \
+                </dev/null
+            else
+              "$nx_bin" run "$project:test" \
+                --skip-nx-cache \
+                --output-style=stream \
+                -- \
+                --coverage.enabled=true \
+                --coverage.reportsDirectory="$coverage_directory" \
+                --coverage.reporter=lcov \
+                --coverage.reporter=json-summary \
+                </dev/null
+            fi
+
+            if [[ ! -s "$expected_lcov" ]]; then
+              echo "::error::Coverage for $project was not written to $expected_lcov."
+              exit 1
+            fi
+
+            # Vitest writes source paths relative to each project root (for
+            # example, "src/index.ts"). Those paths are ambiguous in a
+            # monorepo, so qualify them before SonarQube imports the report.
+            normalized_lcov="$(mktemp "$RUNNER_TEMP/lcov.XXXXXX")"
+            awk -v project_root="$project_root" '
+              /^SF:/ {
+                source_path = substr($0, 4)
+                if (source_path !~ /^\// &&
+                    index(source_path, project_root "/") != 1) {
+                  $0 = "SF:" project_root "/" source_path
+                }
+              }
+              { print }
+            ' "$expected_lcov" > "$normalized_lcov"
+            mv "$normalized_lcov" "$expected_lcov"
 
             echo "::endgroup::"
           done < "$projects_file"
@@ -328,9 +396,13 @@ jobs:
             echo "sonar.organization=$SONAR_ORGANIZATION"
             echo 'sonar.sourceEncoding=UTF-8'
 
-            echo 'sonar.sources=apps,libs'
+            echo 'sonar.sources=apps,libs,tools'
 
-            echo 'sonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/.nx/**,**/.vite/**,**/out-tsc/**,**/storybook-static/**,**/*.d.ts,**/*.test.*,**/*.spec.*,**/*.e2e.*,**/*.integration.*,**/*.stories.*,**/test/**,**/tests/**,**/spec/**,**/specs/**,**/e2e/**,**/e2e-tests/**,**/integration/**,**/integration-tests/**,**/__tests__/**,**/__mocks__/**,**/__fixtures__/**'
+            # Restrict program discovery to real workspace projects. Template
+            # tsconfigs become valid only after the generator renders them.
+            echo 'sonar.typescript.tsconfigPaths=apps/frontend/tsconfig.app.json,libs/core/tsconfig.lib.json,libs/db/tsconfig.lib.json,libs/ui/tsconfig.lib.json,libs/utils/tsconfig.lib.json,tools/generators/service/tsconfig.lib.json'
+
+            echo 'sonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/.nx/**,**/.vite/**,**/out-tsc/**,**/storybook-static/**,**/public/**,**/templates/**,**/*.d.ts,**/*.test.*,**/*.spec.*,**/*.e2e.*,**/*.integration.*,**/*.stories.*,**/test/**,**/tests/**,**/spec/**,**/specs/**,**/e2e/**,**/e2e-tests/**,**/integration/**,**/integration-tests/**,**/__tests__/**,**/__mocks__/**,**/__fixtures__/**'
 
             echo 'sonar.coverage.exclusions=**/*.test.*,**/*.spec.*,**/*.e2e.*,**/*.integration.*,**/*.stories.*,**/test/**,**/tests/**,**/spec/**,**/specs/**,**/e2e/**,**/e2e-tests/**,**/integration/**,**/integration-tests/**,**/__tests__/**,**/__mocks__/**,**/__fixtures__/**,**/*.d.ts'
 
@@ -355,7 +427,7 @@ jobs:
             echo '| Setting | Value |'
             echo '| --- | --- |'
             echo '| Platform | SonarQube Cloud |'
-            echo '| Source roots | apps, libs |'
+            echo '| Source roots | apps, libs, tools |'
             echo '| Test and E2E source excluded | true |'
             echo "| LCOV reports configured | $([[ -n "${LCOV_REPORTS:-}" ]] && echo true || echo false) |"
             echo '| Scanner quality-gate wait | false |'
@@ -861,6 +933,11 @@ jobs:
           DIAGNOSIS_STATUS: ${{ steps.sonar_diagnosis.outputs.diagnosis_status }}
         run: |
           set -euo pipefail
+
+          if [[ "$SCANNER_OUTCOME" == 'skipped' ]]; then
+            echo '::error::The Sonar scanner was skipped because an earlier setup, test, coverage, or configuration step failed. Review the first failed step in this job.'
+            exit 1
+          fi
 
           if [[ "$SCANNER_OUTCOME" == 'failure' ]]; then
             echo '::error::The Sonar scanner failed. Review the SonarQube Cloud Exact Diagnosis summary.'

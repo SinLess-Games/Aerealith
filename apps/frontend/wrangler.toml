@@ -2,63 +2,150 @@
 #
 # Cloudflare Worker configuration for the Aerealith frontend.
 #
-# This is the single Worker service used for:
-# - Production: https://aerealith.com
-# - Staging: staging-aerealith.sinless-deploy.workers.dev
-# - Pull request previews: pr-<number>-aerealith.sinless-deploy.workers.dev
+# Production:
+# - https://aerealith.com
 #
-# Staging and pull-request previews are Worker versions and aliases.
-# They are not separate Worker services.
+# Preview URLs:
+# - Versioned previews are generated automatically for every uploaded Worker
+#   version when preview_urls is enabled.
+# - Stable aliases such as:
+#   - staging-aerealith.sinless-deploy.workers.dev
+#   - pr-123-aerealith.sinless-deploy.workers.dev
+#   must be assigned by the deployment command with:
+#   wrangler versions upload --preview-alias <alias>
 #
 # Do not place secrets in this file.
-# Use Cloudflare Worker secrets for runtime credentials.
+# Use Cloudflare Worker secrets or Secrets Store bindings for runtime credentials.
+#
+# Important:
+# - NODE_VERSION and PNPM_VERSION are build-image settings.
+# - Set them in Cloudflare:
+#   Settings > Build > Build Variables and Secrets
+# - Do not add them under [vars]; [vars] creates Worker runtime bindings.
 
 "$schema" = "../../node_modules/wrangler/config-schema.json"
 
 name = "aerealith"
 
+# Update deliberately when adopting newer Workers runtime behavior.
 compatibility_date = "2026-07-03"
 
-# Production uses the custom domain configured in Cloudflare:
-# https://aerealith.com
+# Production traffic uses the custom domain and routes managed in Cloudflare.
+# This disables the default production workers.dev URL.
 workers_dev = false
 
-# Enables version and alias URLs such as:
-# pr-123-aerealith.sinless-deploy.workers.dev
+# Explicitly enable versioned and aliased preview URLs even though workers_dev
+# is disabled for the production Worker URL.
 preview_urls = true
 
 # Preserve dashboard-managed runtime variables during deploys.
+#
+# Wrangler never deletes Worker secrets unless explicitly told to do so.
 keep_vars = true
 
-# Upload source maps for readable Cloudflare stack traces.
+# Generate and upload source maps during Wrangler deployments for readable
+# Cloudflare stack traces.
 upload_source_maps = true
 
-# Wrangler bundles this Worker during deployment.
+# Wrangler bundles and deploys this Worker entry point.
 #
-# Vite does not build this file. Wrangler does.
+# This path is relative to this wrangler.toml file.
 main = "./src/worker.ts"
 
 [assets]
-# This path is relative to apps/frontend/wrangler.toml.
+# The Nx Vite production build writes static frontend assets here.
 #
-# The Nx Vite build creates this directory:
-# dist/apps/frontend
+# This path is relative to this wrangler.toml file.
 directory = "../../dist/apps/frontend"
 
-# Makes React Router browser routes serve index.html.
-not_found_handling = "single-page-application"
-
-# Keeps Cloudflare's normalized trailing-slash behavior.
-html_handling = "auto-trailing-slash"
-
-# Exposes the Static Assets binding to src/worker.ts.
+# Exposes static assets to src/worker.ts as env.ASSETS when runtime endpoints
+# need to fetch or transform an asset response.
 binding = "ASSETS"
 
-# Run the Worker only for infrastructure/runtime endpoints.
+# Serve React Router navigation requests that do not match a physical asset
+# with index.html.
+not_found_handling = "single-page-application"
+
+# Preserve Cloudflare's default normalized HTML trailing-slash behavior.
+html_handling = "auto-trailing-slash"
+
+# Static assets remain asset-first.
 #
-# All normal website and SPA requests stay asset-first.
+# Only internal Worker runtime endpoints invoke src/worker.ts before static
+# asset routing.
 run_worker_first = ["/__aerealith/*"]
 
 [observability]
+# Persist Worker logs and traces in Cloudflare observability.
 enabled = true
+
+# Sample every request while the platform is being established.
+# Reduce this later if request volume makes full sampling unnecessary.
 head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+invocation_logs = true
+
+[observability.traces]
+enabled = true
+
+# ---------------------------------------------------------------------------
+# Feature flags
+# ---------------------------------------------------------------------------
+
+[[flagship]]
+binding = "FLAGS"
+app_id = "2a1ca9ba-b446-4cb8-b8eb-ab0f3985679f"
+
+# ---------------------------------------------------------------------------
+# Storage
+# ---------------------------------------------------------------------------
+
+[[r2_buckets]]
+# Aerealith's primary R2 bucket.
+binding = "AEREALITH_R2"
+bucket_name = "aerealith-ai"
+
+[[kv_namespaces]]
+# Shared platform-level KV namespace.
+#
+# Replace this with the actual 32-character namespace ID returned by:
+# pnpm exec wrangler kv namespace list
+binding = "PLATFORM_KV"
+id = "9873b606bf1346aca48de61c9bb96968"
+
+# ---------------------------------------------------------------------------
+# Cloudflare Secrets Store
+# ---------------------------------------------------------------------------
+#
+# Account-level Secrets Store ID:
+# ab6f1fdec6a246578177e0577e94f40b
+#
+# Each secret is retrieved asynchronously at runtime:
+# const value = await env.POSTGRES_URL.get()
+
+[[secrets_store_secrets]]
+binding = "POSTGRES_URL"
+store_id = "ab6f1fdec6a246578177e0577e94f40b"
+secret_name = "POSTGRES_URL"
+
+[[secrets_store_secrets]]
+binding = "PREVIEW_POSTGRES_URL"
+store_id = "ab6f1fdec6a246578177e0577e94f40b"
+secret_name = "PREVIEW_POSTGRES_URL"
+
+[[secrets_store_secrets]]
+binding = "STAGING_POSTGRES_URL"
+store_id = "ab6f1fdec6a246578177e0577e94f40b"
+secret_name = "STAGING_POSTGRES_URL"
+
+[[secrets_store_secrets]]
+binding = "PRODUCTION_POSTGRES_URL"
+store_id = "ab6f1fdec6a246578177e0577e94f40b"
+secret_name = "PRODUCTION_POSTGRES_URL"
+
+[[secrets_store_secrets]]
+binding = "RESEND_API_KEY"
+store_id = "ab6f1fdec6a246578177e0577e94f40b"
+secret_name = "RESEND_API_KEY"

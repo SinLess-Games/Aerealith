@@ -1,7 +1,7 @@
 // libs/core/src/constants/status-urls.constants.ts
 
-import { ApiDomain, PrimaryDomain } from './domain.constants';
-import { HealthRoute } from './route.constants';
+import { ApiDomain, PrimaryDomain } from './domain.constants'
+import { HealthRoute } from './route.constants'
 import {
   AuthPort,
   AuthService,
@@ -9,7 +9,7 @@ import {
   FrontendService,
   UserPort,
   UserService,
-} from './service.constants';
+} from './service.constants'
 
 export const ThirdPartyStatusUrls = {
   google: 'https://www.google.com/appsstatus/dashboard/',
@@ -21,7 +21,7 @@ export const ThirdPartyStatusUrls = {
   epicGames: 'https://status.epicgames.com/',
   clerk: 'https://status.clerk.com/',
   cloudflare: 'https://www.cloudflarestatus.com/',
-} as const;
+} as const
 
 export const StatusUrls = {
   production: {
@@ -35,4 +35,4 @@ export const StatusUrls = {
     [AuthService]: `http://localhost:${AuthPort}${HealthRoute}`,
     [UserService]: `http://localhost:${UserPort}${HealthRoute}`,
   },
-} as const;
+} as const

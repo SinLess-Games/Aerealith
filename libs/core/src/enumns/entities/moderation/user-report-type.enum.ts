@@ -17,18 +17,18 @@ export const UserReportType = {
   IntellectualProperty: 'intellectual_property',
   ChildSafety: 'child_safety',
   Other: 'other',
-} as const;
+} as const
 
 export type UserReportType =
-  (typeof UserReportType)[keyof typeof UserReportType];
+  (typeof UserReportType)[keyof typeof UserReportType]
 
-export const DefaultUserReportType = UserReportType.Other;
+export const DefaultUserReportType = UserReportType.Other
 
-export const UserReportTypeValues = Object.values(UserReportType);
+export const UserReportTypeValues = Object.values(UserReportType)
 
 export function isUserReportType(value: unknown): value is UserReportType {
   return (
     typeof value === 'string' &&
     UserReportTypeValues.includes(value as UserReportType)
-  );
+  )
 }

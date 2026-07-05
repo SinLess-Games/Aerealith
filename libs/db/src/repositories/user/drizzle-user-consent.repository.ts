@@ -1,62 +1,49 @@
 // libs/db/src/repositories/user/drizzle-user-consent.repository.ts
 
-import {
-  UserConsentType,
-  type UserConsentContract,
-} from '@aerealith-ai/core';
-import { desc } from 'drizzle-orm';
+import { UserConsentType, type UserConsentContract } from '@aerealith-ai/core'
+import { desc } from 'drizzle-orm'
 
-import type { DatabaseClient } from '../../client';
-import {
-  toUserConsentContract,
-  toUserConsentEntity,
-} from '../../mappers';
+import type { DatabaseClient } from '../../client'
+import { toUserConsentContract, toUserConsentEntity } from '../../mappers'
 import {
   activeUserConsentById,
   activeUserConsentByUserIdAndType,
   activeUserConsentsByUserId,
-} from '../../queries';
-import {
-  userConsentsTable,
-  type UserConsentRow,
-} from '../../schema';
+} from '../../queries'
+import { userConsentsTable, type UserConsentRow } from '../../schema'
 
 export type RecordUserConsentInput = {
-  userId: string;
-  type: UserConsentTypeValue;
-  granted: boolean;
-  version?: string | null;
-  occurredAt?: Date;
-};
+  userId: string
+  type: UserConsentTypeValue
+  granted: boolean
+  version?: string | null
+  occurredAt?: Date
+}
 
 type UserConsentTypeValue =
-  (typeof UserConsentType)[keyof typeof UserConsentType];
+  (typeof UserConsentType)[keyof typeof UserConsentType]
 
 type UserConsentDatabaseRow = Omit<UserConsentRow, 'type'> & {
-  type: string;
-};
+  type: string
+}
 
 /**
  * Persists and retrieves user consent decisions.
  */
 export class DrizzleUserConsentRepository {
-  public constructor(
-    private readonly database: DatabaseClient,
-  ) {}
+  public constructor(private readonly database: DatabaseClient) {}
 
   /**
    * Finds an active consent record by its ID.
    */
-  public async findById(
-    id: string,
-  ): Promise<UserConsentContract | null> {
+  public async findById(id: string): Promise<UserConsentContract | null> {
     const [row] = await this.database
       .select()
       .from(userConsentsTable)
       .where(activeUserConsentById(id))
-      .limit(1);
+      .limit(1)
 
-    return row ? toConsentContract(row) : null;
+    return row ? toConsentContract(row) : null
   }
 
   /**
@@ -70,24 +57,22 @@ export class DrizzleUserConsentRepository {
       .select()
       .from(userConsentsTable)
       .where(activeUserConsentByUserIdAndType(userId, type))
-      .limit(1);
+      .limit(1)
 
-    return row ? toConsentContract(row) : null;
+    return row ? toConsentContract(row) : null
   }
 
   /**
    * Returns all active consent records belonging to a user.
    */
-  public async findAllByUserId(
-    userId: string,
-  ): Promise<UserConsentContract[]> {
+  public async findAllByUserId(userId: string): Promise<UserConsentContract[]> {
     const rows = await this.database
       .select()
       .from(userConsentsTable)
       .where(activeUserConsentsByUserId(userId))
-      .orderBy(desc(userConsentsTable.updatedAt));
+      .orderBy(desc(userConsentsTable.updatedAt))
 
-    return rows.map(toConsentContract);
+    return rows.map(toConsentContract)
   }
 
   /**
@@ -99,11 +84,11 @@ export class DrizzleUserConsentRepository {
   public async record(
     input: RecordUserConsentInput,
   ): Promise<UserConsentContract> {
-    const occurredAt = input.occurredAt ?? new Date();
-    const version = normalizeOptionalString(input.version);
+    const occurredAt = input.occurredAt ?? new Date()
+    const version = normalizeOptionalString(input.version)
 
-    const grantedAt = input.granted ? occurredAt : null;
-    const revokedAt = input.granted ? null : occurredAt;
+    const grantedAt = input.granted ? occurredAt : null
+    const revokedAt = input.granted ? null : occurredAt
 
     const [row] = await this.database
       .insert(userConsentsTable)
@@ -115,10 +100,7 @@ export class DrizzleUserConsentRepository {
         revokedAt,
       })
       .onConflictDoUpdate({
-        target: [
-          userConsentsTable.userId,
-          userConsentsTable.type,
-        ],
+        target: [userConsentsTable.userId, userConsentsTable.type],
         set: {
           version,
           grantedAt,
@@ -127,20 +109,20 @@ export class DrizzleUserConsentRepository {
           updatedAt: occurredAt,
         },
       })
-      .returning();
+      .returning()
 
     if (!row) {
-      throw new Error('Failed to record user consent.');
+      throw new Error('Failed to record user consent.')
     }
 
-    return toConsentContract(row);
+    return toConsentContract(row)
   }
 
   /**
    * Soft deletes a consent record.
    */
   public async softDelete(id: string): Promise<boolean> {
-    const now = new Date();
+    const now = new Date()
 
     const [row] = await this.database
       .update(userConsentsTable)
@@ -151,9 +133,9 @@ export class DrizzleUserConsentRepository {
       .where(activeUserConsentById(id))
       .returning({
         id: userConsentsTable.id,
-      });
+      })
 
-    return row !== undefined;
+    return row !== undefined
   }
 }
 
@@ -161,36 +143,32 @@ export class DrizzleUserConsentRepository {
  * Converts a database row into a validated core entity, then into an
  * API-safe contract.
  */
-function toConsentContract(
-  row: UserConsentDatabaseRow,
-): UserConsentContract {
+function toConsentContract(row: UserConsentDatabaseRow): UserConsentContract {
   const entity = toUserConsentEntity({
     ...row,
     type: toUserConsentType(row.type),
-  });
+  })
 
-  return toUserConsentContract(entity);
+  return toUserConsentContract(entity)
 }
 
 /**
  * Ensures database enum values are valid core consent types.
  */
-function toUserConsentType(
-  value: string,
-): UserConsentTypeValue {
-  const consentTypes: readonly string[] = Object.values(UserConsentType);
+function toUserConsentType(value: string): UserConsentTypeValue {
+  const consentTypes: readonly string[] = Object.values(UserConsentType)
 
   if (!consentTypes.includes(value)) {
-    throw new Error(`Invalid user consent type in database: ${value}`);
+    throw new Error(`Invalid user consent type in database: ${value}`)
   }
 
-  return value as UserConsentTypeValue;
+  return value as UserConsentTypeValue
 }
 
 function normalizeOptionalString(
   value: string | null | undefined,
 ): string | null {
-  const normalizedValue = value?.trim();
+  const normalizedValue = value?.trim()
 
-  return normalizedValue || null;
+  return normalizedValue || null
 }

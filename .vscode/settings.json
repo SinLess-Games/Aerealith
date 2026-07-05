@@ -85,5 +85,9 @@
     "MD041": false
   },
   "json.schemaDownload.enable": true,
-  "terminal.integrated.defaultProfile.linux": "zsh"
+  "terminal.integrated.defaultProfile.linux": "zsh",
+  "sonarlint.connectedMode.project": {
+    "connectionId": "sinless-games",
+    "projectKey": "SinLess-Games_Aerealith"
+  }
 }

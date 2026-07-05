@@ -24,18 +24,17 @@ export const ProfileReview = {
   PrivacyViolation: 'privacy_violation',
 
   Other: 'other',
-} as const;
+} as const
 
-export type ProfileReview =
-  (typeof ProfileReview)[keyof typeof ProfileReview];
+export type ProfileReview = (typeof ProfileReview)[keyof typeof ProfileReview]
 
-export const DefaultProfileReview = ProfileReview.Pending;
+export const DefaultProfileReview = ProfileReview.Pending
 
-export const ProfileReviewValues = Object.values(ProfileReview);
+export const ProfileReviewValues = Object.values(ProfileReview)
 
 export function isProfileReview(value: unknown): value is ProfileReview {
   return (
     typeof value === 'string' &&
     ProfileReviewValues.includes(value as ProfileReview)
-  );
+  )
 }

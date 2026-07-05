@@ -3,12 +3,9 @@
 import {
   UserPreferencesEntity,
   type UserPreferencesContract,
-} from '@aerealith-ai/core';
+} from '@aerealith-ai/core'
 
-import type {
-  NewUserPreferencesRow,
-  UserPreferencesRow,
-} from '../../schema';
+import type { NewUserPreferencesRow, UserPreferencesRow } from '../../schema'
 
 /**
  * Converts a database user-preferences row into the core entity.
@@ -35,7 +32,7 @@ export function toUserPreferencesEntity(
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     deletedAt: row.deletedAt,
-  });
+  })
 }
 
 /**
@@ -62,7 +59,7 @@ export function toUserPreferencesContract(
 
     createdAt: entity.createdAt.toISOString(),
     updatedAt: entity.updatedAt.toISOString(),
-  };
+  }
 }
 
 /**
@@ -87,5 +84,5 @@ export function toNewUserPreferencesRow(
     nameDisplayOrder: entity.nameDisplayOrder,
     measurementSystem: entity.measurementSystem,
     contentMaturity: entity.contentMaturity,
-  };
+  }
 }

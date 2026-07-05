@@ -11,14 +11,14 @@ export const ContentMaturity = {
   Mature: 'mature',
   Explicit: 'explicit',
   Restricted: 'restricted',
-} as const;
+} as const
 
 export type ContentMaturity =
-  (typeof ContentMaturity)[keyof typeof ContentMaturity];
+  (typeof ContentMaturity)[keyof typeof ContentMaturity]
 
-export const DefaultContentMaturity = ContentMaturity.FamilyFriendly;
+export const DefaultContentMaturity = ContentMaturity.FamilyFriendly
 
-export const ContentMaturityValues = Object.values(ContentMaturity);
+export const ContentMaturityValues = Object.values(ContentMaturity)
 
 export const ContentMaturityRank = {
   [ContentMaturity.Unspecified]: 0,
@@ -28,11 +28,11 @@ export const ContentMaturityRank = {
   [ContentMaturity.Mature]: 4,
   [ContentMaturity.Explicit]: 5,
   [ContentMaturity.Restricted]: 6,
-} as const satisfies Record<ContentMaturity, number>;
+} as const satisfies Record<ContentMaturity, number>
 
 export function isContentMaturity(value: unknown): value is ContentMaturity {
   return (
     typeof value === 'string' &&
     ContentMaturityValues.includes(value as ContentMaturity)
-  );
+  )
 }

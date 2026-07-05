@@ -5,7 +5,9 @@
 # Coverage:
 # - Trivy configuration scan for Dockerfiles, Compose files, and supported
 #   infrastructure configuration tracked in the repository.
-# - Automatic discovery of every tracked Dockerfile.
+# - Automatic discovery of every deployable tracked Dockerfile.
+# - Generator template Dockerfiles remain covered by the configuration scan,
+#   but are not built until a generator renders their placeholders.
 # - Root-context Docker builds for every discovered Dockerfile.
 # - Trivy image vulnerability scans for each successfully built image.
 # - SARIF uploads to GitHub Code Scanning when available.
@@ -104,6 +106,15 @@ jobs:
           : > "$matrix_file"
 
           while IFS= read -r -d '' file; do
+            # Generator templates contain unresolved placeholders and are not
+            # standalone build contexts. Trivy still checks them in the
+            # repository-wide configuration scan below.
+            case "$file" in
+              */templates/*)
+                continue
+                ;;
+            esac
+
             case "$file" in
               Dockerfile|*/Dockerfile)
                 ;;
@@ -141,7 +152,7 @@ jobs:
               >> "$matrix_file"
           done < <(git ls-files -z)
 
-          dockerfile_count="$(wc -l < "$matrix_file" | tr -d '[:space:]')"
+          dockerfile_count="$(jq --slurp 'length' "$matrix_file")"
 
           if [[ "$dockerfile_count" == '0' ]]; then
             matrix='{"include":[]}'

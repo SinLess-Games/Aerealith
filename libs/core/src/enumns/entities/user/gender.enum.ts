@@ -33,14 +33,14 @@ export const Gender = {
   GenderNonConforming: 'gender_non_conforming',
 
   AnotherGender: 'another_gender',
-} as const;
+} as const
 
-export type Gender = (typeof Gender)[keyof typeof Gender];
+export type Gender = (typeof Gender)[keyof typeof Gender]
 
-export const DefaultGender = Gender.Unspecified;
+export const DefaultGender = Gender.Unspecified
 
-export const GenderValues = Object.values(Gender);
+export const GenderValues = Object.values(Gender)
 
 export function isGender(value: unknown): value is Gender {
-  return typeof value === 'string' && GenderValues.includes(value as Gender);
+  return typeof value === 'string' && GenderValues.includes(value as Gender)
 }

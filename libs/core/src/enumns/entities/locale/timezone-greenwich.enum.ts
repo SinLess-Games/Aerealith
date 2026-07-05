@@ -45,14 +45,14 @@ export const TimezoneGreenwich = {
   GmtPlus1300: 'GMT+13:00',
   GmtPlus1345: 'GMT+13:45',
   GmtPlus1400: 'GMT+14:00',
-} as const;
+} as const
 
 export type TimezoneGreenwich =
-  (typeof TimezoneGreenwich)[keyof typeof TimezoneGreenwich];
+  (typeof TimezoneGreenwich)[keyof typeof TimezoneGreenwich]
 
-export const DefaultTimezoneGreenwich = TimezoneGreenwich.GmtPlus0000;
+export const DefaultTimezoneGreenwich = TimezoneGreenwich.GmtPlus0000
 
-export const TimezoneGreenwichValues = Object.values(TimezoneGreenwich);
+export const TimezoneGreenwichValues = Object.values(TimezoneGreenwich)
 
 export function isTimezoneGreenwich(
   value: unknown,
@@ -60,5 +60,5 @@ export function isTimezoneGreenwich(
   return (
     typeof value === 'string' &&
     TimezoneGreenwichValues.includes(value as TimezoneGreenwich)
-  );
+  )
 }

@@ -1,3 +1,5 @@
+packages:
+  - tools/*
 autoInstallPeers: true
 resolvePeersFromWorkspaceRoot: true
 dedupePeerDependents: true
@@ -7,6 +9,7 @@ allowBuilds:
   esbuild: true
   nx: true
   sharp: true
+  unrs-resolver: true
   workerd: true
 overrides:
   "@opentelemetry/core": 2.8.0

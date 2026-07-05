@@ -8,16 +8,16 @@ export const ProfileFieldVisibility = {
   Public: 'public',
   ConnectionsOnly: 'connections_only',
   OrganizationOnly: 'organization_only',
-} as const;
+} as const
 
 export type ProfileFieldVisibility =
-  (typeof ProfileFieldVisibility)[keyof typeof ProfileFieldVisibility];
+  (typeof ProfileFieldVisibility)[keyof typeof ProfileFieldVisibility]
 
-export const DefaultProfileFieldVisibility = ProfileFieldVisibility.Private;
+export const DefaultProfileFieldVisibility = ProfileFieldVisibility.Private
 
 export const ProfileFieldVisibilityValues = Object.values(
   ProfileFieldVisibility,
-);
+)
 
 export function isProfileFieldVisibility(
   value: unknown,
@@ -25,5 +25,5 @@ export function isProfileFieldVisibility(
   return (
     typeof value === 'string' &&
     ProfileFieldVisibilityValues.includes(value as ProfileFieldVisibility)
-  );
+  )
 }

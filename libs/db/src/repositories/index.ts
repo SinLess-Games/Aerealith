@@ -1,4 +1,4 @@
 // libs/db/src/repositories/index.ts
 
-export * from './system';
-export * from './user';
+export * from './system'
+export * from './user'

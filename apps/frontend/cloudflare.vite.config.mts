@@ -1,9 +1,9 @@
 /// <reference types="vitest" />
 
-import meticulous from '@alwaysmeticulous/recorder-plugin/vite';
-import { codecovVitePlugin } from '@codecov/vite-plugin';
-import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
+import meticulous from '@alwaysmeticulous/recorder-plugin/vite'
+import { codecovVitePlugin } from '@codecov/vite-plugin'
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
 
 export default defineConfig(({ mode }) => ({
   root: import.meta.dirname,
@@ -24,8 +24,8 @@ export default defineConfig(({ mode }) => ({
     }),
 
     meticulous({
-      recordingToken: "HKIg6HKVls9xOQOfFw5j6yNmdJ2M1dOiYqcIB25Q",
-      enabled: "always",
+      recordingToken: 'HKIg6HKVls9xOQOfFw5j6yNmdJ2M1dOiYqcIB25Q',
+      enabled: 'always',
     }),
   ],
 
@@ -51,4 +51,4 @@ export default defineConfig(({ mode }) => ({
       transformMixedEsModules: true,
     },
   },
-}));
+}))

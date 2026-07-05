@@ -11,15 +11,14 @@ export const HttpMethod = {
   Delete: 'DELETE',
   Options: 'OPTIONS',
   Head: 'HEAD',
-} as const;
+} as const
 
-export type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod];
+export type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod]
 
-export const HttpMethodValues = Object.values(HttpMethod);
+export const HttpMethodValues = Object.values(HttpMethod)
 
 export function isHttpMethod(value: unknown): value is HttpMethod {
   return (
-    typeof value === 'string' &&
-    HttpMethodValues.includes(value as HttpMethod)
-  );
+    typeof value === 'string' && HttpMethodValues.includes(value as HttpMethod)
+  )
 }

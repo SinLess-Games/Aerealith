@@ -1,7 +1,7 @@
 // libs/core/src/entities/user/session.entity.ts
 
-import type { Country } from '../../enumns';
-import { BaseEntity, type BaseEntityInput } from '../base.entity';
+import type { Country } from '../../enumns'
+import { BaseEntity, type BaseEntityInput } from '../base.entity'
 
 /**
  * GeoIP data captured when a session is created or last used.
@@ -10,13 +10,13 @@ import { BaseEntity, type BaseEntityInput } from '../base.entity';
  * Core does not perform GeoIP lookups.
  */
 export type UserSessionGeoIp = {
-  country?: Country;
-  region?: string;
-  city?: string;
-  timezone?: string;
-  latitude?: number;
-  longitude?: number;
-};
+  country?: Country
+  region?: string
+  city?: string
+  timezone?: string
+  latitude?: number
+  longitude?: number
+}
 
 /**
  * User session creation input.
@@ -25,107 +25,109 @@ export type UserSessionGeoIp = {
  * Never persist raw session tokens.
  */
 export type UserSessionInput = BaseEntityInput & {
-  userId: string;
-  tokenHash: string;
-  expiresAt: Date;
+  userId: string
+  tokenHash: string
+  expiresAt: Date
 
-  deviceName?: string | null;
-  userAgent?: string | null;
-  ipAddress?: string | null;
-  geoIp?: UserSessionGeoIp | null;
+  deviceName?: string | null
+  userAgent?: string | null
+  ipAddress?: string | null
+  geoIp?: UserSessionGeoIp | null
 
-  lastSeenAt?: Date | null;
-  revokedAt?: Date | null;
-};
+  lastSeenAt?: Date | null
+  revokedAt?: Date | null
+}
 
 /**
  * Represents an authenticated browser, device, or API session for a user.
  */
 export class UserSessionEntity extends BaseEntity {
-  userId: string;
+  userId: string
 
   /**
    * Hashed session token.
    *
    * Never store the raw token in the database.
    */
-  tokenHash: string;
+  tokenHash: string
 
-  deviceName: string | null;
+  deviceName: string | null
 
-  userAgent: string | null;
+  userAgent: string | null
 
-  ipAddress: string | null;
+  ipAddress: string | null
 
-  geoIp: UserSessionGeoIp | null;
+  geoIp: UserSessionGeoIp | null
 
-  lastSeenAt: Date | null;
+  lastSeenAt: Date | null
 
-  expiresAt: Date;
+  expiresAt: Date
 
-  revokedAt: Date | null;
+  revokedAt: Date | null
 
   constructor(input: UserSessionInput) {
-    super(input);
+    super(input)
 
-    this.userId = input.userId.trim();
-    this.tokenHash = input.tokenHash.trim();
+    this.userId = input.userId.trim()
+    this.tokenHash = input.tokenHash.trim()
 
-    this.deviceName = this.normalizeOptionalString(input.deviceName);
-    this.userAgent = this.normalizeOptionalString(input.userAgent);
-    this.ipAddress = this.normalizeOptionalString(input.ipAddress);
-    this.geoIp = input.geoIp ?? null;
+    this.deviceName = this.normalizeOptionalString(input.deviceName)
+    this.userAgent = this.normalizeOptionalString(input.userAgent)
+    this.ipAddress = this.normalizeOptionalString(input.ipAddress)
+    this.geoIp = input.geoIp ?? null
 
-    this.lastSeenAt = input.lastSeenAt ?? this.createdAt;
-    this.expiresAt = input.expiresAt;
-    this.revokedAt = input.revokedAt ?? null;
+    this.lastSeenAt = input.lastSeenAt ?? this.createdAt
+    this.expiresAt = input.expiresAt
+    this.revokedAt = input.revokedAt ?? null
   }
 
   get isRevoked(): boolean {
-    return this.revokedAt !== null;
+    return this.revokedAt !== null
   }
 
   get isActive(): boolean {
-    return !this.isRevoked && !this.isExpired();
+    return !this.isRevoked && !this.isExpired()
   }
 
   isExpired(now: Date = new Date()): boolean {
-    return this.expiresAt.getTime() <= now.getTime();
+    return this.expiresAt.getTime() <= now.getTime()
   }
 
-  recordActivity(input: {
-    ipAddress?: string | null;
-    geoIp?: UserSessionGeoIp | null;
-    userAgent?: string | null;
-  } = {}): void {
-    const now = new Date();
+  recordActivity(
+    input: {
+      ipAddress?: string | null
+      geoIp?: UserSessionGeoIp | null
+      userAgent?: string | null
+    } = {},
+  ): void {
+    const now = new Date()
 
     if (input.ipAddress !== undefined) {
-      this.ipAddress = this.normalizeOptionalString(input.ipAddress);
+      this.ipAddress = this.normalizeOptionalString(input.ipAddress)
     }
 
     if (input.geoIp !== undefined) {
-      this.geoIp = input.geoIp;
+      this.geoIp = input.geoIp
     }
 
     if (input.userAgent !== undefined) {
-      this.userAgent = this.normalizeOptionalString(input.userAgent);
+      this.userAgent = this.normalizeOptionalString(input.userAgent)
     }
 
-    this.lastSeenAt = now;
-    this.updatedAt = now;
+    this.lastSeenAt = now
+    this.updatedAt = now
   }
 
   revoke(): void {
-    const now = new Date();
+    const now = new Date()
 
-    this.revokedAt = now;
-    this.updatedAt = now;
+    this.revokedAt = now
+    this.updatedAt = now
   }
 
   private normalizeOptionalString(value?: string | null): string | null {
-    const normalized = value?.trim();
+    const normalized = value?.trim()
 
-    return normalized || null;
+    return normalized || null
   }
 }

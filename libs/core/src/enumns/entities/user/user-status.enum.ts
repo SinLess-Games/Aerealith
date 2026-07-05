@@ -10,17 +10,16 @@ export const UserStatus = {
   Busy: 'busy',
   DoNotDisturb: 'do_not_disturb',
   Invisible: 'invisible',
-} as const;
+} as const
 
-export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus];
+export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus]
 
-export const DefaultUserStatus = UserStatus.Offline;
+export const DefaultUserStatus = UserStatus.Offline
 
-export const UserStatusValues = Object.values(UserStatus);
+export const UserStatusValues = Object.values(UserStatus)
 
 export function isUserStatus(value: unknown): value is UserStatus {
   return (
-    typeof value === 'string' &&
-    UserStatusValues.includes(value as UserStatus)
-  );
+    typeof value === 'string' && UserStatusValues.includes(value as UserStatus)
+  )
 }

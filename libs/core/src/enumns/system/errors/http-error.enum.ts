@@ -1,10 +1,10 @@
 // libs/core/src/enumns/system/errors/http-error.enum.ts
 
 type HttpErrorDefinitionShape = {
-  statusCode: number;
-  reason: string;
-  meaning: string;
-};
+  statusCode: number
+  reason: string
+  meaning: string
+}
 
 /**
  * Standard HTTP client and server error definitions.
@@ -52,8 +52,7 @@ export const HttpErrorCode = {
   METHOD_NOT_ALLOWED: {
     statusCode: 405,
     reason: 'Method Not Allowed',
-    meaning:
-      'The HTTP method is not supported for the requested resource.',
+    meaning: 'The HTTP method is not supported for the requested resource.',
   },
 
   NOT_ACCEPTABLE: {
@@ -203,8 +202,7 @@ export const HttpErrorCode = {
   UNAVAILABLE_FOR_LEGAL_REASONS: {
     statusCode: 451,
     reason: 'Unavailable For Legal Reasons',
-    meaning:
-      'The resource cannot be provided because of a legal restriction.',
+    meaning: 'The resource cannot be provided because of a legal restriction.',
   },
 
   // Server errors.
@@ -225,7 +223,8 @@ export const HttpErrorCode = {
   BAD_GATEWAY: {
     statusCode: 502,
     reason: 'Bad Gateway',
-    meaning: 'The server received an invalid response from an upstream service.',
+    meaning:
+      'The server received an invalid response from an upstream service.',
   },
 
   SERVICE_UNAVAILABLE: {
@@ -283,37 +282,35 @@ export const HttpErrorCode = {
     meaning:
       'The client must authenticate with the network before access can be granted.',
   },
-} as const satisfies Record<string, HttpErrorDefinitionShape>;
+} as const satisfies Record<string, HttpErrorDefinitionShape>
 
-export type HttpErrorCodeKey = keyof typeof HttpErrorCode;
+export type HttpErrorCodeKey = keyof typeof HttpErrorCode
 
 export type HttpErrorCode =
-  (typeof HttpErrorCode)[HttpErrorCodeKey]['statusCode'];
+  (typeof HttpErrorCode)[HttpErrorCodeKey]['statusCode']
 
-export type HttpErrorReason =
-  (typeof HttpErrorCode)[HttpErrorCodeKey]['reason'];
+export type HttpErrorReason = (typeof HttpErrorCode)[HttpErrorCodeKey]['reason']
 
 export type HttpErrorMeaning =
-  (typeof HttpErrorCode)[HttpErrorCodeKey]['meaning'];
+  (typeof HttpErrorCode)[HttpErrorCodeKey]['meaning']
 
-export type HttpErrorDefinition =
-  (typeof HttpErrorCode)[HttpErrorCodeKey];
+export type HttpErrorDefinition = (typeof HttpErrorCode)[HttpErrorCodeKey]
 
 export const HttpErrorCodeValues = Object.values(HttpErrorCode).map(
   ({ statusCode }) => statusCode,
-) as HttpErrorCode[];
+) as HttpErrorCode[]
 
 export function isHttpErrorCode(value: unknown): value is HttpErrorCode {
   return (
     typeof value === 'number' &&
     HttpErrorCodeValues.includes(value as HttpErrorCode)
-  );
+  )
 }
 
 export function getHttpError(
   code: HttpErrorCodeKey,
 ): (typeof HttpErrorCode)[HttpErrorCodeKey] {
-  return HttpErrorCode[code];
+  return HttpErrorCode[code]
 }
 
 export function getHttpErrorByStatus(
@@ -321,5 +318,5 @@ export function getHttpErrorByStatus(
 ): HttpErrorDefinition | undefined {
   return Object.values(HttpErrorCode).find(
     (error) => error.statusCode === statusCode,
-  );
+  )
 }

@@ -16,13 +16,13 @@ export const WeekStartDay = {
   Saturday: 'saturday',
 
   ISO8601: 'iso_8601',
-} as const;
+} as const
 
-export type WeekStartDay = (typeof WeekStartDay)[keyof typeof WeekStartDay];
+export type WeekStartDay = (typeof WeekStartDay)[keyof typeof WeekStartDay]
 
-export const DefaultWeekStartDay = WeekStartDay.LocaleDefault;
+export const DefaultWeekStartDay = WeekStartDay.LocaleDefault
 
-export const WeekStartDayValues = Object.values(WeekStartDay);
+export const WeekStartDayValues = Object.values(WeekStartDay)
 
 export const WeekDays = [
   WeekStartDay.Sunday,
@@ -32,11 +32,11 @@ export const WeekDays = [
   WeekStartDay.Thursday,
   WeekStartDay.Friday,
   WeekStartDay.Saturday,
-] as const;
+] as const
 
 export function isWeekStartDay(value: unknown): value is WeekStartDay {
   return (
     typeof value === 'string' &&
     WeekStartDayValues.includes(value as WeekStartDay)
-  );
+  )
 }

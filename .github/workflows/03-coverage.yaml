@@ -98,10 +98,20 @@ jobs:
 
           nx_bin="$GITHUB_WORKSPACE/node_modules/.bin/nx"
           projects_file="$RUNNER_TEMP/vitest-projects.txt"
+          projects_json="$RUNNER_TEMP/vitest-projects.json"
 
-          "$nx_bin" show projects --withTarget=test > "$projects_file"
+          FORCE_COLOR=0 "$nx_bin" show projects --withTarget=test --json \
+            > "$projects_json"
 
-          sed -i '/^[[:space:]]*$/d' "$projects_file"
+          if ! jq -e \
+            'type == "array" and all(.[]; type == "string")' \
+            "$projects_json" >/dev/null; then
+            echo '::error::Nx did not return a valid JSON array of test projects.'
+            exit 1
+          fi
+
+          jq -r '.[] | select(test("<%.*%>") | not)' "$projects_json" |
+            sort -u > "$projects_file"
 
           if [[ ! -s "$projects_file" ]]; then
             echo "::error::No Nx projects expose a test target."
@@ -146,7 +156,8 @@ jobs:
               --coverage.reporter=json \
               --reporter=default \
               --reporter=junit \
-              --outputFile.junit="$junit_file"; then
+              --outputFile.junit="$junit_file" \
+              </dev/null; then
               failures=1
               echo "::error::Vitest failed for project: $project"
             fi
@@ -473,9 +484,10 @@ jobs:
             github.event_name != 'pull_request' ||
             github.event.pull_request.head.repo.full_name == github.repository
           )
-        uses: codecov/test-results-action@1b5b448b98e58ba90d1a1a1d9fcb72ca2263be46 # v1.0.0
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           token: ${{ env.CODECOV_TOKEN }}
+          report_type: test_results
           files: ${{ steps.reports.outputs.junit_files }}
           disable_search: true
           flags: vitest
@@ -788,9 +800,10 @@ jobs:
             github.event_name != 'pull_request' ||
             github.event.pull_request.head.repo.full_name == github.repository
           )
-        uses: codecov/test-results-action@1b5b448b98e58ba90d1a1a1d9fcb72ca2263be46 # v1.0.0
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           token: ${{ env.CODECOV_TOKEN }}
+          report_type: test_results
           files: ${{ steps.reports.outputs.junit_files }}
           disable_search: true
           flags: e2e

@@ -79,16 +79,15 @@ export const UserErrorCode = {
   USER_CONFIGURATION_INVALID: 'USER_CONFIGURATION_INVALID',
   USER_RATE_LIMITED: 'USER_RATE_LIMITED',
   USER_UNKNOWN_ERROR: 'USER_UNKNOWN_ERROR',
-} as const;
+} as const
 
-export type UserErrorCode =
-  (typeof UserErrorCode)[keyof typeof UserErrorCode];
+export type UserErrorCode = (typeof UserErrorCode)[keyof typeof UserErrorCode]
 
-export const UserErrorCodeValues = Object.values(UserErrorCode);
+export const UserErrorCodeValues = Object.values(UserErrorCode)
 
 export function isUserErrorCode(value: unknown): value is UserErrorCode {
   return (
     typeof value === 'string' &&
     UserErrorCodeValues.includes(value as UserErrorCode)
-  );
+  )
 }

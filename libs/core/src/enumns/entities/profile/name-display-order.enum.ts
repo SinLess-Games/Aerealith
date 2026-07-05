@@ -22,20 +22,18 @@ export const NameDisplayOrder = {
   TitleGivenFamilySuffix: 'title_given_family_suffix',
 
   Custom: 'custom',
-} as const;
+} as const
 
 export type NameDisplayOrder =
-  (typeof NameDisplayOrder)[keyof typeof NameDisplayOrder];
+  (typeof NameDisplayOrder)[keyof typeof NameDisplayOrder]
 
-export const DefaultNameDisplayOrder = NameDisplayOrder.LocaleDefault;
+export const DefaultNameDisplayOrder = NameDisplayOrder.LocaleDefault
 
-export const NameDisplayOrderValues = Object.values(NameDisplayOrder);
+export const NameDisplayOrderValues = Object.values(NameDisplayOrder)
 
-export function isNameDisplayOrder(
-  value: unknown,
-): value is NameDisplayOrder {
+export function isNameDisplayOrder(value: unknown): value is NameDisplayOrder {
   return (
     typeof value === 'string' &&
     NameDisplayOrderValues.includes(value as NameDisplayOrder)
-  );
+  )
 }

@@ -7,7 +7,7 @@ import {
   timestamp,
   uniqueIndex,
   uuid,
-} from 'drizzle-orm/pg-core';
+} from 'drizzle-orm/pg-core'
 
 import type {
   UserAccessibilitySettings,
@@ -17,9 +17,9 @@ import type {
   UserPrivacySettings,
   UserSecuritySettings,
   UserSettingsMetadata,
-} from '@aerealith-ai/core';
+} from '@aerealith-ai/core'
 
-import { usersTable } from './user.table';
+import { usersTable } from './user.table'
 
 /**
  * Stores application settings for a user.
@@ -118,8 +118,8 @@ export const userSettingsTable = pgTable(
     uniqueIndex('user_settings_user_id_unique').on(table.userId),
     index('user_settings_created_at_index').on(table.createdAt),
   ],
-);
+)
 
-export type UserSettingsRow = typeof userSettingsTable.$inferSelect;
+export type UserSettingsRow = typeof userSettingsTable.$inferSelect
 
-export type NewUserSettingsRow = typeof userSettingsTable.$inferInsert;
+export type NewUserSettingsRow = typeof userSettingsTable.$inferInsert

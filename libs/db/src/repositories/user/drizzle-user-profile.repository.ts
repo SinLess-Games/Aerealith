@@ -191,7 +191,9 @@ function setOptionalStringUpdateValues(
     setDefinedValue(
       values,
       field as keyof NewUserProfileRow,
-      value === undefined ? undefined : normalizeOptionalString(value),
+      value === undefined
+        ? undefined
+        : normalizeOptionalString(value as string | null | undefined),
     )
   }
 }

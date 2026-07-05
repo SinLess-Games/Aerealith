@@ -1,1 +1,92 @@
-.github/workflows/*.lock.yml linguist-generated=true merge=ours
+# Normalize all text files to LF in the repository.
+* text=auto eol=lf
+
+# Keep Windows scripts compatible with Windows tooling.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# ---------------------------------------------------------------------------
+# Generated files
+# ---------------------------------------------------------------------------
+
+# Generated GitHub Actions lock workflows.
+#
+# These should be regenerated from their source workflow/configuration rather
+# than manually merged.
+.github/workflows/*.lock.yml linguist-generated=true
+
+# Generated build output should never be treated as source code.
+dist/** linguist-generated=true
+coverage/** linguist-generated=true
+.tmp/** linguist-generated=true
+.cache/** linguist-generated=true
+
+# Generated API/docs/schema output.
+**/generated/** linguist-generated=true
+**/__generated__/** linguist-generated=true
+**/*.generated.ts linguist-generated=true
+**/*.generated.tsx linguist-generated=true
+**/*.generated.js linguist-generated=true
+**/*.generated.json linguist-generated=true
+
+# ---------------------------------------------------------------------------
+# Lockfiles
+# ---------------------------------------------------------------------------
+
+# Lockfiles are machine-managed. Keep them diffable, but avoid noisy language
+# statistics and GitHub source-code classification.
+pnpm-lock.yaml linguist-generated=true
+package-lock.json linguist-generated=true
+yarn.lock linguist-generated=true
+
+# ---------------------------------------------------------------------------
+# Binary assets
+# ---------------------------------------------------------------------------
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.pdf binary
+
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+
+*.mp3 binary
+*.wav binary
+*.ogg binary
+*.mp4 binary
+*.webm binary
+
+*.zip binary
+*.gz binary
+*.tar binary
+*.tgz binary
+*.7z binary
+
+# ---------------------------------------------------------------------------
+# Source-code classification overrides
+# ---------------------------------------------------------------------------
+
+*.ts linguist-language=TypeScript
+*.tsx linguist-language=TSX
+*.mts linguist-language=TypeScript
+*.cts linguist-language=TypeScript
+
+*.json linguist-language=JSON
+*.jsonc linguist-language=JSON
+*.yaml linguist-language=YAML
+*.yml linguist-language=YAML
+
+# ---------------------------------------------------------------------------
+# Vendored dependencies
+# ---------------------------------------------------------------------------
+
+vendor/** linguist-vendored=true
+third_party/** linguist-vendored=true

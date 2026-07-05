@@ -7,10 +7,10 @@ import {
   uniqueIndex,
   uuid,
   varchar,
-} from 'drizzle-orm/pg-core';
+} from 'drizzle-orm/pg-core'
 
-import { userConsentTypeDbEnum } from '../../enums';
-import { usersTable } from './user.table';
+import { userConsentTypeDbEnum } from '../../enums'
+import { usersTable } from './user.table'
 
 /**
  * Stores a user's current consent decision for each consent category.
@@ -73,7 +73,7 @@ export const userConsentsTable = pgTable(
     index('user_consents_type_index').on(table.type),
     index('user_consents_granted_at_index').on(table.grantedAt),
   ],
-);
+)
 
-export type UserConsentRow = typeof userConsentsTable.$inferSelect;
-export type NewUserConsentRow = typeof userConsentsTable.$inferInsert;
+export type UserConsentRow = typeof userConsentsTable.$inferSelect
+export type NewUserConsentRow = typeof userConsentsTable.$inferInsert

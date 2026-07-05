@@ -4,19 +4,14 @@ import {
   UserSessionEntity,
   type UserSessionContract,
   type UserSessionGeoIp,
-} from '@aerealith-ai/core';
+} from '@aerealith-ai/core'
 
-import type {
-  NewUserSessionRow,
-  UserSessionRow,
-} from '../../schema';
+import type { NewUserSessionRow, UserSessionRow } from '../../schema'
 
 /**
  * Converts a database session row into a core user session entity.
  */
-export function toUserSessionEntity(
-  row: UserSessionRow,
-): UserSessionEntity {
+export function toUserSessionEntity(row: UserSessionRow): UserSessionEntity {
   return new UserSessionEntity({
     id: row.id,
     userId: row.userId,
@@ -34,7 +29,7 @@ export function toUserSessionEntity(
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     deletedAt: row.deletedAt,
-  });
+  })
 }
 
 /**
@@ -60,7 +55,7 @@ export function toNewUserSessionRow(
     createdAt: entity.createdAt,
     updatedAt: entity.updatedAt,
     deletedAt: entity.deletedAt,
-  };
+  }
 }
 
 /**
@@ -87,7 +82,7 @@ export function toUserSessionContract(
 
     createdAt: entity.createdAt.toISOString(),
     updatedAt: entity.updatedAt.toISOString(),
-  };
+  }
 }
 
 /**
@@ -98,13 +93,13 @@ export function toPublicUserSessionGeoIp(
   geoIp: UserSessionGeoIp | null,
 ): Omit<UserSessionGeoIp, 'latitude' | 'longitude'> | null {
   if (!geoIp) {
-    return null;
+    return null
   }
 
-  const publicGeoIp = { ...geoIp };
+  const publicGeoIp = { ...geoIp }
 
-  delete publicGeoIp.latitude;
-  delete publicGeoIp.longitude;
+  delete publicGeoIp.latitude
+  delete publicGeoIp.longitude
 
-  return publicGeoIp;
+  return publicGeoIp
 }
