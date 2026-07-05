@@ -288,6 +288,17 @@ jobs:
               --coverage.reporter=json-summary \
               </dev/null
 
+            project_root="$(
+              FORCE_COLOR=0 "$nx_bin" show project "$project" --json |
+                jq -er '.root | strings | select(length > 0)'
+            )"
+            expected_lcov="coverage/$project_root/lcov.info"
+
+            if [[ ! -s "$expected_lcov" ]]; then
+              echo "::error::Coverage for $project was not written to $expected_lcov."
+              exit 1
+            fi
+
             echo "::endgroup::"
           done < "$projects_file"
 
