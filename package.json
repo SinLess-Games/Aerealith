@@ -114,7 +114,7 @@
     "husky": "^9.1.7",
     "jiti": "2.4.2",
     "jsdom": "^27.1.0",
-    "jsonc-eslint-parser": "^2.1.0",
+    "jsonc-eslint-parser": "^3.0.0",
     "lint-staged": "^17.0.7",
     "nx": "23.0.1",
     "nx-cloud": "^19.1.3",
