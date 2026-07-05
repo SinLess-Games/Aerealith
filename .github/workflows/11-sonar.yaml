@@ -221,11 +221,12 @@ jobs:
           set -euo pipefail
 
           nx_bin="$GITHUB_WORKSPACE/node_modules/.bin/nx"
+          vitest_bin="$GITHUB_WORKSPACE/node_modules/.bin/vitest"
           projects_file="$RUNNER_TEMP/sonar-test-projects.txt"
           projects_json="$RUNNER_TEMP/sonar-test-projects.json"
 
-          if [[ ! -x "$nx_bin" ]]; then
-            echo "::error::Nx binary was not found: $nx_bin"
+          if [[ ! -x "$nx_bin" ]] || [[ ! -x "$vitest_bin" ]]; then
+            echo "::error::Required test binaries were not found. Nx: $nx_bin; Vitest: $vitest_bin"
             exit 1
           fi
 
@@ -277,24 +278,44 @@ jobs:
           while IFS= read -r project; do
             [[ -n "$project" ]] || continue
 
+            project_configuration="$(
+              FORCE_COLOR=0 "$nx_bin" show project "$project" --json
+            )"
             project_root="$(
-              FORCE_COLOR=0 "$nx_bin" show project "$project" --json |
-                jq -er '.root | strings | select(length > 0)'
+              jq -er '.root | strings | select(length > 0)' \
+                <<< "$project_configuration"
+            )"
+            test_executor="$(
+              jq -r '.targets.test.executor // ""' \
+                <<< "$project_configuration"
             )"
             coverage_directory="$GITHUB_WORKSPACE/coverage/$project_root"
             expected_lcov="$coverage_directory/lcov.info"
 
             echo "::group::Vitest coverage: $project"
 
-            "$nx_bin" run "$project:test" \
-              --skip-nx-cache \
-              --output-style=stream \
-              -- \
-              --coverage.enabled=true \
-              --coverage.reportsDirectory="$coverage_directory" \
-              --coverage.reporter=lcov \
-              --coverage.reporter=json-summary \
-              </dev/null
+            if [[ "$test_executor" == '@nx/vitest:test' ]]; then
+              # Nx's deprecated explicit Vitest executor drops coverage output
+              # path overrides. Invoke Vitest directly for these projects so
+              # the report is guaranteed to remain inside the workspace.
+              "$vitest_bin" run \
+                --config "$GITHUB_WORKSPACE/$project_root/vitest.config.mts" \
+                --coverage.enabled=true \
+                --coverage.reportsDirectory="$coverage_directory" \
+                --coverage.reporter=lcov \
+                --coverage.reporter=json-summary \
+                </dev/null
+            else
+              "$nx_bin" run "$project:test" \
+                --skip-nx-cache \
+                --output-style=stream \
+                -- \
+                --coverage.enabled=true \
+                --coverage.reportsDirectory="$coverage_directory" \
+                --coverage.reporter=lcov \
+                --coverage.reporter=json-summary \
+                </dev/null
+            fi
 
             if [[ ! -s "$expected_lcov" ]]; then
               echo "::error::Coverage for $project was not written to $expected_lcov."
