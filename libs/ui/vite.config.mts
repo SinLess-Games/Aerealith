@@ -1,9 +1,9 @@
 /// <reference types="vitest" />
 
-import react from '@vitejs/plugin-react';
-import * as path from 'node:path';
-import { defineConfig } from 'vite';
-import dts from 'vite-plugin-dts';
+import react from '@vitejs/plugin-react'
+import * as path from 'node:path'
+import { defineConfig } from 'vite'
+import dts from 'vite-plugin-dts'
 
 export default defineConfig(() => ({
   root: import.meta.dirname,
@@ -48,6 +48,7 @@ export default defineConfig(() => ({
     coverage: {
       reportsDirectory: '../../coverage/libs/ui',
       provider: 'v8' as const,
+      exclude: ['src/**/*.css'],
     },
   },
-}));
+}))

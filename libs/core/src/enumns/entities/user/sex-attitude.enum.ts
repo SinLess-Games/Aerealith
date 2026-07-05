@@ -18,17 +18,17 @@ export const SexAttitude = {
   Indifferent: 'indifferent',
   Averse: 'averse',
   Repulsed: 'repulsed',
-} as const;
+} as const
 
-export type SexAttitude = (typeof SexAttitude)[keyof typeof SexAttitude];
+export type SexAttitude = (typeof SexAttitude)[keyof typeof SexAttitude]
 
-export const DefaultSexAttitude = SexAttitude.Unspecified;
+export const DefaultSexAttitude = SexAttitude.Unspecified
 
-export const SexAttitudeValues = Object.values(SexAttitude);
+export const SexAttitudeValues = Object.values(SexAttitude)
 
 export function isSexAttitude(value: unknown): value is SexAttitude {
   return (
     typeof value === 'string' &&
     SexAttitudeValues.includes(value as SexAttitude)
-  );
+  )
 }

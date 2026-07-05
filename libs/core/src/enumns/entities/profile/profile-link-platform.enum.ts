@@ -151,14 +151,14 @@ export const ProfileLinkPlatform = {
   CV: 'cv',
   PressKit: 'press_kit',
   MediaKit: 'media_kit',
-} as const;
+} as const
 
 export type ProfileLinkPlatform =
-  (typeof ProfileLinkPlatform)[keyof typeof ProfileLinkPlatform];
+  (typeof ProfileLinkPlatform)[keyof typeof ProfileLinkPlatform]
 
-export const DefaultProfileLinkPlatform = ProfileLinkPlatform.Custom;
+export const DefaultProfileLinkPlatform = ProfileLinkPlatform.Custom
 
-export const ProfileLinkPlatformValues = Object.values(ProfileLinkPlatform);
+export const ProfileLinkPlatformValues = Object.values(ProfileLinkPlatform)
 
 export function isProfileLinkPlatform(
   value: unknown,
@@ -166,5 +166,5 @@ export function isProfileLinkPlatform(
   return (
     typeof value === 'string' &&
     ProfileLinkPlatformValues.includes(value as ProfileLinkPlatform)
-  );
+  )
 }

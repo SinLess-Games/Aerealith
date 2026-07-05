@@ -1,27 +1,27 @@
 // libs/db/src/repositories/user/drizzle-user-settings.repository.ts
 
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm'
 
 import {
   UserSettingsEntity,
   type UserSettingsContract,
   type UserSettingsInput,
   type UserSettingsUpdate,
-} from '@aerealith-ai/core';
+} from '@aerealith-ai/core'
 
-import type { DatabaseClient } from '../../client';
+import type { DatabaseClient } from '../../client'
 import {
   userSettingsTable,
   type NewUserSettingsRow,
   type UserSettingsRow,
-} from '../../schema';
+} from '../../schema'
 
 export type CreateUserSettingsInput = Omit<
   UserSettingsInput,
   'id' | 'createdAt' | 'updatedAt' | 'deletedAt'
->;
+>
 
-export type UpdateUserSettingsInput = UserSettingsUpdate;
+export type UpdateUserSettingsInput = UserSettingsUpdate
 
 /**
  * Drizzle persistence for user application settings.
@@ -32,9 +32,7 @@ export type UpdateUserSettingsInput = UserSettingsUpdate;
 export class DrizzleUserSettingsRepository {
   constructor(private readonly database: DatabaseClient) {}
 
-  async findByUserId(
-    userId: string,
-  ): Promise<UserSettingsContract | null> {
+  async findByUserId(userId: string): Promise<UserSettingsContract | null> {
     const [row] = await this.database
       .select()
       .from(userSettingsTable)
@@ -44,40 +42,38 @@ export class DrizzleUserSettingsRepository {
           isNull(userSettingsTable.deletedAt),
         ),
       )
-      .limit(1);
+      .limit(1)
 
-    return row ? toUserSettingsContract(row) : null;
+    return row ? toUserSettingsContract(row) : null
   }
 
-  async create(
-    input: CreateUserSettingsInput,
-  ): Promise<UserSettingsContract> {
-    const entity = new UserSettingsEntity(input);
+  async create(input: CreateUserSettingsInput): Promise<UserSettingsContract> {
+    const entity = new UserSettingsEntity(input)
 
     const [row] = await this.database
       .insert(userSettingsTable)
       .values(toNewUserSettingsRow(entity))
-      .returning();
+      .returning()
 
     if (!row) {
-      throw new Error('Failed to create user settings.');
+      throw new Error('Failed to create user settings.')
     }
 
-    return toUserSettingsContract(row);
+    return toUserSettingsContract(row)
   }
 
   async update(
     userId: string,
     input: UpdateUserSettingsInput,
   ): Promise<UserSettingsContract | null> {
-    const existingRow = await this.findRowByUserId(userId);
+    const existingRow = await this.findRowByUserId(userId)
 
     if (!existingRow) {
-      return null;
+      return null
     }
 
-    const entity = toUserSettingsEntity(existingRow);
-    entity.update(input);
+    const entity = toUserSettingsEntity(existingRow)
+    entity.update(input)
 
     const [row] = await this.database
       .update(userSettingsTable)
@@ -96,13 +92,13 @@ export class DrizzleUserSettingsRepository {
           isNull(userSettingsTable.deletedAt),
         ),
       )
-      .returning();
+      .returning()
 
-    return row ? toUserSettingsContract(row) : null;
+    return row ? toUserSettingsContract(row) : null
   }
 
   async softDeleteByUserId(userId: string): Promise<boolean> {
-    const now = new Date();
+    const now = new Date()
 
     const [row] = await this.database
       .update(userSettingsTable)
@@ -118,9 +114,9 @@ export class DrizzleUserSettingsRepository {
       )
       .returning({
         id: userSettingsTable.id,
-      });
+      })
 
-    return row !== undefined;
+    return row !== undefined
   }
 
   private async findRowByUserId(
@@ -135,15 +131,13 @@ export class DrizzleUserSettingsRepository {
           isNull(userSettingsTable.deletedAt),
         ),
       )
-      .limit(1);
+      .limit(1)
 
-    return row ?? null;
+    return row ?? null
   }
 }
 
-function toNewUserSettingsRow(
-  entity: UserSettingsEntity,
-): NewUserSettingsRow {
+function toNewUserSettingsRow(entity: UserSettingsEntity): NewUserSettingsRow {
   return {
     userId: entity.userId,
     metadata: entity.metadata,
@@ -153,12 +147,10 @@ function toNewUserSettingsRow(
     notifications: entity.notifications,
     privacy: entity.privacy,
     security: entity.security,
-  };
+  }
 }
 
-function toUserSettingsEntity(
-  row: UserSettingsRow,
-): UserSettingsEntity {
+function toUserSettingsEntity(row: UserSettingsRow): UserSettingsEntity {
   return new UserSettingsEntity({
     id: row.id,
     userId: row.userId,
@@ -172,12 +164,10 @@ function toUserSettingsEntity(
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     deletedAt: row.deletedAt,
-  });
+  })
 }
 
-function toUserSettingsContract(
-  row: UserSettingsRow,
-): UserSettingsContract {
+function toUserSettingsContract(row: UserSettingsRow): UserSettingsContract {
   return {
     id: row.id,
     userId: row.userId,
@@ -190,5 +180,5 @@ function toUserSettingsContract(
     security: row.security,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
-  };
+  }
 }

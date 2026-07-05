@@ -17,7 +17,10 @@
       "@aerealith-ai/core": ["./libs/core/src/index.ts"],
       "@aerealith-ai/db": ["./libs/db/src/index.ts"],
       "@aerealith-ai/ui": ["./libs/ui/src/index.ts"],
-      "@aerealith-ai/utils": ["./libs/utils/src/index.ts"]
+      "@aerealith-ai/utils": ["./libs/utils/src/index.ts"],
+      "@aerealith-ai/service-generator": [
+        "./tools/generators/service/src/index.ts"
+      ]
     }
   },
   "exclude": ["node_modules", "tmp"]

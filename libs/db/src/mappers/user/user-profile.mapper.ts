@@ -4,19 +4,14 @@ import {
   ProfileStatus,
   UserProfileEntity,
   type UserProfileContract,
-} from '@aerealith-ai/core';
+} from '@aerealith-ai/core'
 
-import type {
-  NewUserProfileRow,
-  UserProfileRow,
-} from '../../schema';
+import type { NewUserProfileRow, UserProfileRow } from '../../schema'
 
 /**
  * Converts a database user-profile row into the core entity.
  */
-export function toUserProfileEntity(
-  row: UserProfileRow,
-): UserProfileEntity {
+export function toUserProfileEntity(row: UserProfileRow): UserProfileEntity {
   return new UserProfileEntity({
     id: row.id,
     userId: row.userId,
@@ -52,7 +47,7 @@ export function toUserProfileEntity(
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     deletedAt: row.deletedAt,
-  });
+  })
 }
 
 /**
@@ -98,7 +93,7 @@ export function toUserProfileContract(
 
     createdAt: entity.createdAt.toISOString(),
     updatedAt: entity.updatedAt.toISOString(),
-  };
+  }
 }
 
 /**
@@ -139,17 +134,17 @@ export function toNewUserProfileRow(
     languages: entity.languages,
     websiteUrl: entity.websiteUrl,
     links: entity.links,
-  };
+  }
 }
 
 function toProfileStatus(
   value: string,
 ): (typeof ProfileStatus)[keyof typeof ProfileStatus] {
-  const values = Object.values(ProfileStatus);
+  const values = Object.values(ProfileStatus)
 
   if (values.includes(value as never)) {
-    return value as (typeof ProfileStatus)[keyof typeof ProfileStatus];
+    return value as (typeof ProfileStatus)[keyof typeof ProfileStatus]
   }
 
-  throw new Error(`Invalid user profile status in database: ${value}`);
+  throw new Error(`Invalid user profile status in database: ${value}`)
 }

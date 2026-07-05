@@ -1,12 +1,12 @@
 // libs/db/src/client/database.config.ts
 
-export const DatabaseUrlEnvironmentVariable = 'DATABASE_URL';
+export const DatabaseUrlEnvironmentVariable = 'DATABASE_URL'
 
-export type DatabaseEnvironment = Record<string, string | undefined>;
+export type DatabaseEnvironment = Record<string, string | undefined>
 
 export type DatabaseConfig = {
-  connectionString: string;
-};
+  connectionString: string
+}
 
 /**
  * Reads the database connection configuration.
@@ -16,14 +16,13 @@ export type DatabaseConfig = {
 export function getDatabaseConfig(
   environment: DatabaseEnvironment = process.env,
 ): DatabaseConfig {
-  const connectionString =
-    environment[DatabaseUrlEnvironmentVariable]?.trim();
+  const connectionString = environment[DatabaseUrlEnvironmentVariable]?.trim()
 
   if (!connectionString) {
-    throw new Error(`${DatabaseUrlEnvironmentVariable} is required.`);
+    throw new Error(`${DatabaseUrlEnvironmentVariable} is required.`)
   }
 
   return {
     connectionString,
-  };
+  }
 }

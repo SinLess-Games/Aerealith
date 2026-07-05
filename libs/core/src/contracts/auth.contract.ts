@@ -1,77 +1,77 @@
 // /mnt/disk-sdc/Projects/Aerealith/libs/core/src/contracts/auth.contract.ts
 
-import type { ApiResponse } from './api.contract';
+import type { ApiResponse } from './api.contract'
 
 export type AuthUser = {
-  id: string;
-  username: string;
-  email: string;
-  emailVerified: boolean;
-  displayName?: string;
-  createdAt: string;
-  updatedAt: string;
-};
+  id: string
+  username: string
+  email: string
+  emailVerified: boolean
+  displayName?: string
+  createdAt: string
+  updatedAt: string
+}
 
 export type PublicAuthUser = {
-  id: string;
-  username: string;
-  displayName?: string;
-};
+  id: string
+  username: string
+  displayName?: string
+}
 
 export type AuthTokens = {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-  tokenType: 'Bearer';
-};
+  accessToken: string
+  refreshToken: string
+  expiresIn: number
+  tokenType: 'Bearer'
+}
 
 export type AuthSession = {
-  user: AuthUser;
-  tokens: AuthTokens;
-};
+  user: AuthUser
+  tokens: AuthTokens
+}
 
 export type SignUpRequest = {
-  username: string;
-  email: string;
-  password: string;
-  displayName?: string;
-};
+  username: string
+  email: string
+  password: string
+  displayName?: string
+}
 
 export type LoginRequest = {
-  usernameOrEmail: string;
-  password: string;
-};
+  usernameOrEmail: string
+  password: string
+}
 
 export type RefreshRequest = {
-  refreshToken: string;
-};
+  refreshToken: string
+}
 
 export type LogoutRequest = {
-  refreshToken?: string;
-};
+  refreshToken?: string
+}
 
 export type VerifyEmailRequest = {
-  token: string;
-};
+  token: string
+}
 
 export type ResendVerificationRequest = {
-  email: string;
-};
+  email: string
+}
 
-export type AuthSessionResponse = ApiResponse<AuthSession>;
+export type AuthSessionResponse = ApiResponse<AuthSession>
 
-export type AuthUserResponse = ApiResponse<AuthUser>;
+export type AuthUserResponse = ApiResponse<AuthUser>
 
-export type PublicAuthUserResponse = ApiResponse<PublicAuthUser>;
+export type PublicAuthUserResponse = ApiResponse<PublicAuthUser>
 
-export type RefreshResponse = ApiResponse<AuthTokens>;
+export type RefreshResponse = ApiResponse<AuthTokens>
 
-export type LogoutResponse = ApiResponse<null>;
+export type LogoutResponse = ApiResponse<null>
 
 export type VerifyEmailResponse = ApiResponse<{
-  emailVerified: true;
-}>;
+  emailVerified: true
+}>
 
 export type ResendVerificationResponse = ApiResponse<{
-  sent: true;
-}>;
+  sent: true
+}>

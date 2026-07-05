@@ -16,14 +16,14 @@ export const Sex = {
   Female: 'female',
   Male: 'male',
   Intersex: 'intersex',
-} as const;
+} as const
 
-export type Sex = (typeof Sex)[keyof typeof Sex];
+export type Sex = (typeof Sex)[keyof typeof Sex]
 
-export const DefaultSex = Sex.Unspecified;
+export const DefaultSex = Sex.Unspecified
 
-export const SexValues = Object.values(Sex);
+export const SexValues = Object.values(Sex)
 
 export function isSex(value: unknown): value is Sex {
-  return typeof value === 'string' && SexValues.includes(value as Sex);
+  return typeof value === 'string' && SexValues.includes(value as Sex)
 }

@@ -1,7 +1,7 @@
 // libs/db/src/adapters/drizzle-persistence.adapter.ts
 
-import type { DatabaseClient } from '../client';
-import { PersistenceAdapter } from './persistence.adapter';
+import type { DatabaseClient } from '../client'
+import { PersistenceAdapter } from './persistence.adapter'
 
 /**
  * Base persistence adapter for Drizzle-backed database adapters.
@@ -14,9 +14,7 @@ export abstract class DrizzlePersistenceAdapter<
   TRow,
   TNewRow,
 > extends PersistenceAdapter<TEntity, TRow, TNewRow> {
-  protected constructor(
-    protected readonly database: DatabaseClient,
-  ) {
-    super();
+  protected constructor(protected readonly database: DatabaseClient) {
+    super()
   }
 }

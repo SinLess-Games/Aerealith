@@ -10,14 +10,14 @@ export const LanguageProficiency = {
   Advanced: 'advanced',
   Fluent: 'fluent',
   Native: 'native',
-} as const;
+} as const
 
 export type LanguageProficiency =
-  (typeof LanguageProficiency)[keyof typeof LanguageProficiency];
+  (typeof LanguageProficiency)[keyof typeof LanguageProficiency]
 
-export const DefaultLanguageProficiency = LanguageProficiency.Unspecified;
+export const DefaultLanguageProficiency = LanguageProficiency.Unspecified
 
-export const LanguageProficiencyValues = Object.values(LanguageProficiency);
+export const LanguageProficiencyValues = Object.values(LanguageProficiency)
 
 export const LanguageProficiencyRank = {
   [LanguageProficiency.Unspecified]: 0,
@@ -26,7 +26,7 @@ export const LanguageProficiencyRank = {
   [LanguageProficiency.Advanced]: 3,
   [LanguageProficiency.Fluent]: 4,
   [LanguageProficiency.Native]: 5,
-} as const satisfies Record<LanguageProficiency, number>;
+} as const satisfies Record<LanguageProficiency, number>
 
 export function isLanguageProficiency(
   value: unknown,
@@ -34,5 +34,5 @@ export function isLanguageProficiency(
   return (
     typeof value === 'string' &&
     LanguageProficiencyValues.includes(value as LanguageProficiency)
-  );
+  )
 }

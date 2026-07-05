@@ -6,12 +6,9 @@ import {
   UserRole,
   UserTier,
   type UserContract,
-} from '@aerealith-ai/core';
+} from '@aerealith-ai/core'
 
-import type {
-  NewUserRow,
-  UserRow,
-} from '../../schema';
+import type { NewUserRow, UserRow } from '../../schema'
 
 /**
  * Converts a database user row into the core user entity.
@@ -42,7 +39,7 @@ export function toUserEntity(row: UserRow): UserEntity {
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     deletedAt: row.deletedAt,
-  });
+  })
 }
 
 /**
@@ -61,7 +58,7 @@ export function toUserContract(entity: UserEntity): UserContract {
     tier: entity.tier,
     createdAt: entity.createdAt.toISOString(),
     updatedAt: entity.updatedAt.toISOString(),
-  };
+  }
 }
 
 /**
@@ -84,7 +81,7 @@ export function toNewUserRow(entity: UserEntity): NewUserRow {
     tier: entity.tier,
 
     metadata: entity.metadata,
-  };
+  }
 }
 
 function toEnumValue<TEnum extends Record<string, string>>(
@@ -92,11 +89,11 @@ function toEnumValue<TEnum extends Record<string, string>>(
   enumObject: TEnum,
   value: string,
 ): TEnum[keyof TEnum] {
-  const values = Object.values(enumObject) as string[];
+  const values = Object.values(enumObject) as string[]
 
   if (!values.includes(value)) {
-    throw new Error(`Invalid ${label} in database: ${value}`);
+    throw new Error(`Invalid ${label} in database: ${value}`)
   }
 
-  return value as TEnum[keyof TEnum];
+  return value as TEnum[keyof TEnum]
 }

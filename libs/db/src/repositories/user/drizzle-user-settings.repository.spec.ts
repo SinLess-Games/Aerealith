@@ -1,17 +1,14 @@
 // libs/db/src/repositories/user/drizzle-user-settings.repository.spec.ts
 
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest'
 
-import type { DatabaseClient } from '../../client';
-import {
-  type UserSettingsRow,
-  userSettingsTable,
-} from '../../schema';
-import { DrizzleUserSettingsRepository } from './drizzle-user-settings.repository';
+import type { DatabaseClient } from '../../client'
+import { type UserSettingsRow, userSettingsTable } from '../../schema'
+import { DrizzleUserSettingsRepository } from './drizzle-user-settings.repository'
 
 type DeletedUserSettingsRow = {
-  id: string;
-};
+  id: string
+}
 
 function createUserSettingsRow(
   overrides: Partial<UserSettingsRow> = {},
@@ -59,7 +56,7 @@ function createUserSettingsRow(
     deletedAt: null,
 
     ...overrides,
-  };
+  }
 }
 
 function createDatabaseMock({
@@ -67,48 +64,48 @@ function createDatabaseMock({
   insertedRows = [],
   updatedRows = [],
 }: {
-  selectedRows?: UserSettingsRow[];
-  insertedRows?: UserSettingsRow[];
-  updatedRows?: UserSettingsRow[] | DeletedUserSettingsRow[];
+  selectedRows?: UserSettingsRow[]
+  insertedRows?: UserSettingsRow[]
+  updatedRows?: UserSettingsRow[] | DeletedUserSettingsRow[]
 } = {}) {
-  const selectLimit = vi.fn().mockResolvedValue(selectedRows);
+  const selectLimit = vi.fn().mockResolvedValue(selectedRows)
 
   const selectResult = {
     limit: selectLimit,
-  };
+  }
 
-  const selectWhere = vi.fn(() => selectResult);
+  const selectWhere = vi.fn(() => selectResult)
   const selectFrom = vi.fn(() => ({
     where: selectWhere,
-  }));
+  }))
   const select = vi.fn(() => ({
     from: selectFrom,
-  }));
+  }))
 
-  const insertReturning = vi.fn().mockResolvedValue(insertedRows);
+  const insertReturning = vi.fn().mockResolvedValue(insertedRows)
   const insertValues = vi.fn(() => ({
     returning: insertReturning,
-  }));
+  }))
   const insert = vi.fn(() => ({
     values: insertValues,
-  }));
+  }))
 
-  const updateReturning = vi.fn().mockResolvedValue(updatedRows);
+  const updateReturning = vi.fn().mockResolvedValue(updatedRows)
   const updateWhere = vi.fn(() => ({
     returning: updateReturning,
-  }));
+  }))
   const updateSet = vi.fn(() => ({
     where: updateWhere,
-  }));
+  }))
   const update = vi.fn(() => ({
     set: updateSet,
-  }));
+  }))
 
   const database = {
     select,
     insert,
     update,
-  } as unknown as DatabaseClient;
+  } as unknown as DatabaseClient
 
   return {
     database,
@@ -123,7 +120,7 @@ function createDatabaseMock({
     updateSet,
     updateWhere,
     updateReturning,
-  };
+  }
 }
 
 function toExpectedContract(row: UserSettingsRow) {
@@ -141,86 +138,74 @@ function toExpectedContract(row: UserSettingsRow) {
 
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
-  };
+  }
 }
 
 describe('DrizzleUserSettingsRepository', () => {
   it('finds active settings for a user', async () => {
-    const row = createUserSettingsRow();
+    const row = createUserSettingsRow()
     const databaseMock = createDatabaseMock({
       selectedRows: [row],
-    });
+    })
 
-    const repository = new DrizzleUserSettingsRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserSettingsRepository(databaseMock.database)
 
-    const result = await repository.findByUserId(row.userId);
+    const result = await repository.findByUserId(row.userId)
 
-    expect(result).toEqual(toExpectedContract(row));
+    expect(result).toEqual(toExpectedContract(row))
 
-    expect(databaseMock.select).toHaveBeenCalledOnce();
-    expect(databaseMock.selectFrom).toHaveBeenCalledWith(
-      userSettingsTable,
-    );
-    expect(databaseMock.selectLimit).toHaveBeenCalledWith(1);
-  });
+    expect(databaseMock.select).toHaveBeenCalledOnce()
+    expect(databaseMock.selectFrom).toHaveBeenCalledWith(userSettingsTable)
+    expect(databaseMock.selectLimit).toHaveBeenCalledWith(1)
+  })
 
   it('returns null when settings do not exist for a user', async () => {
-    const databaseMock = createDatabaseMock();
+    const databaseMock = createDatabaseMock()
 
-    const repository = new DrizzleUserSettingsRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserSettingsRepository(databaseMock.database)
 
-    const result = await repository.findByUserId('missing_user');
+    const result = await repository.findByUserId('missing_user')
 
-    expect(result).toBeNull();
-  });
+    expect(result).toBeNull()
+  })
 
   it('creates and returns default user settings', async () => {
-    const row = createUserSettingsRow();
+    const row = createUserSettingsRow()
     const databaseMock = createDatabaseMock({
       insertedRows: [row],
-    });
+    })
 
-    const repository = new DrizzleUserSettingsRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserSettingsRepository(databaseMock.database)
 
     const result = await repository.create({
       userId: row.userId,
-    });
+    })
 
-    expect(result).toEqual(toExpectedContract(row));
+    expect(result).toEqual(toExpectedContract(row))
 
-    expect(databaseMock.insert).toHaveBeenCalledWith(
-      userSettingsTable,
-    );
+    expect(databaseMock.insert).toHaveBeenCalledWith(userSettingsTable)
 
     expect(databaseMock.insertValues).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: row.userId,
       }),
-    );
-  });
+    )
+  })
 
   it('throws when creating settings does not return a row', async () => {
-    const databaseMock = createDatabaseMock();
+    const databaseMock = createDatabaseMock()
 
-    const repository = new DrizzleUserSettingsRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserSettingsRepository(databaseMock.database)
 
     await expect(
       repository.create({
         userId: 'user_123',
       }),
-    ).rejects.toThrow();
-  });
+    ).rejects.toThrow()
+  })
 
   it('updates and returns user settings', async () => {
-    const existingRow = createUserSettingsRow();
+    const existingRow = createUserSettingsRow()
 
     const updatedRow = createUserSettingsRow({
       appearance: {
@@ -228,27 +213,23 @@ describe('DrizzleUserSettingsRepository', () => {
         theme: 'dark',
       } as UserSettingsRow['appearance'],
       updatedAt: new Date('2026-06-21T00:00:00.000Z'),
-    });
+    })
 
     const databaseMock = createDatabaseMock({
       selectedRows: [existingRow],
       updatedRows: [updatedRow],
-    });
+    })
 
-    const repository = new DrizzleUserSettingsRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserSettingsRepository(databaseMock.database)
 
     const result = await repository.update(updatedRow.userId, {
       appearance: updatedRow.appearance,
-    });
+    })
 
-    expect(result).toEqual(toExpectedContract(updatedRow));
+    expect(result).toEqual(toExpectedContract(updatedRow))
 
-    expect(databaseMock.select).toHaveBeenCalledOnce();
-    expect(databaseMock.update).toHaveBeenCalledWith(
-      userSettingsTable,
-    );
+    expect(databaseMock.select).toHaveBeenCalledOnce()
+    expect(databaseMock.update).toHaveBeenCalledWith(userSettingsTable)
 
     expect(databaseMock.updateSet).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -260,26 +241,24 @@ describe('DrizzleUserSettingsRepository', () => {
         security: existingRow.security,
         updatedAt: expect.any(Date),
       }),
-    );
-  });
+    )
+  })
 
   it('returns null when updating settings that do not exist', async () => {
-    const databaseMock = createDatabaseMock();
+    const databaseMock = createDatabaseMock()
 
-    const repository = new DrizzleUserSettingsRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserSettingsRepository(databaseMock.database)
 
     const result = await repository.update('missing_user', {
       appearance: {
         compactMode: true,
         theme: 'dark',
       } as UserSettingsRow['appearance'],
-    });
+    })
 
-    expect(result).toBeNull();
-    expect(databaseMock.update).not.toHaveBeenCalled();
-  });
+    expect(result).toBeNull()
+    expect(databaseMock.update).not.toHaveBeenCalled()
+  })
 
   it('soft deletes existing user settings', async () => {
     const databaseMock = createDatabaseMock({
@@ -288,36 +267,30 @@ describe('DrizzleUserSettingsRepository', () => {
           id: 'settings_123',
         },
       ],
-    });
+    })
 
-    const repository = new DrizzleUserSettingsRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserSettingsRepository(databaseMock.database)
 
-    const result = await repository.softDeleteByUserId('user_123');
+    const result = await repository.softDeleteByUserId('user_123')
 
-    expect(result).toBe(true);
-    expect(databaseMock.update).toHaveBeenCalledWith(
-      userSettingsTable,
-    );
+    expect(result).toBe(true)
+    expect(databaseMock.update).toHaveBeenCalledWith(userSettingsTable)
 
     expect(databaseMock.updateSet).toHaveBeenCalledWith(
       expect.objectContaining({
         deletedAt: expect.any(Date),
         updatedAt: expect.any(Date),
       }),
-    );
-  });
+    )
+  })
 
   it('returns false when there are no settings to soft delete', async () => {
-    const databaseMock = createDatabaseMock();
+    const databaseMock = createDatabaseMock()
 
-    const repository = new DrizzleUserSettingsRepository(
-      databaseMock.database,
-    );
+    const repository = new DrizzleUserSettingsRepository(databaseMock.database)
 
-    const result = await repository.softDeleteByUserId('missing_user');
+    const result = await repository.softDeleteByUserId('missing_user')
 
-    expect(result).toBe(false);
-  });
-});
+    expect(result).toBe(false)
+  })
+})

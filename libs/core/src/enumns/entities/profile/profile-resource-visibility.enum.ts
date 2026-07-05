@@ -7,25 +7,23 @@ export const ProfileResourceVisibility = {
   Private: 'private',
   Public: 'public',
   Unlisted: 'unlisted',
-} as const;
+} as const
 
 export type ProfileResourceVisibility =
-  (typeof ProfileResourceVisibility)[keyof typeof ProfileResourceVisibility];
+  (typeof ProfileResourceVisibility)[keyof typeof ProfileResourceVisibility]
 
 export const DefaultProfileResourceVisibility =
-  ProfileResourceVisibility.Private;
+  ProfileResourceVisibility.Private
 
 export const ProfileResourceVisibilityValues = Object.values(
   ProfileResourceVisibility,
-);
+)
 
 export function isProfileResourceVisibility(
   value: unknown,
 ): value is ProfileResourceVisibility {
   return (
     typeof value === 'string' &&
-    ProfileResourceVisibilityValues.includes(
-      value as ProfileResourceVisibility,
-    )
-  );
+    ProfileResourceVisibilityValues.includes(value as ProfileResourceVisibility)
+  )
 }

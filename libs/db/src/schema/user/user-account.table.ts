@@ -8,10 +8,10 @@ import {
   uniqueIndex,
   uuid,
   varchar,
-} from 'drizzle-orm/pg-core';
+} from 'drizzle-orm/pg-core'
 
-import { userAccountStatusDbEnum } from '../../enums';
-import { usersTable } from './user.table';
+import { userAccountStatusDbEnum } from '../../enums'
+import { usersTable } from './user.table'
 
 /**
  * Stores external accounts linked to an Aerealith user.
@@ -50,9 +50,7 @@ export const userAccountsTable = pgTable(
 
     managementUrl: text('management_url'),
 
-    status: userAccountStatusDbEnum('status')
-      .default('active')
-      .notNull(),
+    status: userAccountStatusDbEnum('status').default('active').notNull(),
 
     connectedAt: timestamp('connected_at', {
       withTimezone: true,
@@ -89,7 +87,7 @@ export const userAccountsTable = pgTable(
     index('user_accounts_status_index').on(table.status),
     index('user_accounts_connected_at_index').on(table.connectedAt),
   ],
-);
+)
 
-export type UserAccountRow = typeof userAccountsTable.$inferSelect;
-export type NewUserAccountRow = typeof userAccountsTable.$inferInsert;
+export type UserAccountRow = typeof userAccountsTable.$inferSelect
+export type NewUserAccountRow = typeof userAccountsTable.$inferInsert

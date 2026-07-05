@@ -7,14 +7,16 @@ export const TimeFormat = {
   Unspecified: 'unspecified',
   TwelveHour: '12-hour',
   TwentyFourHour: '24-hour',
-} as const;
+} as const
 
-export type TimeFormat = (typeof TimeFormat)[keyof typeof TimeFormat];
+export type TimeFormat = (typeof TimeFormat)[keyof typeof TimeFormat]
 
-export const DefaultTimeFormat = TimeFormat.TwelveHour;
+export const DefaultTimeFormat = TimeFormat.TwelveHour
 
-export const TimeFormatValues = Object.values(TimeFormat);
+export const TimeFormatValues = Object.values(TimeFormat)
 
 export function isTimeFormat(value: unknown): value is TimeFormat {
-  return typeof value === 'string' && TimeFormatValues.includes(value as TimeFormat);
+  return (
+    typeof value === 'string' && TimeFormatValues.includes(value as TimeFormat)
+  )
 }

@@ -10,14 +10,14 @@ export const ProfileModuleStatus = {
   Failed: 'failed',
   Archived: 'archived',
   Revoked: 'revoked',
-} as const;
+} as const
 
 export type ProfileModuleStatus =
-  (typeof ProfileModuleStatus)[keyof typeof ProfileModuleStatus];
+  (typeof ProfileModuleStatus)[keyof typeof ProfileModuleStatus]
 
-export const DefaultProfileModuleStatus = ProfileModuleStatus.Disabled;
+export const DefaultProfileModuleStatus = ProfileModuleStatus.Disabled
 
-export const ProfileModuleStatusValues = Object.values(ProfileModuleStatus);
+export const ProfileModuleStatusValues = Object.values(ProfileModuleStatus)
 
 export function isProfileModuleStatus(
   value: unknown,
@@ -25,5 +25,5 @@ export function isProfileModuleStatus(
   return (
     typeof value === 'string' &&
     ProfileModuleStatusValues.includes(value as ProfileModuleStatus)
-  );
+  )
 }

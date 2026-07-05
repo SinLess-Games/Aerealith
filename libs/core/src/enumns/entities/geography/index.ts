@@ -1,3 +1,3 @@
 // libs/core/src/enumns/entities/geography/index.ts
 
-export * from './country.enum';
+export * from './country.enum'

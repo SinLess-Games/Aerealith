@@ -12,17 +12,17 @@ export const ProfileStatus = {
   UnderReview: 'under_review',
   Archived: 'archived',
   Deleted: 'deleted',
-} as const;
+} as const
 
-export type ProfileStatus = (typeof ProfileStatus)[keyof typeof ProfileStatus];
+export type ProfileStatus = (typeof ProfileStatus)[keyof typeof ProfileStatus]
 
-export const DefaultProfileStatus = ProfileStatus.PendingSetup;
+export const DefaultProfileStatus = ProfileStatus.PendingSetup
 
-export const ProfileStatusValues = Object.values(ProfileStatus);
+export const ProfileStatusValues = Object.values(ProfileStatus)
 
 export function isProfileStatus(value: unknown): value is ProfileStatus {
   return (
     typeof value === 'string' &&
     ProfileStatusValues.includes(value as ProfileStatus)
-  );
+  )
 }

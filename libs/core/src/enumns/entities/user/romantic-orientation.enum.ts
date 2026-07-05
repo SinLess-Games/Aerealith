@@ -27,17 +27,14 @@ export const RomanticOrientation = {
   Demiromantic: 'demiromantic',
   Grayromantic: 'grayromantic',
   AroAce: 'aroace',
-} as const;
+} as const
 
 export type RomanticOrientation =
-  (typeof RomanticOrientation)[keyof typeof RomanticOrientation];
+  (typeof RomanticOrientation)[keyof typeof RomanticOrientation]
 
-export const DefaultRomanticOrientation =
-  RomanticOrientation.Unspecified;
+export const DefaultRomanticOrientation = RomanticOrientation.Unspecified
 
-export const RomanticOrientationValues = Object.values(
-  RomanticOrientation,
-);
+export const RomanticOrientationValues = Object.values(RomanticOrientation)
 
 export function isRomanticOrientation(
   value: unknown,
@@ -45,5 +42,5 @@ export function isRomanticOrientation(
   return (
     typeof value === 'string' &&
     RomanticOrientationValues.includes(value as RomanticOrientation)
-  );
+  )
 }
