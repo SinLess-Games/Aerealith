@@ -22,7 +22,8 @@ projectConfig:
   configFile: ../config.yaml
   fieldsFile: ../fields.yaml
   viewsFile: ../views.yaml
-  labelsFile: ./labels.yaml
+  labelsFile: ../../labels.yaml
+  labelerFile: ../../labeler.yaml
 
   automationFiles:
     - ./auto-add-project.yaml
@@ -36,7 +37,8 @@ projectConfig:
     - ./ai-triage.yaml
     - ./stale-work.yaml
     - ./archive-items.yaml
-    - ./labels.yaml
+    - ../../labels.yaml
+    - ../../labeler.yaml
     - ./dependencies.yaml
     - ./config-sync.yaml
     - ./drift-check.yaml
@@ -204,7 +206,8 @@ validation:
       - ./ai-triage.yaml
       - ./stale-work.yaml
       - ./archive-items.yaml
-      - ./labels.yaml
+      - ../../labels.yaml
+      - ../../labeler.yaml
       - ./dependencies.yaml
       - ./config-sync.yaml
       - ./drift-check.yaml
@@ -224,7 +227,8 @@ validation:
     - ./ai-triage.yaml
     - ./stale-work.yaml
     - ./archive-items.yaml
-    - ./labels.yaml
+    - ../../labels.yaml
+    - ../../labeler.yaml
     - ./dependencies.yaml
     - ./config-sync.yaml
     - ./drift-check.yaml
@@ -414,7 +418,8 @@ fields:
 labels:
   enabled: true
 
-  source: ./labels.yaml
+  source: ../../labels.yaml
+  rules: ../../labeler.yaml
 
   reconcile:
     createMissing: true
@@ -475,7 +480,8 @@ automations:
     - protectedStatusRulesMatch
 
   dependencyOrder:
-    - labels.yaml
+    - ../../labels.yaml
+    - ../../labeler.yaml
     - auto-add-project.yaml
     - status-transitions.yaml
     - branch-activity.yaml

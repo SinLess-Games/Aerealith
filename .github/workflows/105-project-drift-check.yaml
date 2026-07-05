@@ -56,6 +56,8 @@ jobs:
           persist-credentials: false
           sparse-checkout: |
             .github/project
+            .github/labels.yaml
+            .github/labeler.yaml
           sparse-checkout-cone-mode: true
 
       - name: Audit Project drift
@@ -574,7 +576,8 @@ jobs:
 
             config = read_yaml("config.yaml")
             fields_document = read_yaml("fields.yaml")
-            labels_document = read_yaml("automations/labels.yaml")
+            labels_path = File.expand_path(".github/labels.yaml", Dir.pwd)
+            labels_document = YAML.safe_load_file(labels_path, aliases: false) || []
 
             project_config = hash_value(config, "project")
             repository_config = hash_value(config, "repository")
@@ -853,10 +856,7 @@ jobs:
                 end
               end
 
-              expected_labels = array_value(
-                labels_document,
-                "labels",
-              ).filter_map do |label|
+              expected_labels = Array(labels_document).filter_map do |label|
                 next unless label.is_a?(Hash)
                 next unless present?(label["name"])
 

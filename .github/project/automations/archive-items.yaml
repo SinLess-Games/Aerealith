@@ -23,7 +23,7 @@ automation:
 
 configFile: ../config.yaml
 fieldsFile: ../fields.yaml
-labelsFile: ./labels.yaml
+labelsFile: ../../labels.yaml
 issueLinkingFile: ./issue-linking.yaml
 deploymentLifecycleFile: ./deployment-lifecycle.yaml
 releaseLifecycleFile: ./release-lifecycle.yaml

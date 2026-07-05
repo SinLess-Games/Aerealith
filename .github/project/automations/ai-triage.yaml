@@ -19,7 +19,7 @@ automation:
 
 configFile: ../config.yaml
 fieldsFile: ../fields.yaml
-labelsFile: ./labels.yaml
+labelsFile: ../../labels.yaml
 statusTransitionsFile: ./status-transitions.yaml
 issueLinkingFile: ./issue-linking.yaml
 

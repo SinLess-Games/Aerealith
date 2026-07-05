@@ -59,6 +59,8 @@ jobs:
           persist-credentials: false
           sparse-checkout: |
             .github/project
+            .github/labels.yaml
+            .github/labeler.yaml
           sparse-checkout-cone-mode: true
 
       - name: Validate Project configuration
@@ -96,7 +98,6 @@ jobs:
             automations/ai-triage.yaml
             automations/stale-work.yaml
             automations/archive-items.yaml
-            automations/labels.yaml
             automations/dependencies.yaml
             automations/config-sync.yaml
             automations/drift-check.yaml
@@ -175,7 +176,11 @@ jobs:
 
           config = documents["config.yaml"] || {}
           fields = documents["fields.yaml"] || {}
-          labels_document = documents["automations/labels.yaml"] || {}
+          labels_path = File.expand_path("../labels.yaml", root)
+          labeler_path = File.expand_path("../labeler.yaml", root)
+
+          labels_document = YAML.safe_load_file(labels_path, aliases: false) || []
+          labeler_document = YAML.safe_load_file(labeler_path, aliases: false) || {}
 
           config_project = fetch_hash(config, "project")
           config_repository = fetch_hash(config, "repository")
@@ -329,7 +334,7 @@ jobs:
             end
           end
 
-          labels = fetch_array(labels_document, "labels").filter_map do |label|
+          labels = Array(labels_document).filter_map do |label|
             next unless label.is_a?(Hash)
             next if label["name"].to_s.empty?
 
@@ -342,25 +347,6 @@ jobs:
 
           label_names = labels.map { |label| label["name"] }.to_set
 
-          required_labels = %w[
-            project:exclude
-            automation:paused
-            stale
-            automation:testing
-            status:testing
-            status:qa
-            ai:skip
-            ai:approved
-            ai:expand
-            ai:working
-            dependencies:dependabot
-            deployment:failed
-          ].freeze
-
-          required_labels.each do |label_name|
-            errors << "Missing required managed label: `#{label_name}`." unless label_names.include?(label_name)
-          end
-
           duplicate_label_names = labels
             .group_by { |label| label["name"] }
             .select { |_name, entries| entries.length > 1 }
@@ -370,17 +356,17 @@ jobs:
             errors << "Managed label `#{label_name}` is declared more than once."
           end
 
-          label_pattern = /\A[a-z][a-z0-9-]*:[a-z][a-z0-9-]*\z/
+          labeler_settings = %w[
+            max-files-changed
+            changed-files-labels-limit
+          ].to_set
 
-          referenced_labels = documents.values
-            .flat_map { |document| collect_scalar_strings(document) }
-            .select { |value| value.match?(label_pattern) }
-            .uniq
-
-          referenced_labels.each do |label_name|
+          labeler_document.each_key do |label_name|
+            next unless label_name.is_a?(String)
+            next if labeler_settings.include?(label_name)
             next if label_names.include?(label_name)
 
-            errors << "Configuration references undeclared label: `#{label_name}`."
+            errors << "`.github/labeler.yaml` references undeclared label: `#{label_name}`."
           end
 
           expected_prompt_files = %w[

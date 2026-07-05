@@ -24,7 +24,8 @@ automation:
 configFile: ../config.yaml
 fieldsFile: ../fields.yaml
 viewsFile: ../views.yaml
-labelsFile: ./labels.yaml
+labelsFile: ../../labels.yaml
+labelerFile: ../../labeler.yaml
 
 automationFiles:
   - ./auto-add-project.yaml
@@ -38,7 +39,8 @@ automationFiles:
   - ./ai-triage.yaml
   - ./stale-work.yaml
   - ./archive-items.yaml
-  - ./labels.yaml
+  - ../../labels.yaml
+  - ../../labeler.yaml
   - ./dependencies.yaml
   - ./config-sync.yaml
   - ./drift-check.yaml
@@ -183,7 +185,8 @@ configurationChecks:
     - ./ai-triage.yaml
     - ./stale-work.yaml
     - ./archive-items.yaml
-    - ./labels.yaml
+    - ../../labels.yaml
+    - ../../labeler.yaml
     - ./dependencies.yaml
     - ./config-sync.yaml
     - ./drift-check.yaml
