@@ -277,6 +277,13 @@ jobs:
           while IFS= read -r project; do
             [[ -n "$project" ]] || continue
 
+            project_root="$(
+              FORCE_COLOR=0 "$nx_bin" show project "$project" --json |
+                jq -er '.root | strings | select(length > 0)'
+            )"
+            coverage_directory="$GITHUB_WORKSPACE/coverage/$project_root"
+            expected_lcov="$coverage_directory/lcov.info"
+
             echo "::group::Vitest coverage: $project"
 
             "$nx_bin" run "$project:test" \
@@ -284,15 +291,10 @@ jobs:
               --output-style=stream \
               -- \
               --coverage.enabled=true \
+              --coverage.reportsDirectory="$coverage_directory" \
               --coverage.reporter=lcov \
               --coverage.reporter=json-summary \
               </dev/null
-
-            project_root="$(
-              FORCE_COLOR=0 "$nx_bin" show project "$project" --json |
-                jq -er '.root | strings | select(length > 0)'
-            )"
-            expected_lcov="coverage/$project_root/lcov.info"
 
             if [[ ! -s "$expected_lcov" ]]; then
               echo "::error::Coverage for $project was not written to $expected_lcov."
