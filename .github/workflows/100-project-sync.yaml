@@ -642,7 +642,13 @@ jobs:
                 body: body,
               )
 
-              [response, JSON.parse(response.body) rescue nil]
+              parsed_body = begin
+                JSON.parse(response.body)
+              rescue JSON::ParserError
+                nil
+              end
+
+              [response, parsed_body]
             end
 
             private
