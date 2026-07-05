@@ -322,6 +322,22 @@ jobs:
               exit 1
             fi
 
+            # Vitest writes source paths relative to each project root (for
+            # example, "src/index.ts"). Those paths are ambiguous in a
+            # monorepo, so qualify them before SonarQube imports the report.
+            normalized_lcov="$(mktemp "$RUNNER_TEMP/lcov.XXXXXX")"
+            awk -v project_root="$project_root" '
+              /^SF:/ {
+                source_path = substr($0, 4)
+                if (source_path !~ /^\// &&
+                    index(source_path, project_root "/") != 1) {
+                  $0 = "SF:" project_root "/" source_path
+                }
+              }
+              { print }
+            ' "$expected_lcov" > "$normalized_lcov"
+            mv "$normalized_lcov" "$expected_lcov"
+
             echo "::endgroup::"
           done < "$projects_file"
 
