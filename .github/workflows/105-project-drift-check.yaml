@@ -49,7 +49,7 @@ jobs:
 
     steps:
       - name: Checkout trusted Project configuration
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           ref: master
           fetch-depth: 1
@@ -1160,8 +1160,10 @@ jobs:
           steps.audit.outputs.drift_found == 'true' &&
           env.FAIL_ON_DRIFT != 'false'
         shell: bash
+        env:
+          DRIFT_COUNT: ${{ steps.audit.outputs.drift_count }}
         run: |
           set -Eeuo pipefail
 
-          echo "::error::Aerealith Project drift detected: ${{ steps.audit.outputs.drift_count }} finding(s)."
+          echo "::error::Aerealith Project drift detected: ${DRIFT_COUNT} finding(s)."
           exit 1
