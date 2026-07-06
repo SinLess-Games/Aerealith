@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.7
+# syntax=docker/dockerfile:1.7@sha256:a57df69d0ea827fb7266491f2813635de6f17269be881f696fbfdf2d83dda33e
 
 # Build from the repository root:
 #
@@ -11,7 +11,7 @@
 # Build
 # ==============================================================================
 
-FROM node:25.9.0-alpine AS build
+FROM node:25.9.0-alpine@sha256:bdf2cca6fe3dabd014ea60163eca3f0f7015fbd5c7ee1b0e9ccb4ced6eb02ef4 AS build
 
 WORKDIR /workspace
 
@@ -64,7 +64,7 @@ RUN --mount=type=cache,id=aerealith-pnpm-store,target=/pnpm/store,uid=1000,gid=1
 # - Uses /tmp for the PID and temporary request files.
 #
 # Keep this version current through Dependabot's Docker updates.
-FROM nginxinc/nginx-unprivileged:1.31.2-alpine3.23 AS runtime
+FROM nginxinc/nginx-unprivileged:1.31.2-alpine3.23@sha256:592b23aa79a6e6c08ba4b20f1fff700e1328895705966722608e115d62e52d39 AS runtime
 
 # We temporarily become root only to replace the stock virtual-host
 # configuration and install read-only static assets. The final container
