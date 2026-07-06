@@ -70,7 +70,6 @@ jobs:
         id: gate
         shell: bash
         env:
-          EVENT_PATH: ${{ github.event_path }}
           EVENT_NAME: ${{ github.event_name }}
           REPOSITORY: ${{ github.repository }}
           INPUT_ITEM_TYPE: ${{ inputs.item_type }}
@@ -82,7 +81,7 @@ jobs:
           require "json"
 
           event_name = ENV.fetch("EVENT_NAME")
-          event_path = ENV.fetch("EVENT_PATH")
+          event_path = ENV.fetch("GITHUB_EVENT_PATH")
           repository = ENV.fetch("REPOSITORY")
           token = ENV.fetch("PROJECT_TOKEN", "")
           output_path = ENV.fetch("GITHUB_OUTPUT")
@@ -145,7 +144,6 @@ jobs:
         if: steps.gate.outputs.can_mutate == 'true'
         shell: bash
         env:
-          EVENT_PATH: ${{ github.event_path }}
           EVENT_NAME: ${{ github.event_name }}
           REPOSITORY: ${{ github.repository }}
           INPUT_ITEM_TYPE: ${{ inputs.item_type }}
@@ -370,7 +368,7 @@ jobs:
           raise "Workflow may only run for #{expected_repository}; received #{current_repository}." unless current_repository == expected_repository
           raise "Production branch must be master." unless production_branch == "master"
 
-          payload = JSON.parse(File.read(ENV.fetch("EVENT_PATH")))
+          payload = JSON.parse(File.read(ENV.fetch("GITHUB_EVENT_PATH")))
           event_name = ENV.fetch("EVENT_NAME")
 
           item_type =

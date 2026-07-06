@@ -98,7 +98,6 @@ jobs:
         shell: bash
         env:
           EVENT_NAME: ${{ github.event_name }}
-          EVENT_PATH: ${{ github.event_path }}
           REPOSITORY: ${{ github.repository }}
           INPUT_PR_NUMBER: ${{ inputs.pr_number }}
         run: |
@@ -363,7 +362,7 @@ jobs:
             ],
           )
 
-          payload = JSON.parse(File.read(ENV.fetch("EVENT_PATH")))
+          payload = JSON.parse(File.read(ENV.fetch("GITHUB_EVENT_PATH")))
           event_name = ENV.fetch("EVENT_NAME")
 
           source_action = nil
