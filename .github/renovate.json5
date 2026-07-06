@@ -1,41 +1,235 @@
-{
-  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+// renovate.json5
 
-  // Aerealith uses Renovate for reviewable dependency maintenance.
-  // Dependency updates never merge automatically.
-  extends: [
-    'config:recommended',
-    'docker:pinDigests',
-    'helpers:pinGitHubActionDigests',
-    ':pinDevDependencies',
-    'abandonments:recommended',
-    'security:minimumReleaseAgeNpm',
-    ':maintainLockFilesWeekly',
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "extends": [
+    // Includes Renovate's recommended update safety defaults, pinned Docker
+    // digests, pinned GitHub Action digests, pinned dev dependencies,
+    // abandoned-package reporting, npm release-age protection, and weekly
+    // lockfile maintenance.
+    "config:best-practices",
+
+    // Keep the Dependency Dashboard enabled and use conventional commit titles.
+    ":dependencyDashboard",
+    ":semanticCommits",
+
+    // Keep Renovate branches current with master while review is in progress.
+    ":rebaseStalePrs",
+
+    // Keep known monorepo packages and common ecosystems updated together.
+    "group:monorepos",
+    "group:recommended",
+    "group:pnpm"
   ],
 
-  // Keep Renovate schedules aligned with the repository owner's local time.
-  timezone: 'America/Boise',
+  "timezone": "America/Boise",
 
-  // Keep automated dependency work deliberate and manageable.
-  automerge: false,
-  prConcurrentLimit: 3,
-  branchConcurrentLimit: 3,
-  commitHourlyLimit: 2,
+  // GitHub milestone number, not the REST ID or GraphQL node ID.
+  "milestone": 21,
 
-  // Preserve this hand-written JSON5 file and its comments.
-  configMigration: false,
+  // Keep Renovate configuration migrations deliberate and manually reviewed.
+  "configMigration": false,
 
-  // Make major-version upgrades an explicit dashboard decision.
-  major: {
-    dependencyDashboardApproval: true,
+  // Aerealith requires human review for every dependency change.
+  "automerge": false,
+  "platformAutomerge": false,
+
+  // Keep incoming Renovate work manageable.
+  "prConcurrentLimit": 3,
+  "branchConcurrentLimit": 3,
+  "prHourlyLimit": 2,
+  "commitHourlyLimit": 2,
+
+  // Do not open a PR until Renovate's internal checks are no longer pending.
+  "prCreation": "not-pending",
+  "internalChecksFilter": "strict",
+
+  // Keep Renovate PR titles and commits aligned with the repository workflow.
+  "semanticCommits": "enabled",
+  "semanticCommitType": "chore",
+  "semanticCommitScope": "deps",
+
+  // Default labels for ordinary dependency updates.
+  "labels": [
+    "automated",
+    "dependencies",
+    "type: dependency"
+  ],
+
+  // ---------------------------------------------------------------------------
+  // Dependency Dashboard
+  // ---------------------------------------------------------------------------
+
+  "dependencyDashboard": true,
+  "dependencyDashboardAutoclose": false,
+  "dependencyDashboardReportAbandonment": true,
+
+  "dependencyDashboardTitle": "🛠️ Aerealith Dependency Command Center",
+
+  "dependencyDashboardLabels": [
+    "automated",
+    "dependencies",
+    "type: dependency",
+    "area: tooling"
+  ],
+
+  "dependencyDashboardHeader": "## 🛠️ Aerealith Dependency Command Center\n\nKeep Aerealith secure, stable, and boring in the best possible way.\n\n### How this dashboard works\n\n- 🚧 **Major upgrades** wait here until you explicitly approve them.\n- 🛡️ **Security updates** should be reviewed first.\n- 📦 **Minor, patch, digest, and lockfile updates** are created within the configured concurrency limits.\n- 🧪 Every Renovate PR still needs normal CI, review, and merge approval.\n\n> **Aerealith policy:** Renovate never automerges dependency changes.",
+
+  "dependencyDashboardFooter": "### 🧭 Aerealith Dependency Policy\n\n- 🧪 Merge only after required checks are green.\n- 🔎 Review changelogs, migration notes, and breaking changes before merging.\n- 🧩 Keep Renovate pull requests focused; avoid mixing unrelated work into them.\n- 🚨 Treat security updates as time-sensitive, but still validate them properly.\n\n_Managed by Renovate for Aerealith AI._",
+
+  // ---------------------------------------------------------------------------
+  // Approval and security policy
+  // ---------------------------------------------------------------------------
+
+  "major": {
+    "dependencyDashboardApproval": true
   },
 
-  // Keep pnpm lockfile updates tidy after package updates.
-  packageRules: [
+  "vulnerabilityAlerts": {
+    "enabled": false
+  },
+
+  // ---------------------------------------------------------------------------
+  // Package rules
+  // ---------------------------------------------------------------------------
+
+  "packageRules": [
     {
-      description: 'Run pnpm dedupe after npm dependency updates.',
-      matchManagers: ['npm'],
-      postUpdateOptions: ['pnpmDedupe'],
+      "description": "Run pnpm dedupe after npm dependency updates.",
+      "matchManagers": [
+        "npm"
+      ],
+      "postUpdateOptions": [
+        "pnpmDedupe"
+      ]
     },
-  ],
+
+    {
+      "description": "Classify runtime npm dependencies.",
+      "matchManagers": [
+        "npm"
+      ],
+      "matchDepTypes": [
+        "dependencies",
+        "optionalDependencies",
+        "peerDependencies"
+      ],
+      "labels": [
+        "automated",
+        "dependencies",
+        "type: dependency"
+      ],
+      "dependencyDashboardCategory": "📦 Runtime & Production Dependencies",
+      "semanticCommitType": "chore",
+      "semanticCommitScope": "deps",
+      "prPriority": 2
+    },
+
+    {
+      "description": "Classify development tooling and test dependencies.",
+      "matchManagers": [
+        "npm"
+      ],
+      "matchDepTypes": [
+        "devDependencies"
+      ],
+      "labels": [
+        "automated",
+        "dependencies",
+        "type: dependency",
+        "area: tooling"
+      ],
+      "dependencyDashboardCategory": "🧪 Developer Tooling & Test Dependencies",
+      "semanticCommitType": "chore",
+      "semanticCommitScope": "deps",
+      "prPriority": -1
+    },
+
+    {
+      "description": "Classify GitHub Actions updates as CI infrastructure work.",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "labels": [
+        "automated",
+        "dependencies",
+        "type: ci",
+        "area: infrastructure"
+      ],
+      "dependencyDashboardCategory": "⚙️ CI & GitHub Actions",
+      "semanticCommitType": "ci",
+      "semanticCommitScope": "deps",
+      "prPriority": 1
+    },
+
+    {
+      "description": "Classify Docker image updates as build infrastructure work.",
+      "matchManagers": [
+        "dockerfile",
+        "docker-compose"
+      ],
+      "labels": [
+        "automated",
+        "dependencies",
+        "type: build",
+        "area: infrastructure"
+      ],
+      "dependencyDashboardCategory": "🐳 Containers & Build Images",
+      "semanticCommitType": "build",
+      "semanticCommitScope": "deps",
+      "prPriority": 1
+    },
+
+    {
+      "description": "Keep pnpm lockfile maintenance grouped and clearly classified.",
+      "matchManagers": [
+        "npm"
+      ],
+      "matchUpdateTypes": [
+        "lockFileMaintenance"
+      ],
+      "labels": [
+        "automated",
+        "dependencies",
+        "type: chore",
+        "area: tooling"
+      ],
+      "dependencyDashboardCategory": "🧹 Lockfile Maintenance",
+      "groupName": "pnpm lockfile maintenance",
+      "groupSlug": "pnpm-lockfile-maintenance",
+      "semanticCommitType": "chore",
+      "semanticCommitScope": "deps",
+      "prPriority": -2
+    },
+
+    {
+      "description": "Require explicit approval and flag major upgrades as potentially breaking.",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "addLabels": [
+        "breaking-change"
+      ],
+      "dependencyDashboardCategory": "🚧 Major Upgrades — Approval Required",
+      "dependencyDashboardApproval": true,
+      "prPriority": 5
+    },
+
+    {
+      "description": "Prioritize and clearly classify vulnerability remediation.",
+      "matchJsonata": [
+        "$exists(vulnerabilityFixVersion)"
+      ],
+      "labels": [
+        "automated",
+        "dependencies",
+        "type: security",
+        "priority: high"
+      ],
+      "dependencyDashboardCategory": "🚨 Security & Vulnerability Fixes",
+      "dependencyDashboardApproval": false,
+      "prPriority": 20
+    }
+  ]
 }

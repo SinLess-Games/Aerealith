@@ -2,9 +2,13 @@
   "github.copilot.enable": {
     "*": true,
     "markdown": true,
+    "json": true,
+    "jsonc": true,
+    "yaml": true,
     "plaintext": false,
     "scminput": true
   },
+
   "editor.wordWrap": "on",
   "editor.formatOnSave": true,
   "editor.formatOnPaste": false,
@@ -15,10 +19,23 @@
     100,
     120
   ],
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true,
+  "editor.guides.indentation": true,
+  "editor.linkedEditing": true,
+  "editor.stickyScroll.enabled": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit",
     "source.organizeImports": "explicit"
   },
+
+  "files.trimTrailingWhitespace": true,
+  "files.trimFinalNewlines": true,
+  "files.insertFinalNewline": true,
+  "files.eol": "\n",
+
+  "diffEditor.ignoreTrimWhitespace": false,
+
   "eslint.validate": [
     "javascript",
     "javascriptreact",
@@ -32,60 +49,115 @@
       "mode": "auto"
     }
   ],
+
   "js/ts.tsdk.path": "node_modules/typescript/lib",
   "js/ts.tsdk.promptToUseWorkspaceVersion": true,
   "js/ts.preferences.includePackageJsonAutoImports": "on",
-  "files.trimTrailingWhitespace": true,
-  "files.insertFinalNewline": true,
-  "files.eol": "\n",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "javascript.updateImportsOnFileMove.enabled": "always",
+
+  "npm.packageManager": "pnpm",
+
   "files.associations": {
     "*.json5": "jsonc",
     "*.jsonc": "jsonc",
     "*.toml": "toml",
-    "*.mdx": "markdown"
+    "*.mdx": "markdown",
+    ".env": "dotenv",
+    ".env.*": "dotenv"
   },
-  "files.watcherExclude": {
-    "**/.git/**": true,
-    "**/.nx/**": true,
-    "**/.turbo/**": true,
-    "**/.next/**": true,
-    "**/node_modules/**": true,
-    "**/.pnpm-store/**": true,
-    "**/dist/**": true,
-    "**/build/**": true,
-    "**/coverage/**": true,
-    "**/.cache/**": true,
-    "**/tmp/**": true,
-    "**/temp/**": true
-  },
-  "search.exclude": {
-    "**/.git": true,
-    "**/.nx": true,
-    "**/.turbo": true,
+
+  "files.exclude": {
+    "**/.cache": true,
     "**/.next": true,
-    "**/node_modules": true,
-    "**/dist": true,
+    "**/.nx": true,
+    "**/.pnpm-store": true,
+    "**/.turbo": true,
+    "**/.vite": true,
+    "**/.wrangler": true,
     "**/build": true,
     "**/coverage": true,
+    "**/dist": true,
+    "**/node_modules": true,
+    "**/playwright-report": true,
+    "**/temp": true,
+    "**/test-results": true,
+    "**/tmp": true,
+    "**/*.tsbuildinfo": true
+  },
+
+  "files.watcherExclude": {
+    "**/.cache/**": true,
+    "**/.git/**": true,
+    "**/.next/**": true,
+    "**/.nx/**": true,
+    "**/.pnpm-store/**": true,
+    "**/.turbo/**": true,
+    "**/.vite/**": true,
+    "**/.wrangler/**": true,
+    "**/build/**": true,
+    "**/coverage/**": true,
+    "**/dist/**": true,
+    "**/node_modules/**": true,
+    "**/playwright-report/**": true,
+    "**/temp/**": true,
+    "**/test-results/**": true,
+    "**/tmp/**": true,
+    "**/*.tsbuildinfo": true
+  },
+
+  "search.exclude": {
     "**/.cache": true,
-    "**/pnpm-lock.yaml": false
+    "**/.git": true,
+    "**/.next": true,
+    "**/.nx": true,
+    "**/.pnpm-store": true,
+    "**/.turbo": true,
+    "**/.vite": true,
+    "**/.wrangler": true,
+    "**/build": true,
+    "**/coverage": true,
+    "**/dist": true,
+    "**/node_modules": true,
+    "**/playwright-report": true,
+    "**/temp": true,
+    "**/test-results": true,
+    "**/tmp": true,
+    "**/*.tsbuildinfo": true
   },
+  "search.followSymlinks": false,
+  "search.useIgnoreFiles": true,
+  "search.useGlobalIgnoreFiles": true,
+
+  "explorer.compactFolders": false,
   "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false,
   "explorer.fileNesting.patterns": {
-    "package.json": "pnpm-lock.yaml, pnpm-workspace.yaml, nx.json, tsconfig.base.json, eslint.config.js, eslint.config.mjs, prettier.config.ts, prettier.config.mjs, lint-staged.config.ts, commitlint.config.ts, .prettierignore",
-    "project.json": "tsconfig.json, tsconfig.lib.json, tsconfig.spec.json",
-    "*.ts": "${capture}.test.ts, ${capture}.spec.ts, ${capture}.d.ts",
-    "*.tsx": "${capture}.test.tsx, ${capture}.spec.tsx, ${capture}.d.ts",
-    "vitest.config.ts": "${capture}.test.ts, vitest.workspace.ts"
+    "package.json": "pnpm-lock.yaml, pnpm-workspace.yaml, .node-version, nx.json, project.json, tsconfig.base.json, eslint.config.mjs, prettier.config.ts, commitlint.config.ts, lint-staged.config.ts, vitest.config.ts, vitest.workspace.ts, .editorconfig",
+    ".gitignore": ".dockerignore, .env, .gitattributes, .gitleaksignore, .prettierignore, .snyk",
+    "trivy.yaml": ".trivyignore.yaml",
+    "README.md": "notes.md",
+    "project.json": "tsconfig.json, tsconfig.app.json, tsconfig.lib.json, tsconfig.spec.json, vite.config.ts, vitest.config.ts",
+    "*.ts": "${capture}.d.ts, ${capture}.spec.ts, ${capture}.test.ts",
+    "*.tsx": "${capture}.d.ts, ${capture}.spec.tsx, ${capture}.test.tsx",
+    "*.yaml": "${capture}.local.yaml, ${capture}.override.yaml",
+    "*.yml": "${capture}.local.yml, ${capture}.override.yml"
   },
+
   "markdown.validate.enabled": true,
+  "markdown.updateLinksOnFileMove.enabled": "prompt",
   "markdownlint.config": {
     "MD013": false,
     "MD033": false,
     "MD041": false
   },
+
   "json.schemaDownload.enable": true,
+
   "terminal.integrated.defaultProfile.linux": "zsh",
+  "terminal.integrated.cwd": "${workspaceFolder}",
+  "terminal.integrated.scrollback": 10000,
+
   "sonarlint.connectedMode.project": {
     "connectionId": "sinless-games",
     "projectKey": "SinLess-Games_Aerealith"

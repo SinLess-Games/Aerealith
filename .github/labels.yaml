@@ -62,6 +62,10 @@
   color: "0052CC"
   description: "Accessibility, inclusive design, or assistive technology support."
 
+- name: "type: dependency"
+  color: "0366D6"
+  description: "Dependency update, package maintenance, or lockfile change."
+
 # ==============================================================================
 # Priority
 # ==============================================================================

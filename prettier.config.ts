@@ -25,7 +25,7 @@ const config: Config = {
     {
       files: ['*.json', '*.jsonc'],
       options: {
-        trailingComma: 'none',
+        singleQuote: false,
       },
     },
     {
