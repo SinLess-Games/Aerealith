@@ -2,6 +2,7 @@
   "compileOnSave": false,
   "compilerOptions": {
     "rootDir": ".",
+    "baseUrl": ".",
     "sourceMap": true,
     "declaration": false,
     "moduleResolution": "nodenext",
@@ -16,8 +17,34 @@
     "paths": {
       "@aerealith-ai/core": ["./libs/core/src/index.ts"],
       "@aerealith-ai/db": ["./libs/db/src/index.ts"],
+
       "@aerealith-ai/ui": ["./libs/ui/src/index.ts"],
+      "@aerealith-ai/ui/*": ["./libs/ui/src/*"],
+
+      "@aerealith-ai/ui/components": ["./libs/ui/src/components"],
+      "@aerealith-ai/ui/components/*": ["./libs/ui/src/components/*"],
+
+      "@aerealith-ai/ui/hooks": ["./libs/ui/src/hooks"],
+      "@aerealith-ai/ui/hooks/*": ["./libs/ui/src/hooks/*"],
+
+      "@aerealith-ai/ui/lib": ["./libs/ui/src/lib"],
+      "@aerealith-ai/ui/lib/*": ["./libs/ui/src/lib/*"],
+
+      "@aerealith-ai/ui/styles/*": ["./libs/ui/src/styles/*"],
+
+      "@aerealith-ai/frontend/components": ["./apps/frontend/src/components"],
+      "@aerealith-ai/frontend/components/*": [
+        "./apps/frontend/src/components/*"
+      ],
+
+      "@aerealith-ai/frontend/hooks": ["./apps/frontend/src/hooks"],
+      "@aerealith-ai/frontend/hooks/*": ["./apps/frontend/src/hooks/*"],
+
+      "@aerealith-ai/frontend/lib": ["./apps/frontend/src/lib"],
+      "@aerealith-ai/frontend/lib/*": ["./apps/frontend/src/lib/*"],
+
       "@aerealith-ai/utils": ["./libs/utils/src/index.ts"],
+
       "@aerealith-ai/service-generator": [
         "./tools/generators/service/src/index.ts"
       ]

@@ -1,5 +1,6 @@
 /// <reference types="vitest" />
 
+import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import * as path from 'node:path'
 import { defineConfig } from 'vite'
@@ -13,6 +14,7 @@ export default defineConfig(() => ({
   },
   plugins: [
     react(),
+    tailwindcss(),
     dts({
       entryRoot: 'src',
       tsconfigPath: path.join(import.meta.dirname, 'tsconfig.lib.json'),

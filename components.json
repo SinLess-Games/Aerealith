@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "radix-mira",
+  "rsc": false,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "apps/frontend/src/styles/globals.css",
+    "baseColor": "neutral",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "iconLibrary": "hugeicons",
+  "rtl": false,
+  "menuColor": "default",
+  "menuAccent": "subtle",
+  "aliases": {
+    "components": "@aerealith-ai/frontend/components",
+    "hooks": "@aerealith-ai/frontend/hooks",
+    "lib": "@aerealith-ai/frontend/lib",
+    "utils": "@aerealith-ai/ui/lib/utils",
+    "ui": "@aerealith-ai/ui/components"
+  }
+}

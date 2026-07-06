@@ -5,6 +5,7 @@ resolvePeersFromWorkspaceRoot: true
 dedupePeerDependents: true
 dedupeDirectDeps: true
 allowBuilds:
+  "@parcel/watcher": true
   "@swc/core": true
   esbuild: true
   nx: true

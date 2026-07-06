@@ -1,9 +1,12 @@
 /// <reference types="vitest" />
 
 import meticulous from '@alwaysmeticulous/recorder-plugin/vite'
+import tailwindcss from '@tailwindcss/vite'
 import { codecovVitePlugin } from '@codecov/vite-plugin'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
+
+const meticulousRecordingToken = process.env.METICULOUS_RECORDING_TOKEN
 
 export default defineConfig(({ mode }) => ({
   root: import.meta.dirname,
@@ -15,6 +18,8 @@ export default defineConfig(({ mode }) => ({
   },
 
   plugins: [
+    tailwindcss(),
+
     react(),
 
     codecovVitePlugin({
@@ -23,10 +28,14 @@ export default defineConfig(({ mode }) => ({
       uploadToken: process.env.CODECOV_TOKEN,
     }),
 
-    meticulous({
-      recordingToken: 'HKIg6HKVls9xOQOfFw5j6yNmdJ2M1dOiYqcIB25Q',
-      enabled: 'always',
-    }),
+    ...(meticulousRecordingToken
+      ? [
+          meticulous({
+            recordingToken: meticulousRecordingToken,
+            enabled: 'always',
+          }),
+        ]
+      : []),
   ],
 
   server: {
