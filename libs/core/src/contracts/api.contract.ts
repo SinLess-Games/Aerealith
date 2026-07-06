@@ -1,11 +1,5 @@
 export type ApiMethod =
-  | 'GET'
-  | 'POST'
-  | 'PUT'
-  | 'PATCH'
-  | 'DELETE'
-  | 'OPTIONS'
-  | 'HEAD'
+  'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS' | 'HEAD'
 
 export type ApiMeta = {
   requestId?: string
@@ -32,8 +26,7 @@ export type ApiErrorResponse<TCode extends string = string> = {
 }
 
 export type ApiResponse<TData = unknown, TCode extends string = string> =
-  | ApiSuccessResponse<TData>
-  | ApiErrorResponse<TCode>
+  ApiSuccessResponse<TData> | ApiErrorResponse<TCode>
 
 export type PaginationMeta = {
   page: number

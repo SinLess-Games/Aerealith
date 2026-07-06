@@ -47,11 +47,9 @@ function createDatabaseMock({
     orderBy: selectOrderBy,
     then<TResult1 = UserAccountRow[], TResult2 = never>(
       onfulfilled?:
-        | ((value: UserAccountRow[]) => TResult1 | PromiseLike<TResult1>)
-        | null,
+        ((value: UserAccountRow[]) => TResult1 | PromiseLike<TResult1>) | null,
       onrejected?:
-        | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
-        | null,
+        ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
     ): Promise<TResult1 | TResult2> {
       return Promise.resolve(selectedRows).then(onfulfilled, onrejected)
     },

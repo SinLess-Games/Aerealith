@@ -55,8 +55,7 @@ function createDatabaseMock({
         | ((value: UserPreferencesRow[]) => TResult1 | PromiseLike<TResult1>)
         | null,
       onrejected?:
-        | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
-        | null,
+        ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
     ): Promise<TResult1 | TResult2> {
       return Promise.resolve(selectedRows).then(onfulfilled, onrejected)
     },
