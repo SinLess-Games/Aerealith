@@ -250,13 +250,8 @@ jobs:
               done
 
               if [[ "${#found_configurations[@]}" -eq 0 ]]; then
-                echo '::error::No supported Wrangler configuration file was found for the frontend.'
-                echo "::error::Checked: ${config_candidates[*]}"
-                echo '::error::Create one config file or set CLOUDFLARE_WRANGLER_CONFIG_PATH.'
-                exit 1
-              fi
-
-              if [[ "${#found_configurations[@]}" -gt 1 ]]; then
+                skip_reason='Cloudflare preview deployment is not configured for the frontend.'
+              elif [[ "${#found_configurations[@]}" -gt 1 ]]; then
                 echo '::error::Multiple Wrangler configuration files were found.'
 
                 for configuration in "${found_configurations[@]}"; do
@@ -265,15 +260,17 @@ jobs:
 
                 echo '::error::Keep one supported config file or set CLOUDFLARE_WRANGLER_CONFIG_PATH.'
                 exit 1
+              else
+                wrangler_config_path="${found_configurations[0]}"
+                configuration_source='automatic discovery'
               fi
-
-              wrangler_config_path="${found_configurations[0]}"
-              configuration_source='automatic discovery'
             fi
 
-            wrangler_config_format="${wrangler_config_path##*.}"
-            deploy_enabled='true'
-            skip_reason='Ready to build and upload the Cloudflare preview version.'
+            if [[ -n "$wrangler_config_path" ]]; then
+              wrangler_config_format="${wrangler_config_path##*.}"
+              deploy_enabled='true'
+              skip_reason='Ready to build and upload the Cloudflare preview version.'
+            fi
           fi
 
           {

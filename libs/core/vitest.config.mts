@@ -4,6 +4,7 @@ export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../node_modules/.vite/libs/core',
   resolve: {
+    extensions: ['.ts', '.tsx', '.mts', '.js', '.jsx', '.mjs', '.json'],
     tsconfigPaths: true,
   },
   test: {

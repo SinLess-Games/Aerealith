@@ -2,7 +2,7 @@ name: aerealith-content-translation
 
 services:
   libretranslate:
-    image: libretranslate/libretranslate:latest
+    image: libretranslate/libretranslate:latest@sha256:fb17e836049824735f932f1884abc83974d06370fe8e9993dc3b23c4cb22e728
     container_name: aerealith-libretranslate
     restart: unless-stopped
     entrypoint:
@@ -33,12 +33,12 @@ services:
       start_period: 120s
 
   translator:
-    image: node:25-bookworm-slim
+    image: node:25-bookworm-slim@sha256:81db02c4b671288a03915da9534dbd54f96d0e7c24d80ccc54f5b36b2e684370
     profiles:
       - tools
     init: true
     working_dir: /workspace
-    user: "${UID:-1000}:${GID:-1000}"
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     entrypoint:
       - /workspace/node_modules/.bin/tsx
     environment:
