@@ -12,6 +12,23 @@ binding = "ASSETS"
 not_found_handling = "single-page-application"
 run_worker_first = ["/__aerealith/*"]
 
+[[kv_namespaces]]
+binding = "AEREALITH_KV"
+id = "9873b606bf1346aca48de61c9bb96968"
+
+[[r2_buckets]]
+binding = "AEREALITH_AI"
+bucket_name = "aerealith-ai"
+
+[[flagship]]
+binding = "FLAGSHIP_FLAGS"
+app_id = "2a1ca9ba-b446-4cb8-b8eb-ab0f3985679f"
+remote = true
+
+[[analytics_engine_datasets]]
+binding = "AEREALITH_ANALYTICS"
+dataset = "Aerealith"
+
 [observability]
 enabled = true
 
