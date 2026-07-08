@@ -149,3 +149,5 @@ Desktop.ini
 /megalinter-reports/
 /mega-linter.log
 .translation-cache/
+
+**/.obsidian/
