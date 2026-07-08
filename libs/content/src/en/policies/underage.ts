@@ -1,4 +1,4 @@
-import type { PolicyDocument } from '../../types';
+import type { PolicyDocument } from '../../types'
 
 export const underagePolicy = {
   slug: 'underage',
@@ -1210,6 +1210,6 @@ export const underagePolicy = {
       ],
     },
   ],
-} satisfies PolicyDocument;
+} satisfies PolicyDocument
 
-export default underagePolicy;
+export default underagePolicy

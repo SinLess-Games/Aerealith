@@ -1,4 +1,4 @@
-import type { EnglishContent } from '../en';
+import type { EnglishContent } from '../en'
 
 export type NonTranslatableStringKey =
   | 'component'
@@ -11,7 +11,7 @@ export type NonTranslatableStringKey =
   | 'slug'
   | 'src'
   | 'type'
-  | 'value';
+  | 'value'
 
 /** Recursively widens prose while preserving structural string literals. */
 export type TranslationTree<T, TKey = never> = T extends string
@@ -29,8 +29,8 @@ export type TranslationTree<T, TKey = never> = T extends string
             readonly [TChildKey in keyof T]: TranslationTree<
               T[TChildKey],
               TChildKey
-            >;
+            >
           }
-        : T;
+        : T
 
-export type TranslationContent = TranslationTree<EnglishContent>;
+export type TranslationContent = TranslationTree<EnglishContent>

@@ -1,4 +1,4 @@
-import type { PolicyDocument } from '../../types';
+import type { PolicyDocument } from '../../types'
 
 export const aiTransparencyPolicy = {
   slug: 'ai-transparency',
@@ -740,6 +740,6 @@ export const aiTransparencyPolicy = {
       ],
     },
   ],
-} satisfies PolicyDocument;
+} satisfies PolicyDocument
 
-export default aiTransparencyPolicy;
+export default aiTransparencyPolicy

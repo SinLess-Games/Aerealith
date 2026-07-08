@@ -1,8 +1,8 @@
-import { collectPlaceholders, collectUrls } from './placeholders';
+import { collectPlaceholders, collectUrls } from './placeholders'
 
 export interface TranslationValidationResult {
-  errors: string[];
-  warnings: string[];
+  errors: string[]
+  warnings: string[]
 }
 
 const PRESERVED_STRING_KEYS = new Set([
@@ -17,7 +17,7 @@ const PRESERVED_STRING_KEYS = new Set([
   'src',
   'type',
   'value',
-]);
+])
 
 const ACCESSIBILITY_KEYS = new Set([
   'alt',
@@ -25,16 +25,16 @@ const ACCESSIBILITY_KEYS = new Set([
   'ariaLabel',
   'label',
   'title',
-]);
+])
 
 export function validateTranslationShape(
   source: unknown,
   translation: unknown,
   rootPath = '',
 ): TranslationValidationResult {
-  const result: TranslationValidationResult = { errors: [], warnings: [] };
-  compareNode(source, translation, rootPath, result);
-  return result;
+  const result: TranslationValidationResult = { errors: [], warnings: [] }
+  compareNode(source, translation, rootPath, result)
+  return result
 }
 
 function compareNode(
@@ -44,57 +44,56 @@ function compareNode(
   result: TranslationValidationResult,
 ): void {
   if (typeof source === 'string') {
-    compareString(source, translation, path, result);
-    return;
+    compareString(source, translation, path, result)
+    return
   }
 
   if (Array.isArray(source)) {
     if (!Array.isArray(translation)) {
-      result.errors.push(`${path}: expected an array`);
-      return;
+      result.errors.push(`${path}: expected an array`)
+      return
     }
     if (source.length !== translation.length) {
       result.errors.push(
         `${path}: expected ${source.length} items, received ${translation.length}`,
-      );
+      )
     }
-    const sharedLength = Math.min(source.length, translation.length);
+    const sharedLength = Math.min(source.length, translation.length)
     for (let index = 0; index < sharedLength; index += 1) {
       compareNode(
         source[index],
         translation[index],
         joinPath(path, `${index}`),
         result,
-      );
+      )
     }
-    return;
+    return
   }
 
   if (isObject(source)) {
     if (!isObject(translation)) {
-      result.errors.push(`${path}: expected an object`);
-      return;
+      result.errors.push(`${path}: expected an object`)
+      return
     }
-    const sourceKeys = Object.keys(source);
-    const translationKeys = Object.keys(translation);
+    const sourceKeys = Object.keys(source)
+    const translationKeys = Object.keys(translation)
     for (const key of sourceKeys) {
-      const childPath = joinPath(path, key);
-      if (!(key in translation))
-        result.errors.push(`${childPath}: missing key`);
-      else compareNode(source[key], translation[key], childPath, result);
+      const childPath = joinPath(path, key)
+      if (!(key in translation)) result.errors.push(`${childPath}: missing key`)
+      else compareNode(source[key], translation[key], childPath, result)
     }
     for (const key of translationKeys) {
       if (!(key in source)) {
-        result.errors.push(`${joinPath(path, key)}: unknown key`);
+        result.errors.push(`${joinPath(path, key)}: unknown key`)
       }
     }
-    return;
+    return
   }
 
   if (source !== translation) {
     result.errors.push(
       `${path}: expected preserved value ${JSON.stringify(source)}, received ${JSON.stringify(translation)}`,
-    );
+    )
   }
 }
 
@@ -105,15 +104,15 @@ function compareString(
   result: TranslationValidationResult,
 ): void {
   if (typeof translation !== 'string') {
-    result.errors.push(`${path}: expected a string`);
-    return;
+    result.errors.push(`${path}: expected a string`)
+    return
   }
-  const key = path.split('.').at(-1) ?? '';
+  const key = path.split('.').at(-1) ?? ''
   if (PRESERVED_STRING_KEYS.has(key) && source !== translation) {
-    result.errors.push(`${path}: non-translatable value must remain unchanged`);
+    result.errors.push(`${path}: non-translatable value must remain unchanged`)
   }
   if (ACCESSIBILITY_KEYS.has(key) && translation.trim().length === 0) {
-    result.warnings.push(`${path}: accessibility text is empty`);
+    result.warnings.push(`${path}: accessibility text is empty`)
   }
   compareTokens(
     collectPlaceholders(source),
@@ -121,14 +120,14 @@ function compareString(
     path,
     'placeholder',
     result,
-  );
+  )
   compareTokens(
     collectUrls(source),
     collectUrls(translation),
     path,
     'URL',
     result,
-  );
+  )
 }
 
 function compareTokens(
@@ -141,14 +140,14 @@ function compareTokens(
   if (JSON.stringify(source) !== JSON.stringify(translation)) {
     result.errors.push(
       `${path}: ${kind} tokens differ (expected ${JSON.stringify(source)}, received ${JSON.stringify(translation)})`,
-    );
+    )
   }
 }
 
 function joinPath(parent: string, child: string): string {
-  return parent ? `${parent}.${child}` : child;
+  return parent ? `${parent}.${child}` : child
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }

@@ -1,20 +1,20 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest'
 import {
   ContactDescription,
   ContactHeader,
   ContactImage,
   contactOptions,
-} from '.';
+} from '.'
 
 describe('contact content', () => {
   it('provides labeled contact actions', () => {
-    expect(ContactHeader).toBeTruthy();
-    expect(ContactDescription).toBeTruthy();
-    expect(ContactImage).toMatch(/^\/images\//);
+    expect(ContactHeader).toBeTruthy()
+    expect(ContactDescription).toBeTruthy()
+    expect(ContactImage).toMatch(/^\/images\//)
     expect(
       contactOptions.every(
         (option) => option.title && option.href && option.buttonText,
       ),
-    ).toBe(true);
-  });
-});
+    ).toBe(true)
+  })
+})

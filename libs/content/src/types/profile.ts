@@ -1,40 +1,35 @@
 export type ProfileConnectionCategoryIcon =
-  | 'folder'
-  | 'integrations'
-  | 'code'
-  | 'connections'
-  | 'streaming'
-  | 'analytics';
+  'folder' | 'integrations' | 'code' | 'connections' | 'streaming' | 'analytics'
 
 export interface ProfileConnectionCategory {
-  label: string;
-  icon: ProfileConnectionCategoryIcon;
+  label: string
+  icon: ProfileConnectionCategoryIcon
 }
 
 export interface ProfileSelectOption {
-  label: string;
-  value: string;
+  label: string
+  value: string
 }
 
 export interface ProfileEditOptions {
-  contentMaturity: readonly ProfileSelectOption[];
-  countries: readonly ProfileSelectOption[];
-  dateFormats: readonly ProfileSelectOption[];
-  genders: readonly ProfileSelectOption[];
-  languageProficiencies: readonly ProfileSelectOption[];
-  languages: readonly ProfileSelectOption[];
-  measurementSystems: readonly ProfileSelectOption[];
-  nameDisplayOrders: readonly ProfileSelectOption[];
-  profileFieldVisibilities: readonly ProfileSelectOption[];
-  profileLinkPlatforms: readonly ProfileSelectOption[];
-  profileStatuses: readonly ProfileSelectOption[];
-  profileVisibilities: readonly ProfileSelectOption[];
-  sexes: readonly ProfileSelectOption[];
-  sexualities: readonly ProfileSelectOption[];
-  timeFormats: readonly ProfileSelectOption[];
-  timezoneGreenwich: readonly ProfileSelectOption[];
-  timezoneUtc: readonly ProfileSelectOption[];
-  weekStartDays: readonly ProfileSelectOption[];
+  contentMaturity: readonly ProfileSelectOption[]
+  countries: readonly ProfileSelectOption[]
+  dateFormats: readonly ProfileSelectOption[]
+  genders: readonly ProfileSelectOption[]
+  languageProficiencies: readonly ProfileSelectOption[]
+  languages: readonly ProfileSelectOption[]
+  measurementSystems: readonly ProfileSelectOption[]
+  nameDisplayOrders: readonly ProfileSelectOption[]
+  profileFieldVisibilities: readonly ProfileSelectOption[]
+  profileLinkPlatforms: readonly ProfileSelectOption[]
+  profileStatuses: readonly ProfileSelectOption[]
+  profileVisibilities: readonly ProfileSelectOption[]
+  sexes: readonly ProfileSelectOption[]
+  sexualities: readonly ProfileSelectOption[]
+  timeFormats: readonly ProfileSelectOption[]
+  timezoneGreenwich: readonly ProfileSelectOption[]
+  timezoneUtc: readonly ProfileSelectOption[]
+  weekStartDays: readonly ProfileSelectOption[]
 }
 
 export type ProfileTabValue =
@@ -46,14 +41,14 @@ export type ProfileTabValue =
   | 'connections'
   | 'integrations'
   | 'achievements'
-  | 'settings';
+  | 'settings'
 
 export interface ProfileTabItem {
-  label: string;
-  value: ProfileTabValue;
-  href: string;
-  publicHidden?: boolean;
-  privateOnly?: boolean;
+  label: string
+  value: ProfileTabValue
+  href: string
+  publicHidden?: boolean
+  privateOnly?: boolean
 }
 
 export type ProfileSidebarIcon =
@@ -63,18 +58,18 @@ export type ProfileSidebarIcon =
   | 'models'
   | 'connections'
   | 'integrations'
-  | 'settings';
+  | 'settings'
 
 export interface ProfileSidebarItem {
-  label: string;
-  href: string;
-  icon: ProfileSidebarIcon;
-  privateOnly?: boolean;
-  publicHidden?: boolean;
+  label: string
+  href: string
+  icon: ProfileSidebarIcon
+  privateOnly?: boolean
+  publicHidden?: boolean
 }
 
 export interface ProfileScaffoldContent {
-  tabs: readonly ProfileTabItem[];
-  sidebar: readonly ProfileSidebarItem[];
-  connectionCategories: readonly ProfileConnectionCategory[];
+  tabs: readonly ProfileTabItem[]
+  sidebar: readonly ProfileSidebarItem[]
+  connectionCategories: readonly ProfileConnectionCategory[]
 }

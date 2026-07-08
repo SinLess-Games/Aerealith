@@ -1,4 +1,4 @@
-import type { PolicyDocument } from '../../types';
+import type { PolicyDocument } from '../../types'
 
 export const cookieTrackingPolicy = {
   slug: 'cookie-tracking',
@@ -1187,6 +1187,6 @@ export const cookieTrackingPolicy = {
       ],
     },
   ],
-} satisfies PolicyDocument;
+} satisfies PolicyDocument
 
-export default cookieTrackingPolicy;
+export default cookieTrackingPolicy

@@ -1,4 +1,4 @@
-import { describe, expect, expectTypeOf, it } from 'vitest';
+import { describe, expect, expectTypeOf, it } from 'vitest'
 
 import type {
   CarouselContent,
@@ -6,11 +6,11 @@ import type {
   ComponentContent,
   PageContent,
   PageSection,
-} from '.';
+} from '.'
 
 interface FeatureProps {
-  readonly featureId: string;
-  readonly compact?: boolean;
+  readonly featureId: string
+  readonly compact?: boolean
 }
 
 describe('content types', () => {
@@ -33,34 +33,34 @@ describe('content types', () => {
           slides: [{ src: '/tour/slide-1.webp', alt: 'Product overview' }],
         },
       ],
-    } as const satisfies CarouselContent<FeatureProps>;
+    } as const satisfies CarouselContent<FeatureProps>
 
     const carouselSection: CarouselSection<FeatureProps> = {
       id: 'product-tour',
       type: 'carousel',
       title: 'See it in action',
       content: carousel,
-    };
+    }
 
     const page = {
       slug: 'home',
       metadata: { title: 'Aerealith', description: 'A private AI platform.' },
       sections: [carouselSection],
-    } as const satisfies PageContent;
+    } as const satisfies PageContent
 
-    expect(page.sections[0].content.items).toHaveLength(3);
+    expect(page.sections[0].content.items).toHaveLength(3)
     expectTypeOf(carousel.items[1]).toMatchTypeOf<
       ComponentContent<FeatureProps>
-    >();
-  });
+    >()
+  })
 
   it('allows pages to narrow their section union', () => {
     type MarketingSection =
       | CarouselSection<FeatureProps>
-      | (PageSection<{ readonly body: string }> & { readonly type: 'copy' });
+      | (PageSection<{ readonly body: string }> & { readonly type: 'copy' })
 
     expectTypeOf<PageContent<MarketingSection>['sections']>().toEqualTypeOf<
       readonly MarketingSection[]
-    >();
-  });
-});
+    >()
+  })
+})

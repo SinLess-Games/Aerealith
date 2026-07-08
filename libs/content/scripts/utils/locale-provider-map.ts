@@ -1,4 +1,4 @@
-import type { SupportedLocale } from '../../src/i18n/locale-types';
+import type { SupportedLocale } from '../../src/i18n/locale-types'
 
 export const libreTranslateLocaleCodes = {
   'en-US': 'en',
@@ -12,8 +12,8 @@ export const libreTranslateLocaleCodes = {
   'pl-PL': 'pl',
   'tr-TR': 'tr',
   'ko-KR': 'ko',
-  'zh-CN': 'zh',
-  'zh-TW': 'zh',
+  'zh-CN': 'zh-Hans',
+  'zh-TW': 'zh-Hant',
   'id-ID': 'id',
   'vi-VN': 'vi',
   'ru-RU': 'ru',
@@ -27,8 +27,8 @@ export const libreTranslateLocaleCodes = {
   'ro-RO': 'ro',
   ar: 'ar',
   'he-IL': 'he',
-} as const satisfies Record<SupportedLocale, string>;
+} as const satisfies Record<SupportedLocale, string>
 
 export function providerCodeForLocale(locale: SupportedLocale): string {
-  return libreTranslateLocaleCodes[locale];
+  return libreTranslateLocaleCodes[locale]
 }

@@ -1,5 +1,5 @@
 export interface AboutSection {
-  title: string;
-  icon?: string;
-  paragraphs: string[];
+  title: string
+  icon?: string
+  paragraphs: string[]
 }

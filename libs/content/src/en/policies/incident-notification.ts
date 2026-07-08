@@ -1,4 +1,4 @@
-import type { PolicyDocument } from '../../types';
+import type { PolicyDocument } from '../../types'
 
 export const incidentNotificationPolicy = {
   slug: 'incident-notification',
@@ -1060,6 +1060,6 @@ export const incidentNotificationPolicy = {
       ],
     },
   ],
-} satisfies PolicyDocument;
+} satisfies PolicyDocument
 
-export default incidentNotificationPolicy;
+export default incidentNotificationPolicy

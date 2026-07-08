@@ -3,14 +3,14 @@ import {
   AboutDescription,
   AboutHeader,
   AboutImage,
-} from './about';
+} from './about'
 import {
   ContactDescription,
   ContactHeader,
   ContactImage,
   contactOptions,
-} from './contact';
-import { footerProps } from './footer';
+} from './contact'
+import { footerProps } from './footer'
 import {
   HERO_DATA,
   INVESTOR_VIDEO,
@@ -19,16 +19,16 @@ import {
   faqSection,
   homeSections,
   pricingPreviewSection,
-} from './home';
-import { englishPolicies } from './policies';
-import { profileEditOptions, profileScaffoldContent } from './profile';
+} from './home'
+import { englishPolicies } from './policies'
+import { profileEditOptions, profileScaffoldContent } from './profile'
 
-export * from './about';
-export * from './contact';
-export * from './footer';
-export * from './home';
-export * from './policies';
-export * from './profile';
+export * from './about'
+export * from './contact'
+export * from './footer'
+export * from './home'
+export * from './policies'
+export * from './profile'
 
 /** Canonical, handwritten English content grouped by translation namespace. */
 export const englishContent = {
@@ -59,6 +59,6 @@ export const englishContent = {
     scaffold: profileScaffoldContent,
     editOptions: profileEditOptions,
   },
-} as const;
+} as const
 
-export type EnglishContent = typeof englishContent;
+export type EnglishContent = typeof englishContent

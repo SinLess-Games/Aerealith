@@ -1,4 +1,4 @@
-import type { PolicyDocument } from '../../types';
+import type { PolicyDocument } from '../../types'
 
 export const billingRefundCancellationPolicy = {
   slug: 'billing-refund-cancellation',
@@ -949,6 +949,6 @@ export const billingRefundCancellationPolicy = {
       ],
     },
   ],
-} satisfies PolicyDocument;
+} satisfies PolicyDocument
 
-export default billingRefundCancellationPolicy;
+export default billingRefundCancellationPolicy

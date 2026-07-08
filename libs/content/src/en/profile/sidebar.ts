@@ -1,4 +1,4 @@
-import type { ProfileSidebarItem } from '../../types';
+import type { ProfileSidebarItem } from '../../types'
 
 export const profileSidebar = [
   {
@@ -39,11 +39,11 @@ export const profileSidebar = [
     icon: 'settings',
     privateOnly: true,
   },
-] as const satisfies readonly ProfileSidebarItem[];
+] as const satisfies readonly ProfileSidebarItem[]
 
 /**
  * Backwards-compatible uppercase export.
  *
  * Prefer `profileSidebar` for new imports.
  */
-export const PROFILE_SIDEBAR = profileSidebar;
+export const PROFILE_SIDEBAR = profileSidebar

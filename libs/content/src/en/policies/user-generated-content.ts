@@ -1,4 +1,4 @@
-import type { PolicyDocument } from '../../types';
+import type { PolicyDocument } from '../../types'
 
 export const userGeneratedContentPolicy = {
   slug: 'user-generated-content',
@@ -1553,6 +1553,6 @@ export const userGeneratedContentPolicy = {
       ],
     },
   ],
-} satisfies PolicyDocument;
+} satisfies PolicyDocument
 
-export default userGeneratedContentPolicy;
+export default userGeneratedContentPolicy

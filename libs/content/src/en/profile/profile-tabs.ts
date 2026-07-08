@@ -1,4 +1,4 @@
-import type { ProfileTabItem } from '../../types';
+import type { ProfileTabItem } from '../../types'
 
 export const profileTabs = [
   {
@@ -51,11 +51,11 @@ export const profileTabs = [
     href: '#settings',
     privateOnly: true,
   },
-] as const satisfies readonly ProfileTabItem[];
+] as const satisfies readonly ProfileTabItem[]
 
 /**
  * Backwards-compatible uppercase export.
  *
  * Prefer `profileTabs` for new imports.
  */
-export const PROFILE_TABS = profileTabs;
+export const PROFILE_TABS = profileTabs

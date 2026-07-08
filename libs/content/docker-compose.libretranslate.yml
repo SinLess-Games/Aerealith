@@ -1,0 +1,54 @@
+name: aerealith-content-translation
+
+services:
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    container_name: aerealith-libretranslate
+    restart: unless-stopped
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        until python -c "import urllib.request; urllib.request.urlopen('https://raw.githubusercontent.com/argosopentech/argospm-index/main/index.json', timeout=15)"; do
+          echo 'Waiting for Docker outbound network before loading translation models...'
+          sleep 5
+        done
+        exec ./scripts/entrypoint.sh --host 0.0.0.0 --port 5000 --load-only en,es,pt,fr,de,ja,it,nl,pl,tr,ko,zh,zt,id,vi,ru,uk,sv,da,fi,nb,cs,hu,ro,ar,he
+    ports:
+      - "127.0.0.1:${LIBRETRANSLATE_PORT:-5000}:5000"
+    volumes:
+      - libretranslate-models:/home/libretranslate/.local
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import json, urllib.request;
+          data=json.load(urllib.request.urlopen('http://127.0.0.1:5000/languages', timeout=10));
+          assert isinstance(data, list) and len(data) > 0
+      interval: 15s
+      timeout: 12s
+      retries: 40
+      start_period: 120s
+
+  translator:
+    image: node:25-bookworm-slim
+    profiles:
+      - tools
+    init: true
+    working_dir: /workspace
+    user: "${UID:-1000}:${GID:-1000}"
+    entrypoint:
+      - /workspace/node_modules/.bin/tsx
+    environment:
+      LIBRETRANSLATE_URL: http://libretranslate:5000
+    volumes:
+      - ../..:/workspace
+    depends_on:
+      libretranslate:
+        condition: service_healthy
+
+volumes:
+  libretranslate-models:
+    name: aerealith-libretranslate-models

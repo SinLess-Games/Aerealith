@@ -1,4 +1,4 @@
-import type { PolicyDocument } from '../../types';
+import type { PolicyDocument } from '../../types'
 
 export const securityPolicy = {
   slug: 'security-policy',
@@ -1735,6 +1735,6 @@ export const securityPolicy = {
       ],
     },
   ],
-} satisfies PolicyDocument;
+} satisfies PolicyDocument
 
-export default securityPolicy;
+export default securityPolicy

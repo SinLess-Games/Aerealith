@@ -1,36 +1,36 @@
-import type { ContentId } from './shared.types';
+import type { ContentId } from './shared.types'
 
-export type ImageFit = 'contain' | 'cover';
+export type ImageFit = 'contain' | 'cover'
 
 export interface ImageContent {
-  readonly type: 'image';
-  readonly id?: ContentId;
-  readonly src: string;
-  readonly alt: string;
-  readonly width?: number;
-  readonly height?: number;
-  readonly fit?: ImageFit;
-  readonly caption?: string;
+  readonly type: 'image'
+  readonly id?: ContentId
+  readonly src: string
+  readonly alt: string
+  readonly width?: number
+  readonly height?: number
+  readonly fit?: ImageFit
+  readonly caption?: string
 }
 
 export interface VideoSource {
-  readonly src: string;
-  readonly type?: string;
+  readonly src: string
+  readonly type?: string
 }
 
 export interface VideoContent {
-  readonly type: 'video';
-  readonly id?: ContentId;
-  readonly src: string;
-  readonly sources?: readonly VideoSource[];
-  readonly title: string;
-  readonly poster?: string;
-  readonly captions?: string;
-  readonly transcript?: string;
-  readonly autoPlay?: boolean;
-  readonly controls?: boolean;
-  readonly loop?: boolean;
-  readonly muted?: boolean;
+  readonly type: 'video'
+  readonly id?: ContentId
+  readonly src: string
+  readonly sources?: readonly VideoSource[]
+  readonly title: string
+  readonly poster?: string
+  readonly captions?: string
+  readonly transcript?: string
+  readonly autoPlay?: boolean
+  readonly controls?: boolean
+  readonly loop?: boolean
+  readonly muted?: boolean
 }
 
 /**
@@ -40,12 +40,12 @@ export interface VideoContent {
  * can be narrowed per page or component registry.
  */
 export interface ComponentContent<TProps = Readonly<Record<string, unknown>>> {
-  readonly type: 'component';
-  readonly id?: ContentId;
-  readonly component: string;
-  readonly props: TProps;
-  readonly label?: string;
+  readonly type: 'component'
+  readonly id?: ContentId
+  readonly component: string
+  readonly props: TProps
+  readonly label?: string
 }
 
 export type MediaContent<TComponentProps = Readonly<Record<string, unknown>>> =
-  ImageContent | VideoContent | ComponentContent<TComponentProps>;
+  ImageContent | VideoContent | ComponentContent<TComponentProps>

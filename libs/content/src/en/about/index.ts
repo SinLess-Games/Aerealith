@@ -1,4 +1,4 @@
-import type { AboutSection } from '../../types';
+import type { AboutSection } from '../../types'
 
 /**
  * Primary About page image.
@@ -12,12 +12,12 @@ import type { AboutSection } from '../../types';
  * @readonly
  * @decorator image
  */
-export const AboutImage = '/images/pages/about/about-us.png' as const;
+export const AboutImage = '/images/pages/about/about-us.png' as const
 
 export const AboutDescription =
-  'Helix AI is an adaptive digital companion and secure command center built to bring apps, data, automations, communities, dashboards, files, integrations, and workflows into one intelligent platform. Instead of forcing users to jump between disconnected tools, scattered information, manual processes, and isolated AI assistants, Helix is being designed to help people connect what matters, understand what is happening, and take action from one trusted place. It is built around user control, permissioned memory, transparent automation, scoped integrations, responsible AI behavior, and clear privacy boundaries. Helix is meant to support practical everyday use while also growing into a platform for creators, developers, teams, infrastructure operators, communities, and businesses. Whether someone is organizing personal tasks, managing a Discord community, building software, monitoring systems, or coordinating work across multiple platforms, Helix is designed to reduce friction and make complex information easier to use. The long-term vision is one flexible assistant layer that can support personal workflows, community operations, developer tooling, business systems, self-hosted environments, and enterprise-ready deployments.';
+  'Helix AI is an adaptive digital companion and secure command center built to bring apps, data, automations, communities, dashboards, files, integrations, and workflows into one intelligent platform. Instead of forcing users to jump between disconnected tools, scattered information, manual processes, and isolated AI assistants, Helix is being designed to help people connect what matters, understand what is happening, and take action from one trusted place. It is built around user control, permissioned memory, transparent automation, scoped integrations, responsible AI behavior, and clear privacy boundaries. Helix is meant to support practical everyday use while also growing into a platform for creators, developers, teams, infrastructure operators, communities, and businesses. Whether someone is organizing personal tasks, managing a Discord community, building software, monitoring systems, or coordinating work across multiple platforms, Helix is designed to reduce friction and make complex information easier to use. The long-term vision is one flexible assistant layer that can support personal workflows, community operations, developer tooling, business systems, self-hosted environments, and enterprise-ready deployments.'
 
-export const AboutHeader = 'About Helix AI';
+export const AboutHeader = 'About Helix AI'
 
 export const aboutContent = [
   {
@@ -101,11 +101,11 @@ export const aboutContent = [
       'More team details, contributor information, project history, technical documentation, and public roadmap updates will be published as the platform and supporting documentation mature.',
     ],
   },
-] as const satisfies readonly AboutSection[];
+] as const satisfies readonly AboutSection[]
 
 /**
  * Backward-compatible PascalCase export.
  *
  * Prefer `aboutContent` for new imports.
  */
-export const AboutContent = aboutContent;
+export const AboutContent = aboutContent

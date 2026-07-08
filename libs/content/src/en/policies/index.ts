@@ -1,22 +1,22 @@
-import type { PolicyDocument } from '../../types';
+import type { PolicyDocument } from '../../types'
 
-import acceptableUsePolicy from './acceptable-use';
-import aiTransparencyPolicy from './ai-transparency';
-import billingRefundCancellationPolicy from './billing-refund-cancellation';
-import cookieTrackingPolicy from './cookie-tracking';
-import copyrightTakedownPolicy from './copyright-takedown';
-import dataPolicy from './data';
-import developerPolicy from './developer';
-import incidentNotificationPolicy from './incident-notification';
-import paymentProcessorCompliancePolicy from './payment-processor-compliance';
-import privacyPolicy from './privacy';
-import responsibleAiPolicy from './responsible-ai';
-import securityPolicy from './security';
-import subprocessorVendorListPolicy from './subprocessor-vendor-list';
-import supportPolicy from './support';
-import termsOfUsePolicy from './terms-of-use';
-import underagePolicy from './underage';
-import userGeneratedContentPolicy from './user-generated-content';
+import acceptableUsePolicy from './acceptable-use'
+import aiTransparencyPolicy from './ai-transparency'
+import billingRefundCancellationPolicy from './billing-refund-cancellation'
+import cookieTrackingPolicy from './cookie-tracking'
+import copyrightTakedownPolicy from './copyright-takedown'
+import dataPolicy from './data'
+import developerPolicy from './developer'
+import incidentNotificationPolicy from './incident-notification'
+import paymentProcessorCompliancePolicy from './payment-processor-compliance'
+import privacyPolicy from './privacy'
+import responsibleAiPolicy from './responsible-ai'
+import securityPolicy from './security'
+import subprocessorVendorListPolicy from './subprocessor-vendor-list'
+import supportPolicy from './support'
+import termsOfUsePolicy from './terms-of-use'
+import underagePolicy from './underage'
+import userGeneratedContentPolicy from './user-generated-content'
 
 export {
   acceptableUsePolicy,
@@ -36,7 +36,7 @@ export {
   termsOfUsePolicy,
   underagePolicy,
   userGeneratedContentPolicy,
-};
+}
 
 export const englishPolicies = [
   termsOfUsePolicy,
@@ -56,10 +56,10 @@ export const englishPolicies = [
   underagePolicy,
   userGeneratedContentPolicy,
   developerPolicy,
-] as const satisfies readonly PolicyDocument[];
+] as const satisfies readonly PolicyDocument[]
 
 export const policiesBySlug: Readonly<Record<string, PolicyDocument>> =
-  Object.fromEntries(englishPolicies.map((policy) => [policy.slug, policy]));
+  Object.fromEntries(englishPolicies.map((policy) => [policy.slug, policy]))
 
 export const policiesByPath: Readonly<Record<string, PolicyDocument>> =
-  Object.fromEntries(englishPolicies.map((policy) => [policy.path, policy]));
+  Object.fromEntries(englishPolicies.map((policy) => [policy.path, policy]))

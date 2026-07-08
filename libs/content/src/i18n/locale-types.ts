@@ -5,10 +5,10 @@ export const localeLaunchStages = [
   'community-global',
   'eu-nordic',
   'rtl-later',
-] as const;
+] as const
 
-export type LocaleLaunchStage = (typeof localeLaunchStages)[number];
-export type LocaleDirection = 'ltr' | 'rtl';
+export type LocaleLaunchStage = (typeof localeLaunchStages)[number]
+export type LocaleDirection = 'ltr' | 'rtl'
 
 export const supportedLocales = {
   'en-US': {
@@ -108,18 +108,18 @@ export const supportedLocales = {
 } as const satisfies Record<
   string,
   {
-    readonly name: string;
-    readonly stage: LocaleLaunchStage;
-    readonly direction: LocaleDirection;
+    readonly name: string
+    readonly stage: LocaleLaunchStage
+    readonly direction: LocaleDirection
   }
->;
+>
 
-export type SupportedLocale = keyof typeof supportedLocales;
-export type SourceLocale = 'en-US';
-export const sourceLocale: SourceLocale = 'en-US';
+export type SupportedLocale = keyof typeof supportedLocales
+export type SourceLocale = 'en-US'
+export const sourceLocale: SourceLocale = 'en-US'
 
 export function isSupportedLocale(locale: string): locale is SupportedLocale {
-  return locale in supportedLocales;
+  return locale in supportedLocales
 }
 
 export function localesForStage(
@@ -127,5 +127,5 @@ export function localesForStage(
 ): readonly SupportedLocale[] {
   return (Object.keys(supportedLocales) as SupportedLocale[]).filter(
     (locale) => supportedLocales[locale].stage === stage,
-  );
+  )
 }

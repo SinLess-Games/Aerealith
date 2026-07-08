@@ -2,4 +2,4 @@
 export {
   paymentProcessorCompliancePolicy,
   default,
-} from './payment-processor-compliance';
+} from './payment-processor-compliance'

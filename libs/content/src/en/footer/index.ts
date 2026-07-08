@@ -1,4 +1,4 @@
-import type { FooterProps } from '../../types';
+import type { FooterProps } from '../../types'
 
 export const footerProps = {
   brandName: 'Helix AI',
@@ -142,6 +142,6 @@ export const footerProps = {
 
   copyrightHolder: 'SinLess Games LLC',
   copyrightStartYear: 2026,
-} as const satisfies FooterProps;
+} as const satisfies FooterProps
 
-export default footerProps;
+export default footerProps

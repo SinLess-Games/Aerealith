@@ -1,7 +1,7 @@
 // libs/content/src/en/home/sections.ts
 
-import { crowdfundingSection } from './crowdfunding';
-import { pricingPreviewSection } from './pricing';
+import { crowdfundingSection } from './crowdfunding'
+import { pricingPreviewSection } from './pricing'
 
 /**
  * Public path for Home page infographic images.
@@ -15,7 +15,7 @@ import { pricingPreviewSection } from './pricing';
  * @readonly
  * @decorator path
  */
-export const INFOGRAPHICS_PUBLIC_PATH = '/images/marketing/infographics';
+export const INFOGRAPHICS_PUBLIC_PATH = '/images/marketing/infographics'
 
 /**
  * Public path for Home page product preview images.
@@ -29,7 +29,7 @@ export const INFOGRAPHICS_PUBLIC_PATH = '/images/marketing/infographics';
  * @readonly
  * @decorator path
  */
-export const PRODUCT_PREVIEW_PATH = '/images/pages/home/product-preview';
+export const PRODUCT_PREVIEW_PATH = '/images/pages/home/product-preview'
 
 /**
  * Maximum number of media files to scan when using auto-discovery.
@@ -39,7 +39,7 @@ export const PRODUCT_PREVIEW_PATH = '/images/pages/home/product-preview';
  * @readonly
  * @decorator config
  */
-export const DEFAULT_MEDIA_MAX_SCAN_COUNT = 100;
+export const DEFAULT_MEDIA_MAX_SCAN_COUNT = 100
 
 /**
  * First media index to scan when using indexed media filenames.
@@ -49,7 +49,7 @@ export const DEFAULT_MEDIA_MAX_SCAN_COUNT = 100;
  * @readonly
  * @decorator config
  */
-export const DEFAULT_MEDIA_START_INDEX = 1;
+export const DEFAULT_MEDIA_START_INDEX = 1
 
 /**
  * Number of missing indexed files allowed before stopping media discovery.
@@ -59,7 +59,7 @@ export const DEFAULT_MEDIA_START_INDEX = 1;
  * @readonly
  * @decorator config
  */
-export const DEFAULT_MEDIA_STOP_AFTER_MISSES = 1;
+export const DEFAULT_MEDIA_STOP_AFTER_MISSES = 1
 
 /**
  * Supported Home page section component identifiers.
@@ -69,7 +69,7 @@ export const DEFAULT_MEDIA_STOP_AFTER_MISSES = 1;
  * @decorator component
  */
 export type HomeSectionComponent =
-  'marketing-section' | 'crowdfunding-section' | 'pricing-preview-section';
+  'marketing-section' | 'crowdfunding-section' | 'pricing-preview-section'
 
 /**
  * Shared carousel configuration for Home page media sections.
@@ -79,36 +79,36 @@ export type HomeSectionComponent =
  * @decorator carousel
  */
 export type HomeCarouselConfig = {
-  autoDiscoverImages?: boolean;
-  imageBasePath?: string;
-  imageFilePrefix?: string;
-  imageExtension?: string;
-  startIndex?: number;
-  maxImages?: number;
-  stopAfterMisses?: number;
-  imageAltPrefix?: string;
-  imageTitlePrefix?: string;
+  autoDiscoverImages?: boolean
+  imageBasePath?: string
+  imageFilePrefix?: string
+  imageExtension?: string
+  startIndex?: number
+  maxImages?: number
+  stopAfterMisses?: number
+  imageAltPrefix?: string
+  imageTitlePrefix?: string
 
-  autoScroll?: boolean;
-  autoScrollInterval?: number;
-  pauseOnHover?: boolean;
-  pauseOnFocus?: boolean;
-  pauseOnVideoPlay?: boolean;
-  loop?: boolean;
-  showArrows?: boolean;
-  showPagination?: boolean;
-  showProgress?: boolean;
-  showCaptions?: boolean;
-  showFullscreenButton?: boolean;
-  fullscreen?: boolean;
-  aspectRatio?: string | number;
-  objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
-  objectPosition?: string;
-  rounded?: boolean;
-  bordered?: boolean;
-  elevated?: boolean;
-  imageSizes?: string;
-};
+  autoScroll?: boolean
+  autoScrollInterval?: number
+  pauseOnHover?: boolean
+  pauseOnFocus?: boolean
+  pauseOnVideoPlay?: boolean
+  loop?: boolean
+  showArrows?: boolean
+  showPagination?: boolean
+  showProgress?: boolean
+  showCaptions?: boolean
+  showFullscreenButton?: boolean
+  fullscreen?: boolean
+  aspectRatio?: string | number
+  objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down'
+  objectPosition?: string
+  rounded?: boolean
+  bordered?: boolean
+  elevated?: boolean
+  imageSizes?: string
+}
 
 /**
  * Marketing section configuration for Home page content.
@@ -118,44 +118,44 @@ export type HomeCarouselConfig = {
  * @decorator section
  */
 export type HomeMarketingSectionConfig = {
-  component: 'marketing-section';
-  id: string;
+  component: 'marketing-section'
+  id: string
 
-  eyebrow?: string;
-  title: string;
-  subtitle?: string;
-  description?: string;
-  body?: string;
-  footnote?: string;
+  eyebrow?: string
+  title: string
+  subtitle?: string
+  description?: string
+  body?: string
+  footnote?: string
 
-  variant?: 'default' | 'plain' | 'surface' | 'glass' | 'gradient' | 'dark';
-  spacingY?: 'none' | 'compact' | 'normal' | 'spacious';
-  align?: 'left' | 'center' | 'right';
-  tone?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'error';
-  copyVariant?: 'default' | 'hero' | 'section' | 'compact' | 'callout';
+  variant?: 'default' | 'plain' | 'surface' | 'glass' | 'gradient' | 'dark'
+  spacingY?: 'none' | 'compact' | 'normal' | 'spacious'
+  align?: 'left' | 'center' | 'right'
+  tone?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'error'
+  copyVariant?: 'default' | 'hero' | 'section' | 'compact' | 'callout'
 
-  maxWidth?: number | string;
-  copyMaxWidth?: number | string;
-  mediaMaxWidth?: number | string;
+  maxWidth?: number | string
+  copyMaxWidth?: number | string
+  mediaMaxWidth?: number | string
 
-  fullHeight?: boolean;
-  centerContent?: boolean;
+  fullHeight?: boolean
+  centerContent?: boolean
 
-  mediaPosition?: 'left' | 'right' | 'top' | 'bottom';
-  mediaFirstOnMobile?: boolean;
-  mediaBreakpoint?: 'sm' | 'md' | 'lg' | 'xl';
-  gridColumns?: readonly [string, string];
+  mediaPosition?: 'left' | 'right' | 'top' | 'bottom'
+  mediaFirstOnMobile?: boolean
+  mediaBreakpoint?: 'sm' | 'md' | 'lg' | 'xl'
+  gridColumns?: readonly [string, string]
 
-  featureLayout?: 'none' | 'grid' | 'carousel';
-  carouselProps?: HomeCarouselConfig;
+  featureLayout?: 'none' | 'grid' | 'carousel'
+  carouselProps?: HomeCarouselConfig
 
   copyProps?: {
-    titleComponent?: string;
-    titleVariant?: string;
-    subtitleVariant?: string;
-    descriptionVariant?: string;
-  };
-};
+    titleComponent?: string
+    titleVariant?: string
+    subtitleVariant?: string
+    descriptionVariant?: string
+  }
+}
 
 /**
  * Crowdfunding section configuration for the Home page.
@@ -165,20 +165,20 @@ export type HomeMarketingSectionConfig = {
  * @decorator section
  */
 export type HomeCrowdfundingSectionConfig = {
-  component: 'crowdfunding-section';
-  id: string;
-  content: typeof crowdfundingSection;
+  component: 'crowdfunding-section'
+  id: string
+  content: typeof crowdfundingSection
 
-  variant?: 'default' | 'plain' | 'surface' | 'glass' | 'gradient' | 'dark';
-  spacingY?: 'none' | 'compact' | 'normal' | 'spacious';
-  align?: 'left' | 'center' | 'right';
-  tone?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'error';
-  copyVariant?: 'default' | 'hero' | 'section' | 'compact' | 'callout';
+  variant?: 'default' | 'plain' | 'surface' | 'glass' | 'gradient' | 'dark'
+  spacingY?: 'none' | 'compact' | 'normal' | 'spacious'
+  align?: 'left' | 'center' | 'right'
+  tone?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'error'
+  copyVariant?: 'default' | 'hero' | 'section' | 'compact' | 'callout'
 
-  maxWidth?: number | string;
-  copyMaxWidth?: number | string;
-  mediaPosition?: 'left' | 'right' | 'top' | 'bottom';
-};
+  maxWidth?: number | string
+  copyMaxWidth?: number | string
+  mediaPosition?: 'left' | 'right' | 'top' | 'bottom'
+}
 
 /**
  * Pricing preview section configuration for the Home page.
@@ -188,20 +188,20 @@ export type HomeCrowdfundingSectionConfig = {
  * @decorator section
  */
 export type HomePricingPreviewSectionConfig = {
-  component: 'pricing-preview-section';
-  id: string;
-  content: typeof pricingPreviewSection;
+  component: 'pricing-preview-section'
+  id: string
+  content: typeof pricingPreviewSection
 
-  variant?: 'default' | 'plain' | 'surface' | 'glass' | 'gradient' | 'dark';
-  spacingY?: 'none' | 'compact' | 'normal' | 'spacious';
-  align?: 'left' | 'center' | 'right';
-  tone?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'error';
-  copyVariant?: 'default' | 'hero' | 'section' | 'compact' | 'callout';
+  variant?: 'default' | 'plain' | 'surface' | 'glass' | 'gradient' | 'dark'
+  spacingY?: 'none' | 'compact' | 'normal' | 'spacious'
+  align?: 'left' | 'center' | 'right'
+  tone?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'error'
+  copyVariant?: 'default' | 'hero' | 'section' | 'compact' | 'callout'
 
-  maxWidth?: number | string;
-  copyMaxWidth?: number | string;
-  mediaPosition?: 'left' | 'right' | 'top' | 'bottom';
-};
+  maxWidth?: number | string
+  copyMaxWidth?: number | string
+  mediaPosition?: 'left' | 'right' | 'top' | 'bottom'
+}
 
 /**
  * Union of supported Home page section configurations.
@@ -213,7 +213,7 @@ export type HomePricingPreviewSectionConfig = {
 export type HomeSectionConfig =
   | HomeMarketingSectionConfig
   | HomeCrowdfundingSectionConfig
-  | HomePricingPreviewSectionConfig;
+  | HomePricingPreviewSectionConfig
 
 /**
  * Full Home page content configuration.
@@ -223,9 +223,9 @@ export type HomeSectionConfig =
  * @decorator page
  */
 export type HomePageContentConfig = {
-  pageTitle: string;
-  sections: readonly HomeSectionConfig[];
-};
+  pageTitle: string
+  sections: readonly HomeSectionConfig[]
+}
 
 /**
  * Carousel configuration for Home page infographic media.
@@ -265,7 +265,7 @@ export const infographicCarouselProps = {
   bordered: true,
   elevated: true,
   imageSizes: '(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px',
-} as const satisfies HomeCarouselConfig;
+} as const satisfies HomeCarouselConfig
 
 /**
  * Carousel configuration for Home page product preview media.
@@ -311,7 +311,7 @@ export const productPreviewCarouselProps = {
   bordered: true,
   elevated: true,
   imageSizes: '(max-width: 768px) 100vw, (max-width: 1200px) 48vw, 860px',
-} as const satisfies HomeCarouselConfig;
+} as const satisfies HomeCarouselConfig
 
 /**
  * Home page hero section.
@@ -341,7 +341,7 @@ export const homeHeroSection = {
     titleComponent: 'h1',
     titleVariant: 'h1',
   },
-} as const satisfies HomeMarketingSectionConfig;
+} as const satisfies HomeMarketingSectionConfig
 
 /**
  * Home page infographic carousel section.
@@ -373,7 +373,7 @@ export const homeInfographicsSection = {
     titleComponent: 'h2',
     titleVariant: 'h2',
   },
-} as const satisfies HomeMarketingSectionConfig;
+} as const satisfies HomeMarketingSectionConfig
 
 /**
  * Home page product preview section.
@@ -408,7 +408,7 @@ export const productPreviewSection = {
     titleComponent: 'h2',
     titleVariant: 'h2',
   },
-} as const satisfies HomeMarketingSectionConfig;
+} as const satisfies HomeMarketingSectionConfig
 
 /**
  * Home page crowdfunding section.
@@ -430,7 +430,7 @@ export const homeCrowdfundingSection = {
   maxWidth: '100%',
   copyMaxWidth: 1180,
   mediaPosition: 'bottom',
-} as const satisfies HomeCrowdfundingSectionConfig;
+} as const satisfies HomeCrowdfundingSectionConfig
 
 /**
  * Home page pricing preview section.
@@ -452,7 +452,7 @@ export const homePricingPreviewSection = {
   maxWidth: '100%',
   copyMaxWidth: '100%',
   mediaPosition: 'bottom',
-} as const satisfies HomePricingPreviewSectionConfig;
+} as const satisfies HomePricingPreviewSectionConfig
 
 /**
  * Ordered Home page sections.
@@ -468,7 +468,7 @@ export const homeSections = [
   productPreviewSection,
   homeCrowdfundingSection,
   homePricingPreviewSection,
-] as const satisfies readonly HomeSectionConfig[];
+] as const satisfies readonly HomeSectionConfig[]
 
 /**
  * Full Home page content object.
@@ -481,7 +481,7 @@ export const homeSections = [
 export const homePageContent = {
   pageTitle: 'Aerealith AI',
   sections: homeSections,
-} as const satisfies HomePageContentConfig;
+} as const satisfies HomePageContentConfig
 
 /**
  * Backwards-compatible PascalCase export.
@@ -493,7 +493,7 @@ export const homePageContent = {
  * @readonly
  * @decorator alias
  */
-export const HOME_PAGE_CONTENT = homePageContent;
+export const HOME_PAGE_CONTENT = homePageContent
 
 /**
  * Backwards-compatible uppercase export.
@@ -505,7 +505,7 @@ export const HOME_PAGE_CONTENT = homePageContent;
  * @readonly
  * @decorator alias
  */
-export const PRODUCT_PREVIEW_CAROUSEL_CONFIG = productPreviewCarouselProps;
+export const PRODUCT_PREVIEW_CAROUSEL_CONFIG = productPreviewCarouselProps
 
 /**
  * Backwards-compatible uppercase export.
@@ -517,4 +517,4 @@ export const PRODUCT_PREVIEW_CAROUSEL_CONFIG = productPreviewCarouselProps;
  * @readonly
  * @decorator alias
  */
-export const INFOGRAPHIC_CAROUSEL_CONFIG = infographicCarouselProps;
+export const INFOGRAPHIC_CAROUSEL_CONFIG = infographicCarouselProps

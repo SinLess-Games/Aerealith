@@ -8,7 +8,7 @@
  * @readonly
  * @decorator config
  */
-export const DIFFERENTIATOR_PAGE_SIZE = 4;
+export const DIFFERENTIATOR_PAGE_SIZE = 4
 
 /**
  * Differentiator carousel transition duration in milliseconds.
@@ -18,7 +18,7 @@ export const DIFFERENTIATOR_PAGE_SIZE = 4;
  * @readonly
  * @decorator config
  */
-export const DIFFERENTIATOR_TRANSITION_MS = 260;
+export const DIFFERENTIATOR_TRANSITION_MS = 260
 
 /**
  * Aerealith AI differentiator card item.
@@ -28,12 +28,12 @@ export const DIFFERENTIATOR_TRANSITION_MS = 260;
  * @decorator content
  */
 export type AerealithDifferentiatorItem = {
-  id?: string;
-  title: string;
-  description: string;
-  icon?: string;
-  badge?: string;
-};
+  id?: string
+  title: string
+  description: string
+  icon?: string
+  badge?: string
+}
 
 /**
  * Backward-compatible type alias.
@@ -44,7 +44,7 @@ export type AerealithDifferentiatorItem = {
  * @type
  * @decorator alias
  */
-export type HelixDifferentiatorItem = AerealithDifferentiatorItem;
+export type HelixDifferentiatorItem = AerealithDifferentiatorItem
 
 /**
  * Home page "different" section content configuration.
@@ -54,86 +54,86 @@ export type HelixDifferentiatorItem = AerealithDifferentiatorItem;
  * @decorator section
  */
 export type DifferentSectionContent = {
-  component: 'marketing-section';
-  id: string;
+  component: 'marketing-section'
+  id: string
 
-  eyebrow?: string;
-  title: string;
-  description?: string;
-  body?: string;
+  eyebrow?: string
+  title: string
+  description?: string
+  body?: string
 
-  variant?: 'default' | 'plain' | 'surface' | 'glass' | 'gradient' | 'dark';
-  spacingY?: 'none' | 'compact' | 'normal' | 'spacious';
-  align?: 'left' | 'center' | 'right';
-  tone?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'error';
-  copyVariant?: 'default' | 'hero' | 'section' | 'compact' | 'callout';
+  variant?: 'default' | 'plain' | 'surface' | 'glass' | 'gradient' | 'dark'
+  spacingY?: 'none' | 'compact' | 'normal' | 'spacious'
+  align?: 'left' | 'center' | 'right'
+  tone?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'error'
+  copyVariant?: 'default' | 'hero' | 'section' | 'compact' | 'callout'
 
-  maxWidth?: number | string;
-  copyMaxWidth?: number | string;
-  mediaMaxWidth?: number | string;
-  centerContent?: boolean;
+  maxWidth?: number | string
+  copyMaxWidth?: number | string
+  mediaMaxWidth?: number | string
+  centerContent?: boolean
 
-  mediaPosition?: 'left' | 'right' | 'top' | 'bottom';
-  mediaBreakpoint?: 'sm' | 'md' | 'lg' | 'xl';
-  mediaFirstOnMobile?: boolean;
-  gridColumns?: readonly [string, string];
+  mediaPosition?: 'left' | 'right' | 'top' | 'bottom'
+  mediaBreakpoint?: 'sm' | 'md' | 'lg' | 'xl'
+  mediaFirstOnMobile?: boolean
+  gridColumns?: readonly [string, string]
 
-  featureLayout?: 'none' | 'grid' | 'carousel';
-  features?: readonly AerealithDifferentiatorItem[];
+  featureLayout?: 'none' | 'grid' | 'carousel'
+  features?: readonly AerealithDifferentiatorItem[]
 
   featureGridProps?: {
     columns?:
       | number
       | {
-          xs?: number;
-          sm?: number;
-          md?: number;
-          lg?: number;
-          xl?: number;
-        };
+          xs?: number
+          sm?: number
+          md?: number
+          lg?: number
+          xl?: number
+        }
     gap?:
       | number
       | string
       | {
-          xs?: number | string;
-          sm?: number | string;
-          md?: number | string;
-          lg?: number | string;
-          xl?: number | string;
-        };
-    maxWidth?: number | string;
-    centered?: boolean;
-    cardFullHeight?: boolean;
-    compactCards?: boolean;
-  };
+          xs?: number | string
+          sm?: number | string
+          md?: number | string
+          lg?: number | string
+          xl?: number | string
+        }
+    maxWidth?: number | string
+    centered?: boolean
+    cardFullHeight?: boolean
+    compactCards?: boolean
+  }
 
   carouselProps?: {
-    autoScroll?: boolean;
-    autoScrollInterval?: number;
-    pauseOnHover?: boolean;
-    pauseOnFocus?: boolean;
-    pauseOnVideoPlay?: boolean;
-    loop?: boolean;
-    showArrows?: boolean;
-    showPagination?: boolean;
-    showProgress?: boolean;
-    showCaptions?: boolean;
-    showFullscreenButton?: boolean;
-    fullscreen?: boolean;
-    aspectRatio?: string | number;
-    objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
-    objectPosition?: string;
-    rounded?: boolean;
-    bordered?: boolean;
-    elevated?: boolean;
-    imageSizes?: string;
-  };
+    autoScroll?: boolean
+    autoScrollInterval?: number
+    pauseOnHover?: boolean
+    pauseOnFocus?: boolean
+    pauseOnVideoPlay?: boolean
+    loop?: boolean
+    showArrows?: boolean
+    showPagination?: boolean
+    showProgress?: boolean
+    showCaptions?: boolean
+    showFullscreenButton?: boolean
+    fullscreen?: boolean
+    aspectRatio?: string | number
+    objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down'
+    objectPosition?: string
+    rounded?: boolean
+    bordered?: boolean
+    elevated?: boolean
+    imageSizes?: string
+  }
 
   copyProps?: {
-    titleComponent?: string;
-    titleVariant?: string;
-  };
-};
+    titleComponent?: string
+    titleVariant?: string
+  }
+}
 
 /**
  * Main body copy for the "Built Different" section.
@@ -144,7 +144,7 @@ export type DifferentSectionContent = {
  * @decorator content
  */
 export const aerealithDifferenceBody =
-  'Aerealith AI is being designed as more than a chatbot. It is a secure, extensible assistant platform built around user-owned data, contextual memory, automations, integrations, analytics, and transparent control. The goal is to make your digital systems easier to understand, easier to operate, and easier to trust.';
+  'Aerealith AI is being designed as more than a chatbot. It is a secure, extensible assistant platform built around user-owned data, contextual memory, automations, integrations, analytics, and transparent control. The goal is to make your digital systems easier to understand, easier to operate, and easier to trust.'
 
 /**
  * Core Aerealith AI platform differentiators.
@@ -211,7 +211,7 @@ export const aerealithDifferentiators = [
       'Aerealith AI should explain what it knows, where information came from, when it used a tool, and when a decision requires user approval.',
     icon: '🔍',
   },
-] as const satisfies readonly AerealithDifferentiatorItem[];
+] as const satisfies readonly AerealithDifferentiatorItem[]
 
 /**
  * Highlighted differentiators used by compact layouts.
@@ -226,7 +226,7 @@ export const aerealithDifferentiatorHighlights = [
   aerealithDifferentiators[1],
   aerealithDifferentiators[2],
   aerealithDifferentiators[3],
-] as const satisfies readonly AerealithDifferentiatorItem[];
+] as const satisfies readonly AerealithDifferentiatorItem[]
 
 /**
  * Home page "Built Different" marketing section.
@@ -308,7 +308,7 @@ export const differentSection = {
     titleComponent: 'h2',
     titleVariant: 'h2',
   },
-} as const satisfies DifferentSectionContent;
+} as const satisfies DifferentSectionContent
 
 /**
  * Backward-compatible camelCase exports.
@@ -320,9 +320,9 @@ export const differentSection = {
  * @readonly
  * @decorator alias
  */
-export const helixDifferenceBody = aerealithDifferenceBody;
-export const helixDifferentiators = aerealithDifferentiators;
-export const helixDifferentiatorHighlights = aerealithDifferentiatorHighlights;
+export const helixDifferenceBody = aerealithDifferenceBody
+export const helixDifferentiators = aerealithDifferentiators
+export const helixDifferentiatorHighlights = aerealithDifferentiatorHighlights
 
 /**
  * Backwards-compatible uppercase exports.
@@ -334,14 +334,13 @@ export const helixDifferentiatorHighlights = aerealithDifferentiatorHighlights;
  * @readonly
  * @decorator alias
  */
-export const AEREALITH_DIFFERENCE_BODY = aerealithDifferenceBody;
-export const AEREALITH_DIFFERENTIATORS = aerealithDifferentiators;
+export const AEREALITH_DIFFERENCE_BODY = aerealithDifferenceBody
+export const AEREALITH_DIFFERENTIATORS = aerealithDifferentiators
 export const AEREALITH_DIFFERENTIATOR_HIGHLIGHTS =
-  aerealithDifferentiatorHighlights;
+  aerealithDifferentiatorHighlights
 
-export const HELIX_DIFFERENCE_BODY = aerealithDifferenceBody;
-export const HELIX_DIFFERENTIATORS = aerealithDifferentiators;
-export const HELIX_DIFFERENTIATOR_HIGHLIGHTS =
-  aerealithDifferentiatorHighlights;
+export const HELIX_DIFFERENCE_BODY = aerealithDifferenceBody
+export const HELIX_DIFFERENTIATORS = aerealithDifferentiators
+export const HELIX_DIFFERENTIATOR_HIGHLIGHTS = aerealithDifferentiatorHighlights
 
-export const DIFFERENT_SECTION = differentSection;
+export const DIFFERENT_SECTION = differentSection

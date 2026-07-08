@@ -1,5 +1,5 @@
-import type { ContactOption } from '../../types';
-const CONTACT_IMAGE_PATH = '/images/pages/contact';
+import type { ContactOption } from '../../types'
+const CONTACT_IMAGE_PATH = '/images/pages/contact'
 
 /**
  * Default background color used by contact option cards.
@@ -9,7 +9,7 @@ const CONTACT_IMAGE_PATH = '/images/pages/contact';
  * @readonly
  * @decorator color
  */
-const DEFAULT_CONTACT_CARD_BG = '#143256';
+const DEFAULT_CONTACT_CARD_BG = '#143256'
 
 /**
  * Main heading for the Contact page.
@@ -19,7 +19,7 @@ const DEFAULT_CONTACT_CARD_BG = '#143256';
  * @readonly
  * @decorator content
  */
-export const ContactHeader = 'Contact Aerealith AI';
+export const ContactHeader = 'Contact Aerealith AI'
 
 /**
  * Main descriptive copy for the Contact page.
@@ -30,7 +30,7 @@ export const ContactHeader = 'Contact Aerealith AI';
  * @decorator content
  */
 export const ContactDescription =
-  'Have a question, idea, bug report, or support request? Choose the option below that best fits what you need. You can connect with the Aerealith AI team, join the community, share feedback, request new features, report issues, or follow the public build on Patreon. Every message helps improve the platform, refine the roadmap, and shape Aerealith AI into a more useful, secure, transparent, and user-focused assistant.';
+  'Have a question, idea, bug report, or support request? Choose the option below that best fits what you need. You can connect with the Aerealith AI team, join the community, share feedback, request new features, report issues, or follow the public build on Patreon. Every message helps improve the platform, refine the roadmap, and shape Aerealith AI into a more useful, secure, transparent, and user-focused assistant.'
 
 /**
  * Primary Contact page image.
@@ -44,7 +44,7 @@ export const ContactDescription =
  * @readonly
  * @decorator image
  */
-export const ContactImage = `${CONTACT_IMAGE_PATH}/contact-us.png` as const;
+export const ContactImage = `${CONTACT_IMAGE_PATH}/contact-us.png` as const
 
 /**
  * Contact page action cards.
@@ -113,7 +113,7 @@ export const contactOptions = [
     image: `${CONTACT_IMAGE_PATH}/feedback.png`,
     bgColor: DEFAULT_CONTACT_CARD_BG,
   },
-] as const satisfies readonly ContactOption[];
+] as const satisfies readonly ContactOption[]
 
 /**
  * Uppercase alias for contact options.
@@ -123,4 +123,4 @@ export const contactOptions = [
  * @readonly
  * @decorator alias
  */
-export const CONTACT_OPTIONS = contactOptions;
+export const CONTACT_OPTIONS = contactOptions

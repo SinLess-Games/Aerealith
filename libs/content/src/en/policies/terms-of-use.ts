@@ -1,4 +1,4 @@
-import type { PolicyDocument } from '../../types';
+import type { PolicyDocument } from '../../types'
 
 export const termsOfUsePolicy = {
   slug: 'terms-of-use',
@@ -1726,6 +1726,6 @@ export const termsOfUsePolicy = {
       ],
     },
   ],
-} satisfies PolicyDocument;
+} satisfies PolicyDocument
 
-export default termsOfUsePolicy;
+export default termsOfUsePolicy

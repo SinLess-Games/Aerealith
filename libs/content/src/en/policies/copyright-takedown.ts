@@ -1,4 +1,4 @@
-import type { PolicyDocument } from '../../types';
+import type { PolicyDocument } from '../../types'
 
 export const copyrightTakedownPolicy = {
   slug: 'copyright-takedown',
@@ -791,6 +791,6 @@ export const copyrightTakedownPolicy = {
       ],
     },
   ],
-} satisfies PolicyDocument;
+} satisfies PolicyDocument
 
-export default copyrightTakedownPolicy;
+export default copyrightTakedownPolicy

@@ -1,17 +1,17 @@
-import { readdir } from 'node:fs/promises';
-import { basename, dirname, join, resolve } from 'node:path';
+import { readdir } from 'node:fs/promises'
+import { basename, dirname, join, resolve } from 'node:path'
 
-const workingDirectory = process.cwd();
+const workingDirectory = process.cwd()
 export const CONTENT_ROOT =
   basename(workingDirectory) === 'content' &&
   basename(dirname(workingDirectory)) === 'libs'
     ? workingDirectory
-    : resolve(workingDirectory, 'libs/content');
-export const TRANSLATIONS_ROOT = join(CONTENT_ROOT, 'translations');
+    : resolve(workingDirectory, 'libs/content')
+export const TRANSLATIONS_ROOT = join(CONTENT_ROOT, 'translations')
 export const GENERATED_LOCALES_ROOT = join(
   CONTENT_ROOT,
   'src/generated/locales',
-);
+)
 
 export const TRANSLATION_NAMESPACES = [
   'about',
@@ -20,20 +20,20 @@ export const TRANSLATION_NAMESPACES = [
   'home',
   'policies',
   'profile',
-] as const;
+] as const
 
-export type TranslationNamespace = (typeof TRANSLATION_NAMESPACES)[number];
+export type TranslationNamespace = (typeof TRANSLATION_NAMESPACES)[number]
 
 export async function listTranslationLocales(): Promise<string[]> {
   try {
-    const entries = await readdir(TRANSLATIONS_ROOT, { withFileTypes: true });
+    const entries = await readdir(TRANSLATIONS_ROOT, { withFileTypes: true })
     return entries
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
-      .sort((left, right) => left.localeCompare(right));
+      .sort((left, right) => left.localeCompare(right))
   } catch (error) {
-    if (isMissingFileError(error)) return [];
-    throw error;
+    if (isMissingFileError(error)) return []
+    throw error
   }
 }
 
@@ -42,5 +42,5 @@ export function isMissingFileError(error: unknown): boolean {
     error instanceof Error &&
     'code' in error &&
     (error as NodeJS.ErrnoException).code === 'ENOENT'
-  );
+  )
 }

@@ -1,4 +1,4 @@
-import type { PolicyDocument } from '../../types';
+import type { PolicyDocument } from '../../types'
 
 export const subprocessorVendorListPolicy = {
   slug: 'subprocessor-vendor-list',
@@ -859,6 +859,6 @@ export const subprocessorVendorListPolicy = {
       ],
     },
   ],
-} satisfies PolicyDocument;
+} satisfies PolicyDocument
 
-export default subprocessorVendorListPolicy;
+export default subprocessorVendorListPolicy

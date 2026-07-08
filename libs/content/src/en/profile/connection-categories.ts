@@ -1,4 +1,4 @@
-import type { ProfileConnectionCategory } from '../../types';
+import type { ProfileConnectionCategory } from '../../types'
 
 export const profileConnectionCategories = [
   {
@@ -25,11 +25,11 @@ export const profileConnectionCategories = [
     label: 'Analytics',
     icon: 'analytics',
   },
-] as const satisfies readonly ProfileConnectionCategory[];
+] as const satisfies readonly ProfileConnectionCategory[]
 
 /**
  * Backwards-compatible PascalCase export.
  *
  * Prefer `profileConnectionCategories` for new imports.
  */
-export const PROFILE_CONNECTION_CATEGORIES = profileConnectionCategories;
+export const PROFILE_CONNECTION_CATEGORIES = profileConnectionCategories

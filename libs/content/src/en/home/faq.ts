@@ -8,7 +8,7 @@
  * @readonly
  * @decorator config
  */
-export const FAQ_CAROUSEL_PAGE_SIZE = 1;
+export const FAQ_CAROUSEL_PAGE_SIZE = 1
 
 /**
  * FAQ carousel transition duration in milliseconds.
@@ -18,7 +18,7 @@ export const FAQ_CAROUSEL_PAGE_SIZE = 1;
  * @readonly
  * @decorator config
  */
-export const FAQ_CAROUSEL_TRANSITION_MS = 260;
+export const FAQ_CAROUSEL_TRANSITION_MS = 260
 
 /**
  * FAQ card content item.
@@ -28,17 +28,17 @@ export const FAQ_CAROUSEL_TRANSITION_MS = 260;
  * @decorator content
  */
 export type FaqCardItem = {
-  id: string;
-  question: string;
-  answer: string;
-  tag: string;
+  id: string
+  question: string
+  answer: string
+  tag: string
 
   /**
    * Card-compatible aliases.
    */
-  title: string;
-  description: string;
-};
+  title: string
+  description: string
+}
 
 /**
  * FAQ carousel configuration.
@@ -48,17 +48,17 @@ export type FaqCardItem = {
  * @decorator carousel
  */
 export type FaqCarouselContent = {
-  autoScroll?: boolean;
-  autoScrollInterval?: number;
-  pauseOnHover?: boolean;
-  pauseOnFocus?: boolean;
-  loop?: boolean;
-  showArrows?: boolean;
-  showPagination?: boolean;
-  showProgress?: boolean;
-  pageSize?: number;
-  transitionMs?: number;
-};
+  autoScroll?: boolean
+  autoScrollInterval?: number
+  pauseOnHover?: boolean
+  pauseOnFocus?: boolean
+  loop?: boolean
+  showArrows?: boolean
+  showPagination?: boolean
+  showProgress?: boolean
+  pageSize?: number
+  transitionMs?: number
+}
 
 /**
  * FAQ section content configuration.
@@ -68,26 +68,26 @@ export type FaqCarouselContent = {
  * @decorator section
  */
 export type FaqSectionContent = {
-  id: string;
-  eyebrow?: string;
-  title: string;
-  description?: string;
-  body?: string;
+  id: string
+  eyebrow?: string
+  title: string
+  description?: string
+  body?: string
 
-  variant?: 'default' | 'plain' | 'surface' | 'glass' | 'gradient' | 'dark';
-  spacingY?: 'none' | 'compact' | 'normal' | 'spacious';
-  align?: 'left' | 'center' | 'right';
-  tone?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'error';
-  copyVariant?: 'default' | 'hero' | 'section' | 'compact' | 'callout';
+  variant?: 'default' | 'plain' | 'surface' | 'glass' | 'gradient' | 'dark'
+  spacingY?: 'none' | 'compact' | 'normal' | 'spacious'
+  align?: 'left' | 'center' | 'right'
+  tone?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'error'
+  copyVariant?: 'default' | 'hero' | 'section' | 'compact' | 'callout'
 
-  maxWidth?: number | string;
-  copyMaxWidth?: number | string;
-  mediaMaxWidth?: number | string;
-  centerContent?: boolean;
+  maxWidth?: number | string
+  copyMaxWidth?: number | string
+  mediaMaxWidth?: number | string
+  centerContent?: boolean
 
-  cards: readonly FaqCardItem[];
-  carousel: FaqCarouselContent;
-};
+  cards: readonly FaqCardItem[]
+  carousel: FaqCarouselContent
+}
 
 /**
  * FAQ carousel cards for the Home page.
@@ -138,7 +138,7 @@ export const faqCards = [
     description:
       'Self-hosting and air-gapped deployment support are part of the long-term platform direction, especially for teams, businesses, infrastructure operators, and enterprise environments that need stronger control over data, security, compliance, and deployment boundaries.',
   },
-] as const satisfies readonly FaqCardItem[];
+] as const satisfies readonly FaqCardItem[]
 
 /**
  * FAQ section content for the Home page.
@@ -181,7 +181,7 @@ export const faqSection = {
     pageSize: FAQ_CAROUSEL_PAGE_SIZE,
     transitionMs: FAQ_CAROUSEL_TRANSITION_MS,
   },
-} as const satisfies FaqSectionContent;
+} as const satisfies FaqSectionContent
 
 /**
  * Backwards-compatible uppercase exports.
@@ -193,5 +193,5 @@ export const faqSection = {
  * @readonly
  * @decorator alias
  */
-export const FAQ_CARDS = faqCards;
-export const FAQ_SECTION = faqSection;
+export const FAQ_CARDS = faqCards
+export const FAQ_SECTION = faqSection

@@ -32,9 +32,40 @@
     },
     "translate": {
       "executor": "nx:run-commands",
+      "dependsOn": ["libretranslate-up"],
+      "cache": false,
       "options": {
-        "command": "pnpm tsx libs/content/scripts/translate-json.ts",
+        "command": "docker compose -f libs/content/docker-compose.libretranslate.yml run --rm translator libs/content/scripts/translate-json.ts",
         "forwardAllArgs": true
+      }
+    },
+    "translate-build": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["libretranslate-up"],
+      "cache": false,
+      "options": {
+        "command": "docker compose -f libs/content/docker-compose.libretranslate.yml run --rm translator libs/content/scripts/translate-json.ts --all"
+      }
+    },
+    "libretranslate-up": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "docker compose -f libs/content/docker-compose.libretranslate.yml up -d --wait --wait-timeout 900 libretranslate"
+      }
+    },
+    "libretranslate-down": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "docker compose -f libs/content/docker-compose.libretranslate.yml down"
+      }
+    },
+    "libretranslate-logs": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "docker compose -f libs/content/docker-compose.libretranslate.yml logs -f libretranslate"
       }
     },
     "sync": {
@@ -55,7 +86,7 @@
     },
     "build": {
       "executor": "@nx/js:tsc",
-      "dependsOn": ["sync"],
+      "dependsOn": ["translate-build"],
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "dist/libs/content",

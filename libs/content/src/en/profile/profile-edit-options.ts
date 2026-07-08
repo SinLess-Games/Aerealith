@@ -16,11 +16,11 @@ import {
   TimezoneGreenwich,
   TimezoneUtc,
   WeekStartDay,
-} from '@aerealith-ai/core';
+} from '@aerealith-ai/core'
 
-import type { ProfileEditOptions, ProfileSelectOption } from '../../types';
+import type { ProfileEditOptions, ProfileSelectOption } from '../../types'
 
-type EnumLike = Record<string, string | number>;
+type EnumLike = Record<string, string | number>
 
 const KNOWN_ACRONYMS = new Set([
   'AI',
@@ -48,7 +48,7 @@ const KNOWN_ACRONYMS = new Set([
   'UTC',
   'XML',
   'YAML',
-]);
+])
 
 function formatEnumKey(key: string): string {
   return key
@@ -58,24 +58,24 @@ function formatEnumKey(key: string): string {
     .split(/\s+/)
     .filter(Boolean)
     .map((word) => {
-      const upperWord = word.toUpperCase();
+      const upperWord = word.toUpperCase()
 
       if (KNOWN_ACRONYMS.has(upperWord)) {
-        return upperWord;
+        return upperWord
       }
 
-      return `${word.charAt(0).toUpperCase()}${word.slice(1).toLowerCase()}`;
+      return `${word.charAt(0).toUpperCase()}${word.slice(1).toLowerCase()}`
     })
     .join(' ')
-    .trim();
+    .trim()
 }
 
 function isReverseNumericEnumEntry(key: string): boolean {
-  return !Number.isNaN(Number(key));
+  return !Number.isNaN(Number(key))
 }
 
 function toOptions(enumObject: EnumLike): ProfileSelectOption[] {
-  const seen = new Set<string>();
+  const seen = new Set<string>()
 
   return Object.entries(enumObject)
     .filter(
@@ -84,16 +84,16 @@ function toOptions(enumObject: EnumLike): ProfileSelectOption[] {
     )
     .filter(([, value]) => {
       if (seen.has(value)) {
-        return false;
+        return false
       }
 
-      seen.add(value);
-      return true;
+      seen.add(value)
+      return true
     })
     .map(([key, value]) => ({
       label: formatEnumKey(key),
       value,
-    }));
+    }))
 }
 
 export const profileEditOptions = {
@@ -115,11 +115,11 @@ export const profileEditOptions = {
   timezoneGreenwich: toOptions(TimezoneGreenwich),
   timezoneUtc: toOptions(TimezoneUtc),
   weekStartDays: toOptions(WeekStartDay),
-} satisfies ProfileEditOptions;
+} satisfies ProfileEditOptions
 
 /**
  * Backwards-compatible PascalCase export.
  *
  * Prefer `profileEditOptions` for new imports.
  */
-export const PROFILE_EDIT_OPTIONS = profileEditOptions;
+export const PROFILE_EDIT_OPTIONS = profileEditOptions

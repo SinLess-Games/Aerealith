@@ -1,4 +1,4 @@
-import type { PolicyDocument } from '../../types';
+import type { PolicyDocument } from '../../types'
 
 export const paymentProcessorCompliancePolicy = {
   slug: 'payment-proccessor-compliance',
@@ -1337,6 +1337,6 @@ export const paymentProcessorCompliancePolicy = {
       ],
     },
   ],
-} satisfies PolicyDocument;
+} satisfies PolicyDocument
 
-export default paymentProcessorCompliancePolicy;
+export default paymentProcessorCompliancePolicy

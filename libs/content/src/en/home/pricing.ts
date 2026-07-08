@@ -1,34 +1,34 @@
 // libs/content/src/en/home/pricing.ts
 
-import type { ContentImageItem } from '../../types';
+import type { ContentImageItem } from '../../types'
 
 export type PricingPreviewImageContent = {
-  src: string;
-  alt: string;
-};
+  src: string
+  alt: string
+}
 
 export type PricingPreviewSectionContent = {
-  id?: string;
-  eyebrow?: string;
-  title?: string;
-  description?: string;
-  body?: string;
-  footnote?: string;
-  image?: PricingPreviewImageContent;
+  id?: string
+  eyebrow?: string
+  title?: string
+  description?: string
+  body?: string
+  footnote?: string
+  image?: PricingPreviewImageContent
 
-  maxWidth?: number | string;
-  copyMaxWidth?: number | string;
-  descriptionMaxWidth?: number | string;
-  bodyMaxWidth?: number | string;
-  mediaMaxWidth?: number | string;
-  mediaPosition?: 'left' | 'right' | 'top' | 'bottom';
-  centerContent?: boolean;
-};
+  maxWidth?: number | string
+  copyMaxWidth?: number | string
+  descriptionMaxWidth?: number | string
+  bodyMaxWidth?: number | string
+  mediaMaxWidth?: number | string
+  mediaPosition?: 'left' | 'right' | 'top' | 'bottom'
+  centerContent?: boolean
+}
 
 /**
  * Primary pricing preview image.
  */
-export const PricingPreviewImageSrc = '/images/pages/home/pricing.png' as const;
+export const PricingPreviewImageSrc = '/images/pages/home/pricing.png' as const
 
 /**
  * Pricing preview image content.
@@ -40,13 +40,13 @@ export const pricingPreviewImage = {
   alt: 'Aerealith AI pricing tiers and plan comparison',
   title: 'Aerealith AI Pricing Preview',
   priority: false,
-} as const satisfies ContentImageItem;
+} as const satisfies ContentImageItem
 
 /**
  * Pricing preview long-form description.
  */
 export const pricingPreviewDescription =
-  'Aerealith AI is planned with simple, transparent tiers so users can start free, explore the platform, and upgrade only when they need more capability. The goal is to make pricing easy to understand while still giving room for different types of users: individuals who want a smarter assistant, creators and communities that need automation and engagement tools, developers who want integrations and extensibility, teams that need collaboration and analytics, and organizations that require stronger governance, self-hosting, or enterprise deployment options. As the MVP ships and real usage data becomes available, pricing will continue to be refined around actual infrastructure costs, AI model usage, support needs, feature limits, and customer feedback. Each tier is intended to grow with the user, offering a clear path from early experimentation to advanced workflows, professional use, business operations, and long-term enterprise readiness.';
+  'Aerealith AI is planned with simple, transparent tiers so users can start free, explore the platform, and upgrade only when they need more capability. The goal is to make pricing easy to understand while still giving room for different types of users: individuals who want a smarter assistant, creators and communities that need automation and engagement tools, developers who want integrations and extensibility, teams that need collaboration and analytics, and organizations that require stronger governance, self-hosting, or enterprise deployment options. As the MVP ships and real usage data becomes available, pricing will continue to be refined around actual infrastructure costs, AI model usage, support needs, feature limits, and customer feedback. Each tier is intended to grow with the user, offering a clear path from early experimentation to advanced workflows, professional use, business operations, and long-term enterprise readiness.'
 
 /**
  * Pricing preview section content.
@@ -77,11 +77,11 @@ export const pricingPreviewSection = {
     src: pricingPreviewImage.src,
     alt: pricingPreviewImage.alt,
   },
-} as const satisfies PricingPreviewSectionContent;
+} as const satisfies PricingPreviewSectionContent
 
 /**
  * Backwards-compatible uppercase exports.
  */
-export const PRICING_IMAGE = pricingPreviewImage;
-export const PRICING_PREVIEW_DESCRIPTION = pricingPreviewDescription;
-export const PRICING_PREVIEW_SECTION = pricingPreviewSection;
+export const PRICING_IMAGE = pricingPreviewImage
+export const PRICING_PREVIEW_DESCRIPTION = pricingPreviewDescription
+export const PRICING_PREVIEW_SECTION = pricingPreviewSection

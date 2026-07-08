@@ -1,7 +1,7 @@
 export type PolicyStatus =
-  'draft' | 'review' | 'approved' | 'published' | 'archived';
+  'draft' | 'review' | 'approved' | 'published' | 'archived'
 
-export type PolicyOwner = 'SinLess Games LLC' | string;
+export type PolicyOwner = 'SinLess Games LLC' | string
 
 export type PolicyHref =
   | `/${string}`
@@ -9,62 +9,62 @@ export type PolicyHref =
   | `../${string}`
   | `mailto:${string}`
   | `https://${string}`
-  | `http://${string}`;
+  | `http://${string}`
 
 export type PolicyLink = {
-  label: string;
-  href: PolicyHref;
-  description?: string;
-};
+  label: string
+  href: PolicyHref
+  description?: string
+}
 
 export type PolicyContact = {
-  label: string;
-  email: string;
-  href?: `mailto:${string}`;
-};
+  label: string
+  email: string
+  href?: `mailto:${string}`
+}
 
 export type PolicyMeta = {
-  title: string;
-  description: string;
-  effectiveDate: string;
-  lastUpdated: string;
-  owner: PolicyOwner;
-  status: PolicyStatus;
-};
+  title: string
+  description: string
+  effectiveDate: string
+  lastUpdated: string
+  owner: PolicyOwner
+  status: PolicyStatus
+}
 
 export type PolicySection = {
-  id: string;
-  title: string;
-  body?: string[];
-  bullets?: string[];
-  orderedItems?: string[];
-  links?: PolicyLink[];
-  contacts?: PolicyContact[];
-  note?: string;
-};
+  id: string
+  title: string
+  body?: string[]
+  bullets?: string[]
+  orderedItems?: string[]
+  links?: PolicyLink[]
+  contacts?: PolicyContact[]
+  note?: string
+}
 
 export type PolicyDocument = {
-  slug: string;
-  path: PolicyHref;
-  meta: PolicyMeta;
-  relatedPolicies?: PolicyLink[];
-  sections: PolicySection[];
-};
+  slug: string
+  path: PolicyHref
+  meta: PolicyMeta
+  relatedPolicies?: PolicyLink[]
+  sections: PolicySection[]
+}
 
 export type PolicyPageProps = {
-  policy: PolicyDocument;
-};
+  policy: PolicyDocument
+}
 
 export type PolicyMetadata = {
-  title: string;
-  description: string;
-};
+  title: string
+  description: string
+}
 
 export function createPolicyMetadata(policy: PolicyDocument): PolicyMetadata {
   return {
     title: `${policy.meta.title} | Aerealith AI`,
     description: policy.meta.description,
-  };
+  }
 }
 
 export function createPolicyContact(
@@ -75,5 +75,5 @@ export function createPolicyContact(
     label,
     email,
     href: `mailto:${email}`,
-  };
+  }
 }
