@@ -23,5 +23,6 @@
     "vitest.config.ts",
     "vitest.config.mts"
   ],
+  "files": ["worker-configuration.d.ts"],
   "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
 }

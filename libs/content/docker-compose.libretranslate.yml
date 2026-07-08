@@ -38,7 +38,7 @@ services:
       - tools
     init: true
     working_dir: /workspace
-    user: "${UID:-1000}:${GID:-1000}"
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     entrypoint:
       - /workspace/node_modules/.bin/tsx
     environment:

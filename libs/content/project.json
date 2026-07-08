@@ -35,7 +35,7 @@
       "dependsOn": ["libretranslate-up"],
       "cache": false,
       "options": {
-        "command": "docker compose -f libs/content/docker-compose.libretranslate.yml run --rm translator libs/content/scripts/translate-json.ts",
+        "command": "HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose -f libs/content/docker-compose.libretranslate.yml run --rm translator libs/content/scripts/translate-json.ts",
         "forwardAllArgs": true
       }
     },
@@ -44,7 +44,7 @@
       "dependsOn": ["libretranslate-up"],
       "cache": false,
       "options": {
-        "command": "docker compose -f libs/content/docker-compose.libretranslate.yml run --rm translator libs/content/scripts/translate-json.ts --all"
+        "command": "HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose -f libs/content/docker-compose.libretranslate.yml run --rm translator libs/content/scripts/translate-json.ts --all"
       }
     },
     "libretranslate-up": {

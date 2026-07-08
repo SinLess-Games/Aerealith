@@ -1,12 +1,12 @@
 // eslint.config.mjs
 
-import nx from '@nx/eslint-plugin';
-import eslintConfigPrettier from 'eslint-config-prettier/flat';
-import { globalIgnores } from 'eslint/config';
+import nx from '@nx/eslint-plugin'
+import eslintConfigPrettier from 'eslint-config-prettier/flat'
+import { globalIgnores } from 'eslint/config'
 
-const jsoncParser = (await import('jsonc-eslint-parser')).default;
+const jsoncParser = await import('jsonc-eslint-parser')
 
-const workspaceRoot = process.cwd();
+const workspaceRoot = process.cwd()
 
 const sourceFiles = [
   '**/*.ts',
@@ -17,7 +17,7 @@ const sourceFiles = [
   '**/*.jsx',
   '**/*.cjs',
   '**/*.mjs',
-];
+]
 
 const reactCompatibilityRules = {
   /**
@@ -36,7 +36,7 @@ const reactCompatibilityRules = {
    */
   'react/react-in-jsx-scope': 'off',
   'react/jsx-uses-react': 'off',
-};
+}
 
 export default [
   globalIgnores(
@@ -166,4 +166,4 @@ export default [
    * This disables ESLint stylistic rules that conflict with Prettier.
    */
   eslintConfigPrettier,
-];
+]
