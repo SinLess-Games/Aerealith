@@ -1,0 +1,31 @@
+"$schema" = "../../node_modules/wrangler/config-schema.json"
+
+name = "aerealith"
+main = "src/worker.ts"
+compatibility_date = "2026-07-08"
+compatibility_flags = ["nodejs_compat"]
+preview_urls = true
+
+[assets]
+directory = "../../dist/apps/frontend"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/__aerealith/*"]
+
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1.0
+invocation_logs = true
+persist = true
+
+[observability.traces]
+enabled = true
+head_sampling_rate = 1.0
+persist = true
+
+[[queues.producers]]
+binding = "EVENTBUS"
+queue = "events"
