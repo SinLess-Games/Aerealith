@@ -1,0 +1,290 @@
+/* libs/ui/src/styles/themes.css */
+
+@import './colors.css';
+
+/*
+ * Aerealith AI semantic themes.
+ *
+ * Components should use semantic variables from this file:
+ *
+ *   --ae-background
+ *   --ae-surface
+ *   --ae-foreground
+ *   --ae-primary
+ *   --ae-border
+ *
+ * Components should not directly depend on raw palette variables from
+ * colors.css unless they are intentionally rendering a branded visual effect.
+ */
+
+/* -------------------------------------------------------------------------- */
+/* Default theme                                                              */
+/* -------------------------------------------------------------------------- */
+
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Application canvas */
+  --ae-background: var(--ae-deep-night);
+  --ae-background-subtle: var(--ae-night-950);
+  --ae-background-elevated: var(--ae-void-navy);
+  --ae-background-gradient: var(--ae-gradient-page-dark);
+
+  /* Surfaces */
+  --ae-surface: rgb(var(--ae-night-800-rgb) / 88%);
+  --ae-surface-muted: rgb(var(--ae-night-750-rgb) / 72%);
+  --ae-surface-raised: rgb(var(--ae-night-700-rgb) / 88%);
+  --ae-surface-overlay: rgb(var(--ae-night-650-rgb) / 96%);
+  --ae-surface-inverse: var(--ae-starlight);
+
+  /* Glass surfaces */
+  --ae-glass-background: rgb(var(--ae-night-800-rgb) / 72%);
+  --ae-glass-background-strong: rgb(var(--ae-night-700-rgb) / 84%);
+  --ae-glass-border: var(--ae-starlight-10);
+  --ae-glass-highlight: var(--ae-gradient-glass-highlight);
+  --ae-glass-panel: var(--ae-gradient-glass-panel);
+
+  /* Foreground */
+  --ae-foreground: var(--ae-starlight);
+  --ae-foreground-muted: var(--ae-mist);
+  --ae-foreground-subtle: var(--ae-starlight-600);
+  --ae-foreground-disabled: var(--ae-starlight-700);
+  --ae-foreground-inverse: var(--ae-deep-night);
+
+  /* Borders and separators */
+  --ae-border: var(--ae-starlight-10);
+  --ae-border-subtle: var(--ae-starlight-05);
+  --ae-border-strong: var(--ae-starlight-15);
+  --ae-border-focus: var(--ae-cyan);
+  --ae-divider: var(--ae-starlight-08);
+
+  /* Brand and interactive color roles */
+  --ae-primary: var(--ae-pink);
+  --ae-primary-hover: #ff237f;
+  --ae-primary-active: #d70561;
+  --ae-primary-foreground: var(--ae-starlight);
+  --ae-primary-subtle: var(--ae-pink-12);
+
+  --ae-secondary: var(--ae-violet);
+  --ae-secondary-hover: #a273ff;
+  --ae-secondary-active: #7541dc;
+  --ae-secondary-foreground: var(--ae-starlight);
+  --ae-secondary-subtle: var(--ae-violet-12);
+
+  --ae-accent: var(--ae-cyan);
+  --ae-accent-hover: #20ead8;
+  --ae-accent-active: #00b8aa;
+  --ae-accent-foreground: var(--ae-deep-night);
+  --ae-accent-subtle: var(--ae-cyan-12);
+
+  /* Neutral controls */
+  --ae-control: var(--ae-surface-raised);
+  --ae-control-hover: var(--ae-night-650);
+  --ae-control-active: var(--ae-night-700);
+  --ae-control-foreground: var(--ae-foreground);
+  --ae-control-border: var(--ae-border-strong);
+
+  /* Status colors */
+  --ae-success: var(--ae-color-success, #23c483);
+  --ae-success-foreground: #d8ffed;
+  --ae-success-subtle: rgb(var(--ae-success-rgb) / 14%);
+  --ae-success-border: rgb(var(--ae-success-rgb) / 32%);
+
+  --ae-warning: var(--ae-color-warning, #ffb454);
+  --ae-warning-foreground: #fff0d6;
+  --ae-warning-subtle: rgb(var(--ae-warning-rgb) / 14%);
+  --ae-warning-border: rgb(var(--ae-warning-rgb) / 32%);
+
+  --ae-danger: var(--ae-pink);
+  --ae-danger-hover: #ff237f;
+  --ae-danger-foreground: #ffe5ef;
+  --ae-danger-subtle: var(--ae-pink-12);
+  --ae-danger-border: var(--ae-pink-30);
+
+  --ae-info: var(--ae-cyan);
+  --ae-info-foreground: #d9fffa;
+  --ae-info-subtle: var(--ae-cyan-12);
+  --ae-info-border: var(--ae-cyan-30);
+
+  /* Inputs */
+  --ae-input-background: rgb(var(--ae-night-950-rgb) / 72%);
+  --ae-input-background-hover: rgb(var(--ae-night-750-rgb) / 76%);
+  --ae-input-background-disabled: rgb(var(--ae-night-950-rgb) / 44%);
+  --ae-input-border: var(--ae-border-strong);
+  --ae-input-border-hover: var(--ae-starlight-300);
+  --ae-input-border-focus: var(--ae-cyan);
+  --ae-input-placeholder: var(--ae-starlight-600);
+
+  /* Focus and selection */
+  --ae-focus-ring: var(--ae-cyan);
+  --ae-focus-ring-offset: var(--ae-deep-night);
+  --ae-selection-background: var(--ae-cyan-30);
+  --ae-selection-foreground: var(--ae-starlight);
+
+  /* Links */
+  --ae-link: var(--ae-cyan);
+  --ae-link-hover: #20ead8;
+  --ae-link-visited: #b18cff;
+
+  /* Shadows and glow */
+  --ae-shadow-sm: 0 4px 14px var(--ae-black-20);
+  --ae-shadow-md: var(--ae-shadow-soft);
+  --ae-shadow-lg: var(--ae-shadow-deep);
+  --ae-shadow-glass: 0 12px 44px var(--ae-black-40);
+  --ae-glow-primary: var(--ae-glow-pink);
+  --ae-glow-secondary: var(--ae-glow-violet);
+  --ae-glow-accent: var(--ae-glow-cyan);
+
+  /* Scrollbars */
+  --ae-scrollbar-track: var(--ae-night-950);
+  --ae-scrollbar-thumb: var(--ae-starlight-800);
+  --ae-scrollbar-thumb-hover: var(--ae-starlight-700);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Light theme                                                                */
+/* -------------------------------------------------------------------------- */
+
+[data-theme='light'] {
+  color-scheme: light;
+
+  /* Application canvas */
+  --ae-background: #f8f8ff;
+  --ae-background-subtle: #f0eff8;
+  --ae-background-elevated: #ffffff;
+  --ae-background-gradient: var(--ae-gradient-page-light);
+
+  /* Surfaces */
+  --ae-surface: rgb(var(--ae-white-rgb) / 92%);
+  --ae-surface-muted: #f2f1f8;
+  --ae-surface-raised: #ffffff;
+  --ae-surface-overlay: #ffffff;
+  --ae-surface-inverse: var(--ae-deep-night);
+
+  /* Glass surfaces */
+  --ae-glass-background: rgb(var(--ae-white-rgb) / 74%);
+  --ae-glass-background-strong: rgb(var(--ae-white-rgb) / 92%);
+  --ae-glass-border: rgb(var(--ae-deep-night-rgb) / 10%);
+  --ae-glass-highlight: linear-gradient(
+    135deg,
+    rgb(var(--ae-white-rgb) / 80%) 0%,
+    rgb(var(--ae-cyan-rgb) / 7%) 100%
+  );
+  --ae-glass-panel: linear-gradient(
+    145deg,
+    rgb(var(--ae-white-rgb) / 92%) 0%,
+    rgb(var(--ae-cyan-rgb) / 6%) 50%,
+    rgb(var(--ae-pink-rgb) / 6%) 100%
+  );
+
+  /* Foreground */
+  --ae-foreground: #121126;
+  --ae-foreground-muted: #586174;
+  --ae-foreground-subtle: #747e91;
+  --ae-foreground-disabled: #9ba3b2;
+  --ae-foreground-inverse: var(--ae-starlight);
+
+  /* Borders and separators */
+  --ae-border: rgb(var(--ae-deep-night-rgb) / 12%);
+  --ae-border-subtle: rgb(var(--ae-deep-night-rgb) / 7%);
+  --ae-border-strong: rgb(var(--ae-deep-night-rgb) / 20%);
+  --ae-border-focus: #008f84;
+  --ae-divider: rgb(var(--ae-deep-night-rgb) / 9%);
+
+  /* Brand and interactive color roles */
+  --ae-primary: #d70561;
+  --ae-primary-hover: #b80451;
+  --ae-primary-active: #90003f;
+  --ae-primary-foreground: var(--ae-starlight);
+  --ae-primary-subtle: rgb(var(--ae-pink-rgb) / 11%);
+
+  --ae-secondary: #7541dc;
+  --ae-secondary-hover: #5f2cc1;
+  --ae-secondary-active: #482194;
+  --ae-secondary-foreground: var(--ae-starlight);
+  --ae-secondary-subtle: rgb(var(--ae-violet-rgb) / 10%);
+
+  --ae-accent: #008f84;
+  --ae-accent-hover: #00756d;
+  --ae-accent-active: #005d57;
+  --ae-accent-foreground: var(--ae-starlight);
+  --ae-accent-subtle: rgb(var(--ae-cyan-rgb) / 11%);
+
+  /* Neutral controls */
+  --ae-control: #ffffff;
+  --ae-control-hover: #f4f3fa;
+  --ae-control-active: #e9e8f2;
+  --ae-control-foreground: var(--ae-foreground);
+  --ae-control-border: var(--ae-border-strong);
+
+  /* Status colors */
+  --ae-success: #16875a;
+  --ae-success-foreground: #06492f;
+  --ae-success-subtle: rgb(35 196 131 / 12%);
+  --ae-success-border: rgb(35 196 131 / 30%);
+
+  --ae-warning: #a65700;
+  --ae-warning-foreground: #693500;
+  --ae-warning-subtle: rgb(255 180 84 / 16%);
+  --ae-warning-border: rgb(255 180 84 / 34%);
+
+  --ae-danger: #bd0353;
+  --ae-danger-hover: #990043;
+  --ae-danger-foreground: #71002e;
+  --ae-danger-subtle: rgb(var(--ae-pink-rgb) / 12%);
+  --ae-danger-border: rgb(var(--ae-pink-rgb) / 32%);
+
+  --ae-info: #008f84;
+  --ae-info-foreground: #005d57;
+  --ae-info-subtle: rgb(var(--ae-cyan-rgb) / 12%);
+  --ae-info-border: rgb(var(--ae-cyan-rgb) / 32%);
+
+  /* Inputs */
+  --ae-input-background: #ffffff;
+  --ae-input-background-hover: #fbfbff;
+  --ae-input-background-disabled: #efeff5;
+  --ae-input-border: var(--ae-border-strong);
+  --ae-input-border-hover: rgb(var(--ae-deep-night-rgb) / 32%);
+  --ae-input-border-focus: #008f84;
+  --ae-input-placeholder: #747e91;
+
+  /* Focus and selection */
+  --ae-focus-ring: #008f84;
+  --ae-focus-ring-offset: #ffffff;
+  --ae-selection-background: rgb(var(--ae-cyan-rgb) / 24%);
+  --ae-selection-foreground: #121126;
+
+  /* Links */
+  --ae-link: #00756d;
+  --ae-link-hover: #005d57;
+  --ae-link-visited: #5f2cc1;
+
+  /* Shadows and glow */
+  --ae-shadow-sm: 0 4px 14px rgb(var(--ae-deep-night-rgb) / 8%);
+  --ae-shadow-md: 0 10px 30px rgb(var(--ae-deep-night-rgb) / 12%);
+  --ae-shadow-lg: 0 20px 60px rgb(var(--ae-deep-night-rgb) / 16%);
+  --ae-shadow-glass: 0 12px 44px rgb(var(--ae-deep-night-rgb) / 10%);
+  --ae-glow-primary: 0 0 30px rgb(var(--ae-pink-rgb) / 18%);
+  --ae-glow-secondary: 0 0 30px rgb(var(--ae-violet-rgb) / 18%);
+  --ae-glow-accent: 0 0 30px rgb(var(--ae-cyan-rgb) / 18%);
+
+  /* Scrollbars */
+  --ae-scrollbar-track: #f0eff8;
+  --ae-scrollbar-thumb: #b6b4c1;
+  --ae-scrollbar-thumb-hover: #9491a1;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Shared browser-level behavior                                               */
+/* -------------------------------------------------------------------------- */
+
+::selection {
+  background: var(--ae-selection-background);
+  color: var(--ae-selection-foreground);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ae-focus-ring);
+  outline-offset: 2px;
+}

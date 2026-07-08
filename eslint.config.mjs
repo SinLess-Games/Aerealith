@@ -1,8 +1,42 @@
-import nx from '@nx/eslint-plugin'
-import eslintConfigPrettier from 'eslint-config-prettier/flat'
-import { globalIgnores } from 'eslint/config'
+// eslint.config.mjs
 
-const workspaceRoot = process.cwd()
+import nx from '@nx/eslint-plugin';
+import eslintConfigPrettier from 'eslint-config-prettier/flat';
+import { globalIgnores } from 'eslint/config';
+
+const jsoncParser = (await import('jsonc-eslint-parser')).default;
+
+const workspaceRoot = process.cwd();
+
+const sourceFiles = [
+  '**/*.ts',
+  '**/*.tsx',
+  '**/*.cts',
+  '**/*.mts',
+  '**/*.js',
+  '**/*.jsx',
+  '**/*.cjs',
+  '**/*.mjs',
+];
+
+const reactCompatibilityRules = {
+  /**
+   * eslint-plugin-react@7.37.5 has ESLint 10 compatibility issues
+   * with this rule.
+   */
+  'react/no-direct-mutation-state': 'off',
+
+  /**
+   * TypeScript owns prop validation.
+   */
+  'react/prop-types': 'off',
+
+  /**
+   * React 17+/19 JSX transform.
+   */
+  'react/react-in-jsx-scope': 'off',
+  'react/jsx-uses-react': 'off',
+};
 
 export default [
   globalIgnores(
@@ -37,29 +71,43 @@ export default [
     ],
     'Aerealith generated-file ignores',
   ),
+
   {
-    ignores: ['tools/generators/service/templates/**', '**/*eslint.config.*'],
+    ignores: [
+      'tools/generators/service/templates/**',
+      '**/*eslint.config.*',
+      '**/vite.config.*.timestamp*',
+      '**/vitest.config.*.timestamp*',
+    ],
   },
+
   {
-    files: ['**/*.{ts,tsx,cts,mts,js,jsx,mjs,cjs}'],
+    files: sourceFiles,
+
     languageOptions: {
       parserOptions: {
         tsconfigRootDir: workspaceRoot,
       },
     },
   },
+
   ...nx.configs['flat/base'],
   ...nx.configs['flat/typescript'],
   ...nx.configs['flat/javascript'],
+
   {
-    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
+    files: sourceFiles,
+
     rules: {
       '@nx/dependency-checks': 'off',
+
       '@nx/enforce-module-boundaries': [
         'error',
         {
           enforceBuildableLibDependency: true,
-          allow: ['^.*/eslint(\\.base)?\\.config\\.[cm]?[jt]s$'],
+
+          allow: ['^.*/eslint(.base)?.config.[cm]?[jt]s$'],
+
           depConstraints: [
             {
               sourceTag: '*',
@@ -70,17 +118,20 @@ export default [
       ],
     },
   },
+
   {
-    files: [
-      '**/*.ts',
-      '**/*.tsx',
-      '**/*.cts',
-      '**/*.mts',
-      '**/*.js',
-      '**/*.jsx',
-      '**/*.cjs',
-      '**/*.mjs',
-    ],
+    files: sourceFiles,
+
+    settings: {
+      react: {
+        /**
+         * Avoid eslint-plugin-react version auto-detection issues under ESLint 10.
+         * Change this if your installed React version is different.
+         */
+        version: '19.0',
+      },
+    },
+
     rules: {
       // Keep code-quality rules here.
       //
@@ -90,24 +141,29 @@ export default [
       // - indent
       // - comma-dangle
       // - object-curly-spacing
+
+      ...reactCompatibilityRules,
     },
   },
-  // Must remain last.
-  //
-  // This disables ESLint stylistic rules that conflict with Prettier.
-  eslintConfigPrettier,
-  {
-    ignores: ['**/vitest.config.*.timestamp*'],
-  },
+
   {
     files: ['**/*.json'],
-    // Override or add rules here
-    rules: {},
+
     languageOptions: {
-      parser: await import('jsonc-eslint-parser'),
+      parser: jsoncParser,
+
       parserOptions: {
-        tsconfigRootDir: process.cwd(),
+        tsconfigRootDir: workspaceRoot,
       },
     },
+
+    rules: {},
   },
-]
+
+  /**
+   * Must remain last.
+   *
+   * This disables ESLint stylistic rules that conflict with Prettier.
+   */
+  eslintConfigPrettier,
+];

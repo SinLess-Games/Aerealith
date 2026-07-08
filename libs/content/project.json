@@ -1,0 +1,75 @@
+{
+  "name": "content",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/content/src",
+  "projectType": "library",
+  "tags": ["scope:content", "type:lib"],
+  "targets": {
+    "export-json": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm tsx libs/content/scripts/export-english-json.ts"
+      }
+    },
+    "validate-translations": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm tsx libs/content/scripts/validate-translations.ts"
+      }
+    },
+    "generate-locales": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm tsx libs/content/scripts/generate-locale-ts.ts"
+      }
+    },
+    "import-json": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm tsx libs/content/scripts/import-translated-json.ts",
+        "forwardAllArgs": true
+      }
+    },
+    "translate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm tsx libs/content/scripts/translate-json.ts",
+        "forwardAllArgs": true
+      }
+    },
+    "sync": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm tsx libs/content/scripts/sync-translations.ts"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "pnpm exec tsc -p libs/content/tsconfig.lib.json --noEmit",
+          "pnpm exec tsc -p libs/content/tsconfig.scripts.json --noEmit"
+        ],
+        "parallel": false
+      }
+    },
+    "build": {
+      "executor": "@nx/js:tsc",
+      "dependsOn": ["sync"],
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/content",
+        "main": "libs/content/src/index.ts",
+        "tsConfig": "libs/content/tsconfig.lib.json",
+        "assets": [
+          "libs/content/*.md",
+          {
+            "input": "libs/content/translations",
+            "glob": "**/*.json",
+            "output": "translations"
+          }
+        ]
+      }
+    }
+  }
+}

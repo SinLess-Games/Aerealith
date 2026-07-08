@@ -1,0 +1,1 @@
+{"version":3,"file":"assert-never.js","sourceRoot":"","sources":["assert-never.ts"],"names":[],"mappings":";AAAA,sCAAsC;;AAQtC,kCAQC;AAdD,sCAA2C;AAC3C,sCAAsC;AAEtC;;GAEG;AACH,SAAgB,WAAW,CACzB,KAAY,EACZ,OAAO,GAAG,mBAAmB;IAE7B,OAAO,IAAA,mBAAU,EAAC,OAAO,EAAE;QACzB,IAAI,EAAE,wBAAe,CAAC,cAAc;QACpC,OAAO,EAAE,EAAE,KAAK,EAAE;KACnB,CAAC,CAAA;AACJ,CAAC"}

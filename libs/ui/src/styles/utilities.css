@@ -1,0 +1,487 @@
+/* libs/ui/src/styles/utilities.css */
+
+/*
+ * Aerealith AI shared utility classes.
+ *
+ * These utilities are intentionally small and semantic.
+ * Do not turn this file into a second Tailwind implementation.
+ *
+ * Prefer:
+ * - reusable components for repeated UI patterns
+ * - component-local styles for one-off behavior
+ * - these utilities for shared layout, visual treatment, and accessibility
+ */
+
+/* -------------------------------------------------------------------------- */
+/* Layout                                                                      */
+/* -------------------------------------------------------------------------- */
+
+.ae-container {
+  width: min(100% - 2rem, 80rem);
+  margin-inline: auto;
+}
+
+.ae-container-narrow {
+  width: min(100% - 2rem, 48rem);
+  margin-inline: auto;
+}
+
+.ae-container-wide {
+  width: min(100% - 2rem, 96rem);
+  margin-inline: auto;
+}
+
+.ae-stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.ae-stack-xs {
+  gap: 0.25rem;
+}
+
+.ae-stack-sm {
+  gap: 0.5rem;
+}
+
+.ae-stack-md {
+  gap: 1rem;
+}
+
+.ae-stack-lg {
+  gap: 1.5rem;
+}
+
+.ae-stack-xl {
+  gap: 2rem;
+}
+
+.ae-stack-2xl {
+  gap: 3rem;
+}
+
+.ae-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.ae-cluster-xs {
+  gap: 0.25rem;
+}
+
+.ae-cluster-sm {
+  gap: 0.5rem;
+}
+
+.ae-cluster-md {
+  gap: 1rem;
+}
+
+.ae-cluster-lg {
+  gap: 1.5rem;
+}
+
+.ae-cluster-between {
+  justify-content: space-between;
+}
+
+.ae-cluster-center {
+  justify-content: center;
+}
+
+.ae-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.ae-grid-auto-sm {
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.ae-grid-auto-md {
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.ae-grid-auto-lg {
+  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+}
+
+.ae-center {
+  display: grid;
+  place-items: center;
+}
+
+.ae-center-inline {
+  display: inline-grid;
+  place-items: center;
+}
+
+.ae-full-width {
+  width: 100%;
+}
+
+.ae-min-h-screen {
+  min-height: 100vh;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Surface and glass treatments                                                */
+/* -------------------------------------------------------------------------- */
+
+.ae-surface {
+  border: 1px solid var(--ae-border);
+  background: var(--ae-surface);
+  color: var(--ae-foreground);
+}
+
+.ae-surface-muted {
+  border: 1px solid var(--ae-border-subtle);
+  background: var(--ae-surface-muted);
+  color: var(--ae-foreground);
+}
+
+.ae-surface-raised {
+  border: 1px solid var(--ae-border);
+  background: var(--ae-surface-raised);
+  box-shadow: var(--ae-shadow-sm);
+  color: var(--ae-foreground);
+}
+
+.ae-glass {
+  border: 1px solid var(--ae-glass-border);
+  background: var(--ae-glass-background);
+  backdrop-filter: blur(1rem);
+  box-shadow: var(--ae-shadow-glass);
+  color: var(--ae-foreground);
+}
+
+.ae-glass-strong {
+  border: 1px solid var(--ae-glass-border);
+  background: var(--ae-glass-background-strong);
+  backdrop-filter: blur(1.25rem);
+  box-shadow: var(--ae-shadow-glass);
+  color: var(--ae-foreground);
+}
+
+.ae-glass-highlight {
+  background-image: var(--ae-glass-highlight);
+}
+
+.ae-glass-panel {
+  background-image: var(--ae-glass-panel);
+}
+
+.ae-page-background {
+  min-height: 100%;
+  background: var(--ae-background-gradient);
+}
+
+.ae-brand-gradient {
+  background: var(--ae-gradient-brand);
+}
+
+.ae-brand-gradient-text {
+  background: var(--ae-gradient-brand);
+  background-clip: text;
+  color: transparent;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Borders, radius, shadows, and glow                                          */
+/* -------------------------------------------------------------------------- */
+
+.ae-border {
+  border: 1px solid var(--ae-border);
+}
+
+.ae-border-subtle {
+  border: 1px solid var(--ae-border-subtle);
+}
+
+.ae-border-strong {
+  border: 1px solid var(--ae-border-strong);
+}
+
+.ae-border-primary {
+  border: 1px solid var(--ae-primary);
+}
+
+.ae-border-accent {
+  border: 1px solid var(--ae-accent);
+}
+
+.ae-rounded-sm {
+  border-radius: 0.375rem;
+}
+
+.ae-rounded-md {
+  border-radius: 0.5rem;
+}
+
+.ae-rounded-lg {
+  border-radius: 0.75rem;
+}
+
+.ae-rounded-xl {
+  border-radius: 1rem;
+}
+
+.ae-rounded-2xl {
+  border-radius: 1.5rem;
+}
+
+.ae-rounded-full {
+  border-radius: 9999px;
+}
+
+.ae-shadow-sm {
+  box-shadow: var(--ae-shadow-sm);
+}
+
+.ae-shadow-md {
+  box-shadow: var(--ae-shadow-md);
+}
+
+.ae-shadow-lg {
+  box-shadow: var(--ae-shadow-lg);
+}
+
+.ae-glow-primary {
+  box-shadow: var(--ae-glow-primary);
+}
+
+.ae-glow-secondary {
+  box-shadow: var(--ae-glow-secondary);
+}
+
+.ae-glow-accent {
+  box-shadow: var(--ae-glow-accent);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Semantic text                                                               */
+/* -------------------------------------------------------------------------- */
+
+.ae-text-foreground {
+  color: var(--ae-foreground);
+}
+
+.ae-text-muted {
+  color: var(--ae-foreground-muted);
+}
+
+.ae-text-subtle {
+  color: var(--ae-foreground-subtle);
+}
+
+.ae-text-disabled {
+  color: var(--ae-foreground-disabled);
+}
+
+.ae-text-primary {
+  color: var(--ae-primary);
+}
+
+.ae-text-secondary {
+  color: var(--ae-secondary);
+}
+
+.ae-text-accent {
+  color: var(--ae-accent);
+}
+
+.ae-text-success {
+  color: var(--ae-success);
+}
+
+.ae-text-warning {
+  color: var(--ae-warning);
+}
+
+.ae-text-danger {
+  color: var(--ae-danger);
+}
+
+.ae-text-info {
+  color: var(--ae-info);
+}
+
+.ae-text-center {
+  text-align: center;
+}
+
+.ae-text-left {
+  text-align: left;
+}
+
+.ae-text-right {
+  text-align: right;
+}
+
+.ae-text-nowrap {
+  white-space: nowrap;
+}
+
+.ae-text-balance {
+  text-wrap: balance;
+}
+
+.ae-text-pretty {
+  text-wrap: pretty;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Accessibility and interaction                                               */
+/* -------------------------------------------------------------------------- */
+
+.ae-focus-ring {
+  outline: 2px solid var(--ae-focus-ring);
+  outline-offset: 2px;
+}
+
+.ae-focus-ring-inset {
+  outline: 2px solid var(--ae-focus-ring);
+  outline-offset: -2px;
+}
+
+.ae-interactive {
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    color 150ms ease,
+    opacity 150ms ease,
+    transform 150ms ease;
+}
+
+.ae-interactive:hover {
+  border-color: var(--ae-border-strong);
+}
+
+.ae-interactive:focus-visible {
+  outline: 2px solid var(--ae-focus-ring);
+  outline-offset: 2px;
+}
+
+.ae-clickable {
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ae-disabled {
+  pointer-events: none;
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.ae-hidden {
+  display: none !important;
+}
+
+.ae-inert {
+  pointer-events: none;
+  user-select: none;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Overflow, truncation, and scrolling                                         */
+/* -------------------------------------------------------------------------- */
+
+.ae-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ae-line-clamp-2 {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.ae-line-clamp-3 {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.ae-scroll-x {
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.ae-scroll-y {
+  overflow-y: auto;
+  overscroll-behavior-block: contain;
+}
+
+.ae-scroll-contain {
+  overscroll-behavior: contain;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Status backgrounds                                                          */
+/* -------------------------------------------------------------------------- */
+
+.ae-status-success {
+  border-color: var(--ae-success-border);
+  background: var(--ae-success-subtle);
+  color: var(--ae-success-foreground);
+}
+
+.ae-status-warning {
+  border-color: var(--ae-warning-border);
+  background: var(--ae-warning-subtle);
+  color: var(--ae-warning-foreground);
+}
+
+.ae-status-danger {
+  border-color: var(--ae-danger-border);
+  background: var(--ae-danger-subtle);
+  color: var(--ae-danger-foreground);
+}
+
+.ae-status-info {
+  border-color: var(--ae-info-border);
+  background: var(--ae-info-subtle);
+  color: var(--ae-info-foreground);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Responsive helpers                                                          */
+/* -------------------------------------------------------------------------- */
+
+@media (max-width: 40rem) {
+  .ae-container,
+  .ae-container-narrow,
+  .ae-container-wide {
+    width: min(100% - 1.25rem, 100%);
+  }
+
+  .ae-mobile-stack {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ae-mobile-hidden {
+    display: none !important;
+  }
+}
+
+@media (min-width: 40.0625rem) {
+  .ae-desktop-hidden {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ae-interactive {
+    transition: none;
+  }
+}

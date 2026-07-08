@@ -54,7 +54,6 @@
   "js/ts.tsdk.promptToUseWorkspaceVersion": true,
   "js/ts.preferences.includePackageJsonAutoImports": "on",
   "typescript.updateImportsOnFileMove.enabled": "always",
-  "javascript.updateImportsOnFileMove.enabled": "always",
 
   "npm.packageManager": "pnpm",
 
@@ -77,7 +76,6 @@
     "**/.wrangler": true,
     "**/build": true,
     "**/coverage": true,
-    "**/dist": true,
     "**/node_modules": true,
     "**/playwright-report": true,
     "**/temp": true,
@@ -97,7 +95,6 @@
     "**/.wrangler/**": true,
     "**/build/**": true,
     "**/coverage/**": true,
-    "**/dist/**": true,
     "**/node_modules/**": true,
     "**/playwright-report/**": true,
     "**/temp/**": true,
@@ -117,7 +114,6 @@
     "**/.wrangler": true,
     "**/build": true,
     "**/coverage": true,
-    "**/dist": true,
     "**/node_modules": true,
     "**/playwright-report": true,
     "**/temp": true,

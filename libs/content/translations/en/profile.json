@@ -1,0 +1,3944 @@
+{
+  "scaffold": {
+    "tabs": [
+      {
+        "label": "Overview",
+        "value": "overview",
+        "href": "#overview",
+        "publicHidden": true
+      },
+      {
+        "label": "Profile",
+        "value": "profile",
+        "href": "#profile"
+      },
+      {
+        "label": "Recent Activity",
+        "value": "recent-activity",
+        "href": "#recent-activity"
+      },
+      {
+        "label": "Projects",
+        "value": "projects",
+        "href": "#projects"
+      },
+      {
+        "label": "Models",
+        "value": "models",
+        "href": "#models",
+        "publicHidden": true
+      },
+      {
+        "label": "Connections",
+        "value": "connections",
+        "href": "#connections",
+        "privateOnly": true
+      },
+      {
+        "label": "Integrations",
+        "value": "integrations",
+        "href": "#integrations",
+        "publicHidden": true
+      },
+      {
+        "label": "Achievements",
+        "value": "achievements",
+        "href": "#achievements"
+      },
+      {
+        "label": "Settings",
+        "value": "settings",
+        "href": "#settings",
+        "privateOnly": true
+      }
+    ],
+    "sidebar": [
+      {
+        "label": "Overview",
+        "href": "#overview",
+        "icon": "overview"
+      },
+      {
+        "label": "Dashboard",
+        "href": "/dashboard",
+        "icon": "dashboard",
+        "privateOnly": true
+      },
+      {
+        "label": "Projects",
+        "href": "#projects",
+        "icon": "projects"
+      },
+      {
+        "label": "Models",
+        "href": "#models",
+        "icon": "models"
+      },
+      {
+        "label": "Connections",
+        "href": "#connections",
+        "icon": "connections",
+        "privateOnly": true
+      },
+      {
+        "label": "Integrations",
+        "href": "#integrations",
+        "icon": "integrations"
+      },
+      {
+        "label": "Settings",
+        "href": "#settings",
+        "icon": "settings",
+        "privateOnly": true
+      }
+    ],
+    "connectionCategories": [
+      {
+        "label": "All Connections",
+        "icon": "folder"
+      },
+      {
+        "label": "Cloud Storage",
+        "icon": "integrations"
+      },
+      {
+        "label": "Code & Dev",
+        "icon": "code"
+      },
+      {
+        "label": "Communication",
+        "icon": "connections"
+      },
+      {
+        "label": "Streaming",
+        "icon": "streaming"
+      },
+      {
+        "label": "Analytics",
+        "icon": "analytics"
+      }
+    ]
+  },
+  "editOptions": {
+    "contentMaturity": [
+      {
+        "label": "Unspecified",
+        "value": "unspecified"
+      },
+      {
+        "label": "Safe Only",
+        "value": "safe_only"
+      },
+      {
+        "label": "Family Friendly",
+        "value": "family_friendly"
+      },
+      {
+        "label": "Teen",
+        "value": "teen"
+      },
+      {
+        "label": "Mature",
+        "value": "mature"
+      },
+      {
+        "label": "Explicit",
+        "value": "explicit"
+      },
+      {
+        "label": "Restricted",
+        "value": "restricted"
+      }
+    ],
+    "countries": [
+      {
+        "label": "Afghanistan",
+        "value": "AF"
+      },
+      {
+        "label": "Aland Islands",
+        "value": "AX"
+      },
+      {
+        "label": "Albania",
+        "value": "AL"
+      },
+      {
+        "label": "Algeria",
+        "value": "DZ"
+      },
+      {
+        "label": "American Samoa",
+        "value": "AS"
+      },
+      {
+        "label": "Andorra",
+        "value": "AD"
+      },
+      {
+        "label": "Angola",
+        "value": "AO"
+      },
+      {
+        "label": "Anguilla",
+        "value": "AI"
+      },
+      {
+        "label": "Antarctica",
+        "value": "AQ"
+      },
+      {
+        "label": "Antigua And Barbuda",
+        "value": "AG"
+      },
+      {
+        "label": "Argentina",
+        "value": "AR"
+      },
+      {
+        "label": "Armenia",
+        "value": "AM"
+      },
+      {
+        "label": "Aruba",
+        "value": "AW"
+      },
+      {
+        "label": "Australia",
+        "value": "AU"
+      },
+      {
+        "label": "Austria",
+        "value": "AT"
+      },
+      {
+        "label": "Azerbaijan",
+        "value": "AZ"
+      },
+      {
+        "label": "Bahamas",
+        "value": "BS"
+      },
+      {
+        "label": "Bahrain",
+        "value": "BH"
+      },
+      {
+        "label": "Bangladesh",
+        "value": "BD"
+      },
+      {
+        "label": "Barbados",
+        "value": "BB"
+      },
+      {
+        "label": "Belarus",
+        "value": "BY"
+      },
+      {
+        "label": "Belgium",
+        "value": "BE"
+      },
+      {
+        "label": "Belize",
+        "value": "BZ"
+      },
+      {
+        "label": "Benin",
+        "value": "BJ"
+      },
+      {
+        "label": "Bermuda",
+        "value": "BM"
+      },
+      {
+        "label": "Bhutan",
+        "value": "BT"
+      },
+      {
+        "label": "Bolivia",
+        "value": "BO"
+      },
+      {
+        "label": "Bonaire Sint Eustatius And Saba",
+        "value": "BQ"
+      },
+      {
+        "label": "Bosnia And Herzegovina",
+        "value": "BA"
+      },
+      {
+        "label": "Botswana",
+        "value": "BW"
+      },
+      {
+        "label": "Bouvet Island",
+        "value": "BV"
+      },
+      {
+        "label": "Brazil",
+        "value": "BR"
+      },
+      {
+        "label": "British Indian Ocean Territory",
+        "value": "IO"
+      },
+      {
+        "label": "Brunei Darussalam",
+        "value": "BN"
+      },
+      {
+        "label": "Bulgaria",
+        "value": "BG"
+      },
+      {
+        "label": "Burkina Faso",
+        "value": "BF"
+      },
+      {
+        "label": "Burundi",
+        "value": "BI"
+      },
+      {
+        "label": "Cabo Verde",
+        "value": "CV"
+      },
+      {
+        "label": "Cambodia",
+        "value": "KH"
+      },
+      {
+        "label": "Cameroon",
+        "value": "CM"
+      },
+      {
+        "label": "Canada",
+        "value": "CA"
+      },
+      {
+        "label": "Cayman Islands",
+        "value": "KY"
+      },
+      {
+        "label": "Central African Republic",
+        "value": "CF"
+      },
+      {
+        "label": "Chad",
+        "value": "TD"
+      },
+      {
+        "label": "Chile",
+        "value": "CL"
+      },
+      {
+        "label": "China",
+        "value": "CN"
+      },
+      {
+        "label": "Christmas Island",
+        "value": "CX"
+      },
+      {
+        "label": "Cocos Keeling Islands",
+        "value": "CC"
+      },
+      {
+        "label": "Colombia",
+        "value": "CO"
+      },
+      {
+        "label": "Comoros",
+        "value": "KM"
+      },
+      {
+        "label": "Congo",
+        "value": "CG"
+      },
+      {
+        "label": "Congo Democratic Republic Of The",
+        "value": "CD"
+      },
+      {
+        "label": "Cook Islands",
+        "value": "CK"
+      },
+      {
+        "label": "Costa Rica",
+        "value": "CR"
+      },
+      {
+        "label": "Cote D Ivoire",
+        "value": "CI"
+      },
+      {
+        "label": "Croatia",
+        "value": "HR"
+      },
+      {
+        "label": "Cuba",
+        "value": "CU"
+      },
+      {
+        "label": "Curacao",
+        "value": "CW"
+      },
+      {
+        "label": "Cyprus",
+        "value": "CY"
+      },
+      {
+        "label": "Czechia",
+        "value": "CZ"
+      },
+      {
+        "label": "Denmark",
+        "value": "DK"
+      },
+      {
+        "label": "Djibouti",
+        "value": "DJ"
+      },
+      {
+        "label": "Dominica",
+        "value": "DM"
+      },
+      {
+        "label": "Dominican Republic",
+        "value": "DO"
+      },
+      {
+        "label": "Ecuador",
+        "value": "EC"
+      },
+      {
+        "label": "Egypt",
+        "value": "EG"
+      },
+      {
+        "label": "El Salvador",
+        "value": "SV"
+      },
+      {
+        "label": "Equatorial Guinea",
+        "value": "GQ"
+      },
+      {
+        "label": "Eritrea",
+        "value": "ER"
+      },
+      {
+        "label": "Estonia",
+        "value": "EE"
+      },
+      {
+        "label": "Eswatini",
+        "value": "SZ"
+      },
+      {
+        "label": "Ethiopia",
+        "value": "ET"
+      },
+      {
+        "label": "Falkland Islands",
+        "value": "FK"
+      },
+      {
+        "label": "Faroe Islands",
+        "value": "FO"
+      },
+      {
+        "label": "Fiji",
+        "value": "FJ"
+      },
+      {
+        "label": "Finland",
+        "value": "FI"
+      },
+      {
+        "label": "France",
+        "value": "FR"
+      },
+      {
+        "label": "French Guiana",
+        "value": "GF"
+      },
+      {
+        "label": "French Polynesia",
+        "value": "PF"
+      },
+      {
+        "label": "French Southern Territories",
+        "value": "TF"
+      },
+      {
+        "label": "Gabon",
+        "value": "GA"
+      },
+      {
+        "label": "Gambia",
+        "value": "GM"
+      },
+      {
+        "label": "Georgia",
+        "value": "GE"
+      },
+      {
+        "label": "Germany",
+        "value": "DE"
+      },
+      {
+        "label": "Ghana",
+        "value": "GH"
+      },
+      {
+        "label": "Gibraltar",
+        "value": "GI"
+      },
+      {
+        "label": "Greece",
+        "value": "GR"
+      },
+      {
+        "label": "Greenland",
+        "value": "GL"
+      },
+      {
+        "label": "Grenada",
+        "value": "GD"
+      },
+      {
+        "label": "Guadeloupe",
+        "value": "GP"
+      },
+      {
+        "label": "Guam",
+        "value": "GU"
+      },
+      {
+        "label": "Guatemala",
+        "value": "GT"
+      },
+      {
+        "label": "Guernsey",
+        "value": "GG"
+      },
+      {
+        "label": "Guinea",
+        "value": "GN"
+      },
+      {
+        "label": "Guinea Bissau",
+        "value": "GW"
+      },
+      {
+        "label": "Guyana",
+        "value": "GY"
+      },
+      {
+        "label": "Haiti",
+        "value": "HT"
+      },
+      {
+        "label": "Heard Island And Mc Donald Islands",
+        "value": "HM"
+      },
+      {
+        "label": "Holy See",
+        "value": "VA"
+      },
+      {
+        "label": "Honduras",
+        "value": "HN"
+      },
+      {
+        "label": "Hong Kong",
+        "value": "HK"
+      },
+      {
+        "label": "Hungary",
+        "value": "HU"
+      },
+      {
+        "label": "Iceland",
+        "value": "IS"
+      },
+      {
+        "label": "India",
+        "value": "IN"
+      },
+      {
+        "label": "Indonesia",
+        "value": "ID"
+      },
+      {
+        "label": "Iran",
+        "value": "IR"
+      },
+      {
+        "label": "Iraq",
+        "value": "IQ"
+      },
+      {
+        "label": "Ireland",
+        "value": "IE"
+      },
+      {
+        "label": "Isle Of Man",
+        "value": "IM"
+      },
+      {
+        "label": "Israel",
+        "value": "IL"
+      },
+      {
+        "label": "Italy",
+        "value": "IT"
+      },
+      {
+        "label": "Jamaica",
+        "value": "JM"
+      },
+      {
+        "label": "Japan",
+        "value": "JP"
+      },
+      {
+        "label": "Jersey",
+        "value": "JE"
+      },
+      {
+        "label": "Jordan",
+        "value": "JO"
+      },
+      {
+        "label": "Kazakhstan",
+        "value": "KZ"
+      },
+      {
+        "label": "Kenya",
+        "value": "KE"
+      },
+      {
+        "label": "Kiribati",
+        "value": "KI"
+      },
+      {
+        "label": "Korea Democratic Peoples Republic Of",
+        "value": "KP"
+      },
+      {
+        "label": "Korea Republic Of",
+        "value": "KR"
+      },
+      {
+        "label": "Kuwait",
+        "value": "KW"
+      },
+      {
+        "label": "Kyrgyzstan",
+        "value": "KG"
+      },
+      {
+        "label": "Lao Peoples Democratic Republic",
+        "value": "LA"
+      },
+      {
+        "label": "Latvia",
+        "value": "LV"
+      },
+      {
+        "label": "Lebanon",
+        "value": "LB"
+      },
+      {
+        "label": "Lesotho",
+        "value": "LS"
+      },
+      {
+        "label": "Liberia",
+        "value": "LR"
+      },
+      {
+        "label": "Libya",
+        "value": "LY"
+      },
+      {
+        "label": "Liechtenstein",
+        "value": "LI"
+      },
+      {
+        "label": "Lithuania",
+        "value": "LT"
+      },
+      {
+        "label": "Luxembourg",
+        "value": "LU"
+      },
+      {
+        "label": "Macao",
+        "value": "MO"
+      },
+      {
+        "label": "Madagascar",
+        "value": "MG"
+      },
+      {
+        "label": "Malawi",
+        "value": "MW"
+      },
+      {
+        "label": "Malaysia",
+        "value": "MY"
+      },
+      {
+        "label": "Maldives",
+        "value": "MV"
+      },
+      {
+        "label": "Mali",
+        "value": "ML"
+      },
+      {
+        "label": "Malta",
+        "value": "MT"
+      },
+      {
+        "label": "Marshall Islands",
+        "value": "MH"
+      },
+      {
+        "label": "Martinique",
+        "value": "MQ"
+      },
+      {
+        "label": "Mauritania",
+        "value": "MR"
+      },
+      {
+        "label": "Mauritius",
+        "value": "MU"
+      },
+      {
+        "label": "Mayotte",
+        "value": "YT"
+      },
+      {
+        "label": "Mexico",
+        "value": "MX"
+      },
+      {
+        "label": "Micronesia",
+        "value": "FM"
+      },
+      {
+        "label": "Moldova",
+        "value": "MD"
+      },
+      {
+        "label": "Monaco",
+        "value": "MC"
+      },
+      {
+        "label": "Mongolia",
+        "value": "MN"
+      },
+      {
+        "label": "Montenegro",
+        "value": "ME"
+      },
+      {
+        "label": "Montserrat",
+        "value": "MS"
+      },
+      {
+        "label": "Morocco",
+        "value": "MA"
+      },
+      {
+        "label": "Mozambique",
+        "value": "MZ"
+      },
+      {
+        "label": "Myanmar",
+        "value": "MM"
+      },
+      {
+        "label": "Namibia",
+        "value": "NA"
+      },
+      {
+        "label": "Nauru",
+        "value": "NR"
+      },
+      {
+        "label": "Nepal",
+        "value": "NP"
+      },
+      {
+        "label": "Netherlands",
+        "value": "NL"
+      },
+      {
+        "label": "New Caledonia",
+        "value": "NC"
+      },
+      {
+        "label": "New Zealand",
+        "value": "NZ"
+      },
+      {
+        "label": "Nicaragua",
+        "value": "NI"
+      },
+      {
+        "label": "Niger",
+        "value": "NE"
+      },
+      {
+        "label": "Nigeria",
+        "value": "NG"
+      },
+      {
+        "label": "Niue",
+        "value": "NU"
+      },
+      {
+        "label": "Norfolk Island",
+        "value": "NF"
+      },
+      {
+        "label": "North Macedonia",
+        "value": "MK"
+      },
+      {
+        "label": "Northern Mariana Islands",
+        "value": "MP"
+      },
+      {
+        "label": "Norway",
+        "value": "NO"
+      },
+      {
+        "label": "Oman",
+        "value": "OM"
+      },
+      {
+        "label": "Pakistan",
+        "value": "PK"
+      },
+      {
+        "label": "Palau",
+        "value": "PW"
+      },
+      {
+        "label": "Palestine",
+        "value": "PS"
+      },
+      {
+        "label": "Panama",
+        "value": "PA"
+      },
+      {
+        "label": "Papua New Guinea",
+        "value": "PG"
+      },
+      {
+        "label": "Paraguay",
+        "value": "PY"
+      },
+      {
+        "label": "Peru",
+        "value": "PE"
+      },
+      {
+        "label": "Philippines",
+        "value": "PH"
+      },
+      {
+        "label": "Pitcairn",
+        "value": "PN"
+      },
+      {
+        "label": "Poland",
+        "value": "PL"
+      },
+      {
+        "label": "Portugal",
+        "value": "PT"
+      },
+      {
+        "label": "Puerto Rico",
+        "value": "PR"
+      },
+      {
+        "label": "Qatar",
+        "value": "QA"
+      },
+      {
+        "label": "Reunion",
+        "value": "RE"
+      },
+      {
+        "label": "Romania",
+        "value": "RO"
+      },
+      {
+        "label": "Russian Federation",
+        "value": "RU"
+      },
+      {
+        "label": "Rwanda",
+        "value": "RW"
+      },
+      {
+        "label": "Saint Barthelemy",
+        "value": "BL"
+      },
+      {
+        "label": "Saint Helena Ascension And Tristan Da Cunha",
+        "value": "SH"
+      },
+      {
+        "label": "Saint Kitts And Nevis",
+        "value": "KN"
+      },
+      {
+        "label": "Saint Lucia",
+        "value": "LC"
+      },
+      {
+        "label": "Saint Martin",
+        "value": "MF"
+      },
+      {
+        "label": "Saint Pierre And Miquelon",
+        "value": "PM"
+      },
+      {
+        "label": "Saint Vincent And The Grenadines",
+        "value": "VC"
+      },
+      {
+        "label": "Samoa",
+        "value": "WS"
+      },
+      {
+        "label": "San Marino",
+        "value": "SM"
+      },
+      {
+        "label": "Sao Tome And Principe",
+        "value": "ST"
+      },
+      {
+        "label": "Saudi Arabia",
+        "value": "SA"
+      },
+      {
+        "label": "Senegal",
+        "value": "SN"
+      },
+      {
+        "label": "Serbia",
+        "value": "RS"
+      },
+      {
+        "label": "Seychelles",
+        "value": "SC"
+      },
+      {
+        "label": "Sierra Leone",
+        "value": "SL"
+      },
+      {
+        "label": "Singapore",
+        "value": "SG"
+      },
+      {
+        "label": "Sint Maarten",
+        "value": "SX"
+      },
+      {
+        "label": "Slovakia",
+        "value": "SK"
+      },
+      {
+        "label": "Slovenia",
+        "value": "SI"
+      },
+      {
+        "label": "Solomon Islands",
+        "value": "SB"
+      },
+      {
+        "label": "Somalia",
+        "value": "SO"
+      },
+      {
+        "label": "South Africa",
+        "value": "ZA"
+      },
+      {
+        "label": "South Georgia And The South Sandwich Islands",
+        "value": "GS"
+      },
+      {
+        "label": "South Sudan",
+        "value": "SS"
+      },
+      {
+        "label": "Spain",
+        "value": "ES"
+      },
+      {
+        "label": "Sri Lanka",
+        "value": "LK"
+      },
+      {
+        "label": "Sudan",
+        "value": "SD"
+      },
+      {
+        "label": "Suriname",
+        "value": "SR"
+      },
+      {
+        "label": "Svalbard And Jan Mayen",
+        "value": "SJ"
+      },
+      {
+        "label": "Sweden",
+        "value": "SE"
+      },
+      {
+        "label": "Switzerland",
+        "value": "CH"
+      },
+      {
+        "label": "Syrian Arab Republic",
+        "value": "SY"
+      },
+      {
+        "label": "Taiwan",
+        "value": "TW"
+      },
+      {
+        "label": "Tajikistan",
+        "value": "TJ"
+      },
+      {
+        "label": "Tanzania",
+        "value": "TZ"
+      },
+      {
+        "label": "Thailand",
+        "value": "TH"
+      },
+      {
+        "label": "Timor Leste",
+        "value": "TL"
+      },
+      {
+        "label": "Togo",
+        "value": "TG"
+      },
+      {
+        "label": "Tokelau",
+        "value": "TK"
+      },
+      {
+        "label": "Tonga",
+        "value": "TO"
+      },
+      {
+        "label": "Trinidad And Tobago",
+        "value": "TT"
+      },
+      {
+        "label": "Tunisia",
+        "value": "TN"
+      },
+      {
+        "label": "Turkiye",
+        "value": "TR"
+      },
+      {
+        "label": "Turkmenistan",
+        "value": "TM"
+      },
+      {
+        "label": "Turks And Caicos Islands",
+        "value": "TC"
+      },
+      {
+        "label": "Tuvalu",
+        "value": "TV"
+      },
+      {
+        "label": "Uganda",
+        "value": "UG"
+      },
+      {
+        "label": "Ukraine",
+        "value": "UA"
+      },
+      {
+        "label": "United Arab Emirates",
+        "value": "AE"
+      },
+      {
+        "label": "United Kingdom",
+        "value": "GB"
+      },
+      {
+        "label": "United States",
+        "value": "US"
+      },
+      {
+        "label": "United States Minor Outlying Islands",
+        "value": "UM"
+      },
+      {
+        "label": "Uruguay",
+        "value": "UY"
+      },
+      {
+        "label": "Uzbekistan",
+        "value": "UZ"
+      },
+      {
+        "label": "Vanuatu",
+        "value": "VU"
+      },
+      {
+        "label": "Venezuela",
+        "value": "VE"
+      },
+      {
+        "label": "Viet Nam",
+        "value": "VN"
+      },
+      {
+        "label": "Virgin Islands British",
+        "value": "VG"
+      },
+      {
+        "label": "Virgin Islands US",
+        "value": "VI"
+      },
+      {
+        "label": "Wallis And Futuna",
+        "value": "WF"
+      },
+      {
+        "label": "Western Sahara",
+        "value": "EH"
+      },
+      {
+        "label": "Yemen",
+        "value": "YE"
+      },
+      {
+        "label": "Zambia",
+        "value": "ZM"
+      },
+      {
+        "label": "Zimbabwe",
+        "value": "ZW"
+      }
+    ],
+    "dateFormats": [
+      {
+        "label": "Unspecified",
+        "value": "unspecified"
+      },
+      {
+        "label": "Iso8601",
+        "value": "yyyy-MM-dd"
+      },
+      {
+        "label": "US",
+        "value": "MM/dd/yyyy"
+      },
+      {
+        "label": "European",
+        "value": "dd/MM/yyyy"
+      },
+      {
+        "label": "Long",
+        "value": "MMMM d, yyyy"
+      },
+      {
+        "label": "Short Month",
+        "value": "MMM d, yyyy"
+      }
+    ],
+    "genders": [
+      {
+        "label": "Unspecified",
+        "value": "unspecified"
+      },
+      {
+        "label": "Prefer Not To Say",
+        "value": "prefer_not_to_say"
+      },
+      {
+        "label": "Not Listed",
+        "value": "not_listed"
+      },
+      {
+        "label": "Self Describe",
+        "value": "self_describe"
+      },
+      {
+        "label": "Questioning",
+        "value": "questioning"
+      },
+      {
+        "label": "Woman",
+        "value": "woman"
+      },
+      {
+        "label": "Man",
+        "value": "man"
+      },
+      {
+        "label": "Non Binary",
+        "value": "non_binary"
+      },
+      {
+        "label": "Transgender",
+        "value": "transgender"
+      },
+      {
+        "label": "Trans Woman",
+        "value": "trans_woman"
+      },
+      {
+        "label": "Trans Man",
+        "value": "trans_man"
+      },
+      {
+        "label": "Trans Feminine",
+        "value": "trans_feminine"
+      },
+      {
+        "label": "Trans Masculine",
+        "value": "trans_masculine"
+      },
+      {
+        "label": "Genderfluid",
+        "value": "genderfluid"
+      },
+      {
+        "label": "Genderqueer",
+        "value": "genderqueer"
+      },
+      {
+        "label": "Agender",
+        "value": "agender"
+      },
+      {
+        "label": "Bigender",
+        "value": "bigender"
+      },
+      {
+        "label": "Two Spirit",
+        "value": "two_spirit"
+      },
+      {
+        "label": "Intersex",
+        "value": "intersex"
+      },
+      {
+        "label": "Gender Non Conforming",
+        "value": "gender_non_conforming"
+      },
+      {
+        "label": "Another Gender",
+        "value": "another_gender"
+      }
+    ],
+    "languageProficiencies": [
+      {
+        "label": "Unspecified",
+        "value": "unspecified"
+      },
+      {
+        "label": "Beginner",
+        "value": "beginner"
+      },
+      {
+        "label": "Intermediate",
+        "value": "intermediate"
+      },
+      {
+        "label": "Advanced",
+        "value": "advanced"
+      },
+      {
+        "label": "Fluent",
+        "value": "fluent"
+      },
+      {
+        "label": "Native",
+        "value": "native"
+      }
+    ],
+    "languages": [
+      {
+        "label": "Unspecified",
+        "value": "und"
+      },
+      {
+        "label": "Multiple Languages",
+        "value": "mul"
+      },
+      {
+        "label": "Not Applicable",
+        "value": "zxx"
+      },
+      {
+        "label": "Not Listed",
+        "value": "not_listed"
+      },
+      {
+        "label": "Self Describe",
+        "value": "self_describe"
+      },
+      {
+        "label": "English",
+        "value": "eng"
+      },
+      {
+        "label": "Spanish",
+        "value": "spa"
+      },
+      {
+        "label": "French",
+        "value": "fra"
+      },
+      {
+        "label": "German",
+        "value": "deu"
+      },
+      {
+        "label": "Portuguese",
+        "value": "por"
+      },
+      {
+        "label": "Italian",
+        "value": "ita"
+      },
+      {
+        "label": "Dutch",
+        "value": "nld"
+      },
+      {
+        "label": "Russian",
+        "value": "rus"
+      },
+      {
+        "label": "Arabic",
+        "value": "ara"
+      },
+      {
+        "label": "Modern Standard Arabic",
+        "value": "arb"
+      },
+      {
+        "label": "Mandarin Chinese",
+        "value": "cmn"
+      },
+      {
+        "label": "Chinese",
+        "value": "zho"
+      },
+      {
+        "label": "Hindi",
+        "value": "hin"
+      },
+      {
+        "label": "Bengali",
+        "value": "ben"
+      },
+      {
+        "label": "Urdu",
+        "value": "urd"
+      },
+      {
+        "label": "Indonesian",
+        "value": "ind"
+      },
+      {
+        "label": "Malay",
+        "value": "msa"
+      },
+      {
+        "label": "Japanese",
+        "value": "jpn"
+      },
+      {
+        "label": "Korean",
+        "value": "kor"
+      },
+      {
+        "label": "Turkish",
+        "value": "tur"
+      },
+      {
+        "label": "Vietnamese",
+        "value": "vie"
+      },
+      {
+        "label": "Thai",
+        "value": "tha"
+      },
+      {
+        "label": "Persian",
+        "value": "fas"
+      },
+      {
+        "label": "Swahili",
+        "value": "swa"
+      },
+      {
+        "label": "Cherokee",
+        "value": "chr"
+      },
+      {
+        "label": "Navajo",
+        "value": "nav"
+      },
+      {
+        "label": "Cree",
+        "value": "cre"
+      },
+      {
+        "label": "Inuktitut",
+        "value": "iku"
+      },
+      {
+        "label": "Greenlandic",
+        "value": "kal"
+      },
+      {
+        "label": "Ojibwa",
+        "value": "oji"
+      },
+      {
+        "label": "Mohawk",
+        "value": "moh"
+      },
+      {
+        "label": "Dakota",
+        "value": "dak"
+      },
+      {
+        "label": "Lakota",
+        "value": "lkt"
+      },
+      {
+        "label": "Choctaw",
+        "value": "cho"
+      },
+      {
+        "label": "Chickasaw",
+        "value": "cic"
+      },
+      {
+        "label": "Muscogee",
+        "value": "mus"
+      },
+      {
+        "label": "Apache",
+        "value": "apa"
+      },
+      {
+        "label": "Blackfoot",
+        "value": "bla"
+      },
+      {
+        "label": "Haida",
+        "value": "hai"
+      },
+      {
+        "label": "Tlingit",
+        "value": "tli"
+      },
+      {
+        "label": "Yupik",
+        "value": "ypk"
+      },
+      {
+        "label": "Hawaiian",
+        "value": "haw"
+      },
+      {
+        "label": "Haitian Creole",
+        "value": "hat"
+      },
+      {
+        "label": "Jamaican Creole English",
+        "value": "jam"
+      },
+      {
+        "label": "Garifuna",
+        "value": "cab"
+      },
+      {
+        "label": "Yucateco",
+        "value": "yua"
+      },
+      {
+        "label": "Kiche",
+        "value": "quc"
+      },
+      {
+        "label": "Kaqchikel",
+        "value": "cak"
+      },
+      {
+        "label": "Mam",
+        "value": "mam"
+      },
+      {
+        "label": "Qeqchi",
+        "value": "kek"
+      },
+      {
+        "label": "Nahuatl",
+        "value": "nah"
+      },
+      {
+        "label": "Classical Nahuatl",
+        "value": "nci"
+      },
+      {
+        "label": "Quechua",
+        "value": "que"
+      },
+      {
+        "label": "Aymara",
+        "value": "aym"
+      },
+      {
+        "label": "Guarani",
+        "value": "grn"
+      },
+      {
+        "label": "Mapudungun",
+        "value": "arn"
+      },
+      {
+        "label": "Wayuu",
+        "value": "guc"
+      },
+      {
+        "label": "Shipibo Conibo",
+        "value": "shp"
+      },
+      {
+        "label": "Ashaninka",
+        "value": "cni"
+      },
+      {
+        "label": "Warao",
+        "value": "wba"
+      },
+      {
+        "label": "Ticuna",
+        "value": "tca"
+      },
+      {
+        "label": "Yanomami",
+        "value": "wca"
+      },
+      {
+        "label": "Irish",
+        "value": "gle"
+      },
+      {
+        "label": "Scottish Gaelic",
+        "value": "gla"
+      },
+      {
+        "label": "Welsh",
+        "value": "cym"
+      },
+      {
+        "label": "Breton",
+        "value": "bre"
+      },
+      {
+        "label": "Cornish",
+        "value": "cor"
+      },
+      {
+        "label": "Manx",
+        "value": "glv"
+      },
+      {
+        "label": "Basque",
+        "value": "eus"
+      },
+      {
+        "label": "Catalan",
+        "value": "cat"
+      },
+      {
+        "label": "Galician",
+        "value": "glg"
+      },
+      {
+        "label": "Occitan",
+        "value": "oci"
+      },
+      {
+        "label": "Corsican",
+        "value": "cos"
+      },
+      {
+        "label": "Sardinian",
+        "value": "srd"
+      },
+      {
+        "label": "Romansh",
+        "value": "roh"
+      },
+      {
+        "label": "Luxembourgish",
+        "value": "ltz"
+      },
+      {
+        "label": "Frisian",
+        "value": "fry"
+      },
+      {
+        "label": "Low German",
+        "value": "nds"
+      },
+      {
+        "label": "Limburgish",
+        "value": "lim"
+      },
+      {
+        "label": "Walloon",
+        "value": "wln"
+      },
+      {
+        "label": "Venetian",
+        "value": "vec"
+      },
+      {
+        "label": "Neapolitan",
+        "value": "nap"
+      },
+      {
+        "label": "Sicilian",
+        "value": "scn"
+      },
+      {
+        "label": "Ligurian",
+        "value": "lij"
+      },
+      {
+        "label": "Piedmontese",
+        "value": "pms"
+      },
+      {
+        "label": "Lombard",
+        "value": "lmo"
+      },
+      {
+        "label": "Danish",
+        "value": "dan"
+      },
+      {
+        "label": "Swedish",
+        "value": "swe"
+      },
+      {
+        "label": "Norwegian",
+        "value": "nor"
+      },
+      {
+        "label": "Norwegian Bokmal",
+        "value": "nob"
+      },
+      {
+        "label": "Norwegian Nynorsk",
+        "value": "nno"
+      },
+      {
+        "label": "Icelandic",
+        "value": "isl"
+      },
+      {
+        "label": "Faroese",
+        "value": "fao"
+      },
+      {
+        "label": "Finnish",
+        "value": "fin"
+      },
+      {
+        "label": "Estonian",
+        "value": "est"
+      },
+      {
+        "label": "Sami",
+        "value": "smi"
+      },
+      {
+        "label": "Northern Sami",
+        "value": "sme"
+      },
+      {
+        "label": "Inari Sami",
+        "value": "smn"
+      },
+      {
+        "label": "Skolt Sami",
+        "value": "sms"
+      },
+      {
+        "label": "Lule Sami",
+        "value": "smj"
+      },
+      {
+        "label": "Southern Sami",
+        "value": "sma"
+      },
+      {
+        "label": "Polish",
+        "value": "pol"
+      },
+      {
+        "label": "Czech",
+        "value": "ces"
+      },
+      {
+        "label": "Slovak",
+        "value": "slk"
+      },
+      {
+        "label": "Hungarian",
+        "value": "hun"
+      },
+      {
+        "label": "Romanian",
+        "value": "ron"
+      },
+      {
+        "label": "Moldovan",
+        "value": "mol"
+      },
+      {
+        "label": "Ukrainian",
+        "value": "ukr"
+      },
+      {
+        "label": "Belarusian",
+        "value": "bel"
+      },
+      {
+        "label": "Lithuanian",
+        "value": "lit"
+      },
+      {
+        "label": "Latvian",
+        "value": "lav"
+      },
+      {
+        "label": "Rusyn",
+        "value": "rue"
+      },
+      {
+        "label": "Romani",
+        "value": "rom"
+      },
+      {
+        "label": "Yiddish",
+        "value": "yid"
+      },
+      {
+        "label": "Albanian",
+        "value": "sqi"
+      },
+      {
+        "label": "Greek",
+        "value": "ell"
+      },
+      {
+        "label": "Bulgarian",
+        "value": "bul"
+      },
+      {
+        "label": "Macedonian",
+        "value": "mkd"
+      },
+      {
+        "label": "Serbian",
+        "value": "srp"
+      },
+      {
+        "label": "Croatian",
+        "value": "hrv"
+      },
+      {
+        "label": "Bosnian",
+        "value": "bos"
+      },
+      {
+        "label": "Slovene",
+        "value": "slv"
+      },
+      {
+        "label": "Montenegrin",
+        "value": "cnr"
+      },
+      {
+        "label": "Aromanian",
+        "value": "rup"
+      },
+      {
+        "label": "Georgian",
+        "value": "kat"
+      },
+      {
+        "label": "Armenian",
+        "value": "hye"
+      },
+      {
+        "label": "Azerbaijani",
+        "value": "aze"
+      },
+      {
+        "label": "Chechen",
+        "value": "che"
+      },
+      {
+        "label": "Avaric",
+        "value": "ava"
+      },
+      {
+        "label": "Abkhazian",
+        "value": "abk"
+      },
+      {
+        "label": "Ossetian",
+        "value": "oss"
+      },
+      {
+        "label": "Ingush",
+        "value": "inh"
+      },
+      {
+        "label": "Lezgian",
+        "value": "lez"
+      },
+      {
+        "label": "Kabardian",
+        "value": "kbd"
+      },
+      {
+        "label": "Hebrew",
+        "value": "heb"
+      },
+      {
+        "label": "Kurdish",
+        "value": "kur"
+      },
+      {
+        "label": "Northern Kurdish",
+        "value": "kmr"
+      },
+      {
+        "label": "Central Kurdish",
+        "value": "ckb"
+      },
+      {
+        "label": "Southern Kurdish",
+        "value": "sdh"
+      },
+      {
+        "label": "Aramaic",
+        "value": "arc"
+      },
+      {
+        "label": "Syriac",
+        "value": "syr"
+      },
+      {
+        "label": "Assyrian Neo Aramaic",
+        "value": "aii"
+      },
+      {
+        "label": "Chaldean Neo Aramaic",
+        "value": "cld"
+      },
+      {
+        "label": "Turoyo",
+        "value": "tru"
+      },
+      {
+        "label": "Armenian Western",
+        "value": "hyw"
+      },
+      {
+        "label": "Egyptian Arabic",
+        "value": "arz"
+      },
+      {
+        "label": "Moroccan Arabic",
+        "value": "ary"
+      },
+      {
+        "label": "Algerian Arabic",
+        "value": "arq"
+      },
+      {
+        "label": "Tunisian Arabic",
+        "value": "aeb"
+      },
+      {
+        "label": "Libyan Arabic",
+        "value": "ayl"
+      },
+      {
+        "label": "Hassaniya Arabic",
+        "value": "mey"
+      },
+      {
+        "label": "Berber",
+        "value": "ber"
+      },
+      {
+        "label": "Tamazight",
+        "value": "tzm"
+      },
+      {
+        "label": "Tachelhit",
+        "value": "shi"
+      },
+      {
+        "label": "Kabyle",
+        "value": "kab"
+      },
+      {
+        "label": "Tarifit",
+        "value": "rif"
+      },
+      {
+        "label": "Tuareg",
+        "value": "tmh"
+      },
+      {
+        "label": "Coptic",
+        "value": "cop"
+      },
+      {
+        "label": "Akan",
+        "value": "aka"
+      },
+      {
+        "label": "Twi",
+        "value": "twi"
+      },
+      {
+        "label": "Fante",
+        "value": "fat"
+      },
+      {
+        "label": "Ewe",
+        "value": "ewe"
+      },
+      {
+        "label": "Fon",
+        "value": "fon"
+      },
+      {
+        "label": "Yoruba",
+        "value": "yor"
+      },
+      {
+        "label": "Igbo",
+        "value": "ibo"
+      },
+      {
+        "label": "Hausa",
+        "value": "hau"
+      },
+      {
+        "label": "Fulah",
+        "value": "ful"
+      },
+      {
+        "label": "Wolof",
+        "value": "wol"
+      },
+      {
+        "label": "Mandinka",
+        "value": "mnk"
+      },
+      {
+        "label": "Bambara",
+        "value": "bam"
+      },
+      {
+        "label": "Dyula",
+        "value": "dyu"
+      },
+      {
+        "label": "Soninke",
+        "value": "snk"
+      },
+      {
+        "label": "Songhai",
+        "value": "son"
+      },
+      {
+        "label": "Kanuri",
+        "value": "kau"
+      },
+      {
+        "label": "Tiv",
+        "value": "tiv"
+      },
+      {
+        "label": "Edo",
+        "value": "bin"
+      },
+      {
+        "label": "Efik",
+        "value": "efi"
+      },
+      {
+        "label": "Ibibio",
+        "value": "ibb"
+      },
+      {
+        "label": "Nupe",
+        "value": "nup"
+      },
+      {
+        "label": "Ga",
+        "value": "gaa"
+      },
+      {
+        "label": "Krio",
+        "value": "kri"
+      },
+      {
+        "label": "Mende",
+        "value": "men"
+      },
+      {
+        "label": "Temne",
+        "value": "tem"
+      },
+      {
+        "label": "Susu",
+        "value": "sus"
+      },
+      {
+        "label": "Vai",
+        "value": "vai"
+      },
+      {
+        "label": "Lingala",
+        "value": "lin"
+      },
+      {
+        "label": "Kongo",
+        "value": "kon"
+      },
+      {
+        "label": "Kikongo",
+        "value": "kng"
+      },
+      {
+        "label": "Luba Katanga",
+        "value": "lub"
+      },
+      {
+        "label": "Luba Lulua",
+        "value": "lua"
+      },
+      {
+        "label": "Mongo",
+        "value": "lol"
+      },
+      {
+        "label": "Fang",
+        "value": "fan"
+      },
+      {
+        "label": "Sango",
+        "value": "sag"
+      },
+      {
+        "label": "Gbaya",
+        "value": "gba"
+      },
+      {
+        "label": "Zande",
+        "value": "zne"
+      },
+      {
+        "label": "Amharic",
+        "value": "amh"
+      },
+      {
+        "label": "Tigrinya",
+        "value": "tir"
+      },
+      {
+        "label": "Tigre",
+        "value": "tig"
+      },
+      {
+        "label": "Oromo",
+        "value": "orm"
+      },
+      {
+        "label": "Somali",
+        "value": "som"
+      },
+      {
+        "label": "Afar",
+        "value": "aar"
+      },
+      {
+        "label": "Sidamo",
+        "value": "sid"
+      },
+      {
+        "label": "Wolaytta",
+        "value": "wal"
+      },
+      {
+        "label": "Kamba",
+        "value": "kam"
+      },
+      {
+        "label": "Kikuyu",
+        "value": "kik"
+      },
+      {
+        "label": "Luo",
+        "value": "luo"
+      },
+      {
+        "label": "Kalenjin",
+        "value": "kln"
+      },
+      {
+        "label": "Ganda",
+        "value": "lug"
+      },
+      {
+        "label": "Nyankole",
+        "value": "nyn"
+      },
+      {
+        "label": "Rwanda",
+        "value": "kin"
+      },
+      {
+        "label": "Rundi",
+        "value": "run"
+      },
+      {
+        "label": "Sukuma",
+        "value": "suk"
+      },
+      {
+        "label": "Nyamwezi",
+        "value": "nym"
+      },
+      {
+        "label": "Maasai",
+        "value": "mas"
+      },
+      {
+        "label": "Dinka",
+        "value": "din"
+      },
+      {
+        "label": "Nuer",
+        "value": "nus"
+      },
+      {
+        "label": "Afrikaans",
+        "value": "afr"
+      },
+      {
+        "label": "Zulu",
+        "value": "zul"
+      },
+      {
+        "label": "Xhosa",
+        "value": "xho"
+      },
+      {
+        "label": "Southern Sotho",
+        "value": "sot"
+      },
+      {
+        "label": "Northern Sotho",
+        "value": "nso"
+      },
+      {
+        "label": "Tswana",
+        "value": "tsn"
+      },
+      {
+        "label": "Tsonga",
+        "value": "tso"
+      },
+      {
+        "label": "Swati",
+        "value": "ssw"
+      },
+      {
+        "label": "Venda",
+        "value": "ven"
+      },
+      {
+        "label": "Ndebele",
+        "value": "nbl"
+      },
+      {
+        "label": "Shona",
+        "value": "sna"
+      },
+      {
+        "label": "Nyanja",
+        "value": "nya"
+      },
+      {
+        "label": "Bemba",
+        "value": "bem"
+      },
+      {
+        "label": "Tonga Zambia",
+        "value": "toi"
+      },
+      {
+        "label": "Lozi",
+        "value": "loz"
+      },
+      {
+        "label": "Herero",
+        "value": "her"
+      },
+      {
+        "label": "Ndonga",
+        "value": "ndo"
+      },
+      {
+        "label": "Malagasy",
+        "value": "mlg"
+      },
+      {
+        "label": "Comorian",
+        "value": "swb"
+      },
+      {
+        "label": "Mauritian Creole",
+        "value": "mfe"
+      },
+      {
+        "label": "Seychellois Creole",
+        "value": "crs"
+      },
+      {
+        "label": "Kazakh",
+        "value": "kaz"
+      },
+      {
+        "label": "Kyrgyz",
+        "value": "kir"
+      },
+      {
+        "label": "Uzbek",
+        "value": "uzb"
+      },
+      {
+        "label": "Turkmen",
+        "value": "tuk"
+      },
+      {
+        "label": "Tajik",
+        "value": "tgk"
+      },
+      {
+        "label": "Karakalpak",
+        "value": "kaa"
+      },
+      {
+        "label": "Uyghur",
+        "value": "uig"
+      },
+      {
+        "label": "Tatar",
+        "value": "tat"
+      },
+      {
+        "label": "Bashkir",
+        "value": "bak"
+      },
+      {
+        "label": "Chuvash",
+        "value": "chv"
+      },
+      {
+        "label": "Mongolian",
+        "value": "mon"
+      },
+      {
+        "label": "Buryat",
+        "value": "bua"
+      },
+      {
+        "label": "Kalmyk",
+        "value": "xal"
+      },
+      {
+        "label": "Sanskrit",
+        "value": "san"
+      },
+      {
+        "label": "Pali",
+        "value": "pli"
+      },
+      {
+        "label": "Punjabi",
+        "value": "pan"
+      },
+      {
+        "label": "Gujarati",
+        "value": "guj"
+      },
+      {
+        "label": "Marathi",
+        "value": "mar"
+      },
+      {
+        "label": "Konkani",
+        "value": "kok"
+      },
+      {
+        "label": "Sindhi",
+        "value": "snd"
+      },
+      {
+        "label": "Nepali",
+        "value": "nep"
+      },
+      {
+        "label": "Sinhala",
+        "value": "sin"
+      },
+      {
+        "label": "Tamil",
+        "value": "tam"
+      },
+      {
+        "label": "Telugu",
+        "value": "tel"
+      },
+      {
+        "label": "Kannada",
+        "value": "kan"
+      },
+      {
+        "label": "Malayalam",
+        "value": "mal"
+      },
+      {
+        "label": "Odia",
+        "value": "ori"
+      },
+      {
+        "label": "Assamese",
+        "value": "asm"
+      },
+      {
+        "label": "Maithili",
+        "value": "mai"
+      },
+      {
+        "label": "Bhojpuri",
+        "value": "bho"
+      },
+      {
+        "label": "Magahi",
+        "value": "mag"
+      },
+      {
+        "label": "Dogri",
+        "value": "doi"
+      },
+      {
+        "label": "Kashmiri",
+        "value": "kas"
+      },
+      {
+        "label": "Manipuri",
+        "value": "mni"
+      },
+      {
+        "label": "Bodo",
+        "value": "brx"
+      },
+      {
+        "label": "Santali",
+        "value": "sat"
+      },
+      {
+        "label": "Mundari",
+        "value": "unr"
+      },
+      {
+        "label": "Kurukh",
+        "value": "kru"
+      },
+      {
+        "label": "Dzongkha",
+        "value": "dzo"
+      },
+      {
+        "label": "Balti",
+        "value": "bft"
+      },
+      {
+        "label": "Pashto",
+        "value": "pus"
+      },
+      {
+        "label": "Dari",
+        "value": "prs"
+      },
+      {
+        "label": "Balochi",
+        "value": "bal"
+      },
+      {
+        "label": "Brahui",
+        "value": "brh"
+      },
+      {
+        "label": "Cantonese",
+        "value": "yue"
+      },
+      {
+        "label": "Wu Chinese",
+        "value": "wuu"
+      },
+      {
+        "label": "Min Nan Chinese",
+        "value": "nan"
+      },
+      {
+        "label": "Hakka Chinese",
+        "value": "hak"
+      },
+      {
+        "label": "Gan Chinese",
+        "value": "gan"
+      },
+      {
+        "label": "Xiang Chinese",
+        "value": "hsn"
+      },
+      {
+        "label": "Classical Chinese",
+        "value": "lzh"
+      },
+      {
+        "label": "Tibetan",
+        "value": "bod"
+      },
+      {
+        "label": "Zhuang",
+        "value": "zha"
+      },
+      {
+        "label": "Yi",
+        "value": "iii"
+      },
+      {
+        "label": "Hmong",
+        "value": "hmn"
+      },
+      {
+        "label": "Manchu",
+        "value": "mnc"
+      },
+      {
+        "label": "Ainu",
+        "value": "ain"
+      },
+      {
+        "label": "Ryukyuan",
+        "value": "jpx"
+      },
+      {
+        "label": "Okinawan",
+        "value": "ryu"
+      },
+      {
+        "label": "Burmese",
+        "value": "mya"
+      },
+      {
+        "label": "Khmer",
+        "value": "khm"
+      },
+      {
+        "label": "Lao",
+        "value": "lao"
+      },
+      {
+        "label": "Shan",
+        "value": "shn"
+      },
+      {
+        "label": "Karen",
+        "value": "kar"
+      },
+      {
+        "label": "Sgaw Karen",
+        "value": "ksw"
+      },
+      {
+        "label": "Pwo Karen",
+        "value": "pww"
+      },
+      {
+        "label": "Mon",
+        "value": "mnw"
+      },
+      {
+        "label": "Hmong Daw",
+        "value": "mww"
+      },
+      {
+        "label": "Cebuano",
+        "value": "ceb"
+      },
+      {
+        "label": "Tagalog",
+        "value": "tgl"
+      },
+      {
+        "label": "Filipino",
+        "value": "fil"
+      },
+      {
+        "label": "Ilocano",
+        "value": "ilo"
+      },
+      {
+        "label": "Hiligaynon",
+        "value": "hil"
+      },
+      {
+        "label": "Waray",
+        "value": "war"
+      },
+      {
+        "label": "Bikol",
+        "value": "bik"
+      },
+      {
+        "label": "Kapampangan",
+        "value": "pam"
+      },
+      {
+        "label": "Pangasinan",
+        "value": "pag"
+      },
+      {
+        "label": "Javanese",
+        "value": "jav"
+      },
+      {
+        "label": "Sundanese",
+        "value": "sun"
+      },
+      {
+        "label": "Madurese",
+        "value": "mad"
+      },
+      {
+        "label": "Balinese",
+        "value": "ban"
+      },
+      {
+        "label": "Acehnese",
+        "value": "ace"
+      },
+      {
+        "label": "Minangkabau",
+        "value": "min"
+      },
+      {
+        "label": "Batak",
+        "value": "btk"
+      },
+      {
+        "label": "Iban",
+        "value": "iba"
+      },
+      {
+        "label": "Tetum",
+        "value": "tet"
+      },
+      {
+        "label": "Cham",
+        "value": "cha"
+      },
+      {
+        "label": "Maori",
+        "value": "mri"
+      },
+      {
+        "label": "Samoan",
+        "value": "smo"
+      },
+      {
+        "label": "Tongan",
+        "value": "ton"
+      },
+      {
+        "label": "Fijian",
+        "value": "fij"
+      },
+      {
+        "label": "Tahitian",
+        "value": "tah"
+      },
+      {
+        "label": "Rarotongan",
+        "value": "rar"
+      },
+      {
+        "label": "Niuean",
+        "value": "niu"
+      },
+      {
+        "label": "Tokelauan",
+        "value": "tkl"
+      },
+      {
+        "label": "Tuvaluan",
+        "value": "tvl"
+      },
+      {
+        "label": "Gilbertese",
+        "value": "gil"
+      },
+      {
+        "label": "Marshallese",
+        "value": "mah"
+      },
+      {
+        "label": "Nauruan",
+        "value": "nau"
+      },
+      {
+        "label": "Palauan",
+        "value": "pau"
+      },
+      {
+        "label": "Bislama",
+        "value": "bis"
+      },
+      {
+        "label": "Tok Pisin",
+        "value": "tpi"
+      },
+      {
+        "label": "Hiri Motu",
+        "value": "hmo"
+      },
+      {
+        "label": "Motu",
+        "value": "meu"
+      },
+      {
+        "label": "Rotuman",
+        "value": "rtm"
+      },
+      {
+        "label": "American Sign Language",
+        "value": "ase"
+      },
+      {
+        "label": "British Sign Language",
+        "value": "bfi"
+      },
+      {
+        "label": "Australian Sign Language",
+        "value": "asf"
+      },
+      {
+        "label": "New Zealand Sign Language",
+        "value": "nzs"
+      },
+      {
+        "label": "Irish Sign Language",
+        "value": "isg"
+      },
+      {
+        "label": "French Sign Language",
+        "value": "fsl"
+      },
+      {
+        "label": "German Sign Language",
+        "value": "gsg"
+      },
+      {
+        "label": "Spanish Sign Language",
+        "value": "ssp"
+      },
+      {
+        "label": "Catalan Sign Language",
+        "value": "csc"
+      },
+      {
+        "label": "Italian Sign Language",
+        "value": "ise"
+      },
+      {
+        "label": "Portuguese Sign Language",
+        "value": "psr"
+      },
+      {
+        "label": "Brazilian Sign Language",
+        "value": "bzs"
+      },
+      {
+        "label": "Mexican Sign Language",
+        "value": "mfs"
+      },
+      {
+        "label": "Japanese Sign Language",
+        "value": "jsl"
+      },
+      {
+        "label": "Korean Sign Language",
+        "value": "kvk"
+      },
+      {
+        "label": "Chinese Sign Language",
+        "value": "csl"
+      },
+      {
+        "label": "Indo Pakistani Sign Language",
+        "value": "ins"
+      },
+      {
+        "label": "South African Sign Language",
+        "value": "sfs"
+      },
+      {
+        "label": "Latin",
+        "value": "lat"
+      },
+      {
+        "label": "Ancient Greek",
+        "value": "grc"
+      },
+      {
+        "label": "Old English",
+        "value": "ang"
+      },
+      {
+        "label": "Middle English",
+        "value": "enm"
+      },
+      {
+        "label": "Old Norse",
+        "value": "non"
+      },
+      {
+        "label": "Gothic",
+        "value": "got"
+      },
+      {
+        "label": "Akkadian",
+        "value": "akk"
+      },
+      {
+        "label": "Sumerian",
+        "value": "sux"
+      },
+      {
+        "label": "Ancient Egyptian",
+        "value": "egy"
+      },
+      {
+        "label": "Classical Syriac",
+        "value": "syc"
+      },
+      {
+        "label": "Old Persian",
+        "value": "peo"
+      },
+      {
+        "label": "Avestan",
+        "value": "ave"
+      },
+      {
+        "label": "Church Slavonic",
+        "value": "chu"
+      },
+      {
+        "label": "Classical Armenian",
+        "value": "xcl"
+      },
+      {
+        "label": "Classical Mandaic",
+        "value": "myz"
+      },
+      {
+        "label": "Classical Newari",
+        "value": "nwc"
+      },
+      {
+        "label": "Classical Tibetan",
+        "value": "xct"
+      },
+      {
+        "label": "Classical Mongolian",
+        "value": "cmg"
+      }
+    ],
+    "measurementSystems": [
+      {
+        "label": "Unspecified",
+        "value": "unspecified"
+      },
+      {
+        "label": "Imperial",
+        "value": "imperial"
+      },
+      {
+        "label": "Metric",
+        "value": "metric"
+      },
+      {
+        "label": "Scientific",
+        "value": "scientific"
+      }
+    ],
+    "nameDisplayOrders": [
+      {
+        "label": "Unspecified",
+        "value": "unspecified"
+      },
+      {
+        "label": "Locale Default",
+        "value": "locale_default"
+      },
+      {
+        "label": "Display Name Only",
+        "value": "display_name_only"
+      },
+      {
+        "label": "Username Only",
+        "value": "username_only"
+      },
+      {
+        "label": "Given Family",
+        "value": "given_family"
+      },
+      {
+        "label": "Family Given",
+        "value": "family_given"
+      },
+      {
+        "label": "Family Comma Given",
+        "value": "family_comma_given"
+      },
+      {
+        "label": "Given Middle Family",
+        "value": "given_middle_family"
+      },
+      {
+        "label": "Given Middle Initial Family",
+        "value": "given_middle_initial_family"
+      },
+      {
+        "label": "Title Given Family",
+        "value": "title_given_family"
+      },
+      {
+        "label": "Given Family Suffix",
+        "value": "given_family_suffix"
+      },
+      {
+        "label": "Title Given Family Suffix",
+        "value": "title_given_family_suffix"
+      },
+      {
+        "label": "Custom",
+        "value": "custom"
+      }
+    ],
+    "profileFieldVisibilities": [
+      {
+        "label": "Private",
+        "value": "private"
+      },
+      {
+        "label": "Public",
+        "value": "public"
+      },
+      {
+        "label": "Connections Only",
+        "value": "connections_only"
+      },
+      {
+        "label": "Organization Only",
+        "value": "organization_only"
+      }
+    ],
+    "profileLinkPlatforms": [
+      {
+        "label": "Custom",
+        "value": "custom"
+      },
+      {
+        "label": "Other",
+        "value": "other"
+      },
+      {
+        "label": "Website",
+        "value": "website"
+      },
+      {
+        "label": "Portfolio",
+        "value": "portfolio"
+      },
+      {
+        "label": "Blog",
+        "value": "blog"
+      },
+      {
+        "label": "Linktree",
+        "value": "linktree"
+      },
+      {
+        "label": "Carrd",
+        "value": "carrd"
+      },
+      {
+        "label": "Beacons",
+        "value": "beacons"
+      },
+      {
+        "label": "About Me",
+        "value": "about_me"
+      },
+      {
+        "label": "Email",
+        "value": "email"
+      },
+      {
+        "label": "Phone",
+        "value": "phone"
+      },
+      {
+        "label": "Sms",
+        "value": "sms"
+      },
+      {
+        "label": "Git Hub",
+        "value": "github"
+      },
+      {
+        "label": "Git Lab",
+        "value": "gitlab"
+      },
+      {
+        "label": "Bitbucket",
+        "value": "bitbucket"
+      },
+      {
+        "label": "Codeberg",
+        "value": "codeberg"
+      },
+      {
+        "label": "Source Hut",
+        "value": "sourcehut"
+      },
+      {
+        "label": "Stack Overflow",
+        "value": "stackoverflow"
+      },
+      {
+        "label": "Dev To",
+        "value": "dev_to"
+      },
+      {
+        "label": "Hashnode",
+        "value": "hashnode"
+      },
+      {
+        "label": "Code Pen",
+        "value": "codepen"
+      },
+      {
+        "label": "Replit",
+        "value": "replit"
+      },
+      {
+        "label": "Glitch",
+        "value": "glitch"
+      },
+      {
+        "label": "Npm",
+        "value": "npm"
+      },
+      {
+        "label": "Docker Hub",
+        "value": "docker_hub"
+      },
+      {
+        "label": "Linked In",
+        "value": "linkedin"
+      },
+      {
+        "label": "X",
+        "value": "x"
+      },
+      {
+        "label": "Twitter",
+        "value": "twitter"
+      },
+      {
+        "label": "Mastodon",
+        "value": "mastodon"
+      },
+      {
+        "label": "Bluesky",
+        "value": "bluesky"
+      },
+      {
+        "label": "Threads",
+        "value": "threads"
+      },
+      {
+        "label": "Facebook",
+        "value": "facebook"
+      },
+      {
+        "label": "Instagram",
+        "value": "instagram"
+      },
+      {
+        "label": "Tik Tok",
+        "value": "tiktok"
+      },
+      {
+        "label": "Snapchat",
+        "value": "snapchat"
+      },
+      {
+        "label": "Pinterest",
+        "value": "pinterest"
+      },
+      {
+        "label": "Tumblr",
+        "value": "tumblr"
+      },
+      {
+        "label": "Reddit",
+        "value": "reddit"
+      },
+      {
+        "label": "Quora",
+        "value": "quora"
+      },
+      {
+        "label": "Medium",
+        "value": "medium"
+      },
+      {
+        "label": "Substack",
+        "value": "substack"
+      },
+      {
+        "label": "Discord",
+        "value": "discord"
+      },
+      {
+        "label": "Guilded",
+        "value": "guilded"
+      },
+      {
+        "label": "Slack",
+        "value": "slack"
+      },
+      {
+        "label": "Telegram",
+        "value": "telegram"
+      },
+      {
+        "label": "Signal",
+        "value": "signal"
+      },
+      {
+        "label": "Whats App",
+        "value": "whatsapp"
+      },
+      {
+        "label": "Matrix",
+        "value": "matrix"
+      },
+      {
+        "label": "Element",
+        "value": "element"
+      },
+      {
+        "label": "Skype",
+        "value": "skype"
+      },
+      {
+        "label": "You Tube",
+        "value": "youtube"
+      },
+      {
+        "label": "Twitch",
+        "value": "twitch"
+      },
+      {
+        "label": "Kick",
+        "value": "kick"
+      },
+      {
+        "label": "Vimeo",
+        "value": "vimeo"
+      },
+      {
+        "label": "Rumble",
+        "value": "rumble"
+      },
+      {
+        "label": "Peer Tube",
+        "value": "peertube"
+      },
+      {
+        "label": "Trovo",
+        "value": "trovo"
+      },
+      {
+        "label": "Spotify",
+        "value": "spotify"
+      },
+      {
+        "label": "Apple Music",
+        "value": "apple_music"
+      },
+      {
+        "label": "Sound Cloud",
+        "value": "soundcloud"
+      },
+      {
+        "label": "Bandcamp",
+        "value": "bandcamp"
+      },
+      {
+        "label": "Audius",
+        "value": "audius"
+      },
+      {
+        "label": "Deezer",
+        "value": "deezer"
+      },
+      {
+        "label": "Tidal",
+        "value": "tidal"
+      },
+      {
+        "label": "Podcast",
+        "value": "podcast"
+      },
+      {
+        "label": "Apple Podcasts",
+        "value": "apple_podcasts"
+      },
+      {
+        "label": "Spotify Podcasts",
+        "value": "spotify_podcasts"
+      },
+      {
+        "label": "Steam",
+        "value": "steam"
+      },
+      {
+        "label": "Epic Games",
+        "value": "epic_games"
+      },
+      {
+        "label": "Xbox",
+        "value": "xbox"
+      },
+      {
+        "label": "Play Station",
+        "value": "playstation"
+      },
+      {
+        "label": "Nintendo",
+        "value": "nintendo"
+      },
+      {
+        "label": "Itch Io",
+        "value": "itch_io"
+      },
+      {
+        "label": "Game Jolt",
+        "value": "game_jolt"
+      },
+      {
+        "label": "Roblox",
+        "value": "roblox"
+      },
+      {
+        "label": "Minecraft",
+        "value": "minecraft"
+      },
+      {
+        "label": "Battle Net",
+        "value": "battle_net"
+      },
+      {
+        "label": "Riot Games",
+        "value": "riot_games"
+      },
+      {
+        "label": "Ubisoft",
+        "value": "ubisoft"
+      },
+      {
+        "label": "Ea",
+        "value": "ea"
+      },
+      {
+        "label": "Gog",
+        "value": "gog"
+      },
+      {
+        "label": "Art Station",
+        "value": "artstation"
+      },
+      {
+        "label": "Behance",
+        "value": "behance"
+      },
+      {
+        "label": "Dribbble",
+        "value": "dribbble"
+      },
+      {
+        "label": "Deviant Art",
+        "value": "deviantart"
+      },
+      {
+        "label": "Pixiv",
+        "value": "pixiv"
+      },
+      {
+        "label": "Figma",
+        "value": "figma"
+      },
+      {
+        "label": "Canva",
+        "value": "canva"
+      },
+      {
+        "label": "Sketchfab",
+        "value": "sketchfab"
+      },
+      {
+        "label": "Patreon",
+        "value": "patreon"
+      },
+      {
+        "label": "Ko Fi",
+        "value": "ko_fi"
+      },
+      {
+        "label": "Buy Me A Coffee",
+        "value": "buy_me_a_coffee"
+      },
+      {
+        "label": "Open Collective",
+        "value": "open_collective"
+      },
+      {
+        "label": "Git Hub Sponsors",
+        "value": "github_sponsors"
+      },
+      {
+        "label": "Liberapay",
+        "value": "liberapay"
+      },
+      {
+        "label": "Pay Pal",
+        "value": "paypal"
+      },
+      {
+        "label": "Venmo",
+        "value": "venmo"
+      },
+      {
+        "label": "Cash App",
+        "value": "cash_app"
+      },
+      {
+        "label": "Stripe",
+        "value": "stripe"
+      },
+      {
+        "label": "Etsy",
+        "value": "etsy"
+      },
+      {
+        "label": "Shopify",
+        "value": "shopify"
+      },
+      {
+        "label": "Amazon",
+        "value": "amazon"
+      },
+      {
+        "label": "Ebay",
+        "value": "ebay"
+      },
+      {
+        "label": "Gumroad",
+        "value": "gumroad"
+      },
+      {
+        "label": "Lemon Squeezy",
+        "value": "lemon_squeezy"
+      },
+      {
+        "label": "Fourthwall",
+        "value": "fourthwall"
+      },
+      {
+        "label": "Teespring",
+        "value": "teespring"
+      },
+      {
+        "label": "Redbubble",
+        "value": "redbubble"
+      },
+      {
+        "label": "Threadless",
+        "value": "threadless"
+      },
+      {
+        "label": "Google Scholar",
+        "value": "google_scholar"
+      },
+      {
+        "label": "Orcid",
+        "value": "orcid"
+      },
+      {
+        "label": "Research Gate",
+        "value": "researchgate"
+      },
+      {
+        "label": "Academia Edu",
+        "value": "academia_edu"
+      },
+      {
+        "label": "Arxiv",
+        "value": "arxiv"
+      },
+      {
+        "label": "Calendly",
+        "value": "calendly"
+      },
+      {
+        "label": "Cal Com",
+        "value": "cal_com"
+      },
+      {
+        "label": "Google Calendar",
+        "value": "google_calendar"
+      },
+      {
+        "label": "Resume",
+        "value": "resume"
+      },
+      {
+        "label": "Cv",
+        "value": "cv"
+      },
+      {
+        "label": "Press Kit",
+        "value": "press_kit"
+      },
+      {
+        "label": "Media Kit",
+        "value": "media_kit"
+      }
+    ],
+    "profileStatuses": [
+      {
+        "label": "Pending Setup",
+        "value": "pending_setup"
+      },
+      {
+        "label": "Active",
+        "value": "active"
+      },
+      {
+        "label": "Hidden",
+        "value": "hidden"
+      },
+      {
+        "label": "Disabled",
+        "value": "disabled"
+      },
+      {
+        "label": "Suspended",
+        "value": "suspended"
+      },
+      {
+        "label": "Under Review",
+        "value": "under_review"
+      },
+      {
+        "label": "Archived",
+        "value": "archived"
+      },
+      {
+        "label": "Deleted",
+        "value": "deleted"
+      }
+    ],
+    "profileVisibilities": [
+      {
+        "label": "Private",
+        "value": "private"
+      },
+      {
+        "label": "Public",
+        "value": "public"
+      },
+      {
+        "label": "Connections Only",
+        "value": "connections_only"
+      },
+      {
+        "label": "Organization Only",
+        "value": "organization_only"
+      }
+    ],
+    "sexes": [
+      {
+        "label": "Unspecified",
+        "value": "unspecified"
+      },
+      {
+        "label": "Prefer Not To Say",
+        "value": "prefer_not_to_say"
+      },
+      {
+        "label": "Not Listed",
+        "value": "not_listed"
+      },
+      {
+        "label": "Self Describe",
+        "value": "self_describe"
+      },
+      {
+        "label": "Female",
+        "value": "female"
+      },
+      {
+        "label": "Male",
+        "value": "male"
+      },
+      {
+        "label": "Intersex",
+        "value": "intersex"
+      }
+    ],
+    "sexualities": [
+      {
+        "label": "Unspecified",
+        "value": "unspecified"
+      },
+      {
+        "label": "Prefer Not To Say",
+        "value": "prefer_not_to_say"
+      },
+      {
+        "label": "Not Listed",
+        "value": "not_listed"
+      },
+      {
+        "label": "Self Describe",
+        "value": "self_describe"
+      },
+      {
+        "label": "Questioning",
+        "value": "questioning"
+      },
+      {
+        "label": "No Label",
+        "value": "no_label"
+      },
+      {
+        "label": "Straight",
+        "value": "straight"
+      },
+      {
+        "label": "Gay",
+        "value": "gay"
+      },
+      {
+        "label": "Lesbian",
+        "value": "lesbian"
+      },
+      {
+        "label": "Bisexual",
+        "value": "bisexual"
+      },
+      {
+        "label": "Pansexual",
+        "value": "pansexual"
+      },
+      {
+        "label": "Omnisexual",
+        "value": "omnisexual"
+      },
+      {
+        "label": "Polysexual",
+        "value": "polysexual"
+      },
+      {
+        "label": "Queer",
+        "value": "queer"
+      },
+      {
+        "label": "Fluid",
+        "value": "fluid"
+      },
+      {
+        "label": "Asexual",
+        "value": "asexual"
+      },
+      {
+        "label": "Demisexual",
+        "value": "demisexual"
+      },
+      {
+        "label": "Graysexual",
+        "value": "graysexual"
+      },
+      {
+        "label": "Aro Ace",
+        "value": "aroace"
+      },
+      {
+        "label": "Sapiosexual",
+        "value": "sapiosexual"
+      }
+    ],
+    "timeFormats": [
+      {
+        "label": "Unspecified",
+        "value": "unspecified"
+      },
+      {
+        "label": "Twelve Hour",
+        "value": "12-hour"
+      },
+      {
+        "label": "Twenty Four Hour",
+        "value": "24-hour"
+      }
+    ],
+    "timezoneGreenwich": [
+      {
+        "label": "GMT Minus1200",
+        "value": "GMT-12:00"
+      },
+      {
+        "label": "GMT Minus1100",
+        "value": "GMT-11:00"
+      },
+      {
+        "label": "GMT Minus1000",
+        "value": "GMT-10:00"
+      },
+      {
+        "label": "GMT Minus0930",
+        "value": "GMT-09:30"
+      },
+      {
+        "label": "GMT Minus0900",
+        "value": "GMT-09:00"
+      },
+      {
+        "label": "GMT Minus0800",
+        "value": "GMT-08:00"
+      },
+      {
+        "label": "GMT Minus0700",
+        "value": "GMT-07:00"
+      },
+      {
+        "label": "GMT Minus0600",
+        "value": "GMT-06:00"
+      },
+      {
+        "label": "GMT Minus0500",
+        "value": "GMT-05:00"
+      },
+      {
+        "label": "GMT Minus0400",
+        "value": "GMT-04:00"
+      },
+      {
+        "label": "GMT Minus0330",
+        "value": "GMT-03:30"
+      },
+      {
+        "label": "GMT Minus0300",
+        "value": "GMT-03:00"
+      },
+      {
+        "label": "GMT Minus0230",
+        "value": "GMT-02:30"
+      },
+      {
+        "label": "GMT Minus0200",
+        "value": "GMT-02:00"
+      },
+      {
+        "label": "GMT Minus0100",
+        "value": "GMT-01:00"
+      },
+      {
+        "label": "GMT Plus0000",
+        "value": "GMT+00:00"
+      },
+      {
+        "label": "GMT Plus0100",
+        "value": "GMT+01:00"
+      },
+      {
+        "label": "GMT Plus0200",
+        "value": "GMT+02:00"
+      },
+      {
+        "label": "GMT Plus0300",
+        "value": "GMT+03:00"
+      },
+      {
+        "label": "GMT Plus0330",
+        "value": "GMT+03:30"
+      },
+      {
+        "label": "GMT Plus0400",
+        "value": "GMT+04:00"
+      },
+      {
+        "label": "GMT Plus0430",
+        "value": "GMT+04:30"
+      },
+      {
+        "label": "GMT Plus0500",
+        "value": "GMT+05:00"
+      },
+      {
+        "label": "GMT Plus0530",
+        "value": "GMT+05:30"
+      },
+      {
+        "label": "GMT Plus0545",
+        "value": "GMT+05:45"
+      },
+      {
+        "label": "GMT Plus0600",
+        "value": "GMT+06:00"
+      },
+      {
+        "label": "GMT Plus0630",
+        "value": "GMT+06:30"
+      },
+      {
+        "label": "GMT Plus0700",
+        "value": "GMT+07:00"
+      },
+      {
+        "label": "GMT Plus0800",
+        "value": "GMT+08:00"
+      },
+      {
+        "label": "GMT Plus0845",
+        "value": "GMT+08:45"
+      },
+      {
+        "label": "GMT Plus0900",
+        "value": "GMT+09:00"
+      },
+      {
+        "label": "GMT Plus0930",
+        "value": "GMT+09:30"
+      },
+      {
+        "label": "GMT Plus1000",
+        "value": "GMT+10:00"
+      },
+      {
+        "label": "GMT Plus1030",
+        "value": "GMT+10:30"
+      },
+      {
+        "label": "GMT Plus1100",
+        "value": "GMT+11:00"
+      },
+      {
+        "label": "GMT Plus1200",
+        "value": "GMT+12:00"
+      },
+      {
+        "label": "GMT Plus1245",
+        "value": "GMT+12:45"
+      },
+      {
+        "label": "GMT Plus1300",
+        "value": "GMT+13:00"
+      },
+      {
+        "label": "GMT Plus1345",
+        "value": "GMT+13:45"
+      },
+      {
+        "label": "GMT Plus1400",
+        "value": "GMT+14:00"
+      }
+    ],
+    "timezoneUtc": [
+      {
+        "label": "UTC Minus1200",
+        "value": "UTC-12:00"
+      },
+      {
+        "label": "UTC Minus1100",
+        "value": "UTC-11:00"
+      },
+      {
+        "label": "UTC Minus1000",
+        "value": "UTC-10:00"
+      },
+      {
+        "label": "UTC Minus0930",
+        "value": "UTC-09:30"
+      },
+      {
+        "label": "UTC Minus0900",
+        "value": "UTC-09:00"
+      },
+      {
+        "label": "UTC Minus0800",
+        "value": "UTC-08:00"
+      },
+      {
+        "label": "UTC Minus0700",
+        "value": "UTC-07:00"
+      },
+      {
+        "label": "UTC Minus0600",
+        "value": "UTC-06:00"
+      },
+      {
+        "label": "UTC Minus0500",
+        "value": "UTC-05:00"
+      },
+      {
+        "label": "UTC Minus0400",
+        "value": "UTC-04:00"
+      },
+      {
+        "label": "UTC Minus0330",
+        "value": "UTC-03:30"
+      },
+      {
+        "label": "UTC Minus0300",
+        "value": "UTC-03:00"
+      },
+      {
+        "label": "UTC Minus0230",
+        "value": "UTC-02:30"
+      },
+      {
+        "label": "UTC Minus0200",
+        "value": "UTC-02:00"
+      },
+      {
+        "label": "UTC Minus0100",
+        "value": "UTC-01:00"
+      },
+      {
+        "label": "UTC Plus0000",
+        "value": "UTC+00:00"
+      },
+      {
+        "label": "UTC Plus0100",
+        "value": "UTC+01:00"
+      },
+      {
+        "label": "UTC Plus0200",
+        "value": "UTC+02:00"
+      },
+      {
+        "label": "UTC Plus0300",
+        "value": "UTC+03:00"
+      },
+      {
+        "label": "UTC Plus0330",
+        "value": "UTC+03:30"
+      },
+      {
+        "label": "UTC Plus0400",
+        "value": "UTC+04:00"
+      },
+      {
+        "label": "UTC Plus0430",
+        "value": "UTC+04:30"
+      },
+      {
+        "label": "UTC Plus0500",
+        "value": "UTC+05:00"
+      },
+      {
+        "label": "UTC Plus0530",
+        "value": "UTC+05:30"
+      },
+      {
+        "label": "UTC Plus0545",
+        "value": "UTC+05:45"
+      },
+      {
+        "label": "UTC Plus0600",
+        "value": "UTC+06:00"
+      },
+      {
+        "label": "UTC Plus0630",
+        "value": "UTC+06:30"
+      },
+      {
+        "label": "UTC Plus0700",
+        "value": "UTC+07:00"
+      },
+      {
+        "label": "UTC Plus0800",
+        "value": "UTC+08:00"
+      },
+      {
+        "label": "UTC Plus0845",
+        "value": "UTC+08:45"
+      },
+      {
+        "label": "UTC Plus0900",
+        "value": "UTC+09:00"
+      },
+      {
+        "label": "UTC Plus0930",
+        "value": "UTC+09:30"
+      },
+      {
+        "label": "UTC Plus1000",
+        "value": "UTC+10:00"
+      },
+      {
+        "label": "UTC Plus1030",
+        "value": "UTC+10:30"
+      },
+      {
+        "label": "UTC Plus1100",
+        "value": "UTC+11:00"
+      },
+      {
+        "label": "UTC Plus1200",
+        "value": "UTC+12:00"
+      },
+      {
+        "label": "UTC Plus1245",
+        "value": "UTC+12:45"
+      },
+      {
+        "label": "UTC Plus1300",
+        "value": "UTC+13:00"
+      },
+      {
+        "label": "UTC Plus1345",
+        "value": "UTC+13:45"
+      },
+      {
+        "label": "UTC Plus1400",
+        "value": "UTC+14:00"
+      }
+    ],
+    "weekStartDays": [
+      {
+        "label": "Unspecified",
+        "value": "unspecified"
+      },
+      {
+        "label": "Locale Default",
+        "value": "locale_default"
+      },
+      {
+        "label": "Sunday",
+        "value": "sunday"
+      },
+      {
+        "label": "Monday",
+        "value": "monday"
+      },
+      {
+        "label": "Tuesday",
+        "value": "tuesday"
+      },
+      {
+        "label": "Wednesday",
+        "value": "wednesday"
+      },
+      {
+        "label": "Thursday",
+        "value": "thursday"
+      },
+      {
+        "label": "Friday",
+        "value": "friday"
+      },
+      {
+        "label": "Saturday",
+        "value": "saturday"
+      },
+      {
+        "label": "Iso8601",
+        "value": "iso_8601"
+      }
+    ]
+  }
+}

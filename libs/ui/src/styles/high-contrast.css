@@ -1,0 +1,11 @@
+html[data-contrast='more'] {
+  --ae-border: currentColor;
+  --ae-input: currentColor;
+}
+
+@media (prefers-contrast: more) {
+  html[data-contrast='system'] {
+    --ae-border: currentColor;
+    --ae-input: currentColor;
+  }
+}

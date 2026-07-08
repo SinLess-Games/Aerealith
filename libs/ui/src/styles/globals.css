@@ -1,0 +1,452 @@
+/* libs/ui/src/styles/globals.css */
+
+/*
+ * Aerealith AI global browser baseline.
+ *
+ * Import order should be:
+ *
+ * 1. colors.css
+ * 2. themes.css
+ * 3. fonts.css
+ * 4. typography.css
+ * 5. globals.css
+ * 6. utilities.css
+ *
+ * This file intentionally avoids component-specific styles.
+ */
+
+/* -------------------------------------------------------------------------- */
+/* Reset and predictable sizing                                                */
+/* -------------------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: var(--ae-background);
+  color: var(--ae-foreground);
+  scroll-behavior: smooth;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  background: var(--ae-background-gradient);
+  background-attachment: fixed;
+  color: var(--ae-foreground);
+  font-family: var(--ae-font-sans);
+  font-size: 1rem;
+  font-weight: var(--ae-font-weight-regular);
+  line-height: var(--ae-line-height-normal);
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Typography reset                                                           */
+/* -------------------------------------------------------------------------- */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+figure,
+pre,
+dl,
+dd {
+  margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--ae-foreground);
+  font-family: var(--ae-font-heading);
+  font-weight: var(--ae-font-weight-semibold);
+  line-height: var(--ae-line-height-heading);
+  text-wrap: balance;
+}
+
+p,
+li,
+dd {
+  text-wrap: pretty;
+}
+
+small {
+  font-size: 0.875em;
+}
+
+strong,
+b {
+  font-weight: var(--ae-font-weight-bold);
+}
+
+em,
+i {
+  font-style: italic;
+}
+
+code,
+kbd,
+pre,
+samp,
+var {
+  font-family: var(--ae-font-mono);
+}
+
+code,
+kbd,
+samp {
+  border: 1px solid var(--ae-border-subtle);
+  border-radius: 0.375rem;
+  background: var(--ae-surface-muted);
+  color: var(--ae-foreground);
+  font-size: 0.875em;
+  padding: 0.125rem 0.375rem;
+}
+
+pre {
+  overflow-x: auto;
+  border: 1px solid var(--ae-border);
+  border-radius: 0.75rem;
+  background: var(--ae-background-subtle);
+  color: var(--ae-foreground);
+  line-height: var(--ae-line-height-relaxed);
+  padding: 1rem;
+}
+
+pre code {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  padding: 0;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Links                                                                      */
+/* -------------------------------------------------------------------------- */
+
+a {
+  color: var(--ae-link);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.16em;
+}
+
+a:hover {
+  color: var(--ae-link-hover);
+}
+
+a:not([class]) {
+  text-decoration: underline;
+}
+
+a:focus-visible {
+  border-radius: 0.25rem;
+  outline: 2px solid var(--ae-focus-ring);
+  outline-offset: 3px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Forms and interactive elements                                             */
+/* -------------------------------------------------------------------------- */
+
+button,
+input,
+optgroup,
+select,
+textarea {
+  color: inherit;
+  font: inherit;
+}
+
+button,
+select {
+  text-transform: none;
+}
+
+button,
+[type='button'],
+[type='reset'],
+[type='submit'] {
+  cursor: pointer;
+  -webkit-appearance: button;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+button,
+a,
+input,
+select,
+textarea,
+summary {
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+textarea,
+select {
+  border-radius: 0;
+}
+
+textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+input[type='search'] {
+  -webkit-appearance: none;
+}
+
+input[type='search']::-webkit-search-decoration,
+input[type='search']::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+::placeholder {
+  color: var(--ae-input-placeholder);
+  opacity: 1;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ae-focus-ring);
+  outline-offset: 2px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Lists, tables, and media                                                   */
+/* -------------------------------------------------------------------------- */
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+}
+
+ul[role='list'],
+ol[role='list'] {
+  list-style: none;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+th {
+  color: inherit;
+  font-weight: var(--ae-font-weight-semibold);
+  text-align: inherit;
+}
+
+img,
+picture,
+svg,
+canvas,
+video,
+iframe {
+  display: block;
+  max-width: 100%;
+}
+
+img,
+video {
+  height: auto;
+}
+
+svg {
+  flex-shrink: 0;
+}
+
+iframe {
+  border: 0;
+}
+
+hr {
+  height: 1px;
+  margin: 0;
+  border: 0;
+  background: var(--ae-divider);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Dialog and overlay behavior                                                */
+/* -------------------------------------------------------------------------- */
+
+dialog {
+  max-width: min(100% - 2rem, 42rem);
+  max-height: min(100% - 2rem, 48rem);
+  border: 0;
+  margin: auto;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+}
+
+dialog::backdrop {
+  background: var(--ae-black-60);
+  backdrop-filter: blur(0.25rem);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Selection, scrollbars, and browser polish                                  */
+/* -------------------------------------------------------------------------- */
+
+::selection {
+  background: var(--ae-selection-background);
+  color: var(--ae-selection-foreground);
+}
+
+::-moz-selection {
+  background: var(--ae-selection-background);
+  color: var(--ae-selection-foreground);
+}
+
+* {
+  scrollbar-color: var(--ae-scrollbar-thumb) var(--ae-scrollbar-track);
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--ae-scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 0.1875rem solid var(--ae-scrollbar-track);
+  border-radius: 999px;
+  background: var(--ae-scrollbar-thumb);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--ae-scrollbar-thumb-hover);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Accessibility                                                              */
+/* -------------------------------------------------------------------------- */
+
+.ae-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.ae-sr-only:focus,
+.ae-sr-only:active {
+  z-index: 1000;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+  clip-path: none;
+  top: 1rem;
+  left: 1rem;
+  border-radius: 0.5rem;
+  background: var(--ae-surface-overlay);
+  color: var(--ae-foreground);
+  padding: 0.75rem 1rem;
+  white-space: normal;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Motion preferences                                                         */
+/* -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-delay: -1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-delay: 0ms !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Print                                                                      */
+/* -------------------------------------------------------------------------- */
+
+@media print {
+  html,
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  body {
+    min-height: auto;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: underline;
+  }
+
+  pre,
+  blockquote {
+    break-inside: avoid;
+  }
+
+  .ae-no-print {
+    display: none !important;
+  }
+}
+/* Theme-aware imagery used by the Background primitive. */
+.ae-background {
+  background-image: var(--ae-background-image);
+}
+
+.ae-background[data-mode='dark'] {
+  background-image: var(--ae-background-image-dark);
+}
+
+@media (prefers-color-scheme: dark) {
+  .ae-background[data-mode='auto'] {
+    background-image: var(--ae-background-image-dark);
+  }
+}

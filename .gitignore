@@ -148,3 +148,4 @@ Desktop.ini
 # MegaLinter output.
 /megalinter-reports/
 /mega-linter.log
+.translation-cache/

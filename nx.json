@@ -47,7 +47,8 @@
       "options": {
         "targetName": "e2e"
       }
-    }
+    },
+    "@naxodev/nx-cloudflare/plugin"
   ],
   "generators": {
     "@nx/react": {

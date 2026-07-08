@@ -1,0 +1,238 @@
+/* libs/ui/src/styles/colors.css */
+
+/*
+ * Aerealith AI raw color foundation.
+ *
+ * Rules:
+ * - Keep raw colors, RGB channels, alpha layers, and reusable gradients here.
+ * - Put semantic aliases such as --ae-surface, --ae-primary, and
+ *   --ae-foreground in tokens.css.
+ * - Do not use legacy --hx-* variables in new UI code.
+ */
+
+:root {
+  /* -------------------------------------------------------------------------- */
+  /* Core Aerealith brand palette                                               */
+  /* -------------------------------------------------------------------------- */
+
+  --ae-pink: #f6066f;
+  --ae-pink-rgb: 246 6 111;
+
+  --ae-cyan: #00dbc9;
+  --ae-cyan-rgb: 0 219 201;
+
+  --ae-violet: #8c52ff;
+  --ae-violet-rgb: 140 82 255;
+
+  --ae-deep-night: #050a1e;
+  --ae-deep-night-rgb: 5 10 30;
+
+  --ae-void-navy: #08071b;
+  --ae-void-navy-rgb: 8 7 27;
+
+  --ae-starlight: #f7f4ff;
+  --ae-starlight-rgb: 247 244 255;
+
+  --ae-mist: #aeb7c8;
+  --ae-mist-rgb: 174 183 200;
+
+  /* -------------------------------------------------------------------------- */
+  /* Supporting dark-surface scale                                              */
+  /* -------------------------------------------------------------------------- */
+
+  --ae-night-950: #030617;
+  --ae-night-950-rgb: 3 6 23;
+
+  --ae-night-900: var(--ae-deep-night);
+  --ae-night-900-rgb: var(--ae-deep-night-rgb);
+
+  --ae-night-850: #06091a;
+  --ae-night-850-rgb: 6 9 26;
+
+  --ae-night-800: var(--ae-void-navy);
+  --ae-night-800-rgb: var(--ae-void-navy-rgb);
+
+  --ae-night-750: #0d0d28;
+  --ae-night-750-rgb: 13 13 40;
+
+  --ae-night-700: #121132;
+  --ae-night-700-rgb: 18 17 50;
+
+  --ae-night-650: #181640;
+  --ae-night-650-rgb: 24 22 64;
+
+  /* -------------------------------------------------------------------------- */
+  /* Supporting light and neutral scale                                        */
+  /* -------------------------------------------------------------------------- */
+
+  --ae-starlight-100: var(--ae-starlight);
+  --ae-starlight-100-rgb: var(--ae-starlight-rgb);
+
+  --ae-starlight-200: #e8e5f0;
+  --ae-starlight-200-rgb: 232 229 240;
+
+  --ae-starlight-300: #d4d0df;
+  --ae-starlight-300-rgb: 212 208 223;
+
+  --ae-starlight-400: #c0bacd;
+  --ae-starlight-400-rgb: 192 186 205;
+
+  --ae-starlight-500: var(--ae-mist);
+  --ae-starlight-500-rgb: var(--ae-mist-rgb);
+
+  --ae-starlight-600: #8992a5;
+  --ae-starlight-600-rgb: 137 146 165;
+
+  --ae-starlight-700: #626a7d;
+  --ae-starlight-700-rgb: 98 106 125;
+
+  --ae-starlight-800: #41495c;
+  --ae-starlight-800-rgb: 65 73 92;
+
+  /* -------------------------------------------------------------------------- */
+  /* Status color foundation                                                    */
+  /* -------------------------------------------------------------------------- */
+
+  --ae-success: #23c483;
+  --ae-success-rgb: 35 196 131;
+
+  --ae-warning: #ffb454;
+  --ae-warning-rgb: 255 180 84;
+
+  --ae-danger: var(--ae-pink);
+  --ae-danger-rgb: var(--ae-pink-rgb);
+
+  --ae-info: var(--ae-cyan);
+  --ae-info-rgb: var(--ae-cyan-rgb);
+
+  /* -------------------------------------------------------------------------- */
+  /* Transparent utility layers                                                 */
+  /* -------------------------------------------------------------------------- */
+
+  --ae-transparent: transparent;
+
+  --ae-black: #000;
+  --ae-black-rgb: 0 0 0;
+
+  --ae-white: #fff;
+  --ae-white-rgb: 255 255 255;
+
+  --ae-pink-05: rgb(var(--ae-pink-rgb) / 5%);
+  --ae-pink-08: rgb(var(--ae-pink-rgb) / 8%);
+  --ae-pink-10: rgb(var(--ae-pink-rgb) / 10%);
+  --ae-pink-12: rgb(var(--ae-pink-rgb) / 12%);
+  --ae-pink-15: rgb(var(--ae-pink-rgb) / 15%);
+  --ae-pink-20: rgb(var(--ae-pink-rgb) / 20%);
+  --ae-pink-30: rgb(var(--ae-pink-rgb) / 30%);
+  --ae-pink-42: rgb(var(--ae-pink-rgb) / 42%);
+
+  --ae-cyan-04: rgb(var(--ae-cyan-rgb) / 4%);
+  --ae-cyan-05: rgb(var(--ae-cyan-rgb) / 5%);
+  --ae-cyan-08: rgb(var(--ae-cyan-rgb) / 8%);
+  --ae-cyan-10: rgb(var(--ae-cyan-rgb) / 10%);
+  --ae-cyan-12: rgb(var(--ae-cyan-rgb) / 12%);
+  --ae-cyan-15: rgb(var(--ae-cyan-rgb) / 15%);
+  --ae-cyan-20: rgb(var(--ae-cyan-rgb) / 20%);
+  --ae-cyan-30: rgb(var(--ae-cyan-rgb) / 30%);
+  --ae-cyan-38: rgb(var(--ae-cyan-rgb) / 38%);
+
+  --ae-violet-05: rgb(var(--ae-violet-rgb) / 5%);
+  --ae-violet-08: rgb(var(--ae-violet-rgb) / 8%);
+  --ae-violet-10: rgb(var(--ae-violet-rgb) / 10%);
+  --ae-violet-12: rgb(var(--ae-violet-rgb) / 12%);
+  --ae-violet-15: rgb(var(--ae-violet-rgb) / 15%);
+  --ae-violet-16: rgb(var(--ae-violet-rgb) / 16%);
+  --ae-violet-20: rgb(var(--ae-violet-rgb) / 20%);
+  --ae-violet-30: rgb(var(--ae-violet-rgb) / 30%);
+  --ae-violet-38: rgb(var(--ae-violet-rgb) / 38%);
+
+  --ae-starlight-02: rgb(var(--ae-starlight-rgb) / 2%);
+  --ae-starlight-04: rgb(var(--ae-starlight-rgb) / 4%);
+  --ae-starlight-05: rgb(var(--ae-starlight-rgb) / 5%);
+  --ae-starlight-08: rgb(var(--ae-starlight-rgb) / 8%);
+  --ae-starlight-10: rgb(var(--ae-starlight-rgb) / 10%);
+  --ae-starlight-12: rgb(var(--ae-starlight-rgb) / 12%);
+  --ae-starlight-15: rgb(var(--ae-starlight-rgb) / 15%);
+  --ae-starlight-72: rgb(var(--ae-starlight-rgb) / 72%);
+
+  --ae-mist-22: rgb(var(--ae-mist-rgb) / 22%);
+  --ae-mist-56: rgb(var(--ae-mist-rgb) / 56%);
+
+  --ae-black-10: rgb(var(--ae-black-rgb) / 10%);
+  --ae-black-20: rgb(var(--ae-black-rgb) / 20%);
+  --ae-black-32: rgb(var(--ae-black-rgb) / 32%);
+  --ae-black-40: rgb(var(--ae-black-rgb) / 40%);
+  --ae-black-48: rgb(var(--ae-black-rgb) / 48%);
+  --ae-black-60: rgb(var(--ae-black-rgb) / 60%);
+
+  --ae-white-05: rgb(var(--ae-white-rgb) / 5%);
+  --ae-white-08: rgb(var(--ae-white-rgb) / 8%);
+  --ae-white-10: rgb(var(--ae-white-rgb) / 10%);
+  --ae-white-15: rgb(var(--ae-white-rgb) / 15%);
+  --ae-white-82: rgb(var(--ae-white-rgb) / 82%);
+  --ae-white-92: rgb(var(--ae-white-rgb) / 92%);
+
+  /* -------------------------------------------------------------------------- */
+  /* Reusable gradients                                                         */
+  /* -------------------------------------------------------------------------- */
+
+  --ae-gradient-brand: linear-gradient(
+    135deg,
+    var(--ae-pink) 0%,
+    var(--ae-violet) 48%,
+    var(--ae-cyan) 100%
+  );
+
+  --ae-gradient-brand-soft: linear-gradient(
+    135deg,
+    var(--ae-pink-20) 0%,
+    var(--ae-violet-20) 48%,
+    var(--ae-cyan-20) 100%
+  );
+
+  --ae-gradient-glass-highlight: linear-gradient(
+    135deg,
+    var(--ae-starlight-12) 0%,
+    var(--ae-starlight-02) 42%,
+    var(--ae-cyan-08) 100%
+  );
+
+  --ae-gradient-glass-panel: linear-gradient(
+    145deg,
+    var(--ae-starlight-08) 0%,
+    var(--ae-cyan-04) 50%,
+    var(--ae-pink-04) 100%
+  );
+
+  --ae-gradient-page-dark:
+    radial-gradient(circle at top left, var(--ae-pink-20), transparent 34%),
+    radial-gradient(circle at top right, var(--ae-cyan-15), transparent 32%),
+    radial-gradient(
+      circle at bottom center,
+      var(--ae-violet-16),
+      transparent 42%
+    ),
+    var(--ae-deep-night);
+
+  --ae-gradient-page-light:
+    radial-gradient(circle at top left, var(--ae-pink-10), transparent 34%),
+    radial-gradient(circle at top right, var(--ae-cyan-12), transparent 32%),
+    radial-gradient(
+      circle at bottom center,
+      var(--ae-violet-12),
+      transparent 42%
+    ),
+    var(--ae-starlight);
+
+  /* -------------------------------------------------------------------------- */
+  /* Color-derived visual effects                                               */
+  /* -------------------------------------------------------------------------- */
+
+  --ae-glow-pink: 0 0 32px var(--ae-pink-42);
+  --ae-glow-cyan: 0 0 34px var(--ae-cyan-30);
+  --ae-glow-violet: 0 0 34px var(--ae-violet-30);
+
+  --ae-shadow-deep: 0 20px 60px var(--ae-black-48);
+  --ae-shadow-soft: 0 14px 40px var(--ae-black-32);
+  --ae-shadow-light: 0 18px 48px rgb(var(--ae-deep-night-rgb) / 14%);
+}

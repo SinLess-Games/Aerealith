@@ -1,0 +1,130 @@
+/* libs/ui/src/styles/fonts.css */
+
+@import '@fontsource-variable/inter/wght.css';
+@import '@fontsource-variable/sora/wght.css';
+@import '@fontsource-variable/orbitron/wght.css';
+@import '@fontsource-variable/jetbrains-mono/wght.css';
+@import '@fontsource-variable/cormorant-garamond/wght-italic.css';
+
+/*
+ * Aerealith AI typography foundation.
+ *
+ * Font roles:
+ * - Inter: product UI, forms, tables, documentation, body copy.
+ * - Sora: headings, navigation, dashboard labels, product hierarchy.
+ * - Orbitron: rare display use, hero text, technical labels, brand moments.
+ * - JetBrains Mono: code, event IDs, timestamps, logs, infrastructure data.
+ * - Cormorant Garamond: rare companion-facing and editorial accent copy.
+ *
+ * Keep Orbitron and Cormorant usage restrained. They are accents, not
+ * everyday interface fonts.
+ */
+
+:root {
+  /* Product UI and readable body copy */
+  --ae-font-sans:
+    'Inter Variable', Inter, ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Headings, navigation, cards, and dashboard hierarchy */
+  --ae-font-heading: 'Sora Variable', Sora, var(--ae-font-sans);
+
+  /* Hero headings, launch pages, branded technical accents */
+  --ae-font-display: 'Orbitron Variable', Orbitron, var(--ae-font-heading);
+
+  /* Logs, IDs, API keys, code, cron expressions, timestamps */
+  --ae-font-mono:
+    'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, SFMono-Regular,
+    Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+
+  /* Use only for rare companion-facing or editorial accent copy */
+  --ae-font-accent:
+    'Cormorant Garamond Variable', 'Cormorant Garamond', Georgia, Cambria,
+    'Times New Roman', serif;
+
+  /*
+   * Font weights are named so components avoid magic numbers.
+   * These are values, not font-family declarations.
+   */
+  --ae-font-weight-regular: 400;
+  --ae-font-weight-medium: 500;
+  --ae-font-weight-semibold: 600;
+  --ae-font-weight-bold: 700;
+  --ae-font-weight-extrabold: 800;
+
+  /* Comfortable product UI tracking */
+  --ae-letter-spacing-tight: -0.025em;
+  --ae-letter-spacing-normal: 0;
+  --ae-letter-spacing-wide: 0.025em;
+  --ae-letter-spacing-display: 0.06em;
+  --ae-letter-spacing-technical: 0.08em;
+
+  /*
+   * Reusable line-height tokens.
+   * The actual type scale belongs in typography.css.
+   */
+  --ae-line-height-none: 1;
+  --ae-line-height-tight: 1.15;
+  --ae-line-height-heading: 1.25;
+  --ae-line-height-normal: 1.5;
+  --ae-line-height-relaxed: 1.65;
+  --ae-line-height-loose: 1.8;
+}
+
+html {
+  font-family: var(--ae-font-sans);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+body,
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: inherit;
+}
+
+code,
+kbd,
+pre,
+samp,
+var {
+  font-family: var(--ae-font-mono);
+  font-variant-ligatures: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+}
+
+/*
+ * Optional utility classes.
+ *
+ * These are useful in MDX content, marketing pages, and rare branded moments.
+ * Normal application components should use semantic typography styles defined
+ * later in typography.css instead of applying these classes everywhere.
+ */
+
+.ae-font-heading {
+  font-family: var(--ae-font-heading);
+}
+
+.ae-font-display {
+  font-family: var(--ae-font-display);
+  letter-spacing: var(--ae-letter-spacing-display);
+}
+
+.ae-font-mono {
+  font-family: var(--ae-font-mono);
+  font-variant-ligatures: none;
+}
+
+.ae-font-accent {
+  font-family: var(--ae-font-accent);
+  font-style: italic;
+}

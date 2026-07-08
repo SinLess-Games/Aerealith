@@ -1,0 +1,81 @@
+/**
+ * General application and HTTP error codes.
+ *
+ * Use domain-specific error codes when possible:
+ * - AuthErrorCode for authentication and authorization
+ * - UserErrorCode for user/account domain failures
+ * - CommonErrorCode for shared request, resource, and service failures
+ */
+export declare const CommonErrorCode: {
+  readonly BAD_REQUEST: 'BAD_REQUEST';
+  readonly UNAUTHORIZED: 'UNAUTHORIZED';
+  readonly FORBIDDEN: 'FORBIDDEN';
+  readonly NOT_FOUND: 'NOT_FOUND';
+  readonly METHOD_NOT_ALLOWED: 'METHOD_NOT_ALLOWED';
+  readonly CONFLICT: 'CONFLICT';
+  readonly VALIDATION_ERROR: 'VALIDATION_ERROR';
+  readonly INVALID_REQUEST: 'INVALID_REQUEST';
+  readonly INVALID_CONTENT_TYPE: 'INVALID_CONTENT_TYPE';
+  readonly INVALID_ORIGIN: 'INVALID_ORIGIN';
+  readonly MISSING_REQUIRED_FIELD: 'MISSING_REQUIRED_FIELD';
+  readonly RATE_LIMITED: 'RATE_LIMITED';
+  readonly REQUEST_TIMEOUT: 'REQUEST_TIMEOUT';
+  readonly REQUEST_CANCELLED: 'REQUEST_CANCELLED';
+  readonly PAYLOAD_TOO_LARGE: 'PAYLOAD_TOO_LARGE';
+  readonly UNSUPPORTED_MEDIA_TYPE: 'UNSUPPORTED_MEDIA_TYPE';
+  readonly PARSE_ERROR: 'PARSE_ERROR';
+  readonly RESOURCE_ALREADY_EXISTS: 'RESOURCE_ALREADY_EXISTS';
+  readonly RESOURCE_LOCKED: 'RESOURCE_LOCKED';
+  readonly RESOURCE_EXPIRED: 'RESOURCE_EXPIRED';
+  readonly OPERATION_FAILED: 'OPERATION_FAILED';
+  readonly OPERATION_NOT_ALLOWED: 'OPERATION_NOT_ALLOWED';
+  readonly OPERATION_TIMEOUT: 'OPERATION_TIMEOUT';
+  readonly FEATURE_DISABLED: 'FEATURE_DISABLED';
+  readonly FEATURE_UNAVAILABLE: 'FEATURE_UNAVAILABLE';
+  readonly CONFIGURATION_ERROR: 'CONFIGURATION_ERROR';
+  readonly DEPENDENCY_UNAVAILABLE: 'DEPENDENCY_UNAVAILABLE';
+  readonly EXTERNAL_SERVICE_ERROR: 'EXTERNAL_SERVICE_ERROR';
+  readonly INTERNAL_ERROR: 'INTERNAL_ERROR';
+  readonly SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE';
+  readonly GATEWAY_TIMEOUT: 'GATEWAY_TIMEOUT';
+  readonly UNKNOWN_ERROR: 'UNKNOWN_ERROR';
+};
+export type CommonErrorCode =
+  (typeof CommonErrorCode)[keyof typeof CommonErrorCode];
+export declare const CommonErrorCodeValues: (
+  | 'BAD_REQUEST'
+  | 'UNAUTHORIZED'
+  | 'FORBIDDEN'
+  | 'NOT_FOUND'
+  | 'METHOD_NOT_ALLOWED'
+  | 'CONFLICT'
+  | 'VALIDATION_ERROR'
+  | 'INVALID_REQUEST'
+  | 'INVALID_CONTENT_TYPE'
+  | 'INVALID_ORIGIN'
+  | 'MISSING_REQUIRED_FIELD'
+  | 'RATE_LIMITED'
+  | 'REQUEST_TIMEOUT'
+  | 'REQUEST_CANCELLED'
+  | 'PAYLOAD_TOO_LARGE'
+  | 'UNSUPPORTED_MEDIA_TYPE'
+  | 'PARSE_ERROR'
+  | 'RESOURCE_ALREADY_EXISTS'
+  | 'RESOURCE_LOCKED'
+  | 'RESOURCE_EXPIRED'
+  | 'OPERATION_FAILED'
+  | 'OPERATION_NOT_ALLOWED'
+  | 'OPERATION_TIMEOUT'
+  | 'FEATURE_DISABLED'
+  | 'FEATURE_UNAVAILABLE'
+  | 'CONFIGURATION_ERROR'
+  | 'DEPENDENCY_UNAVAILABLE'
+  | 'EXTERNAL_SERVICE_ERROR'
+  | 'INTERNAL_ERROR'
+  | 'SERVICE_UNAVAILABLE'
+  | 'GATEWAY_TIMEOUT'
+  | 'UNKNOWN_ERROR'
+)[];
+export declare function isCommonErrorCode(
+  value: unknown,
+): value is CommonErrorCode;

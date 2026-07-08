@@ -1,0 +1,420 @@
+{
+  "hero": {
+    "title": "Aerealith AI — Your Digital Life, Intelligently Connected",
+    "subtitle": "Aerealith AI is a secure virtual assistant designed to bring your digital life into one intelligent command center. It goes beyond basic voice commands by connecting your apps, organizing your data, automating repetitive tasks, monitoring important systems, and turning scattered information into clear, actionable insight. Built for work, home, creators, developers, and infrastructure operators, Aerealith AI helps you ask better questions, manage complex workflows, track what matters, and stay in control across the tools and platforms you rely on every day.",
+    "imageUrl": "/images/marketing/hero/hero-1.png",
+    "imageAlt": "Aerealith AI futuristic hero artwork"
+  },
+  "investorVideo": {
+    "id": "aerealith-ai-investor-video",
+    "src": "Helix_AI_Investor_wvztbl",
+    "title": "A Call to Investors",
+    "eyebrow": "Investor Opportunity",
+    "body": "Aerealith AI is being built as more than another assistant. It is a secure, extensible command center for modern digital life, designed to connect apps, automate workflows, organize knowledge, monitor systems, and turn scattered data into usable insight. We are looking for aligned investors who understand the long-term opportunity in user-owned AI, private automation, infrastructure intelligence, and trusted digital companions."
+  },
+  "sections": [
+    {
+      "component": "marketing-section",
+      "id": "hero",
+      "eyebrow": "Aerealith AI",
+      "title": "Your digital life, intelligently connected.",
+      "description": "Unify memory, automations, analytics, integrations, dashboards, and assistant workflows in one secure AI companion.",
+      "variant": "glass",
+      "spacingY": "spacious",
+      "align": "center",
+      "tone": "secondary",
+      "copyVariant": "hero",
+      "maxWidth": 1180,
+      "copyMaxWidth": 920,
+      "centerContent": true,
+      "featureLayout": "none",
+      "copyProps": {
+        "titleComponent": "h1",
+        "titleVariant": "h1"
+      }
+    },
+    {
+      "component": "marketing-section",
+      "id": "infographics",
+      "eyebrow": "Platform Overview",
+      "title": "See How Aerealith AI Fits Together",
+      "description": "Explore visual breakdowns of the platform, integrations, memory, automation, analytics, and user-control model.",
+      "variant": "glass",
+      "spacingY": "normal",
+      "align": "center",
+      "tone": "secondary",
+      "copyVariant": "section",
+      "maxWidth": "100%",
+      "copyMaxWidth": 920,
+      "centerContent": true,
+      "mediaPosition": "bottom",
+      "featureLayout": "carousel",
+      "carouselProps": {
+        "autoDiscoverImages": true,
+        "imageBasePath": "/images/marketing/infographics",
+        "imageFilePrefix": "info-",
+        "imageExtension": "png",
+        "startIndex": 1,
+        "maxImages": 100,
+        "stopAfterMisses": 1,
+        "imageAltPrefix": "Aerealith AI infographic",
+        "imageTitlePrefix": "Infographic",
+        "autoScroll": true,
+        "autoScrollInterval": 6500,
+        "pauseOnHover": true,
+        "pauseOnFocus": true,
+        "pauseOnVideoPlay": true,
+        "loop": true,
+        "showArrows": true,
+        "showPagination": true,
+        "showProgress": true,
+        "showCaptions": true,
+        "showFullscreenButton": true,
+        "fullscreen": true,
+        "aspectRatio": "16 / 9",
+        "objectFit": "contain",
+        "objectPosition": "center",
+        "rounded": true,
+        "bordered": true,
+        "elevated": true,
+        "imageSizes": "(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+      },
+      "copyProps": {
+        "titleComponent": "h2",
+        "titleVariant": "h2"
+      }
+    },
+    {
+      "component": "marketing-section",
+      "id": "product-preview",
+      "eyebrow": "Product Preview",
+      "title": "A Command Center for Your Digital World",
+      "description": "Preview the direction of Aerealith AI across dashboards, assistant workflows, integrations, analytics, and connected systems.",
+      "variant": "glass",
+      "spacingY": "normal",
+      "align": "center",
+      "tone": "secondary",
+      "copyVariant": "section",
+      "maxWidth": "100%",
+      "copyMaxWidth": 760,
+      "centerContent": true,
+      "mediaPosition": "right",
+      "mediaBreakpoint": "lg",
+      "mediaFirstOnMobile": false,
+      "gridColumns": ["minmax(0, 0.92fr)", "minmax(360px, 1.08fr)"],
+      "featureLayout": "carousel",
+      "carouselProps": {
+        "autoDiscoverImages": true,
+        "imageBasePath": "/images/pages/home/product-preview",
+        "imageFilePrefix": "preview-",
+        "imageExtension": "png",
+        "startIndex": 1,
+        "maxImages": 100,
+        "stopAfterMisses": 1,
+        "imageAltPrefix": "Aerealith AI product preview",
+        "imageTitlePrefix": "Product Preview",
+        "autoScroll": false,
+        "autoScrollInterval": 6500,
+        "pauseOnHover": true,
+        "pauseOnFocus": true,
+        "pauseOnVideoPlay": true,
+        "loop": true,
+        "showArrows": true,
+        "showPagination": true,
+        "showProgress": false,
+        "showCaptions": false,
+        "showFullscreenButton": true,
+        "fullscreen": true,
+        "aspectRatio": "16 / 9",
+        "objectFit": "contain",
+        "objectPosition": "center",
+        "rounded": true,
+        "bordered": true,
+        "elevated": true,
+        "imageSizes": "(max-width: 768px) 100vw, (max-width: 1200px) 48vw, 860px"
+      },
+      "copyProps": {
+        "titleComponent": "h2",
+        "titleVariant": "h2"
+      }
+    },
+    {
+      "component": "crowdfunding-section",
+      "id": "crowdfunding",
+      "content": {
+        "id": "crowdfunding",
+        "eyebrow": "Community Funding",
+        "title": "Help Build Aerealith AI",
+        "description": "Support the infrastructure, engineering, security, design, integrations, documentation, and production systems needed to bring Aerealith AI to life.",
+        "body": "Aerealith AI is being built as a long-term platform, not a quick chatbot wrapper. Crowdfunding, aligned investor support, and early community backing help fund the infrastructure, engineering, security, design, integrations, documentation, and production systems needed to turn Aerealith AI into a reliable command center for users, creators, developers, communities, teams, and organizations.",
+        "videos": [
+          {
+            "id": "aerealith-ai-investor-call",
+            "title": "A Call to Investors",
+            "description": "A short investor-focused overview introducing Aerealith AI as a secure, extensible command center for automation, analytics, integrations, memory, and digital workflow intelligence.",
+            "src": "https://res.cloudinary.com/helix-ai/video/upload/v1779161862/Helix_AI_Investor_wvztbl.mp4",
+            "controls": true,
+            "muted": false,
+            "loop": false,
+            "autoPlay": false,
+            "playsInline": true,
+            "preload": "metadata"
+          }
+        ]
+      },
+      "variant": "glass",
+      "spacingY": "normal",
+      "align": "center",
+      "tone": "secondary",
+      "copyVariant": "section",
+      "maxWidth": "100%",
+      "copyMaxWidth": 1180,
+      "mediaPosition": "bottom"
+    },
+    {
+      "component": "pricing-preview-section",
+      "id": "pricing-preview",
+      "content": {
+        "id": "pricing-preview",
+        "eyebrow": "Plans & Pricing",
+        "title": "Pricing Preview",
+        "description": "Start with the core features you need today, then scale into more advanced capabilities as your workflow grows. Aerealith AI is designed to meet users where they are, whether they are exploring the platform for the first time, organizing personal tasks, managing a community, building developer workflows, or preparing for team and enterprise use. As your needs expand, you can unlock deeper memory, stronger automation, more integrations, richer analytics, higher usage limits, and more advanced support without having to switch platforms or rebuild your workflow from scratch.",
+        "body": "Aerealith AI is planned with simple, transparent tiers so users can start free, explore the platform, and upgrade only when they need more capability. The goal is to make pricing easy to understand while still giving room for different types of users: individuals who want a smarter assistant, creators and communities that need automation and engagement tools, developers who want integrations and extensibility, teams that need collaboration and analytics, and organizations that require stronger governance, self-hosting, or enterprise deployment options. As the MVP ships and real usage data becomes available, pricing will continue to be refined around actual infrastructure costs, AI model usage, support needs, feature limits, and customer feedback. Each tier is intended to grow with the user, offering a clear path from early experimentation to advanced workflows, professional use, business operations, and long-term enterprise readiness.",
+        "maxWidth": 1900,
+        "copyMaxWidth": "80%",
+        "descriptionMaxWidth": "80%",
+        "bodyMaxWidth": "80%",
+        "mediaMaxWidth": "100%",
+        "mediaPosition": "top",
+        "centerContent": true,
+        "image": {
+          "src": "/images/pages/home/pricing.png",
+          "alt": "Aerealith AI pricing tiers and plan comparison"
+        }
+      },
+      "variant": "glass",
+      "spacingY": "normal",
+      "align": "center",
+      "tone": "secondary",
+      "copyVariant": "section",
+      "maxWidth": "100%",
+      "copyMaxWidth": "100%",
+      "mediaPosition": "bottom"
+    }
+  ],
+  "crowdfunding": {
+    "id": "crowdfunding",
+    "eyebrow": "Community Funding",
+    "title": "Help Build Aerealith AI",
+    "description": "Support the infrastructure, engineering, security, design, integrations, documentation, and production systems needed to bring Aerealith AI to life.",
+    "body": "Aerealith AI is being built as a long-term platform, not a quick chatbot wrapper. Crowdfunding, aligned investor support, and early community backing help fund the infrastructure, engineering, security, design, integrations, documentation, and production systems needed to turn Aerealith AI into a reliable command center for users, creators, developers, communities, teams, and organizations.",
+    "videos": [
+      {
+        "id": "aerealith-ai-investor-call",
+        "title": "A Call to Investors",
+        "description": "A short investor-focused overview introducing Aerealith AI as a secure, extensible command center for automation, analytics, integrations, memory, and digital workflow intelligence.",
+        "src": "https://res.cloudinary.com/helix-ai/video/upload/v1779161862/Helix_AI_Investor_wvztbl.mp4",
+        "controls": true,
+        "muted": false,
+        "loop": false,
+        "autoPlay": false,
+        "playsInline": true,
+        "preload": "metadata"
+      }
+    ]
+  },
+  "different": {
+    "component": "marketing-section",
+    "id": "why-aerealith-ai-is-different",
+    "eyebrow": "Why Aerealith AI",
+    "title": "Built Different From the Start",
+    "description": "Aerealith AI combines assistant intelligence, user control, integrations, analytics, memory, and automation into one long-term platform vision.",
+    "body": "Aerealith AI is being designed as more than a chatbot. It is a secure, extensible assistant platform built around user-owned data, contextual memory, automations, integrations, analytics, and transparent control. The goal is to make your digital systems easier to understand, easier to operate, and easier to trust.",
+    "variant": "glass",
+    "spacingY": "normal",
+    "align": "left",
+    "tone": "secondary",
+    "copyVariant": "section",
+    "maxWidth": 1900,
+    "copyMaxWidth": 760,
+    "mediaMaxWidth": 900,
+    "centerContent": true,
+    "mediaPosition": "right",
+    "mediaBreakpoint": "lg",
+    "mediaFirstOnMobile": false,
+    "gridColumns": ["minmax(0, 0.92fr)", "minmax(420px, 1.08fr)"],
+    "featureLayout": "carousel",
+    "features": [
+      {
+        "id": "user-owned-data",
+        "title": "User-Owned Data",
+        "description": "Aerealith AI is built around the principle that users own their data. The platform should support export, deletion, transparency, and clear boundaries around how data is used.",
+        "icon": "🛡️"
+      },
+      {
+        "id": "contextual-memory",
+        "title": "Contextual Memory",
+        "description": "Memory is designed to be layered across users, assistant identities, organizations, workspaces, projects, automations, and analytics preferences.",
+        "icon": "🧠"
+      },
+      {
+        "id": "automation-with-boundaries",
+        "title": "Automation With Boundaries",
+        "description": "Aerealith AI can help automate workflows, monitor systems, and assist with actions while preserving approval flows, permissions, and user control.",
+        "icon": "⚙️"
+      },
+      {
+        "id": "connected-integrations",
+        "title": "Connected Integrations",
+        "description": "The platform is designed to connect apps, services, developer tools, infrastructure, smart devices, and external workflows into one assistant experience.",
+        "icon": "🔗"
+      },
+      {
+        "id": "dashboards-and-analytics",
+        "title": "Dashboards and Analytics",
+        "description": "Aerealith AI is planned with user-fed dashboards, annotations, sharing, and operational insights so users can understand their systems at a glance.",
+        "icon": "📊"
+      },
+      {
+        "id": "developer-ready-platform",
+        "title": "Developer-Ready Platform",
+        "description": "Aerealith AI is being structured with SDKs, APIs, plugin manifests, marketplace support, automation hooks, and extensibility from the beginning.",
+        "icon": "🧑‍💻"
+      },
+      {
+        "id": "cloud-local-and-air-gapped",
+        "title": "Cloud, Local, and Air-Gapped",
+        "description": "The architecture is intended to support hosted SaaS, self-hosted deployments, and air-gapped environments where organizations need more control.",
+        "icon": "🏗️"
+      },
+      {
+        "id": "transparent-ai-behavior",
+        "title": "Transparent AI Behavior",
+        "description": "Aerealith AI should explain what it knows, where information came from, when it used a tool, and when a decision requires user approval.",
+        "icon": "🔍"
+      }
+    ],
+    "featureGridProps": {
+      "columns": {
+        "xs": 1,
+        "sm": 2,
+        "md": 2,
+        "lg": 2,
+        "xl": 2
+      },
+      "gap": {
+        "xs": 2,
+        "md": 2.5
+      },
+      "maxWidth": 900,
+      "centered": true,
+      "cardFullHeight": true,
+      "compactCards": false
+    },
+    "carouselProps": {
+      "autoScroll": false,
+      "autoScrollInterval": 5200,
+      "pauseOnHover": true,
+      "pauseOnFocus": true,
+      "pauseOnVideoPlay": true,
+      "loop": true,
+      "showArrows": true,
+      "showPagination": true,
+      "showProgress": false,
+      "showCaptions": false,
+      "showFullscreenButton": false,
+      "fullscreen": false,
+      "aspectRatio": "16 / 9",
+      "objectFit": "contain",
+      "objectPosition": "center",
+      "rounded": true,
+      "bordered": true,
+      "elevated": true,
+      "imageSizes": "100vw"
+    },
+    "copyProps": {
+      "titleComponent": "h2",
+      "titleVariant": "h2"
+    }
+  },
+  "faq": {
+    "id": "faq",
+    "eyebrow": "Questions before launch",
+    "title": "FAQ",
+    "description": "Common early questions from users, supporters, developers, communities, and potential investors as Aerealith AI moves through active development, MVP testing, pricing refinement, integration planning, and early public launch preparation.",
+    "body": "Aerealith AI is still in active development, so this section will grow as the MVP ships, pricing is refined, integrations are added, and early users begin testing the platform. As new features move from planning to production, the FAQ will be updated with clearer answers about availability, data ownership, memory controls, automation limits, supported integrations, crowdfunding, billing, security, and the long-term roadmap.",
+    "variant": "glass",
+    "spacingY": "normal",
+    "align": "left",
+    "tone": "secondary",
+    "copyVariant": "section",
+    "maxWidth": 1900,
+    "copyMaxWidth": 760,
+    "mediaMaxWidth": 900,
+    "centerContent": true,
+    "cards": [
+      {
+        "id": "faq-early-access",
+        "question": "When will Aerealith AI be available?",
+        "answer": "Aerealith AI is currently in active development. Early access will open as core MVP features are completed, tested, and stable enough for real users. Features will be released progressively as they pass internal testing and are pushed to production, so the platform will grow over time instead of launching all at once. Early users may still encounter bugs or incomplete behavior during testing, and feedback will help shape the product. If you find an issue, bug, or unexpected behavior, please report it.",
+        "tag": "Anonymous",
+        "title": "When will Aerealith AI be available?",
+        "description": "Aerealith AI is currently in active development. Early access will open as core MVP features are completed, tested, and stable enough for real users. Features will be released progressively as they pass internal testing and are pushed to production, so the platform will grow over time instead of launching all at once. Early users may still encounter bugs or incomplete behavior during testing, and feedback will help shape the product. If you find an issue, bug, or unexpected behavior, please report it."
+      },
+      {
+        "id": "faq-data-ownership",
+        "question": "Will users own their data?",
+        "answer": "Yes. Aerealith AI is being designed around user-owned data, clear export options, deletion controls, permissioned memory, and transparent boundaries around how information is used. Users should be able to understand what data Aerealith AI stores, why it is used, how it improves the experience, and how to review, export, or remove it when needed. The goal is to make powerful AI assistance feel controlled, accountable, and trustworthy instead of hidden or invasive.",
+        "tag": "Anonymous",
+        "title": "Will users own their data?",
+        "description": "Yes. Aerealith AI is being designed around user-owned data, clear export options, deletion controls, permissioned memory, and transparent boundaries around how information is used. Users should be able to understand what data Aerealith AI stores, why it is used, how it improves the experience, and how to review, export, or remove it when needed. The goal is to make powerful AI assistance feel controlled, accountable, and trustworthy instead of hidden or invasive."
+      },
+      {
+        "id": "faq-integrations",
+        "question": "What apps will Aerealith AI connect to?",
+        "answer": "The long-term goal is for Aerealith AI to integrate with thousands of apps, tools, services, platforms, and systems through secure, scoped connections. Aerealith AI is being designed to support developer tools, community platforms, cloud services, dashboards, automations, files, communication apps, productivity suites, infrastructure systems, and future device integrations. Instead of locking users into a small set of fixed connections, Aerealith AI will grow into a flexible integration layer where users can choose what to connect, what permissions to grant, and how those tools should work together.",
+        "tag": "Anonymous",
+        "title": "What apps will Aerealith AI connect to?",
+        "description": "The long-term goal is for Aerealith AI to integrate with thousands of apps, tools, services, platforms, and systems through secure, scoped connections. Aerealith AI is being designed to support developer tools, community platforms, cloud services, dashboards, automations, files, communication apps, productivity suites, infrastructure systems, and future device integrations. Instead of locking users into a small set of fixed connections, Aerealith AI will grow into a flexible integration layer where users can choose what to connect, what permissions to grant, and how those tools should work together."
+      },
+      {
+        "id": "faq-self-hosting",
+        "question": "Will Aerealith AI support self-hosting?",
+        "answer": "Self-hosting and air-gapped deployment support are part of the long-term platform direction, especially for teams, businesses, infrastructure operators, and enterprise environments that need stronger control over data, security, compliance, and deployment boundaries.",
+        "tag": "Anonymous",
+        "title": "Will Aerealith AI support self-hosting?",
+        "description": "Self-hosting and air-gapped deployment support are part of the long-term platform direction, especially for teams, businesses, infrastructure operators, and enterprise environments that need stronger control over data, security, compliance, and deployment boundaries."
+      }
+    ],
+    "carousel": {
+      "autoScroll": false,
+      "autoScrollInterval": 6500,
+      "pauseOnHover": true,
+      "pauseOnFocus": true,
+      "loop": true,
+      "showArrows": true,
+      "showPagination": true,
+      "showProgress": false,
+      "pageSize": 1,
+      "transitionMs": 260
+    }
+  },
+  "pricing": {
+    "id": "pricing-preview",
+    "eyebrow": "Plans & Pricing",
+    "title": "Pricing Preview",
+    "description": "Start with the core features you need today, then scale into more advanced capabilities as your workflow grows. Aerealith AI is designed to meet users where they are, whether they are exploring the platform for the first time, organizing personal tasks, managing a community, building developer workflows, or preparing for team and enterprise use. As your needs expand, you can unlock deeper memory, stronger automation, more integrations, richer analytics, higher usage limits, and more advanced support without having to switch platforms or rebuild your workflow from scratch.",
+    "body": "Aerealith AI is planned with simple, transparent tiers so users can start free, explore the platform, and upgrade only when they need more capability. The goal is to make pricing easy to understand while still giving room for different types of users: individuals who want a smarter assistant, creators and communities that need automation and engagement tools, developers who want integrations and extensibility, teams that need collaboration and analytics, and organizations that require stronger governance, self-hosting, or enterprise deployment options. As the MVP ships and real usage data becomes available, pricing will continue to be refined around actual infrastructure costs, AI model usage, support needs, feature limits, and customer feedback. Each tier is intended to grow with the user, offering a clear path from early experimentation to advanced workflows, professional use, business operations, and long-term enterprise readiness.",
+    "maxWidth": 1900,
+    "copyMaxWidth": "80%",
+    "descriptionMaxWidth": "80%",
+    "bodyMaxWidth": "80%",
+    "mediaMaxWidth": "100%",
+    "mediaPosition": "top",
+    "centerContent": true,
+    "image": {
+      "src": "/images/pages/home/pricing.png",
+      "alt": "Aerealith AI pricing tiers and plan comparison"
+    }
+  }
+}
