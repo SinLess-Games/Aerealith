@@ -1,5 +1,5 @@
-import type { ComponentPropsWithoutRef } from 'react';
-import { cn } from '../../lib/cn';
+import type { ComponentPropsWithoutRef } from 'react'
+import { cn } from '../../lib/cn'
 export {
   Dialog as Sheet,
   DialogTrigger as SheetTrigger,
@@ -10,12 +10,12 @@ export {
   DialogFooter as SheetFooter,
   DialogTitle as SheetTitle,
   DialogDescription as SheetDescription,
-} from './dialog';
-import { DialogContent } from './dialog';
+} from './dialog'
+import { DialogContent } from './dialog'
 export interface SheetContentProps extends ComponentPropsWithoutRef<
   typeof DialogContent
 > {
-  side?: 'top' | 'right' | 'bottom' | 'left';
+  side?: 'top' | 'right' | 'bottom' | 'left'
 }
 export function SheetContent({
   side = 'right',
@@ -34,7 +34,7 @@ export function SheetContent({
         className,
       )}
       data-side={side}
-      data-slot="sheet-content"
+      data-slot='sheet-content'
     />
-  );
+  )
 }

@@ -1,10 +1,10 @@
 // libs/ui/src/primitives/actions/link.tsx
 
-import type { ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef } from 'react'
 
-import { cva, type VariantProps } from 'class-variance-authority';
+import { cva, type VariantProps } from 'class-variance-authority'
 
-import { cn } from '../../lib/cn';
+import { cn } from '../../lib/cn'
 
 export const linkVariants = cva(
   [
@@ -41,7 +41,7 @@ export const linkVariants = cva(
       underline: 'hover',
     },
   },
-);
+)
 
 export type LinkProps = Readonly<Omit<ComponentPropsWithoutRef<'a'>, 'href'>> &
   Readonly<
@@ -49,9 +49,9 @@ export type LinkProps = Readonly<Omit<ComponentPropsWithoutRef<'a'>, 'href'>> &
       /**
        * The destination URL or hash target.
        */
-      readonly href: string;
+      readonly href: string
     }
-  >;
+  >
 
 /**
  * A styled native anchor element for external URLs, page anchors, and standard
@@ -75,11 +75,11 @@ export function Link({
   variant,
   ...props
 }: LinkProps) {
-  const opensInNewTab = target === '_blank';
+  const opensInNewTab = target === '_blank'
   const resolvedRel =
     opensInNewTab && !rel?.includes('noopener')
       ? [rel, 'noopener noreferrer'].filter(Boolean).join(' ')
-      : rel;
+      : rel
 
   return (
     <a
@@ -89,5 +89,5 @@ export function Link({
       rel={resolvedRel}
       target={target}
     />
-  );
+  )
 }

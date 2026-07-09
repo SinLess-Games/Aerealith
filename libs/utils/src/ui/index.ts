@@ -6,7 +6,7 @@ export {
   toAriaBoolean,
   toAriaChecked,
   type AriaIdReference,
-} from './a11y';
+} from './a11y'
 
 export {
   blendColors,
@@ -27,7 +27,7 @@ export {
   type ReadableForeground,
   type RgbaColor,
   type RgbColor,
-} from './color';
+} from './color'
 
 export {
   formatKeyboardShortcut,
@@ -41,7 +41,7 @@ export {
   type KeyboardShortcut,
   type KeyboardShortcutMatchOptions,
   type KeyboardShortcutModifier,
-} from './keyboard';
+} from './keyboard'
 
 export {
   formatCount,
@@ -53,4 +53,4 @@ export {
   toSlug,
   truncateText,
   type TextListOptions,
-} from './text';
+} from './text'

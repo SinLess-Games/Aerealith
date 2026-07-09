@@ -125,7 +125,7 @@ flowchart TD
 
 ---
 
-# Product Documents
+## Product Documents
 
 ---
 
@@ -462,7 +462,7 @@ The Developer Platform should help Aerealith become an ecosystem, not just an ap
 
 ---
 
-# Product Principles
+## Product Principles
 
 All product documents should follow these principles.
 
@@ -510,7 +510,7 @@ Dockerization, provider replacement, and clean boundaries should be considered e
 
 ---
 
-# Product Scope Summary
+## Product Scope Summary
 
 Aerealith product scope includes:
 
@@ -540,7 +540,7 @@ Future self-hosting
 
 ---
 
-# MVP Product Focus
+## MVP Product Focus
 
 The MVP should prove that Aerealith can help individuals and Discord communities manage digital complexity from one secure, intelligent control center.
 
@@ -577,7 +577,7 @@ It should prove the platform is useful, trustworthy, modular, and expandable.
 
 ---
 
-# Post-MVP Product Focus
+## Post-MVP Product Focus
 
 Post-MVP should expand into:
 
@@ -610,7 +610,7 @@ Organization foundations
 
 ---
 
-# Future Product Focus
+## Future Product Focus
 
 Future product work may include:
 
@@ -637,7 +637,7 @@ Enterprise/compliance features
 
 ---
 
-# Product Boundaries
+## Product Boundaries
 
 Aerealith should avoid becoming unfocused.
 
@@ -659,7 +659,7 @@ It should not try to own every part of the user’s digital life.
 
 ---
 
-# Relationship to Other Documentation
+## Relationship to Other Documentation
 
 Product documentation should connect to the rest of the repo docs.
 
@@ -711,7 +711,7 @@ flowchart TD
 
 ---
 
-# Recommended Next Product Documents
+## Recommended Next Product Documents
 
 The following product documents should be added next:
 
@@ -737,7 +737,7 @@ Suggested order:
 
 ---
 
-# Product Review Questions
+## Product Review Questions
 
 Before adding or changing a product feature, ask:
 
@@ -763,7 +763,7 @@ If the feature does not make Aerealith more useful, trustworthy, understandable,
 
 ---
 
-# Final Product Standard
+## Final Product Standard
 
 Aerealith AI should make the digital world feel manageable again.
 

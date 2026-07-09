@@ -5,11 +5,11 @@ import {
   type ReactEventHandler,
   type ReactNode,
   useState,
-} from 'react';
+} from 'react'
 
-import { cva, type VariantProps } from 'class-variance-authority';
+import { cva, type VariantProps } from 'class-variance-authority'
 
-import { cn } from '../../lib/cn';
+import { cn } from '../../lib/cn'
 
 export const avatarVariants = cva(
   [
@@ -31,7 +31,7 @@ export const avatarVariants = cva(
       size: 'md',
     },
   },
-);
+)
 
 export type AvatarProps = Readonly<
   Omit<ComponentPropsWithoutRef<'div'>, 'aria-label' | 'children' | 'role'>
@@ -44,7 +44,7 @@ export type AvatarProps = Readonly<
        *
        * Use an empty string for decorative avatars.
        */
-      readonly alt: string;
+      readonly alt: string
 
       /**
        * Optional fallback content shown when no image source is available or
@@ -52,19 +52,19 @@ export type AvatarProps = Readonly<
        *
        * When omitted, initials are derived from `alt`.
        */
-      readonly fallback?: ReactNode;
+      readonly fallback?: ReactNode
 
       /**
        * Called when the avatar image cannot be loaded.
        */
-      readonly onImageError?: ReactEventHandler<HTMLImageElement>;
+      readonly onImageError?: ReactEventHandler<HTMLImageElement>
 
       /**
        * The image source for the avatar.
        */
-      readonly src?: string;
+      readonly src?: string
     }
-  >;
+  >
 
 /**
  * Displays an image avatar with an accessible text fallback.
@@ -92,18 +92,18 @@ export function Avatar({
 }: AvatarProps) {
   const [failedImageSource, setFailedImageSource] = useState<
     string | undefined
-  >();
+  >()
 
-  const imageSource = src?.trim() || undefined;
+  const imageSource = src?.trim() || undefined
   const shouldShowImage =
-    imageSource !== undefined && failedImageSource !== imageSource;
-  const fallbackContent = fallback ?? getAvatarInitials(alt);
+    imageSource !== undefined && failedImageSource !== imageSource
+  const fallbackContent = fallback ?? getAvatarInitials(alt)
 
   function handleImageError(
     event: Parameters<ReactEventHandler<HTMLImageElement>>[0],
   ) {
-    setFailedImageSource(imageSource);
-    onImageError?.(event);
+    setFailedImageSource(imageSource)
+    onImageError?.(event)
   }
 
   return (
@@ -112,40 +112,40 @@ export function Avatar({
       aria-hidden={alt.length === 0 ? true : undefined}
       aria-label={shouldShowImage ? undefined : alt || undefined}
       className={cn(avatarVariants({ size }), className)}
-      data-slot="avatar"
+      data-slot='avatar'
       role={shouldShowImage || alt.length === 0 ? undefined : 'img'}
     >
       {shouldShowImage ? (
         <img
           alt={alt}
-          className="h-full w-full object-cover"
-          data-slot="avatar-image"
+          className='h-full w-full object-cover'
+          data-slot='avatar-image'
           onError={handleImageError}
           src={imageSource}
         />
       ) : (
         <span
-          aria-hidden="true"
-          className="inline-flex h-full w-full items-center justify-center"
-          data-slot="avatar-fallback"
+          aria-hidden='true'
+          className='inline-flex h-full w-full items-center justify-center'
+          data-slot='avatar-fallback'
         >
           {fallbackContent}
         </span>
       )}
     </div>
-  );
+  )
 }
 
 function getAvatarInitials(label: string): string {
-  const words = label.trim().split(/\s+/).filter(Boolean);
+  const words = label.trim().split(/\s+/).filter(Boolean)
 
   if (words.length === 0) {
-    return '?';
+    return '?'
   }
 
   return words
     .slice(0, 2)
     .map((word) => word.slice(0, 1))
     .join('')
-    .toLocaleUpperCase();
+    .toLocaleUpperCase()
 }

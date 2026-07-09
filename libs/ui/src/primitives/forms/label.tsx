@@ -1,5 +1,5 @@
-import type { ComponentPropsWithoutRef } from 'react';
-import { cn } from '../../lib/cn';
+import type { ComponentPropsWithoutRef } from 'react'
+import { cn } from '../../lib/cn'
 export function Label({
   className,
   ...props
@@ -8,7 +8,7 @@ export function Label({
     <label
       {...props}
       className={cn('text-sm font-medium', className)}
-      data-slot="label"
+      data-slot='label'
     />
-  );
+  )
 }

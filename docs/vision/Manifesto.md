@@ -330,7 +330,7 @@ That is the platform.
 
 ---
 
-## One Platform. Infinite Possibilities.
+## One Platform. Infinite Possibilities
 
 We believe people deserve a digital world that feels manageable again.
 

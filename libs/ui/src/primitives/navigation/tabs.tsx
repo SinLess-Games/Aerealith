@@ -3,24 +3,24 @@ import {
   useContext,
   useState,
   type ComponentPropsWithoutRef,
-} from 'react';
-import { cn } from '../../lib/cn';
+} from 'react'
+import { cn } from '../../lib/cn'
 type TabsContextValue = {
-  value: string;
-  setValue: (value: string) => void;
-  orientation: 'horizontal' | 'vertical';
-};
-const TabsContext = createContext<TabsContextValue | undefined>(undefined);
+  value: string
+  setValue: (value: string) => void
+  orientation: 'horizontal' | 'vertical'
+}
+const TabsContext = createContext<TabsContextValue | undefined>(undefined)
 function useTabs() {
-  const value = useContext(TabsContext);
-  if (!value) throw new Error('Tabs components must be used within Tabs');
-  return value;
+  const value = useContext(TabsContext)
+  if (!value) throw new Error('Tabs components must be used within Tabs')
+  return value
 }
 export interface TabsProps extends ComponentPropsWithoutRef<'div'> {
-  value?: string;
-  defaultValue: string;
-  onValueChange?: (value: string) => void;
-  orientation?: 'horizontal' | 'vertical';
+  value?: string
+  defaultValue: string
+  onValueChange?: (value: string) => void
+  orientation?: 'horizontal' | 'vertical'
 }
 export function Tabs({
   value,
@@ -30,12 +30,12 @@ export function Tabs({
   className,
   ...props
 }: TabsProps) {
-  const [internal, setInternal] = useState(defaultValue);
-  const current = value ?? internal;
+  const [internal, setInternal] = useState(defaultValue)
+  const current = value ?? internal
   const setValue = (next: string) => {
-    if (value === undefined) setInternal(next);
-    onValueChange?.(next);
-  };
+    if (value === undefined) setInternal(next)
+    onValueChange?.(next)
+  }
   return (
     <TabsContext.Provider value={{ value: current, setValue, orientation }}>
       <div
@@ -46,17 +46,17 @@ export function Tabs({
           className,
         )}
         data-orientation={orientation}
-        data-slot="tabs"
+        data-slot='tabs'
       />
     </TabsContext.Provider>
-  );
+  )
 }
 export function TabsList({
   className,
   children,
   ...props
 }: ComponentPropsWithoutRef<'div'>) {
-  const { orientation } = useTabs();
+  const { orientation } = useTabs()
   return (
     <div
       {...props}
@@ -66,15 +66,15 @@ export function TabsList({
         orientation === 'vertical' && 'flex-col',
         className,
       )}
-      data-slot="tabs-list"
-      role="tablist"
+      data-slot='tabs-list'
+      role='tablist'
     >
       {children}
     </div>
-  );
+  )
 }
 export interface TabsTriggerProps extends ComponentPropsWithoutRef<'button'> {
-  value: string;
+  value: string
 }
 export function TabsTrigger({
   value,
@@ -82,8 +82,8 @@ export function TabsTrigger({
   onClick,
   ...props
 }: TabsTriggerProps) {
-  const tabs = useTabs();
-  const selected = tabs.value === value;
+  const tabs = useTabs()
+  const selected = tabs.value === value
   return (
     <button
       {...props}
@@ -93,21 +93,21 @@ export function TabsTrigger({
         selected && 'bg-[var(--ae-surface)]',
         className,
       )}
-      data-slot="tabs-trigger"
+      data-slot='tabs-trigger'
       onClick={(event) => {
-        tabs.setValue(value);
-        onClick?.(event);
+        tabs.setValue(value)
+        onClick?.(event)
       }}
-      role="tab"
+      role='tab'
       tabIndex={selected ? 0 : -1}
     />
-  );
+  )
 }
 export interface TabsContentProps extends ComponentPropsWithoutRef<'div'> {
-  value: string;
+  value: string
 }
 export function TabsContent({ value, ...props }: TabsContentProps) {
-  const tabs = useTabs();
-  if (tabs.value !== value) return null;
-  return <div {...props} data-slot="tabs-content" role="tabpanel" />;
+  const tabs = useTabs()
+  if (tabs.value !== value) return null
+  return <div {...props} data-slot='tabs-content' role='tabpanel' />
 }

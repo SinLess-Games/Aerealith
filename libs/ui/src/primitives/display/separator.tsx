@@ -1,10 +1,10 @@
 // libs/ui/src/primitives/display/separator.tsx
 
-import type { ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef } from 'react'
 
-import { cva, type VariantProps } from 'class-variance-authority';
+import { cva, type VariantProps } from 'class-variance-authority'
 
-import { cn } from '../../lib/cn';
+import { cn } from '../../lib/cn'
 
 export const separatorVariants = cva('shrink-0 bg-[var(--ae-border)]', {
   variants: {
@@ -16,7 +16,7 @@ export const separatorVariants = cva('shrink-0 bg-[var(--ae-border)]', {
   defaultVariants: {
     orientation: 'horizontal',
   },
-});
+})
 
 export type SeparatorProps = Readonly<
   Omit<
@@ -31,9 +31,9 @@ export type SeparatorProps = Readonly<
        *
        * @defaultValue false
        */
-      readonly decorative?: boolean;
+      readonly decorative?: boolean
     }
-  >;
+  >
 
 /**
  * Separates related content horizontally or vertically.
@@ -56,7 +56,7 @@ export function Separator({
   orientation,
   ...props
 }: SeparatorProps) {
-  const resolvedOrientation = orientation ?? 'horizontal';
+  const resolvedOrientation = orientation ?? 'horizontal'
 
   return (
     <div
@@ -69,8 +69,8 @@ export function Separator({
         }),
         className,
       )}
-      data-slot="separator"
+      data-slot='separator'
       role={decorative ? undefined : 'separator'}
     />
-  );
+  )
 }

@@ -1,10 +1,10 @@
 // libs/ui/src/primitives/accessibility/visually-hidden.tsx
 
-import type { ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef } from 'react'
 
-import { cn } from '../../lib/cn';
+import { cn } from '../../lib/cn'
 
-export type VisuallyHiddenProps = Readonly<ComponentPropsWithoutRef<'span'>>;
+export type VisuallyHiddenProps = Readonly<ComponentPropsWithoutRef<'span'>>
 
 /**
  * Visually hides content while keeping it available to screen readers.
@@ -30,5 +30,5 @@ export function VisuallyHidden({ className, ...props }: VisuallyHiddenProps) {
         className,
       )}
     />
-  );
+  )
 }

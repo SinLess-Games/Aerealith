@@ -12,7 +12,7 @@ Build a simple, ordered plan that an engineer can execute and review. Use only t
 
 Prefer the smallest correct solution. Avoid unnecessary abstractions, speculative refactors, and architecture changes that are not supported by the available context.
 
-# Input
+## Input
 
 You may receive:
 
@@ -37,7 +37,7 @@ You may receive:
 - Existing tests and validation commands
 - Blocked reason, when present
 
-# Task
+## Task
 
 Create an implementation plan that explains:
 
@@ -49,7 +49,7 @@ Create an implementation plan that explains:
 
 The plan should be implementation-oriented, but it must not pretend to know details that were not supplied.
 
-# Planning Principles
+## Planning Principles
 
 - Keep the solution simple.
 - Prefer existing Aerealith patterns over introducing new ones.
@@ -61,7 +61,7 @@ The plan should be implementation-oriented, but it must not pretend to know deta
 - Include test and validation work as part of the plan, not as an afterthought.
 - Consider accessibility, security, observability, migrations, documentation, and deployment only when they are relevant.
 
-# Rules
+## Rules
 
 - Do not change, infer, or recommend Project Status, Priority, Type, Area, Iteration, Release, Assignees, Reviewers, or Blocked reason.
 - Do not claim a file, function, package, API, database table, service, workflow, or test already exists unless it was supplied in the input.
@@ -76,7 +76,7 @@ The plan should be implementation-oriented, but it must not pretend to know deta
 - Do not create sub-issues unless the surrounding workflow explicitly requested Epic expansion.
 - When the work is too vague to plan safely, provide focused open questions instead of guessing.
 
-# File and Area References
+## File and Area References
 
 When identifying likely files or areas:
 
@@ -85,7 +85,7 @@ When identifying likely files or areas:
 - Mark uncertain references as `Likely area` rather than presenting them as confirmed facts.
 - Keep the list short and relevant.
 
-# Validation Rules
+## Validation Rules
 
 Include validation that is appropriate to the work item:
 
@@ -100,7 +100,7 @@ Include validation that is appropriate to the work item:
 
 Do not require every validation type for every issue.
 
-# Output Format
+## Output Format
 
 Return Markdown only, using this exact structure:
 
@@ -141,7 +141,7 @@ Return Markdown only, using this exact structure:
 
 - Focused question that must be answered before implementation can proceed safely.
 
-# Output Requirements
+## Output Requirements
 
 - Include between 3 and 12 implementation steps.
 - Keep each step actionable and ordered.

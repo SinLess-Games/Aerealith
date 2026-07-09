@@ -4,35 +4,35 @@
  * An RGB color with channels in the inclusive range of 0 to 255.
  */
 export interface RgbColor {
-  readonly red: number;
-  readonly green: number;
-  readonly blue: number;
+  readonly red: number
+  readonly green: number
+  readonly blue: number
 }
 
 /**
  * An RGBA color with an alpha channel in the inclusive range of 0 to 1.
  */
 export interface RgbaColor extends RgbColor {
-  readonly alpha: number;
+  readonly alpha: number
 }
 
 /**
  * Common foreground color recommendations for contrast checks.
  */
-export type ReadableForeground = 'black' | 'white';
+export type ReadableForeground = 'black' | 'white'
 
 /**
  * Clamps a color channel to the inclusive range of 0 to 255.
  */
 export function clampColorChannel(value: number): number {
-  return Math.min(255, Math.max(0, Math.round(value)));
+  return Math.min(255, Math.max(0, Math.round(value)))
 }
 
 /**
  * Clamps an alpha value to the inclusive range of 0 to 1.
  */
 export function clampAlpha(value: number): number {
-  return Math.min(1, Math.max(0, value));
+  return Math.min(1, Math.max(0, value))
 }
 
 /**
@@ -49,7 +49,7 @@ export function clampAlpha(value: number): number {
  * // true
  */
 export function isHexColor(value: string): boolean {
-  return /^#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/i.test(value);
+  return /^#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/i.test(value)
 }
 
 /**
@@ -62,26 +62,26 @@ export function isHexColor(value: string): boolean {
  * // { red: 246, green: 6, blue: 111, alpha: 1 }
  */
 export function hexToRgba(value: string): RgbaColor | undefined {
-  const normalizedValue = value.trim();
+  const normalizedValue = value.trim()
 
   if (!isHexColor(normalizedValue)) {
-    return undefined;
+    return undefined
   }
 
-  const hex = normalizedValue.slice(1);
-  const expandedHex = expandShortHex(hex);
+  const hex = normalizedValue.slice(1)
+  const expandedHex = expandShortHex(hex)
 
-  const red = Number.parseInt(expandedHex.slice(0, 2), 16);
-  const green = Number.parseInt(expandedHex.slice(2, 4), 16);
-  const blue = Number.parseInt(expandedHex.slice(4, 6), 16);
-  const alphaHex = expandedHex.slice(6, 8);
+  const red = Number.parseInt(expandedHex.slice(0, 2), 16)
+  const green = Number.parseInt(expandedHex.slice(2, 4), 16)
+  const blue = Number.parseInt(expandedHex.slice(4, 6), 16)
+  const alphaHex = expandedHex.slice(6, 8)
 
   return {
     red,
     green,
     blue,
     alpha: alphaHex.length === 2 ? Number.parseInt(alphaHex, 16) / 255 : 1,
-  };
+  }
 }
 
 /**
@@ -94,17 +94,17 @@ export function hexToRgba(value: string): RgbaColor | undefined {
  * // { red: 0, green: 219, blue: 201 }
  */
 export function hexToRgb(value: string): RgbColor | undefined {
-  const color = hexToRgba(value);
+  const color = hexToRgba(value)
 
   if (!color) {
-    return undefined;
+    return undefined
   }
 
   return {
     red: color.red,
     green: color.green,
     blue: color.blue,
-  };
+  }
 }
 
 /**
@@ -117,7 +117,7 @@ export function hexToRgb(value: string): RgbColor | undefined {
 export function rgbToHex(color: RgbColor): string {
   return `#${toHexChannel(color.red)}${toHexChannel(color.green)}${toHexChannel(
     color.blue,
-  )}`;
+  )}`
 }
 
 /**
@@ -128,7 +128,7 @@ export function rgbToHex(color: RgbColor): string {
  * // '#f6066f80'
  */
 export function rgbaToHex(color: RgbaColor): string {
-  return `${rgbToHex(color)}${toHexChannel(color.alpha * 255)}`;
+  return `${rgbToHex(color)}${toHexChannel(color.alpha * 255)}`
 }
 
 /**
@@ -141,7 +141,7 @@ export function rgbaToHex(color: RgbaColor): string {
 export function toCssRgb(color: RgbColor): string {
   return `rgb(${clampColorChannel(color.red)} ${clampColorChannel(
     color.green,
-  )} ${clampColorChannel(color.blue)})`;
+  )} ${clampColorChannel(color.blue)})`
 }
 
 /**
@@ -154,7 +154,7 @@ export function toCssRgb(color: RgbColor): string {
 export function toCssColorWithAlpha(color: RgbColor, alpha: number): string {
   return `rgb(${clampColorChannel(color.red)} ${clampColorChannel(
     color.green,
-  )} ${clampColorChannel(color.blue)} / ${formatAlpha(alpha)})`;
+  )} ${clampColorChannel(color.blue)} / ${formatAlpha(alpha)})`
 }
 
 /**
@@ -165,7 +165,7 @@ export function toCssColorWithAlpha(color: RgbColor, alpha: number): string {
  * // 'rgb(140 82 255 / 25%)'
  */
 export function toCssRgba(color: RgbaColor): string {
-  return toCssColorWithAlpha(color, color.alpha);
+  return toCssColorWithAlpha(color, color.alpha)
 }
 
 /**
@@ -174,11 +174,11 @@ export function toCssRgba(color: RgbaColor): string {
  * The returned value is between 0 and 1.
  */
 export function getRelativeLuminance(color: RgbColor): number {
-  const red = linearizeColorChannel(color.red);
-  const green = linearizeColorChannel(color.green);
-  const blue = linearizeColorChannel(color.blue);
+  const red = linearizeColorChannel(color.red)
+  const green = linearizeColorChannel(color.green)
+  const blue = linearizeColorChannel(color.blue)
 
-  return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+  return 0.2126 * red + 0.7152 * green + 0.0722 * blue
 }
 
 /**
@@ -200,13 +200,13 @@ export function getContrastRatio(
   firstColor: RgbColor,
   secondColor: RgbColor,
 ): number {
-  const firstLuminance = getRelativeLuminance(firstColor);
-  const secondLuminance = getRelativeLuminance(secondColor);
+  const firstLuminance = getRelativeLuminance(firstColor)
+  const secondLuminance = getRelativeLuminance(secondColor)
 
-  const lighter = Math.max(firstLuminance, secondLuminance);
-  const darker = Math.min(firstLuminance, secondLuminance);
+  const lighter = Math.max(firstLuminance, secondLuminance)
+  const darker = Math.min(firstLuminance, secondLuminance)
 
-  return (lighter + 0.05) / (darker + 0.05);
+  return (lighter + 0.05) / (darker + 0.05)
 }
 
 /**
@@ -221,7 +221,7 @@ export function hasContrastRatio(
   background: RgbColor,
   minimumRatio = 4.5,
 ): boolean {
-  return getContrastRatio(foreground, background) >= minimumRatio;
+  return getContrastRatio(foreground, background) >= minimumRatio
 }
 
 /**
@@ -239,18 +239,18 @@ export function getReadableForeground(
     red: 0,
     green: 0,
     blue: 0,
-  };
+  }
 
   const white: RgbColor = {
     red: 255,
     green: 255,
     blue: 255,
-  };
+  }
 
-  const blackContrast = getContrastRatio(black, background);
-  const whiteContrast = getContrastRatio(white, background);
+  const blackContrast = getContrastRatio(black, background)
+  const whiteContrast = getContrastRatio(white, background)
 
-  return whiteContrast >= blackContrast ? 'white' : 'black';
+  return whiteContrast >= blackContrast ? 'white' : 'black'
 }
 
 /**
@@ -270,8 +270,8 @@ export function blendColors(
   background: RgbColor,
   alpha: number,
 ): RgbColor {
-  const normalizedAlpha = clampAlpha(alpha);
-  const inverseAlpha = 1 - normalizedAlpha;
+  const normalizedAlpha = clampAlpha(alpha)
+  const inverseAlpha = 1 - normalizedAlpha
 
   return {
     red: clampColorChannel(
@@ -283,34 +283,34 @@ export function blendColors(
     blue: clampColorChannel(
       foreground.blue * normalizedAlpha + background.blue * inverseAlpha,
     ),
-  };
+  }
 }
 
 function expandShortHex(hex: string): string {
   if (hex.length === 3 || hex.length === 4) {
-    return [...hex].map((character) => `${character}${character}`).join('');
+    return [...hex].map((character) => `${character}${character}`).join('')
   }
 
-  return hex;
+  return hex
 }
 
 function toHexChannel(value: number): string {
-  return clampColorChannel(value).toString(16).padStart(2, '0');
+  return clampColorChannel(value).toString(16).padStart(2, '0')
 }
 
 function linearizeColorChannel(value: number): number {
-  const normalizedValue = clampColorChannel(value) / 255;
+  const normalizedValue = clampColorChannel(value) / 255
 
   if (normalizedValue <= 0.04045) {
-    return normalizedValue / 12.92;
+    return normalizedValue / 12.92
   }
 
-  return ((normalizedValue + 0.055) / 1.055) ** 2.4;
+  return ((normalizedValue + 0.055) / 1.055) ** 2.4
 }
 
 function formatAlpha(value: number): string {
-  const percentage = clampAlpha(value) * 100;
-  const roundedPercentage = Math.round(percentage * 100) / 100;
+  const percentage = clampAlpha(value) * 100
+  const roundedPercentage = Math.round(percentage * 100) / 100
 
-  return `${roundedPercentage}%`;
+  return `${roundedPercentage}%`
 }

@@ -14,7 +14,7 @@ Every feature, service, module, workflow, integration, and AI capability should 
 
 ---
 
-# Our Philosophy
+## Our Philosophy
 
 Aerealith AI exists to eliminate unnecessary digital complexity without reducing user control.
 
@@ -28,7 +28,7 @@ People should not have to adapt to technology.
 
 ---
 
-# The Aerealith Experience
+## The Aerealith Experience
 
 Using Aerealith should feel effortless.
 
@@ -40,7 +40,7 @@ When Aerealith is working well, users should spend less time managing technology
 
 ---
 
-# The Twelve Product Philosophies
+## The Twelve Product Philosophies
 
 ---
 
@@ -341,7 +341,7 @@ This philosophy should influence every design decision throughout the platform.
 
 ---
 
-# Artificial Intelligence Philosophy
+## Artificial Intelligence Philosophy
 
 Artificial intelligence is a capability—not the product itself.
 
@@ -366,7 +366,7 @@ Core platform capabilities should never depend entirely on a single AI provider.
 
 ---
 
-# Connectivity Philosophy
+## Connectivity Philosophy
 
 Internet connectivity should never be assumed.
 
@@ -383,7 +383,7 @@ The platform should degrade gracefully rather than fail completely.
 
 ---
 
-# Learning Philosophy
+## Learning Philosophy
 
 Aerealith should learn with users—not from them.
 
@@ -401,7 +401,7 @@ Private information should never be used for model training without explicit use
 
 ---
 
-# Platform Philosophy
+## Platform Philosophy
 
 Aerealith is not simply an application.
 
@@ -423,7 +423,7 @@ Like VS Code and Home Assistant, the platform should become more valuable as its
 
 ---
 
-# Ethical Philosophy
+## Ethical Philosophy
 
 Aerealith should never compromise user trust.
 
@@ -442,7 +442,7 @@ Trust is more valuable than short-term growth.
 
 ---
 
-# The Aerealith Test
+## The Aerealith Test
 
 Every feature should be evaluated using the following questions.
 
@@ -462,7 +462,7 @@ If the answer to any of these questions is **No**, the feature should be redesig
 
 ---
 
-# Our North Star
+## Our North Star
 
 Reduce digital complexity without reducing user control.
 

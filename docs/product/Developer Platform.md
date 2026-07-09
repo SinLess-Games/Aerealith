@@ -95,7 +95,7 @@ If users can manage modules, workflows, integrations, Discord servers, tickets, 
 
 ---
 
-# Developer Personas
+## Developer Personas
 
 | Persona                         | Needs                                                                               |
 | ------------------------------- | ----------------------------------------------------------------------------------- |
@@ -109,7 +109,7 @@ If users can manage modules, workflows, integrations, Discord servers, tickets, 
 
 ---
 
-# Developer Platform Product Model
+## Developer Platform Product Model
 
 ```mermaid
 flowchart TD
@@ -149,7 +149,7 @@ flowchart TD
 
 ---
 
-# Developer Platform Surfaces
+## Developer Platform Surfaces
 
 | Surface                      | Status            | Purpose                                                                 |
 | ---------------------------- | ----------------- | ----------------------------------------------------------------------- |
@@ -167,7 +167,7 @@ flowchart TD
 
 ---
 
-# Developer Platform Areas
+## Developer Platform Areas
 
 The Developer Platform should include these major areas.
 
@@ -189,7 +189,7 @@ The Developer Platform should include these major areas.
 
 ---
 
-# Documentation Strategy
+## Documentation Strategy
 
 Documentation is part of the product.
 
@@ -265,7 +265,7 @@ docs/developer/
 
 ---
 
-# API Philosophy
+## API Philosophy
 
 Aerealith APIs should be designed for clarity, stability, and permissioned access.
 
@@ -310,7 +310,7 @@ Developer documentation should make clear which API style is recommended for whi
 
 ---
 
-# API Capability Areas
+## API Capability Areas
 
 Aerealith should eventually expose APIs for major product areas.
 
@@ -331,7 +331,7 @@ Aerealith should eventually expose APIs for major product areas.
 
 ---
 
-# API Versioning
+## API Versioning
 
 Aerealith APIs should be versioned from the beginning.
 
@@ -374,7 +374,7 @@ API versioning should follow these rules:
 
 ---
 
-# Authentication and Authorization
+## Authentication and Authorization
 
 Developer access must be secure and scoped.
 
@@ -415,7 +415,7 @@ A developer credential should never have more access than required.
 
 ---
 
-# API Keys and Tokens
+## API Keys and Tokens
 
 API keys should be introduced after core API foundations are stable.
 
@@ -452,7 +452,7 @@ API keys should support:
 
 ---
 
-# Permissions
+## Permissions
 
 Developer features must use the same trust model as the rest of Aerealith.
 
@@ -518,7 +518,7 @@ Every protected API endpoint should document:
 
 ---
 
-# Webhooks
+## Webhooks
 
 Webhooks allow Aerealith to send and receive events.
 
@@ -593,7 +593,7 @@ Webhooks should support:
 
 ---
 
-# Event System
+## Event System
 
 The Developer Platform should expose standardized platform events.
 
@@ -656,7 +656,7 @@ Events should not leak sensitive data across scopes.
 
 ---
 
-# SDK Strategy
+## SDK Strategy
 
 SDKs should come after APIs stabilize.
 
@@ -694,7 +694,7 @@ Aerealith should not rush SDKs before the API stabilizes.
 
 ---
 
-# Developer Portal
+## Developer Portal
 
 The Developer Portal should be the central developer-facing dashboard.
 
@@ -742,7 +742,7 @@ Support
 
 ---
 
-# API Explorer
+## API Explorer
 
 The API Explorer should allow developers to test API calls safely.
 
@@ -764,7 +764,7 @@ High-risk endpoints should not execute casually from the API Explorer without co
 
 ---
 
-# Event Explorer
+## Event Explorer
 
 The Event Explorer should help developers debug event-driven behavior.
 
@@ -785,7 +785,7 @@ This is especially useful for Discord modules, workflows, webhooks, integrations
 
 ---
 
-# Integration Development
+## Integration Development
 
 Developers should eventually be able to build integrations.
 
@@ -825,7 +825,7 @@ stateDiagram-v2
 
 ---
 
-# Module Development
+## Module Development
 
 Module development should come after the first-party module system is stable.
 
@@ -871,7 +871,7 @@ A module should define:
 
 ---
 
-# Workflow Development
+## Workflow Development
 
 Developers and power users should eventually be able to create workflows programmatically.
 
@@ -921,7 +921,7 @@ audit:
 
 ---
 
-# Marketplace Development
+## Marketplace Development
 
 Marketplace support is future scope.
 
@@ -963,7 +963,7 @@ Marketplace items should require:
 
 ---
 
-# Sandboxed Plugin Runtime
+## Sandboxed Plugin Runtime
 
 A sandboxed plugin runtime is future scope.
 
@@ -986,7 +986,7 @@ If code-based plugins are introduced later, they must support:
 
 ---
 
-# Developer Diagnostics
+## Developer Diagnostics
 
 Developers need to understand what failed.
 
@@ -1023,7 +1023,7 @@ Diagnostics should include:
 
 ---
 
-# Error Handling
+## Error Handling
 
 Developer-facing errors should be consistent.
 
@@ -1058,7 +1058,7 @@ Errors should include:
 
 ---
 
-# Rate Limits
+## Rate Limits
 
 APIs and webhooks should be rate-limited.
 
@@ -1091,7 +1091,7 @@ Rate limits should be:
 
 ---
 
-# Security Requirements
+## Security Requirements
 
 Developer features must be secure by default.
 
@@ -1112,7 +1112,7 @@ Security requirements:
 
 ---
 
-# Data Ownership
+## Data Ownership
 
 Developers should not gain ownership of user data simply because they build with Aerealith.
 
@@ -1131,7 +1131,7 @@ Developer tools must respect:
 
 ---
 
-# Observability for Developers
+## Observability for Developers
 
 The Developer Platform should expose enough observability to help developers debug safely.
 
@@ -1151,7 +1151,7 @@ Internal logs should not expose secrets or unrelated user data.
 
 ---
 
-# Local Development
+## Local Development
 
 Aerealith should support local development for contributors and future extension developers.
 
@@ -1174,7 +1174,7 @@ Local developer setup should stay as simple as practical.
 
 ---
 
-# Self-Hosting Developer Path
+## Self-Hosting Developer Path
 
 Self-hosting is future scope, but the Developer Platform should prepare for it.
 
@@ -1198,7 +1198,7 @@ Self-hosting should be treated as a product.
 
 ---
 
-# Developer Platform Boundaries
+## Developer Platform Boundaries
 
 ## Not a Free-For-All Plugin Runtime
 
@@ -1228,7 +1228,7 @@ The marketplace should come after the developer foundation is stable.
 
 ---
 
-# MVP Developer Platform Scope
+## MVP Developer Platform Scope
 
 MVP should include:
 
@@ -1253,7 +1253,7 @@ MVP should focus on clarity, consistency, and internal/external readiness.
 
 ---
 
-# Post-MVP Developer Platform Scope
+## Post-MVP Developer Platform Scope
 
 Post-MVP should include:
 
@@ -1278,7 +1278,7 @@ Developer support flow
 
 ---
 
-# Future Developer Platform Scope
+## Future Developer Platform Scope
 
 Future developer capabilities may include:
 
@@ -1305,7 +1305,7 @@ Revenue share / marketplace billing
 
 ---
 
-# Release Path
+## Release Path
 
 | Release                               | Developer Platform Focus                                             |
 | ------------------------------------- | -------------------------------------------------------------------- |
@@ -1324,7 +1324,7 @@ Revenue share / marketplace billing
 
 ---
 
-# Developer Platform Review Questions
+## Developer Platform Review Questions
 
 Before adding a developer feature, ask:
 
@@ -1349,7 +1349,7 @@ If a developer feature bypasses trust, permissions, or documentation, it is not 
 
 ---
 
-# Success Criteria
+## Success Criteria
 
 The Developer Platform succeeds when developers say:
 
@@ -1387,7 +1387,7 @@ Aerealith gives me everything except my idea.
 
 ---
 
-# Final Standard
+## Final Standard
 
 The Aerealith Developer Platform should make the platform programmable without making it unsafe.
 

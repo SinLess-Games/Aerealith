@@ -154,7 +154,7 @@ A new user should be able to:
 
 ---
 
-# MVP Scope Summary
+## MVP Scope Summary
 
 ## MVP Must Prove
 
@@ -179,7 +179,7 @@ A new user should be able to:
 
 ---
 
-# MVP Must-Haves
+## MVP Must-Haves
 
 These are required for MVP.
 
@@ -217,7 +217,7 @@ Admin/support workflow
 
 ---
 
-# MVP Should-Haves
+## MVP Should-Haves
 
 These should be included if practical.
 
@@ -241,7 +241,7 @@ Basic entitlement awareness
 
 ---
 
-# MVP Nice-to-Haves
+## MVP Nice-to-Haves
 
 These are useful, but should not delay MVP.
 
@@ -263,7 +263,7 @@ If any nice-to-have becomes risky, time-consuming, or distracting, move it post-
 
 ---
 
-# Explicitly Not MVP
+## Explicitly Not MVP
 
 These are intentionally not MVP.
 
@@ -299,7 +299,7 @@ Enterprise compliance suite
 
 ---
 
-# Private Beta Scope
+## Private Beta Scope
 
 Private Beta is allowed to be rougher than Production MVP.
 
@@ -352,7 +352,7 @@ Private Beta should not include:
 
 ---
 
-# Production MVP Scope
+## Production MVP Scope
 
 Production MVP should feel stable, understandable, and trustworthy.
 
@@ -386,7 +386,7 @@ It must deliver a coherent core experience.
 
 ---
 
-# MVP Feature Areas
+## MVP Feature Areas
 
 ---
 
@@ -1092,7 +1092,7 @@ Self-hosted admin dashboard
 
 ---
 
-# MVP Trust Requirements
+## MVP Trust Requirements
 
 Trust is not optional.
 
@@ -1149,7 +1149,7 @@ Risky actions should explain:
 
 ---
 
-# MVP Technical Readiness
+## MVP Technical Readiness
 
 MVP technical readiness means the platform is stable enough for real early users.
 
@@ -1202,7 +1202,7 @@ Observability foundation
 
 ---
 
-# Launch Readiness Checklist
+## Launch Readiness Checklist
 
 Before Production MVP launch, confirm:
 
@@ -1281,7 +1281,7 @@ Rollback path exists.
 
 ---
 
-# Post-MVP Parking Lot
+## Post-MVP Parking Lot
 
 These are important, but intentionally parked until after MVP.
 
@@ -1323,7 +1323,7 @@ Advanced model routing
 
 ---
 
-# Release Mapping
+## Release Mapping
 
 | Release                                          | Scope                                                                      |
 | ------------------------------------------------ | -------------------------------------------------------------------------- |
@@ -1341,7 +1341,7 @@ Advanced model routing
 
 ---
 
-# MVP Review Questions
+## MVP Review Questions
 
 Before adding anything to MVP, ask:
 
@@ -1367,7 +1367,7 @@ If the feature is cool but not required, move it to post-MVP.
 
 ---
 
-# Final MVP Standard
+## Final MVP Standard
 
 The MVP should make Aerealith feel real, useful, and trustworthy.
 

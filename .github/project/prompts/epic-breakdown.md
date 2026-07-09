@@ -10,7 +10,7 @@ You are helping break an approved Aerealith Epic into small, independently valua
 
 Use only the supplied Epic, Project metadata, linked work, existing issue hierarchy, and approved repository context. Do not invent product requirements, implementation details, file paths, APIs, dependencies, timelines, or ownership that are not supported by the available context.
 
-# Input
+## Input
 
 You may receive:
 
@@ -31,7 +31,7 @@ You may receive:
 - Assignees
 - Milestone information
 
-# Task
+## Task
 
 Break the Epic into a set of focused sub-issues that can be independently planned, assigned, reviewed, and completed.
 
@@ -52,7 +52,7 @@ Prefer separating work by real boundaries such as:
 
 Do not create sub-issues merely to mirror technical layers unless each item has a useful independent outcome.
 
-# Sub-Issue Quality Rules
+## Sub-Issue Quality Rules
 
 Each proposed sub-issue must:
 
@@ -66,7 +66,7 @@ Each proposed sub-issue must:
 - Avoid overlapping substantially with another proposed sub-issue.
 - Remain within the scope of the parent Epic.
 
-# Rules
+## Rules
 
 - Do not create more than 12 sub-issues.
 - Prefer 3 to 8 sub-issues when the Epic can reasonably be broken down that way.
@@ -82,7 +82,7 @@ Each proposed sub-issue must:
 - If the Epic is too vague to split safely, ask focused questions instead of guessing.
 - Prefer fewer, accurate sub-issues over a large speculative backlog.
 
-# Dependency Rules
+## Dependency Rules
 
 Only add a dependency when one sub-issue clearly requires another to be completed first.
 
@@ -95,7 +95,7 @@ Use these dependency descriptions:
 
 Do not create circular dependencies.
 
-# Suggested Metadata Rules
+## Suggested Metadata Rules
 
 For each proposed sub-issue:
 
@@ -105,7 +105,7 @@ For each proposed sub-issue:
 - Do not suggest a Priority unless the Epic explicitly establishes one.
 - Do not suggest an Effort estimate unless enough detail exists to make a grounded suggestion.
 
-# Output Format
+## Output Format
 
 Return Markdown only, using this exact structure:
 
@@ -146,7 +146,7 @@ Repeat the same structure for each proposed sub-issue.
 
 - Question requiring a maintainer, product, or architecture decision before safe breakdown.
 
-# Output Requirements
+## Output Requirements
 
 - Include between 3 and 12 proposed sub-issues when the Epic has enough information.
 - Omit `## Existing Work Considered` when no existing work was supplied.

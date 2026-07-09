@@ -110,7 +110,7 @@ Both users should feel like the system is built for them.
 
 ---
 
-# Dashboard Users
+## Dashboard Users
 
 | Persona                      | Dashboard Need                                                                                     |
 | ---------------------------- | -------------------------------------------------------------------------------------------------- |
@@ -125,7 +125,7 @@ Both users should feel like the system is built for them.
 
 ---
 
-# Dashboard Product Model
+## Dashboard Product Model
 
 ```mermaid
 flowchart TD
@@ -172,7 +172,7 @@ flowchart TD
 
 ---
 
-# Dashboard Information Priority
+## Dashboard Information Priority
 
 The dashboard should prioritize information by importance.
 
@@ -188,7 +188,7 @@ The dashboard should not bury urgent actions under generic analytics.
 
 ---
 
-# Navigation Model
+## Navigation Model
 
 The dashboard should use a stable navigation structure.
 
@@ -249,7 +249,7 @@ If a user does not have permission to access a section, the dashboard should eit
 
 ---
 
-# Dashboard Contexts
+## Dashboard Contexts
 
 The dashboard should support multiple contexts.
 
@@ -271,7 +271,7 @@ A user should know whether they are configuring themselves, a Discord server, an
 
 ---
 
-# Dashboard Home
+## Dashboard Home
 
 The dashboard home should answer:
 
@@ -331,7 +331,7 @@ flowchart TD
 
 ---
 
-# Attention Center
+## Attention Center
 
 The Attention Center should show important items that require user awareness or action.
 
@@ -374,7 +374,7 @@ Severity levels:
 
 ---
 
-# AI Assistant in the Dashboard
+## AI Assistant in the Dashboard
 
 The assistant should be available inside the dashboard.
 
@@ -432,7 +432,7 @@ To fix this:
 
 ---
 
-# Discord Dashboard
+## Discord Dashboard
 
 The Discord Dashboard is a major dashboard area.
 
@@ -545,7 +545,7 @@ For example, `Enable All` should not silently enable moderation, purge, automod 
 
 ---
 
-# Commands Dashboard
+## Commands Dashboard
 
 The Commands dashboard should let admins control Discord slash commands.
 
@@ -604,7 +604,7 @@ AI Assistant
 
 ---
 
-# Roles & Permissions Dashboard
+## Roles & Permissions Dashboard
 
 The Roles & Permissions dashboard should help server owners safely map Discord roles to Aerealith permissions.
 
@@ -670,7 +670,7 @@ Example table:
 
 ---
 
-# Moderation Dashboard
+## Moderation Dashboard
 
 The Moderation dashboard should help staff review and manage moderation activity.
 
@@ -714,7 +714,7 @@ Audit event
 
 ---
 
-# Automod Dashboard
+## Automod Dashboard
 
 The Automod dashboard should let admins configure automated moderation safely.
 
@@ -756,7 +756,7 @@ Automatic punishments should require explicit configuration.
 
 ---
 
-# Tickets Dashboard
+## Tickets Dashboard
 
 The Tickets dashboard should manage support and community workflows.
 
@@ -813,7 +813,7 @@ A ticket detail view should show:
 
 ---
 
-# Community Engagement Dashboard
+## Community Engagement Dashboard
 
 The Community Engagement dashboard should help owners make the server more active.
 
@@ -849,7 +849,7 @@ The leveling dashboard should support:
 
 ---
 
-# Music & Voice Dashboard
+## Music & Voice Dashboard
 
 The Music & Voice dashboard should control Discord music and voice features.
 
@@ -871,7 +871,7 @@ Music controls should respect platform rules, copyright requirements, provider r
 
 ---
 
-# Utility Dashboard
+## Utility Dashboard
 
 The Utility dashboard should manage smaller quality-of-life modules.
 
@@ -901,7 +901,7 @@ Professional communities should be able to disable fun/noise modules quickly.
 
 ---
 
-# Creator Notifications Dashboard
+## Creator Notifications Dashboard
 
 The Creator Notifications dashboard should help creators and communities connect external platforms.
 
@@ -931,7 +931,7 @@ The dashboard should support:
 
 ---
 
-# Server Listing Dashboard
+## Server Listing Dashboard
 
 The Server Listing dashboard should let server owners control if and how their server appears in any Aerealith community/server directory.
 
@@ -952,7 +952,7 @@ Server listing should always be opt-in.
 
 ---
 
-# Workflows Dashboard
+## Workflows Dashboard
 
 The Workflows dashboard should show automation clearly.
 
@@ -996,7 +996,7 @@ Pause/disable button
 
 ---
 
-# Integrations Dashboard
+## Integrations Dashboard
 
 The Integrations dashboard should manage connected services.
 
@@ -1030,7 +1030,7 @@ Health: Good
 
 ---
 
-# Notifications Dashboard
+## Notifications Dashboard
 
 The Notifications dashboard should give users control over their attention.
 
@@ -1068,7 +1068,7 @@ Summaries
 
 ---
 
-# Logs & Audit Dashboard
+## Logs & Audit Dashboard
 
 Logs and audit events are critical to trust.
 
@@ -1125,7 +1125,7 @@ role.mapping.changed
 
 ---
 
-# Analytics Dashboard
+## Analytics Dashboard
 
 Analytics should help users understand trends without overwhelming them.
 
@@ -1150,7 +1150,7 @@ Deeper analytics should come post-MVP.
 
 ---
 
-# Developer Dashboard
+## Developer Dashboard
 
 The Developer Dashboard should support users building on Aerealith.
 
@@ -1171,7 +1171,7 @@ Developer controls should be hidden from users who do not need them.
 
 ---
 
-# Settings Dashboard
+## Settings Dashboard
 
 Settings should be divided clearly.
 
@@ -1216,7 +1216,7 @@ Danger Zone actions must require strong confirmation and audit logs where applic
 
 ---
 
-# Billing & Entitlements Dashboard
+## Billing & Entitlements Dashboard
 
 Billing should not shape MVP dashboard design too early, but the dashboard should eventually support entitlements.
 
@@ -1235,7 +1235,7 @@ Billing must be transparent and avoid dark patterns.
 
 ---
 
-# Organization Dashboard
+## Organization Dashboard
 
 Organization dashboards should come after the individual and Discord experience is stable.
 
@@ -1255,7 +1255,7 @@ Organization dashboard areas may include:
 
 ---
 
-# Self-Hosted Dashboard
+## Self-Hosted Dashboard
 
 Self-hosting is future scope, but dashboard design should not block it.
 
@@ -1277,7 +1277,7 @@ Self-hosting should be treated as a product, not just deployment scripts.
 
 ---
 
-# Search and Command Palette
+## Search and Command Palette
 
 The dashboard should support search early and a command palette later.
 
@@ -1308,7 +1308,7 @@ View failed workflows
 
 ---
 
-# Dashboard Widgets
+## Dashboard Widgets
 
 Widgets are reusable dashboard blocks.
 
@@ -1344,7 +1344,7 @@ Memory Review
 
 ---
 
-# Dashboard States
+## Dashboard States
 
 Every dashboard page should handle common states gracefully.
 
@@ -1363,7 +1363,7 @@ Every dashboard page should handle common states gracefully.
 
 ---
 
-# Empty State Examples
+## Empty State Examples
 
 ```text
 No workflows yet.
@@ -1385,7 +1385,7 @@ Important actions will appear here after modules, workflows, or staff actions ru
 
 ---
 
-# Trust Requirements
+## Trust Requirements
 
 The dashboard must make trust visible.
 
@@ -1406,7 +1406,7 @@ Users should be able to see:
 
 ---
 
-# Permission-Aware UI
+## Permission-Aware UI
 
 The dashboard should respect permissions.
 
@@ -1427,7 +1427,7 @@ Requires plan/entitlement later
 
 ---
 
-# Responsive Dashboard
+## Responsive Dashboard
 
 The dashboard should be usable on different screen sizes.
 
@@ -1451,7 +1451,7 @@ Later mobile app support can improve approvals, notifications, and quick actions
 
 ---
 
-# Accessibility
+## Accessibility
 
 The dashboard should be designed with accessibility in mind.
 
@@ -1473,7 +1473,7 @@ It is part of trust and usability.
 
 ---
 
-# MVP Dashboard Scope
+## MVP Dashboard Scope
 
 MVP dashboard should include:
 
@@ -1507,7 +1507,7 @@ Basic settings pages
 
 ---
 
-# Post-MVP Dashboard Scope
+## Post-MVP Dashboard Scope
 
 Post-MVP should include:
 
@@ -1539,7 +1539,7 @@ Advanced search
 
 ---
 
-# Future Dashboard Scope
+## Future Dashboard Scope
 
 Future dashboard capabilities may include:
 
@@ -1565,7 +1565,7 @@ Provider replacement settings
 
 ---
 
-# Release Path
+## Release Path
 
 | Release                           | Dashboard Focus                                                |
 | --------------------------------- | -------------------------------------------------------------- |
@@ -1587,7 +1587,7 @@ Provider replacement settings
 
 ---
 
-# Dashboard Review Questions
+## Dashboard Review Questions
 
 Before adding a dashboard page, widget, or control, ask:
 
@@ -1612,7 +1612,7 @@ If a dashboard item does not help users understand, decide, or act, it should be
 
 ---
 
-# Success Criteria
+## Success Criteria
 
 The dashboard succeeds when users say:
 
@@ -1650,7 +1650,7 @@ The dashboard makes Aerealith feel powerful but not chaotic.
 
 ---
 
-# Final Standard
+## Final Standard
 
 The Aerealith Dashboard should be the place where complexity becomes manageable.
 

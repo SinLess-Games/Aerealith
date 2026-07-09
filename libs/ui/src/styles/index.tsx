@@ -1,15 +1,15 @@
 // libs/ui/src/styles/index.ts
 
-import colors from './colors.css?url';
-import fonts from './fonts.css?url';
-import globals from './globals.css?url';
-import themes from './themes.css?url';
-import typography from './typography.css?url';
-import utilities from './utilities.css?url';
-import accessibility from './accessibility.css?url';
-import highContrast from './high-contrast.css?url';
-import readingComfort from './reading-comfort.css?url';
-import reducedMotion from './reduced-motion.css?url';
+import colors from './colors.css?url'
+import fonts from './fonts.css?url'
+import globals from './globals.css?url'
+import themes from './themes.css?url'
+import typography from './typography.css?url'
+import utilities from './utilities.css?url'
+import accessibility from './accessibility.css?url'
+import highContrast from './high-contrast.css?url'
+import readingComfort from './reading-comfort.css?url'
+import reducedMotion from './reduced-motion.css?url'
 
 /**
  * Aerealith UI stylesheet asset URLs.
@@ -28,7 +28,7 @@ export const AerealithStyles = {
   themes,
   typography,
   utilities,
-} as const;
+} as const
 
 /**
  * Stylesheet import order for consumers that need to load each stylesheet
@@ -45,6 +45,6 @@ export const AerealithStyleOrder = [
   AerealithStyles.highContrast,
   AerealithStyles.readingComfort,
   AerealithStyles.reducedMotion,
-] as const;
+] as const
 
-export type AerealithStyleName = keyof typeof AerealithStyles;
+export type AerealithStyleName = keyof typeof AerealithStyles

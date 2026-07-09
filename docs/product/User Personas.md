@@ -105,7 +105,7 @@ flowchart TD
 
 ---
 
-# Persona Groups
+## Persona Groups
 
 ## Launch Personas
 
@@ -146,7 +146,7 @@ These personas should influence long-term roadmap planning.
 
 ---
 
-# Persona Matrix
+## Persona Matrix
 
 | Persona                         | Technical Skill | AI Comfort     | Automation Trust | Primary Need                                | Product Surface                  |
 | ------------------------------- | --------------- | -------------- | ---------------- | ------------------------------------------- | -------------------------------- |
@@ -165,7 +165,7 @@ These personas should influence long-term roadmap planning.
 
 ---
 
-# Detailed Persona Profiles
+## Detailed Persona Profiles
 
 ---
 
@@ -555,7 +555,7 @@ Aerealith should never make members feel like they are being managed by a facele
 
 ---
 
-# Secondary Personas
+## Secondary Personas
 
 ---
 
@@ -698,7 +698,7 @@ Organization features should focus on permissions, auditability, shared memory, 
 
 ---
 
-# Future Personas
+## Future Personas
 
 ---
 
@@ -758,7 +758,7 @@ Enterprise controls should not define the MVP, but the architecture should avoid
 
 ---
 
-# Shared User Needs
+## Shared User Needs
 
 Despite different personas, most Aerealith users need the same foundation.
 
@@ -808,7 +808,7 @@ Common needs include:
 
 ---
 
-# Anti-Personas
+## Anti-Personas
 
 Aerealith is not primarily designed for every possible user.
 
@@ -852,7 +852,7 @@ Aerealith should remain transparent and auditable.
 
 ---
 
-# Product Design Implications
+## Product Design Implications
 
 ## Beginner-Friendly With Progressive Power
 
@@ -955,7 +955,7 @@ Examples:
 
 ---
 
-# Success Criteria
+## Success Criteria
 
 Aerealith is serving its personas well when:
 
@@ -974,7 +974,7 @@ Aerealith is serving its personas well when:
 
 ---
 
-# Persona Review Questions
+## Persona Review Questions
 
 When designing a feature, ask:
 
@@ -993,7 +993,7 @@ If a feature does not clearly serve a persona, it should be reconsidered.
 
 ---
 
-# Final Standard
+## Final Standard
 
 Aerealith should serve people before it serves features.
 

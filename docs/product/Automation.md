@@ -100,7 +100,7 @@ Before Aerealith automates something, the user should understand:
 
 ---
 
-# Key Terms
+## Key Terms
 
 | Term          | Meaning                                                                                           |
 | ------------- | ------------------------------------------------------------------------------------------------- |
@@ -118,7 +118,7 @@ Before Aerealith automates something, the user should understand:
 
 ---
 
-# Automation Model
+## Automation Model
 
 ```mermaid
 flowchart TD
@@ -184,7 +184,7 @@ then create an audit event.
 
 ---
 
-# Automation vs AI Autonomy
+## Automation vs AI Autonomy
 
 Automation and AI autonomy are not the same thing.
 
@@ -216,7 +216,7 @@ Allow disabling at any time.
 
 ---
 
-# Automation Scopes
+## Automation Scopes
 
 Workflows must be scoped.
 
@@ -239,7 +239,7 @@ A moderation escalation workflow enabled for one Discord server does not apply t
 
 ---
 
-# Workflow Status Model
+## Workflow Status Model
 
 | Status       | Meaning                                              |
 | ------------ | ---------------------------------------------------- |
@@ -254,7 +254,7 @@ A moderation escalation workflow enabled for one Discord server does not apply t
 
 ---
 
-# Workflow Lifecycle
+## Workflow Lifecycle
 
 ```mermaid
 stateDiagram-v2
@@ -274,7 +274,7 @@ stateDiagram-v2
 
 ---
 
-# Automation Risk Levels
+## Automation Risk Levels
 
 Every workflow and action should have a risk level.
 
@@ -315,7 +315,7 @@ flowchart TD
 
 ---
 
-# Approval Gates
+## Approval Gates
 
 Approval gates are required checkpoints before a workflow continues.
 
@@ -378,7 +378,7 @@ Approve?
 
 ---
 
-# Triggers
+## Triggers
 
 Triggers start workflows.
 
@@ -412,7 +412,7 @@ When an integration disconnects
 
 ---
 
-# Conditions
+## Conditions
 
 Conditions decide whether a workflow should continue.
 
@@ -437,7 +437,7 @@ then notify Support Staff.
 
 ---
 
-# Actions
+## Actions
 
 Actions are what workflows do.
 
@@ -458,7 +458,7 @@ High-risk actions must require approval.
 
 ---
 
-# Dry Runs
+## Dry Runs
 
 Aerealith should support dry runs.
 
@@ -506,7 +506,7 @@ No risky actions detected.
 
 ---
 
-# Automation Suggestions
+## Automation Suggestions
 
 Aerealith should suggest automation when repeated user behavior shows a clear pattern.
 
@@ -552,7 +552,7 @@ The assistant should not aggressively push automation.
 
 ---
 
-# Discord Automation
+## Discord Automation
 
 Discord is one of the first major automation surfaces for Aerealith.
 
@@ -596,7 +596,7 @@ AI should not automatically punish Discord users in MVP.
 
 ---
 
-# Workflow Templates
+## Workflow Templates
 
 Templates help users start quickly.
 
@@ -640,7 +640,7 @@ A template should include:
 
 ---
 
-# Workflow Builder
+## Workflow Builder
 
 The workflow builder should support both beginners and power users.
 
@@ -683,7 +683,7 @@ Power users should get advanced controls.
 
 ---
 
-# AI-Assisted Automation
+## AI-Assisted Automation
 
 The AI assistant can help users create and understand workflows.
 
@@ -725,7 +725,7 @@ sequenceDiagram
 
 ---
 
-# Workflow Variables
+## Workflow Variables
 
 Workflows should eventually support variables.
 
@@ -747,7 +747,7 @@ A workflow should not expose private data into public Discord channels without e
 
 ---
 
-# Workflow Branching
+## Workflow Branching
 
 Advanced workflows should support branching.
 
@@ -768,7 +768,7 @@ Branching is likely post-MVP/future.
 
 ---
 
-# Workflow History
+## Workflow History
 
 Every workflow run should produce a history record.
 
@@ -834,7 +834,7 @@ Workflow history should include:
 
 ---
 
-# Automation Audit Events
+## Automation Audit Events
 
 Automation must be auditable.
 
@@ -865,7 +865,7 @@ workflow.ai_suggestion.created
 
 ---
 
-# Failure Handling
+## Failure Handling
 
 Automation will fail sometimes.
 
@@ -905,7 +905,7 @@ When a workflow fails, Aerealith should:
 
 ---
 
-# User Controls
+## User Controls
 
 Users should be able to control automation clearly.
 
@@ -932,7 +932,7 @@ Controls should include:
 
 ---
 
-# Dashboard Experience
+## Dashboard Experience
 
 Automation should be visible in the dashboard.
 
@@ -977,7 +977,7 @@ History button
 
 ---
 
-# API Access
+## API Access
 
 Automation should eventually be API-accessible.
 
@@ -1006,7 +1006,7 @@ API actions should respect the same permissions, risk levels, approvals, and aud
 
 ---
 
-# Export and Import
+## Export and Import
 
 Workflow export/import should be supported post-MVP.
 
@@ -1031,7 +1031,7 @@ Exports should not include:
 
 ---
 
-# Marketplace Readiness
+## Marketplace Readiness
 
 Automation should prepare for a future marketplace.
 
@@ -1060,7 +1060,7 @@ Marketplace support is future scope.
 
 ---
 
-# Automation Boundaries
+## Automation Boundaries
 
 Aerealith automation should be powerful, but controlled.
 
@@ -1090,7 +1090,7 @@ Automation should avoid being permanently tied to one provider where practical.
 
 ---
 
-# MVP Automation Scope
+## MVP Automation Scope
 
 MVP automation should include:
 
@@ -1115,7 +1115,7 @@ MVP should focus on trust and clarity before advanced workflow complexity.
 
 ---
 
-# Post-MVP Automation Scope
+## Post-MVP Automation Scope
 
 Post-MVP should include:
 
@@ -1141,7 +1141,7 @@ Basic API access
 
 ---
 
-# Future Automation Scope
+## Future Automation Scope
 
 Future automation may include:
 
@@ -1165,7 +1165,7 @@ Private workflow libraries
 
 ---
 
-# Release Path
+## Release Path
 
 | Release                                | Automation Focus                                       |
 | -------------------------------------- | ------------------------------------------------------ |
@@ -1183,7 +1183,7 @@ Private workflow libraries
 
 ---
 
-# Success Criteria
+## Success Criteria
 
 Automation succeeds when users say:
 
@@ -1217,7 +1217,7 @@ I can preview what will happen before enabling something risky.
 
 ---
 
-# Review Questions
+## Review Questions
 
 Before adding an automation feature, ask:
 
@@ -1243,7 +1243,7 @@ If a workflow cannot be explained clearly, it is not ready.
 
 ---
 
-# Final Standard
+## Final Standard
 
 Aerealith automation should feel like a trusted helper, not a hidden machine.
 

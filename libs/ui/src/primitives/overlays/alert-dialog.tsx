@@ -10,4 +10,4 @@ export {
   DialogDescription as AlertDialogDescription,
   DialogClose as AlertDialogCancel,
   DialogClose as AlertDialogAction,
-} from './dialog';
+} from './dialog'

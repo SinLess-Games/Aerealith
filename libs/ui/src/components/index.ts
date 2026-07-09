@@ -1,2 +1,2 @@
-export * from './background';
-export * from './carousel';
+export * from './background'
+export * from './carousel'

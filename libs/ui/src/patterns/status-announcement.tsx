@@ -1,8 +1,8 @@
-import type { ComponentPropsWithoutRef } from 'react';
-import { cn } from '../lib/cn';
+import type { ComponentPropsWithoutRef } from 'react'
+import { cn } from '../lib/cn'
 
 export interface StatusAnnouncementProps extends ComponentPropsWithoutRef<'div'> {
-  priority?: 'polite' | 'assertive';
+  priority?: 'polite' | 'assertive'
 }
 export function StatusAnnouncement({
   className,
@@ -12,11 +12,11 @@ export function StatusAnnouncement({
   return (
     <div
       {...props}
-      aria-atomic="true"
+      aria-atomic='true'
       aria-live={priority}
       className={cn('text-sm', className)}
-      data-slot="status-announcement"
+      data-slot='status-announcement'
       role={priority === 'assertive' ? 'alert' : 'status'}
     />
-  );
+  )
 }

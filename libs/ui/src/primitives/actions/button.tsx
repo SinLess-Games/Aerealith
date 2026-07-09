@@ -1,10 +1,10 @@
 // libs/ui/src/primitives/actions/button.tsx
 
-import type { ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef } from 'react'
 
-import { cva, type VariantProps } from 'class-variance-authority';
+import { cva, type VariantProps } from 'class-variance-authority'
 
-import { cn } from '../../lib/cn';
+import { cn } from '../../lib/cn'
 
 export const buttonVariants = cva(
   [
@@ -55,10 +55,10 @@ export const buttonVariants = cva(
       fullWidth: false,
     },
   },
-);
+)
 
 export type ButtonProps = Readonly<ComponentPropsWithoutRef<'button'>> &
-  Readonly<VariantProps<typeof buttonVariants>>;
+  Readonly<VariantProps<typeof buttonVariants>>
 
 /**
  * A styled native button for actions throughout the Aerealith interface.
@@ -93,5 +93,5 @@ export function Button({
       )}
       type={type}
     />
-  );
+  )
 }

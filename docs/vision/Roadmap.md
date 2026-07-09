@@ -87,7 +87,7 @@ flowchart TD
 
 ---
 
-# 0.x Foundation Roadmap
+## 0.x Foundation Roadmap
 
 The `0.x` releases establish the platform foundation required before Aerealith can safely support external users.
 
@@ -422,7 +422,7 @@ Operational documentation supports diagnosis and recovery.
 
 ---
 
-# 1.x Product Roadmap
+## 1.x Product Roadmap
 
 The `1.x` releases move Aerealith from private beta into public launch and then into broader platform expansion.
 
@@ -802,7 +802,7 @@ The platform is prepared for a realistic self-hosted preview.
 
 ---
 
-# 2.x Roadmap
+## 2.x Roadmap
 
 The `2.x` roadmap begins the transition from hosted-first platform to serious self-hosted and deployment-flexible platform.
 
@@ -842,7 +842,7 @@ Self-hosted deployment is documented, testable, upgradeable, and honest about li
 
 ---
 
-# Roadmap Dependency Model
+## Roadmap Dependency Model
 
 ```mermaid
 flowchart TD
@@ -877,7 +877,7 @@ flowchart TD
 
 ---
 
-# Roadmap Rules
+## Roadmap Rules
 
 ## Milestones Over Dates
 
@@ -948,7 +948,7 @@ Billing must remain transparent, understandable, and free from dark patterns.
 
 ---
 
-# Long-Term Direction
+## Long-Term Direction
 
 Aerealith should grow into a trusted, extensible operating system for digital life.
 
@@ -969,6 +969,6 @@ It is the path toward a more cohesive digital world.
 
 ---
 
-# North Star
+## North Star
 
 Reduce digital complexity without reducing user control.

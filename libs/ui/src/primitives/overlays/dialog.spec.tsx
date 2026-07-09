@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
-import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, it } from 'vitest'
 import {
   Dialog,
   DialogClose,
   DialogContent,
   DialogTitle,
   DialogTrigger,
-} from './dialog';
+} from './dialog'
 describe('Dialog', () => {
   it('opens and closes', () => {
     render(
@@ -18,10 +18,10 @@ describe('Dialog', () => {
           <DialogClose>Close</DialogClose>
         </DialogContent>
       </Dialog>,
-    );
-    fireEvent.click(screen.getByText('Open'));
-    expect(screen.getByRole('dialog')).toBeTruthy();
-    fireEvent.click(screen.getByText('Close'));
-    expect(screen.queryByRole('dialog')).toBeNull();
-  });
-});
+    )
+    fireEvent.click(screen.getByText('Open'))
+    expect(screen.getByRole('dialog')).toBeTruthy()
+    fireEvent.click(screen.getByText('Close'))
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+})

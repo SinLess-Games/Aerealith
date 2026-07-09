@@ -1,8 +1,8 @@
 // libs/ui/src/primitives/accessibility/skip-link.tsx
 
-import type { ComponentPropsWithoutRef, ReactNode } from 'react';
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 
-import { cn } from '../../lib/cn';
+import { cn } from '../../lib/cn'
 
 export type SkipLinkProps = Readonly<
   Omit<ComponentPropsWithoutRef<'a'>, 'children' | 'href'>
@@ -12,15 +12,15 @@ export type SkipLinkProps = Readonly<
    *
    * @defaultValue 'main-content'
    */
-  readonly targetId?: string;
+  readonly targetId?: string
 
   /**
    * Accessible text shown when the link receives keyboard focus.
    *
    * @defaultValue 'Skip to main content'
    */
-  readonly children?: ReactNode;
-};
+  readonly children?: ReactNode
+}
 
 /**
  * Provides keyboard users a fast path past repeated navigation to the page's
@@ -56,5 +56,5 @@ export function SkipLink({
     >
       {children}
     </a>
-  );
+  )
 }

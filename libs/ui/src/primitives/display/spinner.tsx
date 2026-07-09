@@ -1,7 +1,7 @@
-import type { ComponentPropsWithoutRef } from 'react';
-import { cn } from '../../lib/cn';
+import type { ComponentPropsWithoutRef } from 'react'
+import { cn } from '../../lib/cn'
 export interface SpinnerProps extends ComponentPropsWithoutRef<'span'> {
-  label?: string;
+  label?: string
 }
 export function Spinner({
   className,
@@ -16,8 +16,8 @@ export function Spinner({
         'inline-block size-5 animate-spin rounded-full border-2 border-current border-r-transparent',
         className,
       )}
-      data-slot="spinner"
-      role="status"
+      data-slot='spinner'
+      role='status'
     />
-  );
+  )
 }

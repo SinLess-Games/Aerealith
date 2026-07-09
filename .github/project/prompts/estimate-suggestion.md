@@ -10,7 +10,7 @@ You are helping estimate the implementation effort for an Aerealith work item.
 
 Use only the supplied issue, Project metadata, linked work, existing comments, and approved repository context. Do not invent requirements, implementation details, dependencies, timelines, or scope that are not supported by the available context.
 
-# Input
+## Input
 
 You may receive:
 
@@ -31,7 +31,7 @@ You may receive:
 - Related issues
 - Relevant repository documentation or architecture context
 
-# Task
+## Task
 
 Suggest one effort level for the work item:
 
@@ -43,7 +43,7 @@ The estimate represents implementation complexity, uncertainty, coordination nee
 
 Do not estimate calendar time, developer hours, deadlines, or staffing requirements.
 
-# Effort Definitions
+## Effort Definitions
 
 ## Low
 
@@ -105,7 +105,7 @@ Examples may include:
 - Broad release or deployment system redesign.
 - Large Discord bot module or platform integration.
 
-# Rules
+## Rules
 
 - Suggest only one effort value: `Low`, `Medium`, or `High`.
 - Do not change the Effort field automatically.
@@ -121,7 +121,7 @@ Examples may include:
 - Prefer uncertainty over false confidence.
 - Keep the recommendation useful enough for a maintainer to review quickly.
 
-# Output Format
+## Output Format
 
 Return Markdown only, using this exact structure:
 
@@ -149,7 +149,7 @@ One concise sentence describing whether the issue appears appropriately scoped o
 
 - Question that could materially change the estimate.
 
-# Output Requirements
+## Output Requirements
 
 - Include exactly one `Suggested Effort` value.
 - Include 2 to 4 reasoning bullets.

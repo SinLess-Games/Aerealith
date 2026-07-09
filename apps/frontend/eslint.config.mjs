@@ -1,18 +1,18 @@
 // apps/frontend/eslint.config.mjs
 
-import nx from '@nx/eslint-plugin';
-import jsxA11y from 'eslint-plugin-jsx-a11y';
-import reactHooks from 'eslint-plugin-react-hooks';
-import globals from 'globals';
+import nx from '@nx/eslint-plugin'
+import jsxA11y from 'eslint-plugin-jsx-a11y'
+import reactHooks from 'eslint-plugin-react-hooks'
+import globals from 'globals'
 
-import baseConfig from '../../eslint.config.mjs';
+import baseConfig from '../../eslint.config.mjs'
 
-const sourceFiles = ['**/*.{js,jsx,ts,tsx}'];
-const jsxFiles = ['**/*.{jsx,tsx}'];
-const testFiles = ['**/*.{spec,test}.{ts,tsx}'];
+const sourceFiles = ['**/*.{js,jsx,ts,tsx}']
+const jsxFiles = ['**/*.{jsx,tsx}']
+const testFiles = ['**/*.{spec,test}.{ts,tsx}']
 
 const reactHooksConfig =
-  reactHooks.configs['recommended-latest'] ?? reactHooks.configs.recommended;
+  reactHooks.configs['recommended-latest'] ?? reactHooks.configs.recommended
 
 export default [
   ...baseConfig,
@@ -84,4 +84,4 @@ export default [
       },
     },
   },
-];
+]

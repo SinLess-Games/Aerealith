@@ -126,7 +126,7 @@ flowchart TD
 
 ---
 
-# Core Capability Areas
+## Core Capability Areas
 
 ---
 
@@ -692,7 +692,7 @@ Self-hosting is a product.
 
 ---
 
-# MVP Capability Set
+## MVP Capability Set
 
 The MVP should focus on proving that Aerealith can help individuals and Discord communities manage digital complexity from one secure, intelligent control center.
 
@@ -718,7 +718,7 @@ The MVP should focus on proving that Aerealith can help individuals and Discord 
 
 ---
 
-# Future Capability Set
+## Future Capability Set
 
 Future capability areas should expand Aerealith without weakening the platform foundation.
 
@@ -737,7 +737,7 @@ Future capability areas should expand Aerealith without weakening the platform f
 
 ---
 
-# Capability Dependencies
+## Capability Dependencies
 
 Aerealith capabilities depend on each other.
 
@@ -812,7 +812,7 @@ flowchart TD
 
 ---
 
-# Capability Lifecycle
+## Capability Lifecycle
 
 Capabilities should move through a predictable lifecycle.
 
@@ -849,7 +849,7 @@ stateDiagram-v2
 
 ---
 
-# Capability Boundaries
+## Capability Boundaries
 
 Aerealith should be ambitious without becoming unfocused.
 
@@ -899,7 +899,7 @@ Major dependencies should be replaceable where practical.
 
 ---
 
-# Capability-to-Release Map
+## Capability-to-Release Map
 
 This map is broad and should not replace detailed release specifications.
 
@@ -928,7 +928,7 @@ This map is broad and should not replace detailed release specifications.
 
 ---
 
-# Product Surfaces by Capability
+## Product Surfaces by Capability
 
 | Capability Area            | Website | Web App | Assistant | Discord | Developer Portal |     API | Mobile Later | Desktop Later | Browser Later |
 | -------------------------- | ------: | ------: | --------: | ------: | ---------------: | ------: | -----------: | ------------: | ------------: |
@@ -950,7 +950,7 @@ This map is broad and should not replace detailed release specifications.
 
 ---
 
-# Personas by Capability
+## Personas by Capability
 
 | Capability Area            | Primary Personas                                                    |
 | -------------------------- | ------------------------------------------------------------------- |
@@ -972,7 +972,7 @@ This map is broad and should not replace detailed release specifications.
 
 ---
 
-# Capability Review Questions
+## Capability Review Questions
 
 Before adding, expanding, or prioritizing a capability, ask:
 
@@ -996,7 +996,7 @@ If the capability does not clearly support Aerealith's product direction, it sho
 
 ---
 
-# Final Standard
+## Final Standard
 
 Aerealith capabilities should work together as one cohesive platform.
 

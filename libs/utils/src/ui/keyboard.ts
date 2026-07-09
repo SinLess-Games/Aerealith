@@ -4,13 +4,13 @@
  * A framework-free subset shared by native DOM and React keyboard events.
  */
 export interface KeyboardEventLike {
-  readonly altKey: boolean;
-  readonly ctrlKey: boolean;
-  readonly key: string;
-  readonly metaKey: boolean;
-  readonly shiftKey: boolean;
-  readonly target: EventTarget | null;
-  preventDefault(): void;
+  readonly altKey: boolean
+  readonly ctrlKey: boolean
+  readonly key: string
+  readonly metaKey: boolean
+  readonly shiftKey: boolean
+  readonly target: EventTarget | null
+  preventDefault(): void
 }
 
 /**
@@ -21,7 +21,7 @@ export interface KeyboardEventLike {
  * - Control on other platforms
  */
 export type KeyboardShortcutModifier =
-  'alt' | 'control' | 'meta' | 'primary' | 'shift';
+  'alt' | 'control' | 'meta' | 'primary' | 'shift'
 
 /**
  * Defines a keyboard shortcut without coupling it to React or browser-only APIs.
@@ -33,8 +33,8 @@ export type KeyboardShortcutModifier =
  * };
  */
 export interface KeyboardShortcut {
-  readonly key: string;
-  readonly modifiers?: readonly KeyboardShortcutModifier[];
+  readonly key: string
+  readonly modifiers?: readonly KeyboardShortcutModifier[]
 }
 
 /**
@@ -47,7 +47,7 @@ export interface KeyboardShortcutMatchOptions {
    * Defaults to `false`, which prevents `Ctrl+Shift+K` from matching a
    * `Ctrl+K` shortcut by accident.
    */
-  readonly allowExtraModifiers?: boolean;
+  readonly allowExtraModifiers?: boolean
 
   /**
    * When true, the shortcut will not match while the user is typing in an
@@ -56,17 +56,17 @@ export interface KeyboardShortcutMatchOptions {
    *
    * Defaults to `false`.
    */
-  readonly ignoreEditableTargets?: boolean;
+  readonly ignoreEditableTargets?: boolean
 }
 
 /**
  * Physical keyboard modifier state.
  */
 interface PhysicalModifiers {
-  alt: boolean;
-  control: boolean;
-  meta: boolean;
-  shift: boolean;
+  alt: boolean
+  control: boolean
+  meta: boolean
+  shift: boolean
 }
 
 /**
@@ -77,12 +77,12 @@ interface PhysicalModifiers {
  */
 export function isApplePlatform(): boolean {
   if (typeof navigator === 'undefined') {
-    return false;
+    return false
   }
 
-  const platform = `${navigator.platform} ${navigator.userAgent}`;
+  const platform = `${navigator.platform} ${navigator.userAgent}`
 
-  return /mac|iphone|ipad|ipod/i.test(platform);
+  return /mac|iphone|ipad|ipod/i.test(platform)
 }
 
 /**
@@ -92,7 +92,7 @@ export function isApplePlatform(): boolean {
  * - Control on Windows, Linux, ChromeOS, and most other platforms
  */
 export function hasPrimaryModifier(event: KeyboardEventLike): boolean {
-  return isApplePlatform() ? event.metaKey : event.ctrlKey;
+  return isApplePlatform() ? event.metaKey : event.ctrlKey
 }
 
 /**
@@ -102,38 +102,38 @@ export function hasPrimaryModifier(event: KeyboardEventLike): boolean {
  * such as `Ctrl+K` do not unexpectedly interrupt text entry.
  */
 export function isEditableTarget(target: EventTarget | null): boolean {
-  const element = getTargetElement(target);
+  const element = getTargetElement(target)
 
   if (!element) {
-    return false;
+    return false
   }
 
   const editableElement = element.closest(
     'input, textarea, select, [contenteditable], [role="textbox"]',
-  );
+  )
 
   if (!editableElement) {
-    return false;
+    return false
   }
 
   if (editableElement instanceof HTMLInputElement) {
-    return !editableElement.readOnly && !editableElement.disabled;
+    return !editableElement.readOnly && !editableElement.disabled
   }
 
   if (
     editableElement instanceof HTMLTextAreaElement ||
     editableElement instanceof HTMLSelectElement
   ) {
-    return !editableElement.disabled;
+    return !editableElement.disabled
   }
 
   if (editableElement instanceof HTMLElement) {
     return (
       editableElement.isContentEditable || editableElement.role === 'textbox'
-    );
+    )
   }
 
-  return false;
+  return false
 }
 
 /**
@@ -148,26 +148,26 @@ export function isEditableTarget(target: EventTarget | null): boolean {
  */
 export function normalizeKeyboardKey(key: string): string {
   if (key === ' ') {
-    return 'space';
+    return 'space'
   }
 
-  const normalizedKey = key.trim().toLowerCase();
+  const normalizedKey = key.trim().toLowerCase()
 
   switch (normalizedKey) {
     case 'esc':
-      return 'escape';
+      return 'escape'
     case 'left':
-      return 'arrowleft';
+      return 'arrowleft'
     case 'right':
-      return 'arrowright';
+      return 'arrowright'
     case 'up':
-      return 'arrowup';
+      return 'arrowup'
     case 'down':
-      return 'arrowdown';
+      return 'arrowdown'
     case 'return':
-      return 'enter';
+      return 'enter'
     default:
-      return normalizedKey;
+      return normalizedKey
   }
 }
 
@@ -190,17 +190,17 @@ export function matchesKeyboardShortcut(
   options: KeyboardShortcutMatchOptions = {},
 ): boolean {
   if (options.ignoreEditableTargets && isEditableTarget(event.target)) {
-    return false;
+    return false
   }
 
   if (normalizeKeyboardKey(event.key) !== normalizeKeyboardKey(shortcut.key)) {
-    return false;
+    return false
   }
 
   const requiredModifiers = getRequiredPhysicalModifiers(
     shortcut.modifiers ?? [],
-  );
-  const activeModifiers = getActivePhysicalModifiers(event);
+  )
+  const activeModifiers = getActivePhysicalModifiers(event)
 
   if (!options.allowExtraModifiers) {
     return (
@@ -208,7 +208,7 @@ export function matchesKeyboardShortcut(
       activeModifiers.control === requiredModifiers.control &&
       activeModifiers.meta === requiredModifiers.meta &&
       activeModifiers.shift === requiredModifiers.shift
-    );
+    )
   }
 
   return (
@@ -216,7 +216,7 @@ export function matchesKeyboardShortcut(
     (!requiredModifiers.control || activeModifiers.control) &&
     (!requiredModifiers.meta || activeModifiers.meta) &&
     (!requiredModifiers.shift || activeModifiers.shift)
-  );
+  )
 }
 
 /**
@@ -238,12 +238,12 @@ export function preventDefaultForShortcut(
   options: KeyboardShortcutMatchOptions = {},
 ): boolean {
   if (!matchesKeyboardShortcut(event, shortcut, options)) {
-    return false;
+    return false
   }
 
-  event.preventDefault();
+  event.preventDefault()
 
-  return true;
+  return true
 }
 
 /**
@@ -260,9 +260,9 @@ export function preventDefaultForShortcut(
  * // Other platforms: "Ctrl + Shift + K"
  */
 export function formatKeyboardShortcut(shortcut: KeyboardShortcut): string {
-  const isApple = isApplePlatform();
-  const modifiers = new Set(shortcut.modifiers ?? []);
-  const labels: string[] = [];
+  const isApple = isApplePlatform()
+  const modifiers = new Set(shortcut.modifiers ?? [])
+  const labels: string[] = []
 
   for (const modifier of [
     'primary',
@@ -272,27 +272,27 @@ export function formatKeyboardShortcut(shortcut: KeyboardShortcut): string {
     'shift',
   ] as const) {
     if (!modifiers.has(modifier)) {
-      continue;
+      continue
     }
 
-    const label = getModifierLabel(modifier, isApple);
+    const label = getModifierLabel(modifier, isApple)
 
     if (label && !labels.includes(label)) {
-      labels.push(label);
+      labels.push(label)
     }
   }
 
-  labels.push(formatKeyboardKey(shortcut.key));
+  labels.push(formatKeyboardKey(shortcut.key))
 
-  return labels.join(isApple ? ' ' : ' + ');
+  return labels.join(isApple ? ' ' : ' + ')
 }
 
 function getTargetElement(target: EventTarget | null): Element | undefined {
   if (typeof Element === 'undefined' || !(target instanceof Element)) {
-    return undefined;
+    return undefined
   }
 
-  return target;
+  return target
 }
 
 function getActivePhysicalModifiers(
@@ -303,7 +303,7 @@ function getActivePhysicalModifiers(
     control: event.ctrlKey,
     meta: event.metaKey,
     shift: event.shiftKey,
-  };
+  }
 }
 
 function getRequiredPhysicalModifiers(
@@ -314,39 +314,39 @@ function getRequiredPhysicalModifiers(
     control: false,
     meta: false,
     shift: false,
-  };
+  }
 
-  const isApple = isApplePlatform();
+  const isApple = isApplePlatform()
 
   for (const modifier of modifiers) {
     switch (modifier) {
       case 'alt':
-        requiredModifiers.alt = true;
-        break;
+        requiredModifiers.alt = true
+        break
 
       case 'control':
-        requiredModifiers.control = true;
-        break;
+        requiredModifiers.control = true
+        break
 
       case 'meta':
-        requiredModifiers.meta = true;
-        break;
+        requiredModifiers.meta = true
+        break
 
       case 'primary':
         if (isApple) {
-          requiredModifiers.meta = true;
+          requiredModifiers.meta = true
         } else {
-          requiredModifiers.control = true;
+          requiredModifiers.control = true
         }
-        break;
+        break
 
       case 'shift':
-        requiredModifiers.shift = true;
-        break;
+        requiredModifiers.shift = true
+        break
     }
   }
 
-  return requiredModifiers;
+  return requiredModifiers
 }
 
 function getModifierLabel(
@@ -356,58 +356,58 @@ function getModifierLabel(
   if (isApple) {
     switch (modifier) {
       case 'alt':
-        return '⌥';
+        return '⌥'
       case 'control':
-        return '⌃';
+        return '⌃'
       case 'meta':
       case 'primary':
-        return '⌘';
+        return '⌘'
       case 'shift':
-        return '⇧';
+        return '⇧'
     }
   }
 
   switch (modifier) {
     case 'alt':
-      return 'Alt';
+      return 'Alt'
     case 'control':
-      return 'Ctrl';
+      return 'Ctrl'
     case 'meta':
-      return 'Meta';
+      return 'Meta'
     case 'primary':
-      return 'Ctrl';
+      return 'Ctrl'
     case 'shift':
-      return 'Shift';
+      return 'Shift'
   }
 }
 
 function formatKeyboardKey(key: string): string {
-  const normalizedKey = normalizeKeyboardKey(key);
+  const normalizedKey = normalizeKeyboardKey(key)
 
   switch (normalizedKey) {
     case 'arrowdown':
-      return '↓';
+      return '↓'
     case 'arrowleft':
-      return '←';
+      return '←'
     case 'arrowright':
-      return '→';
+      return '→'
     case 'arrowup':
-      return '↑';
+      return '↑'
     case 'backspace':
-      return 'Backspace';
+      return 'Backspace'
     case 'delete':
-      return 'Delete';
+      return 'Delete'
     case 'enter':
-      return 'Enter';
+      return 'Enter'
     case 'escape':
-      return 'Esc';
+      return 'Esc'
     case 'space':
-      return 'Space';
+      return 'Space'
     case 'tab':
-      return 'Tab';
+      return 'Tab'
     default:
       return normalizedKey.length === 1
         ? normalizedKey.toUpperCase()
-        : normalizedKey;
+        : normalizedKey
   }
 }

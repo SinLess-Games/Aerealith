@@ -26,7 +26,8 @@
   "editor.stickyScroll.enabled": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit",
-    "source.organizeImports": "explicit"
+    "source.organizeImports": "explicit",
+    "source.fixAll.markdownlint": "explicit",
   },
 
   "files.trimTrailingWhitespace": true,
@@ -53,7 +54,7 @@
   "js/ts.tsdk.path": "node_modules/typescript/lib",
   "js/ts.tsdk.promptToUseWorkspaceVersion": true,
   "js/ts.preferences.includePackageJsonAutoImports": "on",
-  "typescript.updateImportsOnFileMove.enabled": "always",
+  "js/ts.updateImportsOnFileMove.enabled": "always",
 
   "npm.packageManager": "pnpm",
 
@@ -142,10 +143,12 @@
 
   "markdown.validate.enabled": true,
   "markdown.updateLinksOnFileMove.enabled": "prompt",
-  "markdownlint.config": {
-    "MD013": false,
-    "MD033": false,
-    "MD041": false
+  "markdownlint.configFile": "../.markdownlint.mjs",
+  "[markdown]": {
+    "editor.wordWrap": "off",
+    "editor.rulers": [80, 120],
+    "editor.minimap.enabled": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
 
   "json.schemaDownload.enable": true,

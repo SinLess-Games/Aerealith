@@ -1,9 +1,9 @@
-import type { ComponentPropsWithoutRef, ReactNode } from 'react';
-import { cn } from '../lib/cn';
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
+import { cn } from '../lib/cn'
 export interface AccessibleChartSummaryProps extends ComponentPropsWithoutRef<'section'> {
-  title: string;
-  summary: ReactNode;
-  data?: readonly (readonly ReactNode[])[];
+  title: string
+  summary: ReactNode
+  data?: readonly (readonly ReactNode[])[]
 }
 export function AccessibleChartSummary({
   title,
@@ -17,13 +17,13 @@ export function AccessibleChartSummary({
       {...props}
       aria-label={`${title} chart summary`}
       className={cn('space-y-2', className)}
-      data-slot="accessible-chart-summary"
+      data-slot='accessible-chart-summary'
     >
-      <h3 className="font-semibold">{title}</h3>
+      <h3 className='font-semibold'>{title}</h3>
       <div>{summary}</div>
       {data && (
         <table>
-          <caption className="sr-only">{title} data</caption>
+          <caption className='sr-only'>{title} data</caption>
           <tbody>
             {data.map((row, rowIndex) => (
               <tr key={rowIndex}>
@@ -36,5 +36,5 @@ export function AccessibleChartSummary({
         </table>
       )}
     </section>
-  );
+  )
 }

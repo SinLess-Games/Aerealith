@@ -1,7 +1,7 @@
-import type { ComponentPropsWithoutRef, ReactNode } from 'react';
-import { cn } from '../lib/cn';
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
+import { cn } from '../lib/cn'
 export interface CaptionedMediaProps extends ComponentPropsWithoutRef<'figure'> {
-  caption: ReactNode;
+  caption: ReactNode
 }
 export function CaptionedMedia({
   caption,
@@ -13,12 +13,12 @@ export function CaptionedMedia({
     <figure
       {...props}
       className={cn('space-y-2', className)}
-      data-slot="captioned-media"
+      data-slot='captioned-media'
     >
       {children}
-      <figcaption className="text-sm text-[var(--ae-muted-foreground)]">
+      <figcaption className='text-sm text-[var(--ae-muted-foreground)]'>
         {caption}
       </figcaption>
     </figure>
-  );
+  )
 }

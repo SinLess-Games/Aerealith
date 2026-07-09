@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
-import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, it } from 'vitest'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from './dropdown-menu';
+} from './dropdown-menu'
 describe('DropdownMenu', () => {
   it('opens and selects an item', () => {
     render(
@@ -16,9 +16,9 @@ describe('DropdownMenu', () => {
           <DropdownMenuItem>Rename</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>,
-    );
-    fireEvent.click(screen.getByText('Actions'));
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Rename' }));
-    expect(screen.queryByRole('menu')).toBeNull();
-  });
-});
+    )
+    fireEvent.click(screen.getByText('Actions'))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Rename' }))
+    expect(screen.queryByRole('menu')).toBeNull()
+  })
+})

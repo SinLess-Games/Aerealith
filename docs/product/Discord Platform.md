@@ -189,7 +189,7 @@ flowchart TD
 
 ---
 
-# Discord Setup
+## Discord Setup
 
 ---
 
@@ -260,7 +260,7 @@ Presets should be editable after setup.
 
 ---
 
-# Built-In Roles
+## Built-In Roles
 
 Aerealith should support built-in common role concepts.
 
@@ -337,7 +337,7 @@ Role creation should include:
 
 ---
 
-# Discord Permission Model
+## Discord Permission Model
 
 Aerealith should use both Discord-native permissions and Aerealith module permissions.
 
@@ -402,7 +402,7 @@ flowchart TD
 
 ---
 
-# Discord Module Categories
+## Discord Module Categories
 
 Aerealith Discord modules should be grouped into clear categories.
 
@@ -424,7 +424,7 @@ Aerealith Discord modules should be grouped into clear categories.
 
 ---
 
-# MVP Discord Modules
+## MVP Discord Modules
 
 The MVP should include the core modules required to make Aerealith useful and trustworthy for early Discord communities.
 
@@ -444,7 +444,7 @@ The MVP should include the core modules required to make Aerealith useful and tr
 
 ---
 
-# Full Discord Module Catalog
+## Full Discord Module Catalog
 
 ---
 
@@ -647,7 +647,7 @@ Dice rolling should support common formats such as:
 
 ---
 
-# Moderation
+## Moderation
 
 Moderation should be fast, safe, auditable, and clear.
 
@@ -728,7 +728,7 @@ sequenceDiagram
 
 ---
 
-# Automod
+## Automod
 
 Automod should protect communities while keeping owners and staff in control.
 
@@ -783,7 +783,7 @@ Automatic AI-based punishment should only be considered later when:
 
 ---
 
-# Tickets
+## Tickets
 
 Tickets should support server help, moderation appeals, applications, support requests, reports, and community workflows.
 
@@ -840,7 +840,7 @@ Transcript settings should explain:
 
 ---
 
-# Community Engagement
+## Community Engagement
 
 Community engagement is a major Discord product area.
 
@@ -889,7 +889,7 @@ Anti-spam and cooldown rules should be required.
 
 ---
 
-# Music Module
+## Music Module
 
 Aerealith should include a music module.
 
@@ -935,7 +935,7 @@ Music should support:
 
 ---
 
-# Dice, Games & Fun
+## Dice, Games & Fun
 
 Aerealith should support lightweight fun and utility tools.
 
@@ -989,7 +989,7 @@ Fun modules should be easy to disable for professional communities.
 
 ---
 
-# AI in Discord
+## AI in Discord
 
 AI should be helpful inside Discord, but controlled carefully.
 
@@ -1031,7 +1031,7 @@ AI in Discord must:
 
 ---
 
-# Dashboard Experience
+## Dashboard Experience
 
 The Discord dashboard should feel like a module grid and control center.
 
@@ -1102,7 +1102,7 @@ Settings
 
 ---
 
-# Commands
+## Commands
 
 This document should include command examples only.
 
@@ -1141,7 +1141,7 @@ docs/product/Discord Commands.md
 
 ---
 
-# Logging & Audit Events
+## Logging & Audit Events
 
 Every meaningful Discord action should create an Aerealith audit event.
 
@@ -1189,7 +1189,7 @@ Audit logs should include:
 
 ---
 
-# Workflows & Automation
+## Workflows & Automation
 
 Discord should connect to Aerealith workflows.
 
@@ -1209,7 +1209,7 @@ Automation should remain permissioned, auditable, and revocable.
 
 ---
 
-# Community Data Ownership
+## Community Data Ownership
 
 Discord communities should own their community data.
 
@@ -1232,7 +1232,7 @@ Export support may be post-MVP or future depending on data type.
 
 ---
 
-# Platform Compliance
+## Platform Compliance
 
 Aerealith Discord must comply with:
 
@@ -1249,7 +1249,7 @@ Aerealith should degrade gracefully when Discord API limits, permission failures
 
 ---
 
-# Discord Capability Boundaries
+## Discord Capability Boundaries
 
 Aerealith Discord should be powerful, but not reckless.
 
@@ -1281,7 +1281,7 @@ The music module must respect platform rules, provider restrictions, copyright r
 
 ---
 
-# MVP Discord Scope
+## MVP Discord Scope
 
 The MVP Discord scope should include:
 
@@ -1322,7 +1322,7 @@ Basic activity summaries
 
 ---
 
-# Post-MVP Discord Scope
+## Post-MVP Discord Scope
 
 Post-MVP should include:
 
@@ -1366,7 +1366,7 @@ AI staff assistant improvements
 
 ---
 
-# Future Discord Scope
+## Future Discord Scope
 
 Future Discord capabilities may include:
 
@@ -1394,7 +1394,7 @@ Campaign dice tools
 
 ---
 
-# Success Criteria
+## Success Criteria
 
 Aerealith Discord succeeds when:
 
@@ -1413,7 +1413,7 @@ Aerealith Discord succeeds when:
 
 ---
 
-# Review Questions
+## Review Questions
 
 Before adding a Discord feature, ask:
 
@@ -1436,7 +1436,7 @@ Before adding a Discord feature, ask:
 
 ---
 
-# Final Standard
+## Final Standard
 
 Aerealith Discord should become the trusted control layer for Discord communities.
 

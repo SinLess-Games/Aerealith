@@ -94,7 +94,7 @@ It should not trap users inside Aerealith.
 
 ---
 
-# Integration Types
+## Integration Types
 
 | Type                             | Meaning                                                                       | Examples                                         |
 | -------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------ |
@@ -110,7 +110,7 @@ It should not trap users inside Aerealith.
 
 ---
 
-# Integration Status Model
+## Integration Status Model
 
 Each integration should have a status.
 
@@ -126,7 +126,7 @@ Each integration should have a status.
 
 ---
 
-# Integration ID Model
+## Integration ID Model
 
 Integration IDs should be stable and readable.
 
@@ -165,7 +165,7 @@ Examples:
 
 ---
 
-# Integration Product Model
+## Integration Product Model
 
 ```mermaid
 flowchart TD
@@ -216,7 +216,7 @@ flowchart TD
 
 ---
 
-# Integration Scopes
+## Integration Scopes
 
 Integrations must be scoped.
 
@@ -240,7 +240,7 @@ A GitHub integration connected for one project should not automatically be avail
 
 ---
 
-# Integration Lifecycle
+## Integration Lifecycle
 
 ```mermaid
 stateDiagram-v2
@@ -273,7 +273,7 @@ stateDiagram-v2
 
 ---
 
-# Connection Flow
+## Connection Flow
 
 Integrations should use clear connection flows.
 
@@ -313,7 +313,7 @@ sequenceDiagram
 
 ---
 
-# Permission and Consent Model
+## Permission and Consent Model
 
 Integrations must use scoped permissions and consent.
 
@@ -365,7 +365,7 @@ Consent records should include:
 
 ---
 
-# Integration Risk Levels
+## Integration Risk Levels
 
 | Risk     | Meaning                                                                         | Examples                                                  | Default Behavior                           |
 | -------- | ------------------------------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------ |
@@ -376,7 +376,7 @@ Consent records should include:
 
 ---
 
-# Integration Manifest
+## Integration Manifest
 
 Each integration should have a manifest.
 
@@ -444,7 +444,7 @@ audit:
 
 ---
 
-# Integration Manifest Fields
+## Integration Manifest Fields
 
 | Field        | Required | Purpose                                                         |
 | ------------ | -------: | --------------------------------------------------------------- |
@@ -466,7 +466,7 @@ audit:
 
 ---
 
-# Integration Events
+## Integration Events
 
 Integrations should emit standardized events.
 
@@ -522,7 +522,7 @@ workflow.webhook.received
 
 ---
 
-# Integration Audit Logs
+## Integration Audit Logs
 
 Every meaningful integration action should create an audit event.
 
@@ -570,7 +570,7 @@ Example:
 
 ---
 
-# Dashboard Experience
+## Dashboard Experience
 
 Integrations should be visible in the dashboard.
 
@@ -634,7 +634,7 @@ Last event: 2 minutes ago
 
 ---
 
-# AI and Integrations
+## AI and Integrations
 
 The AI assistant may use integration context only when allowed.
 
@@ -670,7 +670,7 @@ The assistant must:
 
 ---
 
-# Integrations and Memory
+## Integrations and Memory
 
 Integrations can provide useful context, but not everything should become memory.
 
@@ -696,7 +696,7 @@ Aerealith should store only what is useful, allowed, and explainable.
 
 ---
 
-# Integrations and Workflows
+## Integrations and Workflows
 
 Integrations power workflows.
 
@@ -730,7 +730,7 @@ Before a workflow uses an integration, Aerealith should verify:
 
 ---
 
-# Provider Replacement
+## Provider Replacement
 
 Aerealith should avoid unnecessary vendor lock-in.
 
@@ -780,7 +780,7 @@ Only one deployment provider forever
 
 ---
 
-# Core Integration Catalog
+## Core Integration Catalog
 
 ---
 
@@ -836,7 +836,7 @@ Only one deployment provider forever
 
 ---
 
-# Discord Integration
+## Discord Integration
 
 Discord is the first flagship integration and should be treated as a first-party product surface.
 
@@ -866,7 +866,7 @@ It is a major platform area.
 
 ---
 
-# GitHub Integration
+## GitHub Integration
 
 GitHub should support developer and project workflows.
 
@@ -893,7 +893,7 @@ When a workflow fails, notify the project channel.
 
 ---
 
-# Google Integration
+## Google Integration
 
 Google integration should be scoped carefully because it may access sensitive personal or business data.
 
@@ -920,7 +920,7 @@ Send a digest of important updates.
 
 ---
 
-# Cloudflare Integration
+## Cloudflare Integration
 
 Cloudflare integration supports Aerealith’s infrastructure, deployment, DNS, and edge strategy.
 
@@ -939,7 +939,7 @@ High-risk Cloudflare actions such as DNS changes should require strong approval.
 
 ---
 
-# Grafana Integration
+## Grafana Integration
 
 Grafana integration supports observability and operations.
 
@@ -961,7 +961,7 @@ When a Grafana alert fires, create an incident summary and notify the configured
 
 ---
 
-# Creator Platform Integrations
+## Creator Platform Integrations
 
 Creator integrations support communities, announcements, and content workflows.
 
@@ -986,7 +986,7 @@ Creator integrations should support message templates, role mentions, rate limit
 
 ---
 
-# Email Integrations
+## Email Integrations
 
 Email is both a product capability and a provider dependency.
 
@@ -1004,7 +1004,7 @@ Resend may be used early, but SMTP compatibility should remain a future replacem
 
 ---
 
-# Storage Integrations
+## Storage Integrations
 
 Storage integrations may support:
 
@@ -1024,7 +1024,7 @@ Raw secrets should never be stored in normal storage.
 
 ---
 
-# AI Provider Integrations
+## AI Provider Integrations
 
 AI provider integrations support model routing and assistant behavior.
 
@@ -1045,7 +1045,7 @@ Aerealith should remain useful even when AI is unavailable.
 
 ---
 
-# Custom Integrations
+## Custom Integrations
 
 Custom integrations should support advanced users, developers, and self-hosted operators.
 
@@ -1069,7 +1069,7 @@ Secrets should be stored only in approved secret storage.
 
 ---
 
-# Integration Security Rules
+## Integration Security Rules
 
 Aerealith integrations must follow these rules:
 
@@ -1091,7 +1091,7 @@ Aerealith integrations must follow these rules:
 
 ---
 
-# Integration Failure Handling
+## Integration Failure Handling
 
 Integrations fail.
 
@@ -1143,7 +1143,7 @@ Update the Aerealith AI bot role permissions or move the bot role higher in the 
 
 ---
 
-# Rate Limits
+## Rate Limits
 
 Aerealith must respect provider rate limits.
 
@@ -1163,7 +1163,7 @@ Aerealith should avoid making provider limits the user’s mystery problem.
 
 ---
 
-# Data Ownership
+## Data Ownership
 
 Users and communities own the data they provide, connect, configure, or authorize.
 
@@ -1185,7 +1185,7 @@ Aerealith should support export and deletion where practical, while respecting l
 
 ---
 
-# Integration Boundaries
+## Integration Boundaries
 
 ## Not a Replacement for Every App
 
@@ -1213,7 +1213,7 @@ Integration actions should be visible, permissioned, and auditable.
 
 ---
 
-# MVP Integration Scope
+## MVP Integration Scope
 
 MVP should focus on integrations required to prove the platform.
 
@@ -1237,7 +1237,7 @@ Audit logs for integration actions
 
 ---
 
-# Post-MVP Integration Scope
+## Post-MVP Integration Scope
 
 Post-MVP should include:
 
@@ -1261,7 +1261,7 @@ Basic AI provider configuration
 
 ---
 
-# Future Integration Scope
+## Future Integration Scope
 
 Future integration capabilities may include:
 
@@ -1293,7 +1293,7 @@ Advanced integration analytics
 
 ---
 
-# Release Path
+## Release Path
 
 | Release                                        | Integration Focus                                                             |
 | ---------------------------------------------- | ----------------------------------------------------------------------------- |
@@ -1314,7 +1314,7 @@ Advanced integration analytics
 
 ---
 
-# Integration Review Questions
+## Integration Review Questions
 
 Before adding an integration, ask:
 
@@ -1342,7 +1342,7 @@ If an integration cannot answer these questions clearly, it is not ready.
 
 ---
 
-# Success Criteria
+## Success Criteria
 
 Integrations succeed when users say:
 
@@ -1376,7 +1376,7 @@ Aerealith helps me integrate my digital life without locking me in.
 
 ---
 
-# Final Standard
+## Final Standard
 
 Integrations should make Aerealith feel connected, useful, and trustworthy.
 

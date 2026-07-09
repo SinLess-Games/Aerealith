@@ -207,7 +207,7 @@ flowchart TD
 
 ---
 
-# Assistant Modes
+## Assistant Modes
 
 Aerealith should support assistant modes.
 
@@ -258,7 +258,7 @@ flowchart TD
 
 ---
 
-# Assistant Autonomy
+## Assistant Autonomy
 
 The default assistant behavior should be controlled and trust-first.
 
@@ -331,7 +331,7 @@ Observe → Suggest → Ask → Verify → Execute → Explain → Log → Learn
 
 ---
 
-# Assistant Capabilities
+## Assistant Capabilities
 
 ## Core Capabilities
 
@@ -355,7 +355,7 @@ Observe → Suggest → Ask → Verify → Execute → Explain → Log → Learn
 
 ---
 
-# Memory & Context
+## Memory & Context
 
 Memory allows the assistant to become more useful over time.
 
@@ -438,7 +438,7 @@ The assistant must not:
 
 ---
 
-# Personality & Customization
+## Personality & Customization
 
 Users should be able to customize the assistant experience.
 
@@ -481,7 +481,7 @@ Customization must not allow the assistant to:
 
 ---
 
-# Tool Access
+## Tool Access
 
 The assistant may access platform tools only through scoped permissions.
 
@@ -531,7 +531,7 @@ Before using a tool, the assistant should know:
 
 ---
 
-# Approval-Based Actions
+## Approval-Based Actions
 
 Meaningful assistant actions should require approval.
 
@@ -572,7 +572,7 @@ Do you approve?
 
 ---
 
-# Automation Suggestions
+## Automation Suggestions
 
 The assistant should suggest automation when repeated user behavior indicates a clear pattern.
 
@@ -608,7 +608,7 @@ The assistant must not:
 
 ---
 
-# Discord Assistant Behavior
+## Discord Assistant Behavior
 
 The assistant should be useful inside Discord, especially for staff and server owners.
 
@@ -666,7 +666,7 @@ Summarize → Suggest → Ask Staff → Verify → Execute Approved Action → L
 
 ---
 
-# Developer Assistant Behavior
+## Developer Assistant Behavior
 
 The assistant should help developers and technical users understand and use Aerealith.
 
@@ -686,7 +686,7 @@ Developer assistance should never leak secrets or expose data the user does not 
 
 ---
 
-# Model Routing
+## Model Routing
 
 Aerealith should eventually support routing tasks to different AI models.
 
@@ -763,7 +763,7 @@ Advanced model settings should be hidden from beginners by default and exposed f
 
 ---
 
-# Local and Self-Hosted Models
+## Local and Self-Hosted Models
 
 Local and self-hosted AI support should be a future product direction.
 
@@ -783,7 +783,7 @@ Aerealith should not claim local models can do everything cloud models can do.
 
 ---
 
-# Assistant Audit Logs
+## Assistant Audit Logs
 
 Every meaningful assistant action should be logged.
 
@@ -866,7 +866,7 @@ assistant.tool.used
 
 ---
 
-# User Controls
+## User Controls
 
 Users should be able to control the assistant.
 
@@ -913,7 +913,7 @@ Recommended settings:
 
 ---
 
-# AI Availability and Graceful Degradation
+## AI Availability and Graceful Degradation
 
 Aerealith should remain useful if AI is unavailable.
 
@@ -954,7 +954,7 @@ When AI is unavailable, Aerealith should:
 
 ---
 
-# Safety & Trust Rules
+## Safety & Trust Rules
 
 The assistant must never:
 
@@ -976,7 +976,7 @@ The assistant must never:
 
 ---
 
-# Capability Boundaries
+## Capability Boundaries
 
 ## Not Just a Chatbot
 
@@ -1010,7 +1010,7 @@ Model routing, local models, self-hosted models, and provider configuration shou
 
 ---
 
-# MVP Assistant Scope
+## MVP Assistant Scope
 
 The MVP assistant should include:
 
@@ -1035,7 +1035,7 @@ It should not try to ship full autonomy.
 
 ---
 
-# Post-MVP Assistant Scope
+## Post-MVP Assistant Scope
 
 Post-MVP assistant expansion should include:
 
@@ -1060,7 +1060,7 @@ Privacy mode controls
 
 ---
 
-# Future Assistant Scope
+## Future Assistant Scope
 
 Future assistant capabilities may include:
 
@@ -1089,7 +1089,7 @@ Aerealith may explore persistent, adaptive, explainable AI behavior without pret
 
 ---
 
-# Assistant Release Path
+## Assistant Release Path
 
 | Release                                | Assistant Focus                                                    |
 | -------------------------------------- | ------------------------------------------------------------------ |
@@ -1107,7 +1107,7 @@ Aerealith may explore persistent, adaptive, explainable AI behavior without pret
 
 ---
 
-# Assistant Success Criteria
+## Assistant Success Criteria
 
 The assistant succeeds when users say:
 
@@ -1145,7 +1145,7 @@ I can turn features off when I do not want them.
 
 ---
 
-# Review Questions
+## Review Questions
 
 Before adding an assistant feature, ask:
 
@@ -1170,7 +1170,7 @@ If the answer is unclear, the assistant feature is not ready.
 
 ---
 
-# Final Standard
+## Final Standard
 
 Aerealith’s assistant should make the platform easier to understand, easier to use, and easier to trust.
 

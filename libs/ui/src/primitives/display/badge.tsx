@@ -1,10 +1,10 @@
 // libs/ui/src/primitives/display/badge.tsx
 
-import type { ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef } from 'react'
 
-import { cva, type VariantProps } from 'class-variance-authority';
+import { cva, type VariantProps } from 'class-variance-authority'
 
-import { cn } from '../../lib/cn';
+import { cn } from '../../lib/cn'
 
 export const badgeVariants = cva(
   [
@@ -56,10 +56,10 @@ export const badgeVariants = cva(
       size: 'sm',
     },
   },
-);
+)
 
 export type BadgeProps = Readonly<ComponentPropsWithoutRef<'span'>> &
-  Readonly<VariantProps<typeof badgeVariants>>;
+  Readonly<VariantProps<typeof badgeVariants>>
 
 /**
  * A compact label for categories, counts, states, and non-interactive status
@@ -89,7 +89,7 @@ export function Badge({ className, size, variant, ...props }: BadgeProps) {
         }),
         className,
       )}
-      data-slot="badge"
+      data-slot='badge'
     />
-  );
+  )
 }

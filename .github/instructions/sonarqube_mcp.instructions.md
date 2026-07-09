@@ -31,7 +31,7 @@ These are some guidelines when using the SonarQube MCP server.
 
 - After fixing issues, do not attempt to verify them using `search_sonar_issues_in_projects`, as the server will not yet reflect the updates
 
-# Common Troubleshooting
+## Common Troubleshooting
 
 ## Authentication Issues
 

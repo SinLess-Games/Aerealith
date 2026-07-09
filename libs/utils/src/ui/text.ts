@@ -9,14 +9,14 @@ export interface TextListOptions {
    *
    * @defaultValue 'and'
    */
-  readonly conjunction?: string;
+  readonly conjunction?: string
 
   /**
    * Whether lists with three or more values use an Oxford comma.
    *
    * @defaultValue true
    */
-  readonly useOxfordComma?: boolean;
+  readonly useOxfordComma?: boolean
 }
 
 /**
@@ -32,18 +32,18 @@ export function truncateText(
   ellipsis = '…',
 ): string {
   if (!Number.isInteger(maximumLength) || maximumLength < 1) {
-    throw new RangeError('maximumLength must be a positive integer.');
+    throw new RangeError('maximumLength must be a positive integer.')
   }
 
   if (value.length <= maximumLength) {
-    return value;
+    return value
   }
 
   if (ellipsis.length >= maximumLength) {
-    return ellipsis.slice(0, maximumLength);
+    return ellipsis.slice(0, maximumLength)
   }
 
-  return `${value.slice(0, maximumLength - ellipsis.length).trimEnd()}${ellipsis}`;
+  return `${value.slice(0, maximumLength - ellipsis.length).trimEnd()}${ellipsis}`
 }
 
 /**
@@ -58,20 +58,20 @@ export function truncateText(
  */
 export function getInitials(value: string, maximumInitials = 2): string {
   if (!Number.isInteger(maximumInitials) || maximumInitials < 1) {
-    throw new RangeError('maximumInitials must be a positive integer.');
+    throw new RangeError('maximumInitials must be a positive integer.')
   }
 
-  const words = value.trim().split(/\s+/).filter(Boolean);
+  const words = value.trim().split(/\s+/).filter(Boolean)
 
   if (words.length === 0) {
-    return '';
+    return ''
   }
 
   return words
     .slice(0, maximumInitials)
     .map((word) => Array.from(word)[0] ?? '')
     .join('')
-    .toLocaleUpperCase();
+    .toLocaleUpperCase()
 }
 
 /**
@@ -92,15 +92,15 @@ export function humanizeIdentifier(value: string): string {
     .replace(/[_-]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
-    .toLocaleLowerCase();
+    .toLocaleLowerCase()
 
   if (normalizedValue.length === 0) {
-    return '';
+    return ''
   }
 
   return `${normalizedValue[0]?.toLocaleUpperCase() ?? ''}${normalizedValue.slice(
     1,
-  )}`;
+  )}`
 }
 
 /**
@@ -118,7 +118,7 @@ export function pluralize(
   singular: string,
   plural = `${singular}s`,
 ): string {
-  return Math.abs(count) === 1 ? singular : plural;
+  return Math.abs(count) === 1 ? singular : plural
 }
 
 /**
@@ -136,7 +136,7 @@ export function formatCount(
   singular: string,
   plural?: string,
 ): string {
-  return `${count.toLocaleString()} ${pluralize(count, singular, plural)}`;
+  return `${count.toLocaleString()} ${pluralize(count, singular, plural)}`
 }
 
 /**
@@ -158,28 +158,28 @@ export function formatTextList(
 ): string {
   const normalizedValues = values
     .map((value) => value.trim())
-    .filter((value) => value.length > 0);
+    .filter((value) => value.length > 0)
 
-  const conjunction = options.conjunction?.trim() || 'and';
-  const useOxfordComma = options.useOxfordComma ?? true;
+  const conjunction = options.conjunction?.trim() || 'and'
+  const useOxfordComma = options.useOxfordComma ?? true
 
   if (normalizedValues.length === 0) {
-    return '';
+    return ''
   }
 
   if (normalizedValues.length === 1) {
-    return normalizedValues[0] ?? '';
+    return normalizedValues[0] ?? ''
   }
 
   if (normalizedValues.length === 2) {
-    return `${normalizedValues[0]} ${conjunction} ${normalizedValues[1]}`;
+    return `${normalizedValues[0]} ${conjunction} ${normalizedValues[1]}`
   }
 
-  const finalValue = normalizedValues.at(-1) ?? '';
-  const leadingValues = normalizedValues.slice(0, -1).join(', ');
-  const separator = useOxfordComma ? ',' : '';
+  const finalValue = normalizedValues.at(-1) ?? ''
+  const leadingValues = normalizedValues.slice(0, -1).join(', ')
+  const separator = useOxfordComma ? ',' : ''
 
-  return `${leadingValues}${separator} ${conjunction} ${finalValue}`;
+  return `${leadingValues}${separator} ${conjunction} ${finalValue}`
 }
 
 /**
@@ -196,7 +196,7 @@ export function toSlug(value: string): string {
     .toLocaleLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .replace(/^-+|-+$/g, '')
 }
 
 /**
@@ -214,5 +214,5 @@ export function getFirstTextValue(
   return values.find(
     (value): value is string =>
       typeof value === 'string' && value.trim().length > 0,
-  );
+  )
 }

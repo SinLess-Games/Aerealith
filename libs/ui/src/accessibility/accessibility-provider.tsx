@@ -4,31 +4,31 @@ import {
   useMemo,
   useState,
   type ReactNode,
-} from 'react';
+} from 'react'
 import {
   ACCESSIBILITY_STORAGE_KEY,
   defaultAccessibilityPreferences,
   type AccessibilityPreferences,
-} from './accessibility-preferences';
+} from './accessibility-preferences'
 
 export interface AccessibilityContextValue {
-  preferences: AccessibilityPreferences;
-  setPreferences: (preferences: AccessibilityPreferences) => void;
+  preferences: AccessibilityPreferences
+  setPreferences: (preferences: AccessibilityPreferences) => void
   updatePreference: <K extends keyof AccessibilityPreferences>(
     key: K,
     value: AccessibilityPreferences[K],
-  ) => void;
-  resetPreferences: () => void;
+  ) => void
+  resetPreferences: () => void
 }
 
 export const AccessibilityContext = createContext<
   AccessibilityContextValue | undefined
->(undefined);
+>(undefined)
 
 export interface AccessibilityProviderProps {
-  children: ReactNode;
-  initialPreferences?: Partial<AccessibilityPreferences>;
-  storageKey?: string;
+  children: ReactNode
+  initialPreferences?: Partial<AccessibilityPreferences>
+  storageKey?: string
 }
 
 export function AccessibilityProvider({
@@ -41,29 +41,29 @@ export function AccessibilityProvider({
       const fallback = {
         ...defaultAccessibilityPreferences,
         ...initialPreferences,
-      };
-      if (typeof window === 'undefined') return fallback;
+      }
+      if (typeof window === 'undefined') return fallback
       try {
         return {
           ...fallback,
           ...JSON.parse(window.localStorage.getItem(storageKey) ?? '{}'),
-        };
+        }
       } catch {
-        return fallback;
+        return fallback
       }
     },
-  );
+  )
   useEffect(() => {
-    const root = document.documentElement;
-    root.dataset.contrast = preferences.contrast;
-    root.dataset.motion = preferences.motion;
-    root.dataset.reading = preferences.reading;
+    const root = document.documentElement
+    root.dataset.contrast = preferences.contrast
+    root.dataset.motion = preferences.motion
+    root.dataset.reading = preferences.reading
     try {
-      window.localStorage.setItem(storageKey, JSON.stringify(preferences));
+      window.localStorage.setItem(storageKey, JSON.stringify(preferences))
     } catch {
       /* storage can be unavailable */
     }
-  }, [preferences, storageKey]);
+  }, [preferences, storageKey])
   const value = useMemo<AccessibilityContextValue>(
     () => ({
       preferences,
@@ -77,10 +77,10 @@ export function AccessibilityProvider({
         }),
     }),
     [initialPreferences, preferences],
-  );
+  )
   return (
     <AccessibilityContext.Provider value={value}>
       {children}
     </AccessibilityContext.Provider>
-  );
+  )
 }

@@ -1,9 +1,9 @@
-import type { ComponentPropsWithoutRef, ReactNode } from 'react';
-import { VisuallyHidden } from '../primitives/accessibility/visually-hidden';
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
+import { VisuallyHidden } from '../primitives/accessibility/visually-hidden'
 
 export interface TextAlternativeProps extends ComponentPropsWithoutRef<'span'> {
-  children: ReactNode;
-  visible?: boolean;
+  children: ReactNode
+  visible?: boolean
 }
 export function TextAlternative({
   children,
@@ -11,12 +11,12 @@ export function TextAlternative({
   ...props
 }: TextAlternativeProps) {
   return visible ? (
-    <span {...props} data-slot="text-alternative">
+    <span {...props} data-slot='text-alternative'>
       {children}
     </span>
   ) : (
-    <VisuallyHidden {...props} data-slot="text-alternative">
+    <VisuallyHidden {...props} data-slot='text-alternative'>
       {children}
     </VisuallyHidden>
-  );
+  )
 }

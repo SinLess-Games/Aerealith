@@ -9,7 +9,7 @@
  * - aria-controls
  * - aria-owns
  */
-export type AriaIdReference = string | null | undefined | false;
+export type AriaIdReference = string | null | undefined | false
 
 /**
  * Combines ARIA ID references into a clean, unique, space-separated value.
@@ -28,23 +28,23 @@ export type AriaIdReference = string | null | undefined | false;
 export function joinAriaIds(
   ...references: readonly AriaIdReference[]
 ): string | undefined {
-  const ids = new Set<string>();
+  const ids = new Set<string>()
 
   for (const reference of references) {
     if (typeof reference !== 'string') {
-      continue;
+      continue
     }
 
     for (const id of reference.trim().split(/\s+/)) {
       if (id.length > 0) {
-        ids.add(id);
+        ids.add(id)
       }
     }
   }
 
-  const value = [...ids].join(' ');
+  const value = [...ids].join(' ')
 
-  return value.length > 0 ? value : undefined;
+  return value.length > 0 ? value : undefined
 }
 
 /**
@@ -61,10 +61,10 @@ export function toAriaBoolean(
   value: boolean | null | undefined,
 ): 'true' | 'false' | undefined {
   if (value === null || value === undefined) {
-    return undefined;
+    return undefined
   }
 
-  return value ? 'true' : 'false';
+  return value ? 'true' : 'false'
 }
 
 /**
@@ -78,14 +78,14 @@ export function toAriaChecked(
   value: boolean | 'mixed' | null | undefined,
 ): 'true' | 'false' | 'mixed' | undefined {
   if (value === null || value === undefined) {
-    return undefined;
+    return undefined
   }
 
   if (value === 'mixed') {
-    return 'mixed';
+    return 'mixed'
   }
 
-  return value ? 'true' : 'false';
+  return value ? 'true' : 'false'
 }
 
 /**
@@ -98,13 +98,13 @@ export function toAriaChecked(
  * const ariaLabel = requireAccessibleLabel('Open navigation menu');
  */
 export function requireAccessibleLabel(label: string): string {
-  const normalizedLabel = label.trim();
+  const normalizedLabel = label.trim()
 
   if (normalizedLabel.length === 0) {
     throw new Error(
       'Accessible controls must include a non-empty label for assistive technologies.',
-    );
+    )
   }
 
-  return normalizedLabel;
+  return normalizedLabel
 }

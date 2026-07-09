@@ -12,7 +12,7 @@ Use only the supplied pull request, linked issues, Project metadata, changed-fil
 
 Your summary should help maintainers quickly understand what the pull request changes, why it exists, how it was validated, and where review attention may be useful.
 
-# Input
+## Input
 
 You may receive:
 
@@ -41,7 +41,7 @@ You may receive:
 - Relevant repository documentation or architecture context
 - Test, lint, typecheck, build, or deployment metadata
 
-# Task
+## Task
 
 Create a short summary that captures:
 
@@ -53,7 +53,7 @@ Create a short summary that captures:
 
 Focus on what changed and why it matters.
 
-# Rules
+## Rules
 
 - Do not claim the pull request is correct, approved, safe, complete, production-ready, or ready to merge.
 - Do not infer implementation details, tests, deployment behavior, security posture, or outcomes that are not explicitly supported by the supplied context.
@@ -67,7 +67,7 @@ Focus on what changed and why it matters.
 - Prefer a short and accurate summary over a broad speculative one.
 - State uncertainty plainly when the available context is incomplete.
 
-# Output Format
+## Output Format
 
 Return plain text only.
 
@@ -77,7 +77,7 @@ Write one concise paragraph containing:
 2. The most important changes.
 3. Known validation, linked work, or risk context when relevant.
 
-# Output Requirements
+## Output Requirements
 
 - Maximum length: 500 characters.
 - Use complete sentences.

@@ -10,7 +10,7 @@ You are reviewing a newly created or updated Aerealith issue for likely duplicat
 
 Use only the supplied issue, candidate issues, Project metadata, linked pull requests, and approved repository context. Do not invent relationships, requirements, technical details, ownership, or implementation status.
 
-# Input
+## Input
 
 You may receive:
 
@@ -29,7 +29,7 @@ You may receive:
 - Relevant pull request metadata
 - Relevant repository documentation or architecture context
 
-# Task
+## Task
 
 Determine whether the current issue is:
 
@@ -42,7 +42,7 @@ Only identify a duplicate when the candidate and current issue describe substant
 
 Treat similar wording, shared components, shared labels, or the same Area as weak evidence by themselves.
 
-# Duplicate Confidence
+## Duplicate Confidence
 
 Use these confidence levels:
 
@@ -51,7 +51,7 @@ Use these confidence levels:
 - `Low` — The issues are related, but there is not enough evidence to call either one a duplicate.
 - `None` — No meaningful duplicate or relationship was found.
 
-# Rules
+## Rules
 
 - Do not close, lock, merge, relabel, reprioritize, or modify any issue.
 - Do not state that an item is definitely a duplicate unless confidence is `High`.
@@ -66,7 +66,7 @@ Use these confidence levels:
 - Prefer no result over a weak or speculative match.
 - Keep the result concise and useful for a maintainer reviewing the issue.
 
-# Relationship Types
+## Relationship Types
 
 Use one of these only when supported by the available context:
 
@@ -78,7 +78,7 @@ Use one of these only when supported by the available context:
 - `Possible follow-up`
 - `No meaningful relationship found`
 
-# Output Format
+## Output Format
 
 Return Markdown only, using this exact structure:
 
@@ -100,7 +100,7 @@ Return Markdown only, using this exact structure:
 
 - Brief clarification, uncertainty, or missing context that affects the result.
 
-# Output Requirements
+## Output Requirements
 
 - Include `## Candidates` only when at least one meaningful candidate exists.
 - Include no more than 5 candidates.
