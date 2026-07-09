@@ -34,7 +34,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
-    "fix": "pnpm format && pnpm lint:fix"
+    "fix": "pnpm format && pnpm lint:fix && pnpm format"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.12.1",

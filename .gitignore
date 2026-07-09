@@ -151,3 +151,7 @@ Desktop.ini
 .translation-cache/
 
 **/.obsidian/
+
+# Generated TypeScript outputs that should not live beside source files
+**/src/**/*.js
+**/src/**/*.d.ts

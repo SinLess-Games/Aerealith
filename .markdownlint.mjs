@@ -210,7 +210,7 @@ const config = {
    * | Value | Value |
    */
   MD060: {
-    style: 'compact',
+    style: 'pipe-aligned',
   },
 }
 
