@@ -78,8 +78,8 @@ importers:
         specifier: 5.21.2
         version: 5.21.2(graphql@17.0.2)
       hono:
-        specifier: 4.12.26
-        version: 4.12.26
+        specifier: 4.12.29
+        version: 4.12.29
       pg:
         specifier: 8.21.0
         version: 8.21.0
@@ -6196,8 +6196,8 @@ packages:
   hoist-non-react-statics@3.3.2:
     resolution: {integrity: sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==}
 
-  hono@4.12.26:
-    resolution: {integrity: sha512-uyZtpnYxM9CmQ7QsQknM4zN8EftNqhON1qYeIKM0Se67CCEe2c44xyGURwB0axX2fBDu1dqHrHAc1hmNT8ITkw==}
+  hono@4.12.29:
+    resolution: {integrity: sha512-1hNiRjawYrLq/4m3DQQjPGFg0VZkk4RjQJDff/excI6Dm9BiL75qxGrd7/c6YOxPdq6AscP3LiXhQ6fKFC1Waw==}
     engines: {node: '>=16.9.0'}
 
   html-encoding-sniffer@3.0.0:
@@ -15640,7 +15640,7 @@ snapshots:
     dependencies:
       react-is: 16.13.1
 
-  hono@4.12.26: {}
+  hono@4.12.29: {}
 
   html-encoding-sniffer@3.0.0:
     dependencies:
