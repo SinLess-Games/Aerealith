@@ -193,8 +193,6 @@ docs/architecture/Integration Architecture.md
 docs/architecture/Notification Architecture.md
 docs/architecture/Audit Architecture.md
 docs/architecture/Observability Architecture.md
-docs/architecture/Deployment Architecture.md
-docs/architecture/Self Hosting Architecture.md
 ```
 
 ---
@@ -219,8 +217,6 @@ Start here:
 14. [Notification Architecture](./Notification%20Architecture.md)
 15. [Audit Architecture](./Audit%20Architecture.md)
 16. [Observability Architecture](./Observability%20Architecture.md)
-17. [Deployment Architecture](./Deployment%20Architecture.md)
-18. [Self Hosting Architecture](./Self%20Hosting%20Architecture.md)
 
 Some files may be created in later releases.
 
