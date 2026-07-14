@@ -61,13 +61,18 @@ export default async function serviceGenerator(
     const marker = "import { Routes, Route } from 'react-router-dom';"
     const serviceRoute = `import { ${className}Page } from '../services/${serviceName}/routes';`
     const serviceElement = `      <Route path="${routePrefix}" element={<${className}Page />} />`
+    let updated = current
 
-    const updated = current
-      .replace(marker, `${marker}\n${serviceRoute}`)
-      .replace(
+    if (!updated.includes(serviceRoute)) {
+      updated = updated.replace(marker, `${marker}\n${serviceRoute}`)
+    }
+
+    if (!updated.includes(serviceElement)) {
+      updated = updated.replace(
         '  return (\n    <Routes>',
         `  return (\n    <Routes>\n${serviceElement}`,
       )
+    }
 
     tree.write(frontendRoutesFile, updated)
   }

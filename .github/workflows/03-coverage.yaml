@@ -577,10 +577,25 @@ jobs:
 
           nx_bin="$GITHUB_WORKSPACE/node_modules/.bin/nx"
           projects_file="$RUNNER_TEMP/e2e-projects.txt"
+          projects_json="$RUNNER_TEMP/e2e-projects.json"
 
-          "$nx_bin" show projects --withTarget=e2e > "$projects_file"
+          if [[ ! -x "$nx_bin" ]]; then
+            echo "::error::Nx executable was not found at $nx_bin."
+            exit 1
+          fi
 
-          sed -i '/^[[:space:]]*$/d' "$projects_file"
+          FORCE_COLOR=0 "$nx_bin" show projects --withTarget=e2e --json \
+            > "$projects_json"
+
+          if ! jq -e \
+            'type == "array" and all(.[]; type == "string")' \
+            "$projects_json" >/dev/null; then
+            echo '::error::Nx did not return a valid JSON array of e2e projects.'
+            exit 1
+          fi
+
+          jq -r '.[] | select(test("<%.*%>") | not)' "$projects_json" |
+            sort -u > "$projects_file"
 
           if [[ ! -s "$projects_file" ]]; then
             echo "::error::No Nx projects expose an e2e target."
