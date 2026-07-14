@@ -781,39 +781,40 @@ jobs:
 
                 issueOrPullRequest(number: $itemNumber) {
                   __typename
-                  id
-                  number
-                  title
-                  body
-                  state
 
-                  author {
-                    login
-                  }
+                  ... on Issue {
+                    id
+                    number
+                    title
+                    body
+                    state
 
-                  labels(first: 100) {
-                    nodes {
-                      name
+                    author {
+                      login
                     }
-                  }
 
-                  projectItems(first: 100) {
-                    nodes {
-                      id
-
-                      project {
-                        id
+                    labels(first: 100) {
+                      nodes {
+                        name
                       }
+                    }
 
-                      aiTriageValue: fieldValueByName(name: $aiTriageFieldName) {
-                        ... on ProjectV2ItemFieldSingleSelectValue {
-                          name
+                    projectItems(first: 100) {
+                      nodes {
+                        id
+
+                        project {
+                          id
+                        }
+
+                        aiTriageValue: fieldValueByName(name: $aiTriageFieldName) {
+                          ... on ProjectV2ItemFieldSingleSelectValue {
+                            name
+                          }
                         }
                       }
                     }
-                  }
 
-                  ... on Issue {
                     issueType {
                       name
                     }
@@ -829,6 +830,38 @@ jobs:
                   }
 
                   ... on PullRequest {
+                    id
+                    number
+                    title
+                    body
+                    state
+
+                    author {
+                      login
+                    }
+
+                    labels(first: 100) {
+                      nodes {
+                        name
+                      }
+                    }
+
+                    projectItems(first: 100) {
+                      nodes {
+                        id
+
+                        project {
+                          id
+                        }
+
+                        aiTriageValue: fieldValueByName(name: $aiTriageFieldName) {
+                          ... on ProjectV2ItemFieldSingleSelectValue {
+                            name
+                          }
+                        }
+                      }
+                    }
+
                     isDraft
                     baseRefName
                     headRefName
