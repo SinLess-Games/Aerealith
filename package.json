@@ -42,7 +42,7 @@
     "@babel/preset-react": "8.0.1",
     "@cloudflare/vite-plugin": "1.43.0",
     "@cloudflare/vitest-pool-workers": "0.18.0",
-    "@cloudflare/workers-types": "4.20260702.1",
+    "@cloudflare/workers-types": "5.20260711.1",
     "@codecov/vite-plugin": "2.0.1",
     "@commitlint/cli": "21.2.0",
     "@commitlint/config-conventional": "21.2.0",
