@@ -16,6 +16,10 @@ function readRequired(
   return value
 }
 
+function countOccurrences(value: string, search: string): number {
+  return value.split(search).length - 1
+}
+
 describe('serviceGenerator', () => {
   it('creates a normalized, runnable Hono service', async () => {
     const tree = createTreeWithEmptyWorkspace()
@@ -95,5 +99,42 @@ describe('serviceGenerator', () => {
     await expect(serviceGenerator(tree, { name: 'broken' })).rejects.toThrow(
       'Unable to read package.json',
     )
+  })
+
+  it('does not duplicate frontend route wiring when rerun for the same service', async () => {
+    const tree = createTreeWithEmptyWorkspace()
+
+    tree.write(
+      'apps/frontend/src/app/app.tsx',
+      [
+        "import { Routes, Route } from 'react-router-dom';",
+        '',
+        'export default function App() {',
+        '  return (',
+        '    <Routes>',
+        '      <Route path="/" element={<div />} />',
+        '    </Routes>',
+        '  )',
+        '}',
+      ].join('\n'),
+    )
+
+    await serviceGenerator(tree, { name: 'Billing API' })
+    await serviceGenerator(tree, { name: 'Billing API' })
+
+    const appRoutes = readRequired(tree, 'apps/frontend/src/app/app.tsx')
+
+    expect(
+      countOccurrences(
+        appRoutes,
+        "import { BillingApiPage } from '../services/billing-api/routes';",
+      ),
+    ).toBe(1)
+    expect(
+      countOccurrences(
+        appRoutes,
+        '      <Route path="/api/v1/services/billing-api" element={<BillingApiPage />} />',
+      ),
+    ).toBe(1)
   })
 })
