@@ -78,10 +78,10 @@ enabled = true
 # Environments
 # ---------------------------------------------------------------
 [env.preview]
-route = "preview.aerealith.com/*"
-
-[env.production]
-route = "aerealith.com/*"
+routes = [{ pattern = "preview.aerealith.com", custom_domain = true }]
 
 [env.staging]
-route = "staging.aerealith.com/*"
+routes = [{ pattern = "staging.aerealith.com", custom_domain = true }]
+
+[env.production]
+routes = [{ pattern = "aerealith.com", custom_domain = true }]
