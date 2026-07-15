@@ -69,3 +69,19 @@ enabled = false
 
 [env.production.cache]
 enabled = true
+
+[env.staging.cache]
+enabled = true
+
+
+# ---------------------------------------------------------------
+# Environments
+# ---------------------------------------------------------------
+[env.preview]
+route = "preview.aerealith.com/*"
+
+[env.production]
+route = "aerealith.com/*"
+
+[env.staging]
+route = "staging.aerealith.com/*"
