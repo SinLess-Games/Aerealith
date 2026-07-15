@@ -118,6 +118,14 @@ describe('machine translation workflow', () => {
     ).rejects.toThrow()
   })
 
+  it('refuses to write JSON content to non-JSON files', async () => {
+    const root = await fixtureRoot()
+    await expect(
+      writeJson(join(root, 'translation.ts'), { title: 'Untrusted content' }),
+    ).rejects.toThrow('Refusing to write JSON to a non-JSON path')
+    await expect(readFile(join(root, 'translation.ts'))).rejects.toThrow()
+  })
+
   it('only translates meaningful user-facing strings', () => {
     expect(isTranslatableString('   ', 'title')).toBe(false)
     expect(isTranslatableString('fixed-id', 'id')).toBe(false)
