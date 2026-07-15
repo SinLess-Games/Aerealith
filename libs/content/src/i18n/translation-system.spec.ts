@@ -83,6 +83,40 @@ describe('translation system', () => {
     )
   })
 
+  it('reports structural, preserved-value, and accessibility problems', () => {
+    const result = validateTranslationShape(
+      {
+        items: [{ id: 'fixed', label: 'Visible label' }, 7],
+        metadata: { enabled: true },
+      },
+      {
+        items: [{ id: 'changed', label: '   ' }],
+        metadata: 'invalid',
+      },
+    )
+
+    expect(result.errors).toEqual(
+      expect.arrayContaining([
+        'items: expected 2 items, received 1',
+        'items.0.id: non-translatable value must remain unchanged',
+        'metadata: expected an object',
+      ]),
+    )
+    expect(result.warnings).toContain(
+      'items.0.label: accessibility text is empty',
+    )
+
+    expect(validateTranslationShape([], 'invalid').errors).toContain(
+      ': expected an array',
+    )
+    expect(validateTranslationShape('text', false).errors).toContain(
+      ': expected a string',
+    )
+    expect(validateTranslationShape(false, true).errors[0]).toContain(
+      'expected preserved value false',
+    )
+  })
+
   it('generates safe, typed locale modules', () => {
     expect(localeExportName('pt-BR')).toBe('ptBRContent')
     const module = formatLocaleModule('es', englishContent)
