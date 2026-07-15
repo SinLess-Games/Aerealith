@@ -18,13 +18,6 @@ not_found_handling = "single-page-application"
 run_worker_first = ["/__aerealith/*"]
 
 # ---------------------------------------------------------------
-# Secrets
-# ---------------------------------------------------------------
-
-[secrets]
-required = ["POSTGRES_URL", "PRODUCTION_POSTGRES_URL", "RESEND_API_KEY"]
-
-# ---------------------------------------------------------------
 # Observability
 # ---------------------------------------------------------------
 
