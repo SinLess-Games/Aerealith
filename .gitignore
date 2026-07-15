@@ -155,3 +155,11 @@ Desktop.ini
 # Generated TypeScript outputs that should not live beside source files
 **/src/**/*.js
 **/src/**/*.d.ts
+
+.nx/polygraph
+.claude/worktrees
+
+.agents/
+.claude/
+.codex/
+.gemini/
