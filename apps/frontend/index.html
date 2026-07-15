@@ -2,11 +2,52 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Frontend</title>
+    <title>Aerealith AI — Your Digital Life, Intelligently Connected</title>
     <base href="/" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Aerealith AI is a secure, trust-first command center that connects your apps, organizes your data, and automates workflows — with human approval at every meaningful step."
+    />
+    <meta name="theme-color" content="#050a1e" />
+
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Open Graph / social -->
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="Aerealith AI — Your Digital Life, Intelligently Connected"
+    />
+    <meta
+      property="og:description"
+      content="A secure, trust-first command center for your digital life. Modular Discord management, automations, and insight — with you in control."
+    />
+    <meta property="og:image" content="/images/brand/mark-512.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!--
+      No-flash theme: set data-theme before first paint from the stored
+      preference or the OS scheme. Keep in sync with libs/ui theme-init-script.
+    -->
+    <script>
+      ;(function () {
+        try {
+          var k = 'aerealith:theme'
+          var p = localStorage.getItem(k)
+          var d =
+            window.matchMedia &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches
+          var t = p === 'light' || p === 'dark' ? p : d ? 'dark' : 'light'
+          document.documentElement.dataset.theme = t
+        } catch (e) {
+          document.documentElement.dataset.theme = 'dark'
+        }
+      })()
+    </script>
+
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body>

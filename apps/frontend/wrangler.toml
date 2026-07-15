@@ -10,11 +10,20 @@ preview_urls = true
 directory = "../../dist/apps/frontend"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
-run_worker_first = ["/__aerealith/*"]
+run_worker_first = ["/__aerealith/*", "/api/*"]
 
 [[kv_namespaces]]
 binding = "AEREALITH_KV"
 id = "9873b606bf1346aca48de61c9bb96968"
+
+# Postgres access from the Worker runtime. `node-postgres` cannot open raw TCP
+# from a Worker directly, so it connects through Hyperdrive (edge connection
+# pooling). Provision with `wrangler hyperdrive create aerealith --connection-string=...`
+# and replace the id below; set `localConnectionString` for `wrangler dev`.
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "REPLACE_WITH_HYPERDRIVE_ID"
+localConnectionString = "postgresql://aerealith:aerealith@localhost:5432/aerealith"
 
 [[r2_buckets]]
 binding = "AEREALITH_AI"
