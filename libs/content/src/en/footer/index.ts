@@ -1,13 +1,13 @@
 import type { FooterProps } from '../../types'
 
 export const footerProps = {
-  brandName: 'Helix AI',
+  brandName: 'Aerealith AI',
   tagline: 'Your digital life, intelligently connected.',
   logoHref: '/',
 
   version: null,
   versionPrefix: 'V',
-  releasesUrl: 'https://github.com/SinLess-Games/Helix/releases',
+  releasesUrl: 'https://github.com/SinLess-Games/Aerealith/releases',
 
   variant: 'minimal',
   dense: true,
@@ -88,7 +88,7 @@ export const footerProps = {
         },
         {
           label: 'GitHub',
-          href: 'https://github.com/SinLess-Games/Helix',
+          href: 'https://github.com/SinLess-Games/Aerealith',
           target: '_blank',
           rel: 'noopener noreferrer',
         },
@@ -107,10 +107,10 @@ export const footerProps = {
   socialLinks: [
     {
       label: 'GitHub',
-      href: 'https://github.com/SinLess-Games/Helix',
+      href: 'https://github.com/SinLess-Games/Aerealith',
       target: '_blank',
       rel: 'noopener noreferrer',
-      ariaLabel: 'View Helix AI on GitHub',
+      ariaLabel: 'View Aerealith AI on GitHub',
     },
     {
       label: 'SinLess Games',

@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import { CONTENT_ROOT } from '../../scripts/utils/collect-content'
+import { libreTranslateLoadOnlyLanguages } from '../../scripts/utils/locale-provider-map'
 
 describe('LibreTranslate Docker workflow', () => {
   it('defines a localhost-only, persistent, health-checked service', async () => {
@@ -17,7 +18,10 @@ describe('LibreTranslate Docker workflow', () => {
     expect(compose).toContain('/languages')
     expect(compose).toContain('argospm-index/main/index.json')
     expect(compose).toContain('until python')
-    expect(compose).toContain('--load-only en,es')
+    expect(compose).toContain('--update-models')
+    expect(compose).toContain(
+      `--load-only "\${LIBRETRANSLATE_LOAD_LANGUAGES:-${libreTranslateLoadOnlyLanguages}}"`,
+    )
     expect(compose).toContain('http://libretranslate:5000')
     expect(compose).toContain('/workspace/node_modules/.bin/tsx')
     expect(compose).toContain(

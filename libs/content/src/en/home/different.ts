@@ -36,17 +36,6 @@ export type AerealithDifferentiatorItem = {
 }
 
 /**
- * Backward-compatible type alias.
- *
- * Prefer `AerealithDifferentiatorItem` for new imports.
- *
- * @public
- * @type
- * @decorator alias
- */
-export type HelixDifferentiatorItem = AerealithDifferentiatorItem
-
-/**
  * Home page "different" section content configuration.
  *
  * @public
@@ -311,23 +300,7 @@ export const differentSection = {
 } as const satisfies DifferentSectionContent
 
 /**
- * Backward-compatible camelCase exports.
- *
- * Prefer Aerealith-named exports for new imports.
- *
- * @public
- * @constant
- * @readonly
- * @decorator alias
- */
-export const helixDifferenceBody = aerealithDifferenceBody
-export const helixDifferentiators = aerealithDifferentiators
-export const helixDifferentiatorHighlights = aerealithDifferentiatorHighlights
-
-/**
- * Backwards-compatible uppercase exports.
- *
- * Prefer camelCase Aerealith exports for new imports.
+ * Uppercase exports for consumers that prefer constant-style imports.
  *
  * @public
  * @constant
@@ -338,9 +311,5 @@ export const AEREALITH_DIFFERENCE_BODY = aerealithDifferenceBody
 export const AEREALITH_DIFFERENTIATORS = aerealithDifferentiators
 export const AEREALITH_DIFFERENTIATOR_HIGHLIGHTS =
   aerealithDifferentiatorHighlights
-
-export const HELIX_DIFFERENCE_BODY = aerealithDifferenceBody
-export const HELIX_DIFFERENTIATORS = aerealithDifferentiators
-export const HELIX_DIFFERENTIATOR_HIGHLIGHTS = aerealithDifferentiatorHighlights
 
 export const DIFFERENT_SECTION = differentSection

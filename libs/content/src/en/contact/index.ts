@@ -81,7 +81,7 @@ export const contactOptions = [
     title: 'Follow Us on Patreon',
     description:
       'Follow the Aerealith AI build on Patreon for development updates, roadmap notes, design previews, behind-the-scenes progress, and early project announcements.',
-    href: 'https://patreon.com/HelixAI',
+    href: 'https://patreon.com/AerealithAI',
     buttonText: 'View Patreon',
     image: `${CONTACT_IMAGE_PATH}/patreon.png`,
     bgColor: DEFAULT_CONTACT_CARD_BG,

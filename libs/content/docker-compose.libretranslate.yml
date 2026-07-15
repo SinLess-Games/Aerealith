@@ -13,7 +13,7 @@ services:
           echo 'Waiting for Docker outbound network before loading translation models...'
           sleep 5
         done
-        exec ./scripts/entrypoint.sh --host 0.0.0.0 --port 5000 --load-only en,es
+        exec ./scripts/entrypoint.sh --host 0.0.0.0 --port 5000 --update-models --load-only "${LIBRETRANSLATE_LOAD_LANGUAGES:-ar,cs,da,de,en,es,fi,fr,he,hu,id,it,ja,ko,nb,nl,pl,pt,ro,ru,sv,tr,uk,vi,zh-Hans,zh-Hant}"
     ports:
       - "127.0.0.1:${LIBRETRANSLATE_PORT:-5000}:5000"
     volumes:

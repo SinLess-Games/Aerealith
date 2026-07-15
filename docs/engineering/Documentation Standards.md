@@ -1115,7 +1115,7 @@ account
 Historic terminology such as:
 
 ```text
-Helix
+LegacyProductName
 ```
 
 may appear only when describing project history or migration.
@@ -1301,7 +1301,7 @@ Good:
 ````md
 ```ts
 export interface ModuleManifest {
-  readonly id: string;
+  readonly id: string
 }
 ```
 ````

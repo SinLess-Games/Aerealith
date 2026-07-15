@@ -92,6 +92,7 @@ describe('machine translation workflow', () => {
     const protectedText = protectContent(source)
     expect(protectedText.text).not.toContain('Aerealith AI')
     expect(protectedText.restore(protectedText.text)).toBe(source)
+    expect(protectedText.restore(protectedText.text.toLowerCase())).toBe(source)
   })
 
   it('returns cached translations for unchanged source text', async () => {

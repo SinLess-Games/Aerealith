@@ -1,0 +1,442 @@
+# .github/workflows/12-community-activity.yaml
+#
+# Publishes a daily repository activity report to the Announcements category
+# in GitHub Discussions. When this workflow first lands on master, it also
+# refreshes the pinned welcome discussion with a friendlier introduction.
+
+name: 29 · Community Activity
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - .github/workflows/29-community-activity.yaml
+
+  schedule:
+    # Daily at 08:15 UTC (02:15 MDT / 01:15 MST in America/Boise).
+    - cron: "15 8 * * *"
+
+  workflow_dispatch:
+    inputs:
+      update_welcome:
+        description: Refresh the welcome discussion
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: community-activity-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  welcome:
+    name: Refresh welcome discussion
+    if: github.event_name == 'push' || inputs.update_welcome == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    permissions:
+      contents: read
+      discussions: write
+
+    steps:
+      - name: Update the pinned welcome discussion
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const name = context.repo.repo;
+            const title = 'Welcome to Aerealith Discussions!';
+
+            const result = await github.graphql(
+              `query FindWelcomeDiscussion($owner: String!, $name: String!) {
+                repository(owner: $owner, name: $name) {
+                  discussions(
+                    first: 100
+                    orderBy: { field: UPDATED_AT, direction: DESC }
+                  ) {
+                    nodes {
+                      id
+                      title
+                      url
+                    }
+                  }
+                }
+              }`,
+              { owner, name },
+            );
+
+            const discussion = result.repository.discussions.nodes.find(
+              (item) => item.title === title,
+            );
+
+            if (!discussion) {
+              core.setFailed(`Could not find the discussion titled "${title}".`);
+              return;
+            }
+
+            const body = [
+              '# Welcome to Aerealith Discussions! 👋',
+              '',
+              'We’re glad you’re here.',
+              '',
+              'Aerealith is an open, modular platform for bringing communities, automation, developer tools, and connected services together in one secure ecosystem. Discord is our first major integration, but it is only the beginning of what Aerealith is being built to support.',
+              '',
+              '## Find the right place',
+              '',
+              '- 📣 **Announcements** — official project updates and daily activity reports.',
+              '- 🤖 **Code Coverage** — daily test and coverage health reports.',
+              '- 💬 **General** — conversations about Aerealith and its direction.',
+              '- 💡 **Ideas** — feature requests, integrations, and improvements.',
+              '- 🗳️ **Polls** — community votes and quick feedback.',
+              '- 🙏 **Q&A** — questions about the project, architecture, or contributing.',
+              '- 🙌 **Show and tell** — share something you built, tested, or connected with Aerealith.',
+              '',
+              '## A few simple guidelines',
+              '',
+              'Be respectful, keep conversations constructive, and give people room to ask questions. When reporting a bug or proposing a feature, include enough context for someone else to understand the goal and reproduce the problem.',
+              '',
+              '> Please do not post credentials, private logs, exploit details, or other sensitive information. Use GitHub’s private vulnerability-reporting flow for security concerns.',
+              '',
+              '## Useful links',
+              '',
+              '- [Explore the repository](https://github.com/SinLess-Games/Aerealith)',
+              '- [Report a bug or request a feature](https://github.com/SinLess-Games/Aerealith/issues)',
+              '- [View the project board](https://github.com/orgs/SinLess-Games/projects/3)',
+              '- [Review project security](https://github.com/SinLess-Games/Aerealith/security)',
+              '',
+              'Whether you are here to contribute code, suggest an idea, follow development, or simply learn what Aerealith is becoming—welcome to the community. 💜',
+            ].join('\n');
+
+            await github.graphql(
+              `mutation UpdateWelcomeDiscussion($discussionId: ID!, $body: String!) {
+                updateDiscussion(
+                  input: { discussionId: $discussionId, body: $body }
+                ) {
+                  discussion {
+                    url
+                  }
+                }
+              }`,
+              { discussionId: discussion.id, body },
+            );
+
+            core.info(`Updated ${discussion.url}`);
+
+  activity:
+    name: Publish daily activity report
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      actions: read
+      contents: read
+      discussions: write
+      issues: read
+      pull-requests: read
+
+    steps:
+      - name: Publish activity report to Announcements
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const repositoryUrl = `https://github.com/${owner}/${repo}`;
+            const until = new Date();
+            const since = new Date(until.getTime() - 24 * 60 * 60 * 1000);
+            const sinceIso = since.toISOString();
+            const untilIso = until.toISOString();
+            const reportDate = new Intl.DateTimeFormat('en-CA', {
+              timeZone: 'America/Boise',
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+            }).format(until);
+            const title = `Aerealith activity report — ${reportDate}`;
+
+            const repository = await github.graphql(
+              `query ActivityDiscussionContext($owner: String!, $repo: String!) {
+                repository(owner: $owner, name: $repo) {
+                  id
+                  discussionCategories(first: 100) {
+                    nodes {
+                      id
+                      name
+                      slug
+                    }
+                  }
+                }
+              }`,
+              { owner, repo },
+            );
+
+            const categories = repository.repository.discussionCategories.nodes;
+            const category = categories.find(
+              (item) =>
+                item.slug.toLowerCase() === 'announcements' ||
+                item.name.toLowerCase() === 'announcements',
+            );
+
+            if (!category) {
+              core.setFailed('The Announcements discussion category was not found.');
+              return;
+            }
+
+            const [commits, issuesResponse, pullsResponse, releasesResponse, runs] =
+              await Promise.all([
+                github.paginate(github.rest.repos.listCommits, {
+                  owner,
+                  repo,
+                  since: sinceIso,
+                  until: untilIso,
+                  per_page: 100,
+                }),
+                github.rest.issues.listForRepo({
+                  owner,
+                  repo,
+                  state: 'all',
+                  since: sinceIso,
+                  sort: 'updated',
+                  direction: 'desc',
+                  per_page: 100,
+                }),
+                github.rest.pulls.list({
+                  owner,
+                  repo,
+                  state: 'all',
+                  sort: 'updated',
+                  direction: 'desc',
+                  per_page: 100,
+                }),
+                github.rest.repos.listReleases({ owner, repo, per_page: 100 }),
+                github.paginate(github.rest.actions.listWorkflowRunsForRepo, {
+                  owner,
+                  repo,
+                  created: `>=${sinceIso.slice(0, 10)}`,
+                  per_page: 100,
+                }),
+              ]);
+
+            const inWindow = (value) => {
+              if (!value) return false;
+              const timestamp = new Date(value).getTime();
+              return timestamp >= since.getTime() && timestamp <= until.getTime();
+            };
+
+            const issues = issuesResponse.data.filter(
+              (item) => !item.pull_request && inWindow(item.updated_at),
+            );
+            const pulls = pullsResponse.data.filter((item) => inWindow(item.updated_at));
+            const releases = releasesResponse.data.filter((item) =>
+              inWindow(item.published_at ?? item.created_at),
+            );
+            const workflowRuns = runs.filter((item) => inWindow(item.created_at));
+            const mergedPulls = pulls.filter(
+              (item) => item.merged_at && inWindow(item.merged_at),
+            );
+            const openedPulls = pulls.filter((item) => inWindow(item.created_at));
+            const openedIssues = issues.filter((item) => inWindow(item.created_at));
+            const closedIssues = issues.filter(
+              (item) => item.closed_at && inWindow(item.closed_at),
+            );
+
+            const workflowCounts = workflowRuns.reduce(
+              (counts, run) => {
+                if (run.status !== 'completed') {
+                  counts.inProgress += 1;
+                } else if (run.conclusion === 'success') {
+                  counts.passed += 1;
+                } else if (run.conclusion === 'cancelled') {
+                  counts.cancelled += 1;
+                } else {
+                  counts.failed += 1;
+                }
+                return counts;
+              },
+              { passed: 0, failed: 0, cancelled: 0, inProgress: 0 },
+            );
+
+            const clean = (value) =>
+              String(value ?? '')
+                .replace(/[\r\n]+/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+            const shorten = (value, maximum = 120) => {
+              const text = clean(value);
+              return text.length <= maximum
+                ? text
+                : `${text.slice(0, maximum - 1)}…`;
+            };
+            const shortSha = (sha) => sha.slice(0, 7);
+            const list = (items, render, emptyMessage) => {
+              if (items.length === 0) return [emptyMessage];
+              const lines = items.slice(0, 15).map(render);
+              if (items.length > 15) {
+                lines.push(`- …and ${items.length - 15} more.`);
+              }
+              return lines;
+            };
+
+            const body = [
+              '<!-- aerealith-daily-activity -->',
+              '# Daily activity report',
+              '',
+              `Here’s what changed across Aerealith during the 24 hours ending **${reportDate}**.`,
+              '',
+              `**Window:** ${sinceIso} → ${untilIso}`,
+              '',
+              '## At a glance',
+              '',
+              '| Activity | Count |',
+              '| --- | ---: |',
+              `| Commits | ${commits.length} |`,
+              `| Pull requests opened | ${openedPulls.length} |`,
+              `| Pull requests merged | ${mergedPulls.length} |`,
+              `| Issues opened | ${openedIssues.length} |`,
+              `| Issues closed | ${closedIssues.length} |`,
+              `| Releases published | ${releases.length} |`,
+              `| Workflow runs | ${workflowRuns.length} |`,
+              '',
+              '## Commits',
+              '',
+              ...list(
+                commits,
+                (commit) =>
+                  `- [\`${shortSha(commit.sha)}\`](${commit.html_url}) ${shorten(
+                    commit.commit.message.split('\n')[0],
+                  )} — ${commit.author?.login ?? commit.commit.author?.name ?? 'unknown author'}`,
+                '- No commits were recorded during this reporting window.',
+              ),
+              '',
+              '## Pull requests',
+              '',
+              ...list(
+                pulls,
+                (pull) => {
+                  const state = pull.merged_at
+                    ? 'merged'
+                    : pull.state === 'closed'
+                      ? 'closed'
+                      : 'open';
+                  return `- [#${pull.number}](${pull.html_url}) ${shorten(pull.title)} — ${state}`;
+                },
+                '- No pull requests changed during this reporting window.',
+              ),
+              '',
+              '## Issues',
+              '',
+              ...list(
+                issues,
+                (issue) =>
+                  `- [#${issue.number}](${issue.html_url}) ${shorten(issue.title)} — ${issue.state}`,
+                '- No issues changed during this reporting window.',
+              ),
+              '',
+              '## Automation health',
+              '',
+              `- ✅ Passed: ${workflowCounts.passed}`,
+              `- ❌ Failed: ${workflowCounts.failed}`,
+              `- ⚪ Cancelled: ${workflowCounts.cancelled}`,
+              `- 🔄 In progress: ${workflowCounts.inProgress}`,
+              '',
+              releases.length > 0
+                ? `## Releases\n\n${releases
+                    .slice(0, 15)
+                    .map(
+                      (release) =>
+                        `- [${shorten(release.name ?? release.tag_name, 80)}](${release.html_url})`,
+                    )
+                    .join('\n')}`
+                : '## Releases\n\n- No releases were published during this reporting window.',
+              '',
+              `View [all repository activity](${repositoryUrl}/activity) or [open the Actions dashboard](${repositoryUrl}/actions) for full details.`,
+              '',
+              '_Generated automatically by Aerealith repository automation._',
+            ].join('\n');
+
+            const existing = await github.graphql(
+              `query ExistingActivityReport(
+                $owner: String!
+                $repo: String!
+                $categoryId: ID!
+              ) {
+                repository(owner: $owner, name: $repo) {
+                  discussions(
+                    first: 100
+                    categoryId: $categoryId
+                    orderBy: { field: UPDATED_AT, direction: DESC }
+                  ) {
+                    nodes {
+                      id
+                      title
+                    }
+                  }
+                }
+              }`,
+              { owner, repo, categoryId: category.id },
+            );
+
+            const current = existing.repository.discussions.nodes.find(
+              (item) => item.title === title,
+            );
+
+            if (current) {
+              await github.graphql(
+                `mutation UpdateActivityReport(
+                  $discussionId: ID!
+                  $title: String!
+                  $body: String!
+                ) {
+                  updateDiscussion(
+                    input: {
+                      discussionId: $discussionId
+                      title: $title
+                      body: $body
+                    }
+                  ) {
+                    discussion {
+                      url
+                    }
+                  }
+                }`,
+                { discussionId: current.id, title, body },
+              );
+              return;
+            }
+
+            await github.graphql(
+              `mutation CreateActivityReport(
+                $repositoryId: ID!
+                $categoryId: ID!
+                $title: String!
+                $body: String!
+              ) {
+                createDiscussion(
+                  input: {
+                    repositoryId: $repositoryId
+                    categoryId: $categoryId
+                    title: $title
+                    body: $body
+                  }
+                ) {
+                  discussion {
+                    url
+                  }
+                }
+              }`,
+              {
+                repositoryId: repository.repository.id,
+                categoryId: category.id,
+                title,
+                body,
+              },
+            );

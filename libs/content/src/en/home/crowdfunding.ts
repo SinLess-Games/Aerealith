@@ -72,7 +72,7 @@ export const crowdfundingVideos = [
     title: 'A Call to Investors',
     description:
       'A short investor-focused overview introducing Aerealith AI as a secure, extensible command center for automation, analytics, integrations, memory, and digital workflow intelligence.',
-    src: 'https://res.cloudinary.com/helix-ai/video/upload/v1779161862/Helix_AI_Investor_wvztbl.mp4',
+    src: 'https://res.cloudinary.com/aerealith-ai/video/upload/v1779161862/Aerealith_AI_Investor_wvztbl.mp4',
     ...crowdfundingVideoBaseOptions,
   },
 
