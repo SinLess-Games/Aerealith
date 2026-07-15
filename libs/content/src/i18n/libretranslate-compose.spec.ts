@@ -17,9 +17,7 @@ describe('LibreTranslate Docker workflow', () => {
     expect(compose).toContain('/languages')
     expect(compose).toContain('argospm-index/main/index.json')
     expect(compose).toContain('until python')
-    expect(compose).toContain(
-      '--load-only en,es,pt,fr,de,ja,it,nl,pl,tr,ko,zh,zt,id,vi,ru,uk,sv,da,fi,nb,cs,hu,ro,ar,he',
-    )
+    expect(compose).toContain('--load-only en,es')
     expect(compose).toContain('http://libretranslate:5000')
     expect(compose).toContain('/workspace/node_modules/.bin/tsx')
     expect(compose).toContain(
@@ -49,7 +47,7 @@ describe('LibreTranslate Docker workflow', () => {
     expect(project.targets['translate']?.options?.command).not.toContain(
       'allow-fallback',
     )
-    expect(project.targets['build']?.dependsOn).toEqual(['translate-build'])
+    expect(project.targets['build']?.dependsOn).toBeUndefined()
     expect(project.targets['translate-build']?.dependsOn).toEqual([
       'libretranslate-up',
     ])

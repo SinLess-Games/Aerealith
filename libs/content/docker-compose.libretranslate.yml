@@ -2,7 +2,7 @@ name: aerealith-content-translation
 
 services:
   libretranslate:
-    image: libretranslate/libretranslate:latest@sha256:fb17e836049824735f932f1884abc83974d06370fe8e9993dc3b23c4cb22e728
+    image: libretranslate/libretranslate:latest@sha256:4a48d5fd9ed482b61fa28803e4438603caf4cab92685e659cb4811178b2039dc
     container_name: aerealith-libretranslate
     restart: unless-stopped
     entrypoint:
@@ -13,7 +13,7 @@ services:
           echo 'Waiting for Docker outbound network before loading translation models...'
           sleep 5
         done
-        exec ./scripts/entrypoint.sh --host 0.0.0.0 --port 5000 --load-only en,es,pt,fr,de,ja,it,nl,pl,tr,ko,zh,zt,id,vi,ru,uk,sv,da,fi,nb,cs,hu,ro,ar,he
+        exec ./scripts/entrypoint.sh --host 0.0.0.0 --port 5000 --load-only en,es
     ports:
       - "127.0.0.1:${LIBRETRANSLATE_PORT:-5000}:5000"
     volumes:
