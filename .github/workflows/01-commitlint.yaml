@@ -39,7 +39,7 @@ defaults:
 env:
   CI: true
   NODE_VERSION: 25.9.0
-  PNPM_VERSION: 11.5.2
+  PNPM_VERSION: 11.11.0
 
 jobs:
   commitlint:
