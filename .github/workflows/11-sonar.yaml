@@ -70,7 +70,7 @@ env:
   HUSKY: "0"
 
   NODE_VERSION: "25.9.0"
-  PNPM_VERSION: "11.5.2"
+  PNPM_VERSION: "11.11.0"
 
   SONAR_API_URL: "https://sonarcloud.io"
   SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}

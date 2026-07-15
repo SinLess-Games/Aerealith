@@ -15,3 +15,5 @@ allowBuilds:
   workerd: true
 overrides:
   "@opentelemetry/core": 2.9.0
+  "@esbuild-kit/core-utils>esbuild": 0.25.12
+  axios: 1.16.0

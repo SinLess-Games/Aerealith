@@ -3,6 +3,8 @@ name: CI Compatibility Stub
 on:
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   noop:
     name: CI stub

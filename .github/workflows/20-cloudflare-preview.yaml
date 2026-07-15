@@ -83,7 +83,7 @@ env:
   HUSKY: "0"
 
   NODE_VERSION: "25.9.0"
-  PNPM_VERSION: "11.5.2"
+  PNPM_VERSION: "11.11.0"
 
   FRONTEND_PROJECT: "frontend"
   FRONTEND_DIRECTORY: "apps/frontend"

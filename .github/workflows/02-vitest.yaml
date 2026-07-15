@@ -39,7 +39,7 @@ env:
   FORCE_COLOR: 1
   NX_DAEMON: false
   NODE_VERSION: 25.9.0
-  PNPM_VERSION: 11.5.2
+  PNPM_VERSION: 11.11.0
   CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
 jobs:
