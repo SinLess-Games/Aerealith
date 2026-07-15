@@ -1,5 +1,6 @@
 packages:
-  - tools/*
+  - libs/*
+  - tools/generators/*
 autoInstallPeers: true
 resolvePeersFromWorkspaceRoot: true
 dedupePeerDependents: true
@@ -15,5 +16,5 @@ allowBuilds:
   workerd: true
 overrides:
   "@opentelemetry/core": 2.9.0
-  "@esbuild-kit/core-utils>esbuild": 0.25.12
-  axios: 1.16.0
+  "@esbuild-kit/core-utils>esbuild": 0.28.1
+  axios: 1.18.1

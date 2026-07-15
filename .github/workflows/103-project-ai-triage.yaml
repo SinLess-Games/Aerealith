@@ -1207,11 +1207,28 @@ jobs:
             gemini_model: configured_gemini_model,
           )
 
-          provider, generated = model_client.generate(
-            system_prompt: model_instructions,
-            user_prompt: user_prompt,
-            schema: json_schema,
-          )
+          begin
+            provider, generated = model_client.generate(
+              system_prompt: model_instructions,
+              user_prompt: user_prompt,
+              schema: json_schema,
+            )
+          rescue StandardError => error
+            transient_provider_failure = error.message.match?(
+              /HTTP (?:429|5\d\d)|quota|high demand|temporarily unavailable/i,
+            )
+            raise unless transient_provider_failure
+
+            File.open(ENV.fetch("GITHUB_STEP_SUMMARY"), "a") do |file|
+              file.puts("## Aerealith Project AI Triage")
+              file.puts
+              file.puts("AI triage skipped because every configured provider was temporarily unavailable.")
+              file.puts
+              file.puts("The pull request remains eligible for normal CI and review.")
+            end
+
+            exit 0
+          end
 
           unless generated.is_a?(Hash)
             raise "AI response must be a JSON object."

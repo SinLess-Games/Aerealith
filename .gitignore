@@ -2,7 +2,7 @@
 # Dependencies
 # -----------------------------------------------------------------------------
 
-/node_modules/
+node_modules/
 
 # pnpm keeps its global store outside the repository by default, but this
 # covers any local package-manager cache that may be created.

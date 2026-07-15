@@ -15,7 +15,7 @@
   url: https://github.com/marketplace/actions/checkout
 
 - name: Set up Node.js
-  uses: actions/setup-node@v6
+  uses: actions/setup-node@v7
   url: https://github.com/marketplace/actions/setup-node-js-environment
 
 - name: Set up pnpm
@@ -35,7 +35,7 @@
   url: https://github.com/marketplace/actions/github-script
 
 - name: Labeler
-  uses: actions/labeler@v6.1.0
+  uses: actions/labeler@v6.2.0
   url: https://github.com/marketplace/actions/labeler
 
 - name: Dependency Review
