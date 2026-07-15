@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test'
 
-test('has title', async ({ page }) => {
-  await page.goto('/')
+test('loads the frontend shell', async ({ page }) => {
+  await page.goto(process.env['BASE_URL'] ?? 'http://localhost:4200/')
 
-  // Expect h1 to contain a substring.
-  expect(await page.locator('h1').innerText()).toContain('Welcome')
+  await expect(page).toHaveTitle('Frontend')
+  await expect(page.locator('#root')).toBeAttached()
+  await expect(page.getByRole('heading', { name: /welcome/i })).toHaveCount(0)
 })
