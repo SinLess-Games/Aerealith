@@ -3,7 +3,7 @@
 
   <a href="https://aerealith.com">
     <img
-      src="apps/frontend/public/images/brand/logos/aerealith-ai-primary-poster.png"
+      src="docs/images/brand/logos/aerealith-ai-primary-poster.png"
       alt="Aerealith AI"
       width="560"
     />

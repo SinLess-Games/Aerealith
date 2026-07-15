@@ -205,7 +205,7 @@ export default async function serviceGenerator(
 
   tree.write(
     `${projectRoot}/Dockerfile`,
-    `FROM node:20-alpine\nWORKDIR /app\nCOPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./\nCOPY apps/services/${serviceName} ./apps/services/${serviceName}\nRUN corepack enable && pnpm install --frozen-lockfile\nCMD ["pnpm", "exec", "tsx", "apps/services/${serviceName}/src/main.ts"]\n`,
+    `FROM node:24-alpine\nWORKDIR /app\nCOPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./\nCOPY apps/services/${serviceName} ./apps/services/${serviceName}\nRUN corepack enable && pnpm install --frozen-lockfile\nCMD ["pnpm", "exec", "tsx", "apps/services/${serviceName}/src/main.ts"]\n`,
   )
 
   tree.write(
