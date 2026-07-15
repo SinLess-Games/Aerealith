@@ -76,6 +76,46 @@ describe('LibreTranslateProvider', () => {
     })
   })
 
+  it('limits concurrent translation requests', async () => {
+    let activeRequests = 0
+    let peakRequests = 0
+    const releases: Array<() => void> = []
+    const fetchMock = vi.fn().mockImplementation(async () => {
+      activeRequests += 1
+      peakRequests = Math.max(peakRequests, activeRequests)
+      await new Promise<void>((resolve) => releases.push(resolve))
+      activeRequests -= 1
+      return new Response(JSON.stringify({ translatedText: 'Hola' }), {
+        status: 200,
+      })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    const provider = new LibreTranslateProvider({ maxConcurrency: 2 })
+    const translate = (text: string) =>
+      provider.translateText({
+        text,
+        sourceLanguage: 'en',
+        targetLanguage: 'es',
+      })
+
+    const translations = [
+      translate('One'),
+      translate('Two'),
+      translate('Three'),
+    ]
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
+    releases.shift()?.()
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3))
+    while (releases.length > 0) releases.shift()?.()
+
+    await expect(Promise.all(translations)).resolves.toEqual([
+      'Hola',
+      'Hola',
+      'Hola',
+    ])
+    expect(peakRequests).toBe(2)
+  })
+
   it('rejects malformed translation responses and non-retriable errors', async () => {
     vi.stubGlobal(
       'fetch',
