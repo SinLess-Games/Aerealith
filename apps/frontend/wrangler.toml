@@ -6,6 +6,9 @@ compatibility_date = "2026-07-08"
 compatibility_flags = ["nodejs_compat"]
 preview_urls = true
 upload_source_maps = true
+routes = [
+  { pattern = "aerealith.com", custom_domain = true },
+]
 
 # ---------------------------------------------------------------
 # Assets
@@ -65,23 +68,4 @@ dataset = "Aerealith"
 # Cache
 # ---------------------------------------------------------------
 [cache]
-enabled = false
-
-[env.production.cache]
 enabled = true
-
-[env.staging.cache]
-enabled = true
-
-
-# ---------------------------------------------------------------
-# Environments
-# ---------------------------------------------------------------
-[env.preview]
-routes = [{ pattern = "preview.aerealith.com", custom_domain = true }]
-
-[env.staging]
-routes = [{ pattern = "staging.aerealith.com", custom_domain = true }]
-
-[env.production]
-routes = [{ pattern = "aerealith.com", custom_domain = true }]
