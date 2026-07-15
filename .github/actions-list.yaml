@@ -18,10 +18,6 @@
   uses: actions/setup-node@v7
   url: https://github.com/marketplace/actions/setup-node-js-environment
 
-- name: Set up pnpm
-  uses: pnpm/action-setup@v6.0.9
-  url: https://github.com/marketplace/actions/setup-pnpm
-
 - name: Cache dependencies and build outputs
   uses: actions/cache@v5.0.5
   url: https://github.com/marketplace/actions/cache
