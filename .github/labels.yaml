@@ -190,6 +190,10 @@
   color: "EDEDED"
   description: "Created or updated by automation, bots, or repository workflows."
 
+- name: "sponsor"
+  color: "FFDD57"
+  description: "Opened by a GitHub Sponsor."
+
 - name: "breaking-change"
   color: "B60205"
   description: "Introduces a behavior, API, schema, or configuration breaking change."

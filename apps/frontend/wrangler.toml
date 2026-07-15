@@ -5,12 +5,50 @@ main = "src/worker.ts"
 compatibility_date = "2026-07-08"
 compatibility_flags = ["nodejs_compat"]
 preview_urls = true
+upload_source_maps = true
+
+# ---------------------------------------------------------------
+# Assets
+# ---------------------------------------------------------------
 
 [assets]
 directory = "../../dist/apps/frontend"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
 run_worker_first = ["/__aerealith/*"]
+
+# ---------------------------------------------------------------
+# Secrets
+# ---------------------------------------------------------------
+
+[secrets]
+required = ["POSTGRES_URL", "PRODUCTION_POSTGRES_URL", "RESEND_API_KEY"]
+
+# ---------------------------------------------------------------
+# Observability
+# ---------------------------------------------------------------
+
+[observability]
+enabled = true
+head_sampling_rate = 1.0
+
+[observability.logs]
+enabled = true
+
+invocation_logs = true
+persist = true
+
+[observability.traces]
+enabled = true
+persist = true
+
+# ---------------------------------------------------------------
+# Bindings
+# ---------------------------------------------------------------
+
+[[queues.producers]]
+binding = "EVENTBUS"
+queue = "events"
 
 [[kv_namespaces]]
 binding = "AEREALITH_KV"
@@ -29,20 +67,11 @@ remote = true
 binding = "AEREALITH_ANALYTICS"
 dataset = "Aerealith"
 
-[observability]
-enabled = true
+# ---------------------------------------------------------------
+# Cache
+# ---------------------------------------------------------------
+[cache]
+enabled = false
 
-[observability.logs]
+[env.production.cache]
 enabled = true
-head_sampling_rate = 1.0
-invocation_logs = true
-persist = true
-
-[observability.traces]
-enabled = true
-head_sampling_rate = 1.0
-persist = true
-
-[[queues.producers]]
-binding = "EVENTBUS"
-queue = "events"

@@ -65,8 +65,8 @@ jobs:
           # Fail early with a useful message when the configured label does not
           # exist. This workflow intentionally never creates repository labels.
           if ! gh api "/repos/${REPOSITORY}/labels/${LABEL}" >/dev/null; then
-            echo "::error::The repository label '${LABEL}' does not exist."
-            exit 1
+            echo "::notice::The repository label '${LABEL}' does not exist, so sponsor labeling was skipped."
+            exit 0
           fi
 
           existing_labels="$(gh api "/repos/${REPOSITORY}/issues/${ITEM_NUMBER}/labels")"
@@ -136,8 +136,8 @@ jobs:
             if ! jq -e \
               '.data.repositoryOwner != null and .data.repositoryOwner.sponsorships != null' \
               <<< "$response" >/dev/null; then
-              echo "::error::Unable to read GitHub Sponsors data for '${REPOSITORY_OWNER}'."
-              exit 1
+              echo "::notice::Unable to read GitHub Sponsors data for '${REPOSITORY_OWNER}', so sponsor labeling was skipped."
+              exit 0
             fi
 
             if jq -e --arg author_id "$ITEM_AUTHOR_NODE_ID" \
@@ -160,8 +160,8 @@ jobs:
               <<< "$response")"
 
             if [[ -z "$cursor" || "$cursor" == 'null' ]]; then
-              echo "::error::GitHub returned an invalid sponsorship pagination cursor."
-              exit 1
+              echo "::notice::GitHub returned an invalid sponsorship pagination cursor, so sponsor labeling was skipped."
+              exit 0
             fi
           done
 
