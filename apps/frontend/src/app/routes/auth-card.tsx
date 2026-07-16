@@ -16,25 +16,17 @@ export function AuthCard({
 }) {
   return (
     <section className='mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-16'>
-      <div className='rounded-2xl border border-[var(--ae-border)] bg-[var(--ae-surface)] p-8 shadow-[var(--ae-shadow-md)]'>
+      <div className='rounded-2xl border border-[var(--ae-border)] p-8'>
         <h1
           className='text-2xl font-bold'
           style={{ fontFamily: 'var(--ae-font-heading)' }}
         >
           {title}
         </h1>
-        {subtitle ? (
-          <p className='mt-2 text-sm text-[var(--ae-foreground-muted)]'>
-            {subtitle}
-          </p>
-        ) : null}
+        {subtitle ? <p className='mt-2 text-sm'>{subtitle}</p> : null}
         <div className='mt-6'>{children}</div>
       </div>
-      {footer ? (
-        <p className='mt-6 text-center text-sm text-[var(--ae-foreground-muted)]'>
-          {footer}
-        </p>
-      ) : null}
+      {footer ? <p className='mt-6 text-center text-sm'>{footer}</p> : null}
     </section>
   )
 }

@@ -17,22 +17,20 @@ export function AboutRoute() {
         >
           {AboutHeader}
         </h1>
-        <p className='mt-6 text-base leading-relaxed text-[var(--ae-foreground-muted)]'>
-          {AboutDescription}
-        </p>
+        <p className='mt-6 text-base leading-relaxed'>{AboutDescription}</p>
       </header>
 
       <div className='mt-14 grid gap-6 sm:grid-cols-2'>
         {aboutContent.map((section) => (
           <article
             key={section.title}
-            className='rounded-xl border border-[var(--ae-border)] bg-[var(--ae-surface)] p-6 shadow-[var(--ae-shadow-sm)]'
+            className='rounded-xl border border-[var(--ae-border)] p-6'
           >
             <h2 className='flex items-center gap-2 text-lg font-semibold'>
               <span aria-hidden='true'>{section.icon}</span>
               {section.title}
             </h2>
-            <div className='mt-3 space-y-3 text-sm leading-relaxed text-[var(--ae-foreground-muted)]'>
+            <div className='mt-3 space-y-3 text-sm leading-relaxed'>
               {section.paragraphs.map((paragraph) => (
                 <p key={paragraph.slice(0, 32)}>{paragraph}</p>
               ))}

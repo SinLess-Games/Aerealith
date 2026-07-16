@@ -26,10 +26,7 @@ export function SignUpRoute() {
       subtitle='Start with a trust-first command center for your digital life.'
       footer={
         <>
-          Already have an account?{' '}
-          <Link to='/sign-in' className='text-[var(--ae-link)]'>
-            Sign in
-          </Link>
+          Already have an account? <Link to='/sign-in'>Sign in</Link>
         </>
       }
     >
@@ -72,13 +69,11 @@ export function SignUpRoute() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
-          <p className='text-xs text-[var(--ae-foreground-subtle)]'>
-            At least 8 characters.
-          </p>
+          <p className='text-xs'>At least 8 characters.</p>
         </div>
 
         {isError ? (
-          <p role='alert' className='text-sm text-[var(--ae-danger)]'>
+          <p role='alert' className='text-sm'>
             {error.message}
           </p>
         ) : null}

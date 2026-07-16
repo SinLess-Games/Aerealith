@@ -1,4 +1,8 @@
-import type { ComponentPropsWithoutRef, CSSProperties } from 'react'
+import {
+  useSyncExternalStore,
+  type ComponentPropsWithoutRef,
+  type CSSProperties,
+} from 'react'
 
 import { cn } from '../lib/cn'
 
@@ -6,9 +10,9 @@ export type BackgroundMode = 'auto' | 'light' | 'dark'
 
 export interface BackgroundProps extends ComponentPropsWithoutRef<'div'> {
   /** The image used in light mode and as the default image. */
-  image: string
+  lightImage: string
 
-  /** The image used in dark mode. Falls back to `image` when omitted. */
+  /** The image used in dark mode. Falls back to `lightImage` when omitted. */
   darkImage?: string
 
   /** Whether to follow the OS theme or force a particular image. */
@@ -30,16 +34,18 @@ export function Background({
   children,
   className,
   darkImage,
-  image,
+  lightImage,
   mode = 'auto',
   style,
   ...props
 }: BackgroundProps) {
-  const lightImage = toCssUrl(image)
-  const resolvedDarkImage = toCssUrl(darkImage ?? image)
+  const resolvedTheme = useResolvedTheme(mode)
+  const resolvedLightImage = toCssUrl(lightImage)
+  const resolvedDarkImage = toCssUrl(darkImage ?? lightImage)
+
   const backgroundStyle: BackgroundStyle = {
     ...style,
-    '--ae-background-image': lightImage,
+    '--ae-background-image': resolvedLightImage,
     '--ae-background-image-dark': resolvedDarkImage,
   }
 
@@ -47,13 +53,60 @@ export function Background({
     <div
       {...props}
       className={cn('ae-background bg-cover bg-center bg-no-repeat', className)}
-      data-mode={mode}
+      data-mode={resolvedTheme}
       data-slot='background'
       style={backgroundStyle}
     >
       {children}
     </div>
   )
+}
+
+function useResolvedTheme(mode: BackgroundMode): BackgroundMode {
+  return useSyncExternalStore(
+    (onStoreChange) =>
+      mode === 'auto'
+        ? subscribeToThemeChanges(onStoreChange)
+        : () => undefined,
+    () => (mode === 'auto' ? resolveTheme() : mode),
+    () => (mode === 'auto' ? 'light' : mode),
+  )
+}
+
+function subscribeToThemeChanges(onStoreChange: () => void) {
+  const root = document.documentElement
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+  const observer = new MutationObserver(onStoreChange)
+
+  observer.observe(root, {
+    attributeFilter: ['data-theme'],
+    attributes: true,
+  })
+
+  mediaQuery.addEventListener('change', onStoreChange)
+
+  return () => {
+    observer.disconnect()
+    mediaQuery.removeEventListener('change', onStoreChange)
+  }
+}
+
+function resolveTheme(): BackgroundMode {
+  if (typeof document !== 'undefined') {
+    const documentTheme = document.documentElement.dataset.theme
+
+    if (documentTheme === 'light' || documentTheme === 'dark') {
+      return documentTheme
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light'
+  }
+
+  return 'light'
 }
 
 function toCssUrl(image: string): string {

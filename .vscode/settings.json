@@ -160,5 +160,8 @@
   "sonarlint.connectedMode.project": {
     "connectionId": "sinless-games",
     "projectKey": "SinLess-Games_Aerealith"
+  },
+  "chat.tools.terminal.autoApprove": {
+    "pnpm": true
   }
 }

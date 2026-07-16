@@ -22,7 +22,7 @@ export function PolicyRoute() {
       >
         {policy.meta.title}
       </h1>
-      <p className='mt-3 text-sm text-[var(--ae-foreground-subtle)]'>
+      <p className='mt-3 text-sm'>
         Effective {policy.meta.effectiveDate} · Last updated{' '}
         {policy.meta.lastUpdated}
       </p>
@@ -32,29 +32,26 @@ export function PolicyRoute() {
           <section key={section.id}>
             <h2 className='text-lg font-semibold'>{section.title}</h2>
             {section.body?.map((paragraph, index) => (
-              <p
-                key={index}
-                className='mt-3 text-sm leading-relaxed text-[var(--ae-foreground-muted)]'
-              >
+              <p key={index} className='mt-3 text-sm leading-relaxed'>
                 {paragraph}
               </p>
             ))}
             {section.bullets ? (
-              <ul className='mt-3 list-disc space-y-1 pl-6 text-sm text-[var(--ae-foreground-muted)]'>
+              <ul className='mt-3 list-disc space-y-1 pl-6 text-sm'>
                 {section.bullets.map((bullet) => (
                   <li key={bullet}>{bullet}</li>
                 ))}
               </ul>
             ) : null}
             {section.orderedItems ? (
-              <ol className='mt-3 list-decimal space-y-1 pl-6 text-sm text-[var(--ae-foreground-muted)]'>
+              <ol className='mt-3 list-decimal space-y-1 pl-6 text-sm'>
                 {section.orderedItems.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ol>
             ) : null}
             {section.note ? (
-              <p className='mt-3 rounded-md border border-[var(--ae-border-subtle)] bg-[var(--ae-surface-muted)] p-3 text-sm text-[var(--ae-foreground-muted)]'>
+              <p className='mt-3 rounded-md border border-[var(--ae-border-subtle)] p-3 text-sm'>
                 {section.note}
               </p>
             ) : null}

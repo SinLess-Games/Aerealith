@@ -25,10 +25,7 @@ export function SignInRoute() {
       subtitle='Sign in to your Aerealith account.'
       footer={
         <>
-          New here?{' '}
-          <Link to='/sign-up' className='text-[var(--ae-link)]'>
-            Create an account
-          </Link>
+          New here? <Link to='/sign-up'>Create an account</Link>
         </>
       }
     >
@@ -58,7 +55,7 @@ export function SignInRoute() {
         </div>
 
         {isError ? (
-          <p role='alert' className='text-sm text-[var(--ae-danger)]'>
+          <p role='alert' className='text-sm'>
             {error.message}
           </p>
         ) : null}

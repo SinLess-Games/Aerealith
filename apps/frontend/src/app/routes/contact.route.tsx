@@ -17,19 +17,17 @@ export function ContactRoute() {
         >
           {ContactHeader}
         </h1>
-        <p className='mt-6 text-base leading-relaxed text-[var(--ae-foreground-muted)]'>
-          {ContactDescription}
-        </p>
+        <p className='mt-6 text-base leading-relaxed'>{ContactDescription}</p>
       </header>
 
       <div className='mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
         {contactOptions.map((option) => (
           <article
             key={option.title}
-            className='flex flex-col rounded-xl border border-[var(--ae-border)] bg-[var(--ae-surface)] p-6'
+            className='flex flex-col rounded-xl border border-[var(--ae-border)] p-6'
           >
             <h2 className='text-lg font-semibold'>{option.title}</h2>
-            <p className='mt-2 flex-1 text-sm leading-relaxed text-[var(--ae-foreground-muted)]'>
+            <p className='mt-2 flex-1 text-sm leading-relaxed'>
               {option.description}
             </p>
             <a
@@ -40,7 +38,7 @@ export function ContactRoute() {
                   ? 'noopener noreferrer'
                   : undefined
               }
-              className='mt-4 inline-flex min-h-9 items-center justify-center rounded-md bg-[var(--ae-primary)] px-4 text-sm font-medium text-[var(--ae-starlight)] transition-colors hover:bg-[var(--ae-primary-hover)]'
+              className='mt-4 inline-flex min-h-9 items-center justify-center rounded-md px-4 text-sm font-medium transition-colors'
             >
               {option.buttonText}
             </a>

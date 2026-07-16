@@ -4,11 +4,10 @@ import { NavLink } from 'react-router'
 
 import { useLogout, useSession } from '../../features/auth/use-session'
 
-const linkClass =
-  'rounded-md px-3 py-2 text-sm font-medium text-[var(--ae-foreground-muted)] transition-colors hover:text-[var(--ae-foreground)]'
+const linkClass = 'rounded-md px-3 py-2 text-sm font-medium transition-colors'
 
 const buttonClass =
-  'rounded-md border border-[var(--ae-border)] bg-[var(--ae-control)] px-3 py-2 text-sm font-medium text-[var(--ae-foreground)] transition-colors hover:bg-[var(--ae-control-hover)]'
+  'rounded-md border border-[var(--ae-border)] px-3 py-2 text-sm font-medium transition-colors'
 
 /**
  * The right-hand auth area of the site header. Reflects the current session:
@@ -35,9 +34,7 @@ export function HeaderAuthNav() {
         <NavLink to='/app' className={linkClass}>
           Dashboard
         </NavLink>
-        <span className='hidden text-sm text-[var(--ae-foreground-muted)] sm:inline'>
-          {user.username}
-        </span>
+        <span className='hidden text-sm sm:inline'>{user.username}</span>
         <button
           type='button'
           className={buttonClass}

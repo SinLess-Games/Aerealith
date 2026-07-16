@@ -20,8 +20,8 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
  */
 export function PublicLayout() {
   return (
-    <div className='flex min-h-screen flex-col bg-[var(--ae-background-gradient)] text-[var(--ae-foreground)]'>
-      <header className='sticky top-0 z-10 border-b border-[var(--ae-border-subtle)] bg-[var(--ae-glass-background)] backdrop-blur'>
+    <div className='flex min-h-screen flex-col'>
+      <header className='sticky top-0 z-10 border-b border-[var(--ae-border-subtle)]'>
         <div className='mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-6 py-4'>
           <NavLink to='/' className='flex items-center gap-3'>
             <img
@@ -53,10 +53,10 @@ export function PublicLayout() {
               Contact
             </NavLink>
             <a
-              href='https://github.com/SinLess-Games/Helix'
+              href='https://github.com/SinLess-Games/Aerealith'
               target='_blank'
               rel='noopener noreferrer'
-              className='rounded-md px-3 py-2 text-sm font-medium text-[var(--ae-foreground-muted)] transition-colors hover:text-[var(--ae-foreground)]'
+              className='rounded-md px-3 py-2 text-sm font-medium transition-colors'
             >
               GitHub
             </a>
@@ -73,22 +73,16 @@ export function PublicLayout() {
       </main>
 
       <footer className='border-t border-[var(--ae-border-subtle)]'>
-        <div className='mx-auto flex w-full max-w-6xl flex-col gap-3 px-6 py-8 text-sm text-[var(--ae-foreground-subtle)] sm:flex-row sm:items-center sm:justify-between'>
+        <div className='mx-auto flex w-full max-w-6xl flex-col gap-3 px-6 py-8 text-sm sm:flex-row sm:items-center sm:justify-between'>
           <span>
             © {new Date().getFullYear()} Aerealith AI · Reduce digital
             complexity without reducing user control.
           </span>
           <nav className='flex items-center gap-4' aria-label='Legal'>
-            <NavLink
-              to='/policies/terms-of-use'
-              className='hover:text-[var(--ae-foreground)]'
-            >
+            <NavLink to='/policies/terms-of-use' className='hover:underline'>
               Terms
             </NavLink>
-            <NavLink
-              to='/policies/privacy'
-              className='hover:text-[var(--ae-foreground)]'
-            >
+            <NavLink to='/policies/privacy' className='hover:underline'>
               Privacy
             </NavLink>
           </nav>

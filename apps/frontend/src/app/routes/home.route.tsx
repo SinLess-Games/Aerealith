@@ -7,7 +7,7 @@ import { Button } from '@aerealith-ai/ui'
 export function HomeRoute() {
   return (
     <section className='mx-auto flex w-full max-w-4xl flex-1 flex-col items-center justify-center px-6 py-20 text-center'>
-      <span className='mb-4 rounded-full border border-[var(--ae-border)] bg-[var(--ae-surface)] px-4 py-1.5 text-sm text-[var(--ae-foreground-muted)]'>
+      <span className='mb-4 rounded-full border border-[var(--ae-border)] px-4 py-1.5 text-sm'>
         Trust-first · human-approved · revocable
       </span>
       <h1
@@ -16,7 +16,7 @@ export function HomeRoute() {
       >
         {HERO_DATA.title}
       </h1>
-      <p className='mt-6 max-w-2xl text-base leading-relaxed text-[var(--ae-foreground-muted)] sm:text-lg'>
+      <p className='mt-6 max-w-2xl text-base leading-relaxed sm:text-lg'>
         {HERO_DATA.subtitle}
       </p>
       <div className='mt-10 flex flex-wrap items-center justify-center gap-4'>
