@@ -4,8 +4,8 @@
   "license": "MIT",
   "private": true,
   "engines": {
-    "node": "25.9.0",
-    "pnpm": "11.5.2"
+    "node": "26.5.0",
+    "pnpm": "11.13.1"
   },
   "nx": {
     "includedScripts": []
@@ -147,5 +147,5 @@
     "tailwind-merge": "^3.6.0",
     "zod": "^4.4.3"
   },
-  "packageManager": "pnpm@11.5.2+sha512.71c631e382066efc25625d5cf029075de07b61b37f6e27350fbd84b1bda5864c8c1967adc280776b45c30a715c0359a3be08fef42d5bb09e2b99029979692916"
+  "packageManager": "pnpm@11.13.1"
 }

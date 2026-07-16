@@ -1,9 +1,7 @@
 /// <reference types='vitest' />
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
 import tailwindcss from '@tailwindcss/vite'
-import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin'
-import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin'
+import react from "@vitejs/plugin-react"
+import { defineConfig } from 'vite'
 
 export default defineConfig(() => ({
   root: import.meta.dirname,
@@ -12,15 +10,16 @@ export default defineConfig(() => ({
     port: 4200,
     host: 'localhost',
   },
+  resolve: {
+    tsconfigPaths: true
+  },
   preview: {
     port: 4200,
     host: 'localhost',
   },
   plugins: [
     react(),
-    tailwindcss(),
-    nxViteTsPaths(),
-    nxCopyAssetsPlugin(['*.md']),
+    tailwindcss()
   ],
   // Uncomment this if you are using workers.
   // worker: {

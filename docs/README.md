@@ -1,210 +1,236 @@
 # Aerealith AI Documentation
 
-Aerealith AI is the operating system for your digital life.
+Status: Active
+Owner: SinLess Games LLC
+Last Updated: 2026-07-15
+Document Type: Documentation Index
+Authority: Canonical navigation and documentation-authority map
 
-It is a modular platform designed to bring a scattered online world into a single manageable place by unifying applications, communities, devices, services, workflows, automation, and AI assistance into one secure, customizable, and user-controlled ecosystem.
+## Purpose
 
-**Tagline:** One Platform. Infinite Possibilities.
+This file is the front door for Aerealith documentation.
 
----
+It explains where information belongs, which sources are authoritative, how
+documents are classified, and which reading path a contributor should follow.
+It is intentionally an index rather than a second product or architecture
+specification.
 
-## What This Documentation Is
+Aerealith documentation answers eight questions:
 
-This documentation is the source of truth for the Aerealith AI project.
+1. Why does Aerealith exist?
+2. What are we building for users?
+3. How is the platform designed?
+4. What implementation rules are binding?
+5. Why were important choices made?
+6. How is Aerealith operated and recovered?
+7. What is being delivered now?
+8. Where are exact registries and generated facts recorded?
 
-It explains:
-
-- why Aerealith exists
-- what Aerealith is intended to become
-- how the platform is organized
-- how releases are planned
-- how services, modules, and integrations should be designed
-- how contributors should make decisions
-- how the project should remain secure, modular, auditable, and maintainable
-
-These documents should grow with the platform.
-
----
-
-## Where to Start
-
-Start with the vision documents first.
+## Canonical Structure
 
 ```text
-docs/
-├── README.md
-├── vision/
-├── product/
-├── architecture/
-├── engineering/
-├── releases/
-├── rfcs/
-├── services/
-├── modules/
-└── operations/
+README.md
+│
+├── docs/README.md                  Navigation and authority
+├── docs/STACK.md                   Approved technology source of truth
+│
+├── docs/vision/                    Why
+├── docs/product/                   What
+├── docs/architecture/              How
+├── docs/engineering/               Required implementation rules
+├── docs/decisions/                 Why major choices were made
+├── docs/operations/                How to run and recover it
+├── docs/releases/                  What is being delivered
+├── docs/reference/                 Exact facts and registries
+└── docs/archive/                   Historical material
+
+apps/**/README.md                   Application-specific contract
+libs/**/README.md                   Library-specific contract
+tools/**/README.md                  Tool-specific contract
 ```
 
-Recommended reading order:
+## Authority Order
+
+When two sources disagree, use this order:
+
+1. Accepted or active records in [`docs/decisions/`](./decisions/).
+2. [`docs/STACK.md`](./STACK.md) for approved technologies and implementation
+   status.
+3. Active architecture documents.
+4. Active engineering standards.
+5. Active product and operations documentation.
+6. Project-local README files.
+7. Release plans.
+8. Historical, archived, or generated material.
+9. Code comments and scaffolding text.
+
+The repository remains authoritative for exact installed package versions,
+existing paths, and executable behavior. Documentation must not claim that a
+technology, service, module, or route is implemented without repository
+evidence.
+
+## Status Model
+
+| Status     | Meaning                                               |
+| ---------- | ----------------------------------------------------- |
+| Draft      | Incomplete and not authoritative.                     |
+| Proposed   | Complete enough for review but not approved.          |
+| Accepted   | Approved direction; implementation may be incomplete. |
+| Active     | Describes current authoritative behavior.             |
+| Deprecated | Present temporarily but must not guide new work.      |
+| Superseded | Replaced by another document or decision.             |
+| Rejected   | Considered and intentionally declined.                |
+| Archived   | Retained only for history.                            |
+
+The essential distinction is:
 
 ```text
-1. docs/README.md
-2. docs/vision/PROJECT_VISION.md
-3. docs/vision/GUIDING_PRINCIPLES.md
-4. docs/product/PRODUCT_OVERVIEW.md
-5. docs/architecture/SYSTEM_ARCHITECTURE.md
-6. docs/releases/0.1/README.md
+Accepted does not mean implemented.
+Active means current truth.
 ```
-
----
 
 ## Documentation Sections
 
-### `vision/`
+### [`vision/`](./vision/)
 
-Defines why Aerealith exists.
+Explains why Aerealith exists and what must remain true as the platform grows.
 
-This includes the project vision, mission, long-term direction, platform philosophy, and guiding principles.
+Vision documents cover mission, values, trust, positioning, product philosophy,
+manifesto, and long-term direction. They do not define package versions,
+directory layouts, API shapes, or release tasks.
 
-### `product/`
+### [`product/`](./product/)
 
-Defines what Aerealith does.
+Explains what users experience.
 
-This includes product areas, user personas, platform capabilities, Discord features, AI features, workflows, modules, and user-facing behavior.
+Product documentation defines personas, capabilities, Discord behavior,
+assistant behavior, workflows, dashboards, integrations, modules, and scope.
+Each capability must be labeled as current, accepted, planned, or out of scope.
 
-### `architecture/`
+### [`architecture/`](./architecture/)
 
-Defines how Aerealith is built.
+Explains how the system is designed.
 
-This includes system architecture, frontend architecture, service architecture, database design, API strategy, observability, deployment, and security models.
+Start with
+[`Current Architecture.md`](./architecture/Current%20Architecture.md), which
+describes only what exists today. Other architecture documents may describe an
+accepted target state, but they must separate that target from current
+implementation.
 
-### `engineering/`
+### [`engineering/`](./engineering/)
 
-Defines how Aerealith is developed.
+Defines rules contributors must follow.
 
-This includes coding standards, Nx workspace rules, testing strategy, release process, CI/CD rules, TypeScript standards, and contribution expectations.
+Engineering standards cover local development, code style, TypeScript, testing,
+monorepo boundaries, dependencies, package management, configuration, secrets,
+containers, Cloudflare, documentation, security, Git workflow, and releases.
 
-### `releases/`
+A standard marked `Draft` is not mandatory. A standard marked `Active` is
+binding.
 
-Defines planned release milestones.
+### [`decisions/`](./decisions/)
 
-Each release should describe goals, scope, dependencies, implementation work, testing requirements, exit criteria, and definition of done.
+Records why major choices were made and resolves conflicts between other
+documents.
 
-### `rfcs/`
+Decision records are stable history. A material reversal requires a new
+decision that supersedes the old record rather than silently rewriting the
+past.
 
-Stores major technical and product decisions.
+### [`operations/`](./operations/)
 
-RFCs are used when a decision is important enough to affect long-term architecture, product behavior, security, extensibility, or contributor expectations.
+Explains how Aerealith is deployed, observed, supported, recovered, and rolled
+back.
 
-### `services/`
+Operational documents must identify prerequisites, access requirements, risks,
+steps, verification, rollback, audit requirements, and ownership.
 
-Documents deployable services.
+### [`releases/`](./releases/)
 
-Each service should describe its purpose, routes, contracts, events, permissions, configuration, database usage, errors, and deployment requirements.
+Tracks what is being delivered and what each release must prove.
 
-### `modules/`
+Release documents may reference permanent decisions but must not redefine them.
+Completed releases become historical delivery records.
 
-Documents platform modules.
+### [`reference/`](./reference/)
 
-Modules are optional capabilities that can be enabled, disabled, configured, extended, and versioned.
+Contains exact facts and registries.
 
-### `operations/`
+Reference material should be precise, searchable, and generated where
+practical. Examples include project inventories, environment variables, route
+registries, error codes, permissions, events, modules, and service catalogs.
 
-Documents how Aerealith is operated.
+### [`archive/`](./archive/)
 
-This includes observability, incident response, backups, recovery, deployments, monitoring, support, and reliability practices.
+Contains superseded, rejected, or historical material.
 
----
+Archived material must not guide new work. Every archived document must state
+why it was archived and identify its replacement when one exists.
 
-## Core Platform Philosophy
+## Recommended Reading Paths
 
-Aerealith AI exists because application sprawl has made the modern digital world too fragmented and complex to manage effectively.
+### New Contributor
 
-Aerealith should unify that complexity without taking control away from the user.
+1. [`README.md`](../README.md)
+2. [`docs/README.md`](./README.md)
+3. [`docs/STACK.md`](./STACK.md)
+4. [`Current Architecture.md`](./architecture/Current%20Architecture.md)
+5. [`Local Development.md`](./engineering/Local%20Development.md)
+6. [`Monorepo Rules.md`](./engineering/Monorepo%20Rules.md)
+7. [`Testing.md`](./engineering/Testing.md)
 
-The platform should:
+### Product Contributor
 
-- ask first
-- verify intent
-- execute approved actions
-- explain what happened
-- remain auditable
-- offer automation only after repeated user-approved patterns
-- allow users to revoke automation at any time
+1. [`Vision.md`](./vision/Vision.md)
+2. [`Product Overview.md`](./product/Product%20Overview.md)
+3. [`MVP Scope.md`](./product/MVP%20Scope.md)
+4. [`User Personas.md`](./product/User%20Personas.md)
+5. Current release documentation
 
-Automation in Aerealith is earned through trust, not assumed by default.
+### Backend Contributor
 
----
+1. [`docs/STACK.md`](./STACK.md)
+2. [`Current Architecture.md`](./architecture/Current%20Architecture.md)
+3. [`API Architecture.md`](./architecture/API%20Architecture.md)
+4. [`Service Architecture.md`](./architecture/Service%20Architecture.md)
+5. [`Data Architecture.md`](./architecture/Data%20Architecture.md)
+6. Relevant accepted decisions
+7. Engineering standards
 
-## Guiding Principles
+### Discord Contributor
 
-Every part of Aerealith should follow these principles:
+1. [`Discord Platform.md`](./product/Discord%20Platform.md)
+2. [`Discord Architecture.md`](./architecture/Discord%20Architecture.md)
+3. [`DEC-002`](./decisions/DEC-002-discord-mvp-module-scope.md)
+4. [`DEC-014`](./decisions/DEC-014-mvp-persona-priority.md)
+5. Dependency, testing, environment, and secrets standards
 
-1. Never assume correctness.
-2. Never take unapproved actions.
-3. Always be auditable.
-4. Always be helpful.
-5. Enhance, never replace.
-6. Simple beats clever.
-7. Security over convenience; convenience over lockdown.
-8. The user always owns their data.
-9. Every action is reversible when possible.
-10. Never encourage harm.
-11. Respect user intent.
+### Operator
 
----
+1. [`Current Architecture.md`](./architecture/Current%20Architecture.md)
+2. [`docs/operations/README.md`](./operations/README.md)
+3. Deployment and rollback procedures
+4. Monitoring and incident response
+5. Backup and recovery
+6. Secrets and access recovery
 
-## Primary Launch Audience
+## Current Documentation Priorities
 
-Aerealith AI will initially focus on:
+The documentation system is considered healthy when:
 
-- individuals managing complex digital lives
-- communities managing online spaces, especially Discord communities
+- Every significant document has status, owner, and review metadata.
+- Every internal link resolves on a case-sensitive filesystem.
+- Current implementation is separated from accepted target architecture.
+- Release tracking matches repository reality.
+- No active document cites deleted RFCs as authority.
+- Project-local README files describe real project contracts.
+- Commands shown in documentation exist in package scripts or Nx targets.
+- Decision records are linked from affected architecture and release documents.
+- CI validates Markdown, links, metadata, and generated references.
 
-Over time, Aerealith should also serve:
+## Contribution Rule
 
-- developers
-- creators
-- organizations
-- businesses
-- infrastructure operators
-- self-hosted communities
+Cross-project concepts belong in `docs/`.
 
----
-
-## What Aerealith Is Not
-
-Aerealith AI is not:
-
-- another ChatGPT wrapper
-- another Discord bot
-- another automation platform
-- another password manager
-- another cloud storage provider
-
-Aerealith may include capabilities in these areas, but its purpose is larger: to become a secure, intelligent, modular control center for the user's digital ecosystem.
-
----
-
-## Long-Term Direction
-
-Aerealith should become a platform that combines the strengths of extensible systems like VS Code and community-driven systems like Home Assistant.
-
-The core platform should remain stable, secure, and trusted.
-
-The ecosystem should eventually support:
-
-- first-party modules
-- third-party modules
-- integrations
-- workflows
-- themes
-- AI skills
-- developer tools
-- marketplace packages
-- self-hosted deployments
-
----
-
-## Success Standard
-
-Aerealith succeeds when people trust it with the most important parts of their digital lives, and it consistently earns that trust by remaining transparent, secure, customizable, and always putting the user in control.
+Project-specific setup, commands, exports, dependencies, and deployment behavior
+belong in the README beside that project.

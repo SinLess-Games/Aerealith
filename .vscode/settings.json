@@ -148,7 +148,7 @@
     "editor.wordWrap": "off",
     "editor.rulers": [80, 120],
     "editor.minimap.enabled": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "yzhang.markdown-all-in-one"
   },
 
   "json.schemaDownload.enable": true,

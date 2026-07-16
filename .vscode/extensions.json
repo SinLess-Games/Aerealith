@@ -3,6 +3,8 @@
     "nrwl.angular-console",
     "esbenp.prettier-vscode",
     "dbaeumer.vscode-eslint",
-    "ms-playwright.playwright"
+    "ms-playwright.playwright",
+    "yzhang.markdown-all-in-one",
+    "darkriszty.markdown-table-prettify"
   ]
 }

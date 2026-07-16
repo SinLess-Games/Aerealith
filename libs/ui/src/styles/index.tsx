@@ -1,15 +1,15 @@
 // libs/ui/src/styles/index.ts
 
+import accessibility from './accessibility.css?url'
 import colors from './colors.css?url'
 import fonts from './fonts.css?url'
 import globals from './globals.css?url'
-import themes from './themes.css?url'
-import typography from './typography.css?url'
-import utilities from './utilities.css?url'
-import accessibility from './accessibility.css?url'
 import highContrast from './high-contrast.css?url'
 import readingComfort from './reading-comfort.css?url'
 import reducedMotion from './reduced-motion.css?url'
+import themes from './themes.css?url'
+import typography from './typography.css?url'
+import utilities from './utilities.css?url'
 
 /**
  * Aerealith UI stylesheet asset URLs.
@@ -48,3 +48,4 @@ export const AerealithStyleOrder = [
 ] as const
 
 export type AerealithStyleName = keyof typeof AerealithStyles
+export * from './theme-provider'
