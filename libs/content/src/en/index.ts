@@ -14,11 +14,11 @@ import { footerProps } from './footer'
 import {
   HERO_DATA,
   INVESTOR_VIDEO,
-  crowdfundingSection,
-  differentSection,
+  atAGlanceSection,
+  communityFundingSection,
   faqSection,
-  homeSections,
   pricingPreviewSection,
+  whyAerealithAiSection,
 } from './home'
 import { englishPolicies } from './policies'
 import { profileEditOptions, profileScaffoldContent } from './profile'
@@ -48,9 +48,9 @@ export const englishContent = {
   home: {
     hero: HERO_DATA,
     investorVideo: INVESTOR_VIDEO,
-    sections: homeSections,
-    crowdfunding: crowdfundingSection,
-    different: differentSection,
+    atAGlance: atAGlanceSection,
+    crowdfunding: communityFundingSection,
+    different: whyAerealithAiSection,
     faq: faqSection,
     pricing: pricingPreviewSection,
   },

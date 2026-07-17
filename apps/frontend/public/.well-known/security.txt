@@ -1,0 +1,5 @@
+Contact: mailto:security@aerealith.ai
+Preferred-Languages: en
+Canonical: https://aerealith.ai/.well-known/security.txt
+Policy: https://aerealith.ai/security
+Expires: 2027-07-16T00:00:00.000Z

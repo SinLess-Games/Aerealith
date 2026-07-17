@@ -1,0 +1,180 @@
+# ============================================================
+# Aerealith static asset headers
+# Supported by Cloudflare Pages and Netlify.
+#
+# Vite copies this file from:
+#   public/_headers
+#
+# Into:
+#   dist/_headers
+# ============================================================
+
+
+# ------------------------------------------------------------
+# JPEG images
+# ------------------------------------------------------------
+
+/*.jpg
+  Content-Type: image/jpeg
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.jpeg
+  Content-Type: image/jpeg
+  Cache-Control: public, max-age=31536000, immutable
+
+
+# ------------------------------------------------------------
+# PNG images
+# ------------------------------------------------------------
+
+/*.png
+  Content-Type: image/png
+  Cache-Control: public, max-age=31536000, immutable
+
+
+# ------------------------------------------------------------
+# GIF images
+# ------------------------------------------------------------
+
+/*.gif
+  Content-Type: image/gif
+  Cache-Control: public, max-age=31536000, immutable
+
+
+# ------------------------------------------------------------
+# WebP images
+# ------------------------------------------------------------
+
+/*.webp
+  Content-Type: image/webp
+  Cache-Control: public, max-age=31536000, immutable
+
+
+# ------------------------------------------------------------
+# AVIF images
+# ------------------------------------------------------------
+
+/*.avif
+  Content-Type: image/avif
+  Cache-Control: public, max-age=31536000, immutable
+
+
+# ------------------------------------------------------------
+# SVG images
+# ------------------------------------------------------------
+
+/*.svg
+  Content-Type: image/svg+xml
+  Cache-Control: public, max-age=31536000, immutable
+
+
+# ------------------------------------------------------------
+# ICO files
+# ------------------------------------------------------------
+
+/*.ico
+  Content-Type: image/x-icon
+  Cache-Control: public, max-age=604800
+
+
+# ------------------------------------------------------------
+# MP4 video
+# ------------------------------------------------------------
+
+/*.mp4
+  Content-Type: video/mp4
+  Cache-Control: public, max-age=31536000, immutable
+  Accept-Ranges: bytes
+
+
+# ------------------------------------------------------------
+# WebM video
+# ------------------------------------------------------------
+
+/*.webm
+  Content-Type: video/webm
+  Cache-Control: public, max-age=31536000, immutable
+  Accept-Ranges: bytes
+
+
+# ------------------------------------------------------------
+# Ogg video
+# ------------------------------------------------------------
+
+/*.ogv
+  Content-Type: video/ogg
+  Cache-Control: public, max-age=31536000, immutable
+  Accept-Ranges: bytes
+
+
+# ------------------------------------------------------------
+# QuickTime video
+# ------------------------------------------------------------
+
+/*.mov
+  Content-Type: video/quicktime
+  Cache-Control: public, max-age=31536000, immutable
+  Accept-Ranges: bytes
+
+
+# ------------------------------------------------------------
+# MPEG video
+# ------------------------------------------------------------
+
+/*.mpeg
+  Content-Type: video/mpeg
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.mpg
+  Content-Type: video/mpeg
+  Cache-Control: public, max-age=31536000, immutable
+
+
+# ------------------------------------------------------------
+# JSON files
+# ------------------------------------------------------------
+
+/*.json
+  Content-Type: application/json; charset=utf-8
+  Cache-Control: public, max-age=3600
+
+
+# ------------------------------------------------------------
+# Web manifest
+# ------------------------------------------------------------
+
+/*.webmanifest
+  Content-Type: application/manifest+json; charset=utf-8
+  Cache-Control: public, max-age=86400
+
+
+# ------------------------------------------------------------
+# Fonts
+# ------------------------------------------------------------
+
+/*.woff
+  Content-Type: font/woff
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+/*.woff2
+  Content-Type: font/woff2
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+# ------------------------------------------------------------
+# Caption files
+# ------------------------------------------------------------
+/*.vtt
+  Content-Type: text/vtt; charset=utf-8
+  Cache-Control: public, max-age=31536000, immutable
+
+# ------------------------------------------------------------
+# Default security headers
+# ------------------------------------------------------------
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
+  Permissions-Policy: camera=(), microphone=(), geolocation=()

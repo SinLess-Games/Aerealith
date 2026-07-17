@@ -4,18 +4,18 @@ import {
   HERO_DATA,
   INVESTOR_VIDEO,
   aerealithDifferentiators,
-  atAGlanceSection,
-  communityFundingSection,
+  crowdfundingSection,
+  differentSection,
   faqCards,
   faqSection,
+  homePageContent,
   pricingPreviewSection,
-  whyAerealithAiSection,
 } from '@aerealith-ai/content'
 import { Button, Carousel, type CarouselItem } from '@aerealith-ai/ui'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 
-type HomeSection = (typeof atAGlanceSection.carouselSections)[number]
+type HomeSection = (typeof homePageContent.sections)[number]
 
 const sectionAnchorClass =
   'rounded-full border border-[var(--ae-border)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--ae-foreground-muted)] transition-colors hover:border-[var(--ae-accent)] hover:text-[var(--ae-accent)]'
@@ -29,12 +29,12 @@ const homeSectionLinks = [
     label: 'Overview',
   },
   {
-    href: `#${whyAerealithAiSection.id}`,
-    label: whyAerealithAiSection.eyebrow ?? whyAerealithAiSection.title,
+    href: `#${differentSection.id}`,
+    label: differentSection.eyebrow ?? differentSection.title,
   },
   {
-    href: `#${communityFundingSection.id}`,
-    label: communityFundingSection.eyebrow ?? communityFundingSection.title,
+    href: `#${crowdfundingSection.id}`,
+    label: crowdfundingSection.eyebrow ?? crowdfundingSection.title,
   },
   {
     href: `#${faqSection.id}`,
@@ -50,7 +50,7 @@ const homeSectionLinks = [
 export function HomeRoute() {
   const [showBackToTop, setShowBackToTop] = useState(false)
 
-  const overviewItems: CarouselItem[] = atAGlanceSection.carouselSections.map(
+  const overviewItems: CarouselItem[] = homePageContent.sections.map(
     (section) => ({
       type: 'component',
       label: sectionCardLabel(section),
@@ -92,7 +92,7 @@ export function HomeRoute() {
         className='mx-auto flex w-full max-w-6xl flex-col items-center text-center'
       >
         <p className='text-sm font-semibold uppercase tracking-[0.28em] text-[var(--ae-accent)]'>
-          {atAGlanceSection.eyebrow}
+          {homePageContent.sections[0]?.eyebrow ?? 'Aerealith AI'}
         </p>
         <h1
           className='mt-4 max-w-5xl text-4xl font-bold text-balance sm:text-5xl lg:text-6xl'
@@ -129,9 +129,9 @@ export function HomeRoute() {
       <section id='overview' className='mx-auto w-full max-w-6xl'>
         <div className='grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start'>
           <SectionIntro
-            eyebrow={atAGlanceSection.eyebrow}
-            title={atAGlanceSection.title}
-            description={atAGlanceSection.description}
+            eyebrow='At a glance'
+            title='The full home story in one carousel'
+            description='Explore the core home sections in sequence: the hero, the platform overview, the product preview, crowdfunding, and pricing.'
           />
           <Carousel
             autoScroll
@@ -145,10 +145,7 @@ export function HomeRoute() {
         </div>
       </section>
 
-      <section
-        id={whyAerealithAiSection.id}
-        className='mx-auto w-full max-w-6xl'
-      >
+      <section id={differentSection.id} className='mx-auto w-full max-w-6xl'>
         <div className='grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-start'>
           <Carousel
             className={carouselFrameClass}
@@ -160,35 +157,32 @@ export function HomeRoute() {
 
           <div>
             <SectionIntro
-              eyebrow={whyAerealithAiSection.eyebrow}
-              title={whyAerealithAiSection.title}
-              description={whyAerealithAiSection.description}
+              eyebrow={differentSection.eyebrow}
+              title={differentSection.title}
+              description={differentSection.description}
             />
-            {whyAerealithAiSection.body ? (
+            {differentSection.body ? (
               <p className='mt-4 max-w-4xl text-sm leading-relaxed text-[var(--ae-foreground-muted)] sm:text-base'>
-                {whyAerealithAiSection.body}
+                {differentSection.body}
               </p>
             ) : null}
           </div>
         </div>
       </section>
 
-      <section
-        id={communityFundingSection.id}
-        className='mx-auto w-full max-w-6xl'
-      >
+      <section id={crowdfundingSection.id} className='mx-auto w-full max-w-6xl'>
         <div className='grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-start'>
           <div className='space-y-8'>
             <SectionIntro
-              eyebrow={communityFundingSection.eyebrow}
-              title={communityFundingSection.title}
-              description={communityFundingSection.description}
+              eyebrow={crowdfundingSection.eyebrow}
+              title={crowdfundingSection.title}
+              description={crowdfundingSection.description}
             />
 
             <div className='space-y-5'>
-              {communityFundingSection.body ? (
+              {crowdfundingSection.body ? (
                 <p className='text-base leading-relaxed text-[var(--ae-foreground-muted)]'>
-                  {communityFundingSection.body}
+                  {crowdfundingSection.body}
                 </p>
               ) : null}
 

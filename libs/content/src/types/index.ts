@@ -1,6 +1,7 @@
 export * from './background.types'
 export * from './carousel.types'
 export * from './media.types'
+export * from './home'
 export * from './page.types'
 export * from './shared.types'
 export * from './about'

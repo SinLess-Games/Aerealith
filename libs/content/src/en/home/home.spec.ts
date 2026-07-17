@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   HERO_DATA,
   INVESTOR_VIDEO,
+  communityFundingSection,
   crowdfundingMediaItems,
   crowdfundingSection,
   differentSection,
@@ -13,6 +14,7 @@ import {
   pricingPreviewImage,
   pricingPreviewSection,
   productPreviewCarouselProps,
+  whyAerealithAiSection,
 } from '.'
 
 describe('home content', () => {
@@ -28,6 +30,8 @@ describe('home content', () => {
       crowdfundingMediaItems.length,
     )
     expect(differentSection.features.length).toBeGreaterThan(0)
+    expect(whyAerealithAiSection.features.length).toBeGreaterThan(0)
+    expect(communityFundingSection.body).toBeTruthy()
     expect(faqSection.cards).toBe(faqCards)
     expect(pricingPreviewSection.image?.src).toBe(pricingPreviewImage.src)
   })

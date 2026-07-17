@@ -1,0 +1,19 @@
+# Aerealith AI robots.txt
+
+User-agent: *
+Allow: /
+
+# Prevent crawling private or application-only areas.
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /dashboard/
+Disallow: /internal/
+Disallow: /settings/
+
+# Avoid crawling common URL parameters.
+Disallow: /*?token=
+Disallow: /*?session=
+Disallow: /*?preview=
+
+Sitemap: https://aerealith.ai/sitemap.xml
