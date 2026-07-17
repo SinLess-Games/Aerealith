@@ -51,7 +51,7 @@ export function protectContent(source: string): ProtectedText {
   const replacements = new Map<string, string>()
   let text = source
   values.forEach((value, index) => {
-    const token = `ZXQPROTECTED${index}QXZ`
+    const token = `__AEREALITH_PROTECTED_${index}__`
     replacements.set(token, value)
     text = text.split(value).join(token)
   })
@@ -59,8 +59,10 @@ export function protectContent(source: string): ProtectedText {
     text,
     restore: (translated) => {
       let restored = translated
-      for (const [token, value] of replacements)
+      for (const [token, value] of replacements) {
         restored = restored.split(token).join(value)
+        restored = restored.replace(new RegExp(token, 'gi'), () => value)
+      }
       return restored
     },
   }

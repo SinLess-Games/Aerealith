@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -12,7 +12,11 @@ import { TRANSLATION_NAMESPACES } from '../../scripts/utils/collect-content'
 import { providerCodeForLocale } from '../../scripts/utils/locale-provider-map'
 import { protectContent } from '../../scripts/utils/protected-content'
 import { readJson, writeJson } from '../../scripts/utils/json'
-import { TranslationCache } from '../../scripts/utils/translation-cache'
+import {
+  sourceTextHash,
+  TranslationCache,
+} from '../../scripts/utils/translation-cache'
+import { isTranslatableString } from '../../scripts/utils/translatable-values'
 import { validateTranslationShape } from '../../scripts/utils/translation-shape'
 
 const temporaryDirectories: string[] = []
@@ -29,9 +33,33 @@ afterEach(async () => {
 describe('machine translation workflow', () => {
   it('treats a no-argument translation command as all locales', () => {
     expect(parseTranslationArguments([]).locales).toHaveLength(25)
-    expect(parseTranslationArguments(['--locale=es-ES']).locales).toEqual([
-      'es-ES',
-    ])
+    expect(
+      parseTranslationArguments(['--locale=es-ES', '--force', '--dry-run']),
+    ).toEqual({ locales: ['es-ES'], force: true, dryRun: true })
+  })
+
+  it('rejects conflicting, fallback, provider, and unsupported arguments', () => {
+    expect(() =>
+      parseTranslationArguments(['--all', '--locale=es-ES']),
+    ).toThrow('Usage:')
+    expect(() => parseTranslationArguments(['--allow-fallback'])).toThrow(
+      'Fallback translations are disabled',
+    )
+    expect(() => parseTranslationArguments(['--provider'])).toThrow(
+      'Only --provider=libretranslate',
+    )
+    expect(() => parseTranslationArguments(['--provider=google'])).toThrow(
+      'Only --provider=libretranslate',
+    )
+    expect(() => parseTranslationArguments(['--locale=en-US'])).toThrow(
+      'Unsupported target locale',
+    )
+    expect(() => parseTranslationArguments(['--locale=xx-XX'])).toThrow(
+      'Unsupported target locale',
+    )
+    expect(
+      parseTranslationArguments(['--provider=libretranslate']).locales,
+    ).toHaveLength(25)
   })
 
   it('maps every representative app locale to its provider code', () => {
@@ -64,6 +92,7 @@ describe('machine translation workflow', () => {
     const protectedText = protectContent(source)
     expect(protectedText.text).not.toContain('Aerealith AI')
     expect(protectedText.restore(protectedText.text)).toBe(source)
+    expect(protectedText.restore(protectedText.text.toLowerCase())).toBe(source)
   })
 
   it('returns cached translations for unchanged source text', async () => {
@@ -76,6 +105,35 @@ describe('machine translation workflow', () => {
     await reloaded.load()
     expect(reloaded.get('libretranslate', 'en', 'es', 'Hello')).toBe('Hola')
     expect(reloaded.get('libretranslate', 'en', 'fr', 'Hello')).toBeUndefined()
+    expect(sourceTextHash('Hello')).toHaveLength(64)
+  })
+
+  it('handles missing and malformed translation cache files', async () => {
+    const root = await fixtureRoot()
+    await expect(
+      new TranslationCache(join(root, 'missing.json')).load(),
+    ).resolves.toBeUndefined()
+    await writeFile(join(root, 'invalid.json'), '{not-json', 'utf8')
+    await expect(
+      new TranslationCache(join(root, 'invalid.json')).load(),
+    ).rejects.toThrow()
+  })
+
+  it('refuses to write JSON content to non-JSON files', async () => {
+    const root = await fixtureRoot()
+    await expect(
+      writeJson(join(root, 'translation.ts'), { title: 'Untrusted content' }),
+    ).rejects.toThrow('Refusing to write JSON to a non-JSON path')
+    await expect(readFile(join(root, 'translation.ts'))).rejects.toThrow()
+  })
+
+  it('only translates meaningful user-facing strings', () => {
+    expect(isTranslatableString('   ', 'title')).toBe(false)
+    expect(isTranslatableString('fixed-id', 'id')).toBe(false)
+    expect(isTranslatableString('https://aerealith.ai', 'title')).toBe(false)
+    expect(isTranslatableString('identifier', 'title')).toBe(false)
+    expect(isTranslatableString('12345', 'title')).toBe(false)
+    expect(isTranslatableString('Visible title', 'title')).toBe(true)
   })
 
   it('preserves shape, validates output, and generates locale TypeScript', async () => {

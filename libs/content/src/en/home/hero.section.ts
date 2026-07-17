@@ -16,7 +16,7 @@ export const HERO_DATA = {
 
 export const INVESTOR_VIDEO = {
   id: 'aerealith-ai-investor-video',
-  src: 'Helix_AI_Investor_wvztbl',
+  src: 'Aerealith_AI_Investor_wvztbl',
   title: 'A Call to Investors',
   eyebrow: 'Investor Opportunity',
   body: 'Aerealith AI is being built as more than another assistant. It is a secure, extensible command center for modern digital life.',

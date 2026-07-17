@@ -1,0 +1,14 @@
+name: CI Compatibility Stub
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  noop:
+    name: CI stub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explain stub usage
+        run: echo 'Use .github/workflows/00-ci.yaml for automated CI.'

@@ -1,0 +1,473 @@
+# .github/workflows/30-daily-code-coverage.yaml
+#
+# Runs coverage for every runnable Nx test project once per day and publishes
+# an aggregate report to the Code Coverage category in GitHub Discussions.
+
+name: 30 · Daily Code Coverage
+
+on:
+  schedule:
+    # Daily at 09:00 UTC (03:00 MDT / 02:00 MST in America/Boise).
+    - cron: "0 9 * * *"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-code-coverage-${{ github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CI: "true"
+  FORCE_COLOR: "1"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  HUSKY: "0"
+  NODE_VERSION: "25.9.0"
+  PNPM_VERSION: "11.12.0"
+
+jobs:
+  coverage:
+    name: Test and publish coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+
+    permissions:
+      contents: read
+      discussions: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up pnpm
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare "pnpm@${PNPM_VERSION}" --activate
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install workspace dependencies
+        id: install
+        continue-on-error: true
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Run coverage for every Nx test project
+        id: test_coverage
+        if: steps.install.outcome == 'success'
+        run: |
+          set -uo pipefail
+
+          nx_bin="$GITHUB_WORKSPACE/node_modules/.bin/nx"
+          vitest_bin="$GITHUB_WORKSPACE/node_modules/.bin/vitest"
+          projects_json="$RUNNER_TEMP/coverage-projects.json"
+          projects_file="$RUNNER_TEMP/coverage-projects.txt"
+          failed_projects=()
+          coverage_status='passed'
+
+          if [[ ! -x "$nx_bin" ]] || [[ ! -x "$vitest_bin" ]]; then
+            echo '::error::Nx or Vitest is unavailable after dependency installation.'
+            {
+              echo 'coverage_status=failed'
+              echo 'test_project_count=0'
+              echo 'failed_project_count=0'
+              echo 'failed_projects=Test tooling unavailable'
+            } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if ! FORCE_COLOR=0 "$nx_bin" show projects --withTarget=test --json \
+            > "$projects_json"; then
+            echo '::error::Nx could not discover test projects.'
+            {
+              echo 'coverage_status=failed'
+              echo 'test_project_count=0'
+              echo 'failed_project_count=0'
+              echo 'failed_projects=Project discovery failed'
+            } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if ! jq -e \
+            'type == "array" and all(.[]; type == "string")' \
+            "$projects_json" >/dev/null; then
+            echo '::error::Nx did not return a valid JSON array of test projects.'
+            {
+              echo 'coverage_status=failed'
+              echo 'test_project_count=0'
+              echo 'failed_project_count=0'
+              echo 'failed_projects=Invalid project discovery output'
+            } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          jq -r '.[] | select(test("<%.*%>") | not)' "$projects_json" |
+            sort -u > "$projects_file"
+
+          test_project_count="$(wc -l < "$projects_file" | tr -d ' ')"
+
+          if [[ "$test_project_count" -eq 0 ]]; then
+            {
+              echo 'coverage_status=not-run'
+              echo 'test_project_count=0'
+              echo 'failed_project_count=0'
+              echo 'failed_projects='
+            } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          while IFS= read -r project; do
+            [[ -n "$project" ]] || continue
+
+            project_configuration="$(
+              FORCE_COLOR=0 "$nx_bin" show project "$project" --json
+            )"
+            project_root="$(
+              jq -er '.root | strings | select(length > 0)' \
+                <<< "$project_configuration"
+            )"
+            test_executor="$(
+              jq -r '.targets.test.executor // ""' \
+                <<< "$project_configuration"
+            )"
+            coverage_directory="$GITHUB_WORKSPACE/coverage/$project_root"
+
+            echo "::group::Coverage: $project"
+
+            if [[ "$test_executor" == '@nx/vitest:test' ]]; then
+              "$vitest_bin" run \
+                --config "$GITHUB_WORKSPACE/$project_root/vitest.config.mts" \
+                --coverage.enabled=true \
+                --coverage.reportsDirectory="$coverage_directory" \
+                --coverage.reporter=lcov \
+                --coverage.reporter=json-summary \
+                </dev/null
+              result=$?
+            else
+              "$nx_bin" run "$project:test" \
+                --skip-nx-cache \
+                --output-style=stream \
+                -- \
+                --coverage.enabled=true \
+                --coverage.reportsDirectory="$coverage_directory" \
+                --coverage.reporter=lcov \
+                --coverage.reporter=json-summary \
+                </dev/null
+              result=$?
+            fi
+
+            if [[ "$result" -ne 0 ]] ||
+              [[ ! -s "$coverage_directory/coverage-summary.json" ]]; then
+              failed_projects+=("$project")
+              coverage_status='failed'
+              echo "::error::Coverage failed or produced no summary for $project."
+            fi
+
+            echo "::endgroup::"
+          done < "$projects_file"
+
+          failed_project_count="${#failed_projects[@]}"
+          failed_projects_csv=''
+
+          if [[ "$failed_project_count" -gt 0 ]]; then
+            failed_projects_csv="$(IFS=,; echo "${failed_projects[*]}")"
+          fi
+
+          {
+            echo "coverage_status=$coverage_status"
+            echo "test_project_count=$test_project_count"
+            echo "failed_project_count=$failed_project_count"
+            echo "failed_projects=$failed_projects_csv"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Aggregate coverage summaries
+        id: aggregate
+        if: always() && steps.install.outcome == 'success'
+        run: |
+          set -euo pipefail
+
+          summaries_file="$RUNNER_TEMP/coverage-summary-files.txt"
+          find coverage \
+            -type f \
+            -name coverage-summary.json \
+            -print \
+            2>/dev/null |
+            sort > "$summaries_file"
+
+          SUMMARY_FILES="$summaries_file" node <<'NODE'
+          const fs = require('node:fs');
+
+          const summaryFiles = fs.existsSync(process.env.SUMMARY_FILES)
+            ? fs
+                .readFileSync(process.env.SUMMARY_FILES, 'utf8')
+                .split('\n')
+                .map((line) => line.trim())
+                .filter(Boolean)
+            : [];
+
+          const metrics = ['lines', 'statements', 'functions', 'branches'];
+          const totals = Object.fromEntries(
+            metrics.map((metric) => [metric, { total: 0, covered: 0 }]),
+          );
+
+          for (const file of summaryFiles) {
+            const summary = JSON.parse(fs.readFileSync(file, 'utf8'));
+            for (const metric of metrics) {
+              totals[metric].total += Number(summary.total?.[metric]?.total ?? 0);
+              totals[metric].covered += Number(summary.total?.[metric]?.covered ?? 0);
+            }
+          }
+
+          const percentage = ({ total, covered }) =>
+            total === 0 ? '0.00' : ((covered / total) * 100).toFixed(2);
+
+          const outputs = [
+            `has_coverage=${summaryFiles.length > 0}`,
+            `summary_count=${summaryFiles.length}`,
+          ];
+
+          for (const metric of metrics) {
+            outputs.push(`${metric}_total=${totals[metric].total}`);
+            outputs.push(`${metric}_covered=${totals[metric].covered}`);
+            outputs.push(`${metric}_pct=${percentage(totals[metric])}`);
+          }
+
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `${outputs.join('\n')}\n`);
+          NODE
+
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: daily-coverage-${{ github.run_id }}
+          path: coverage/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Publish report to Code Coverage discussions
+        if: always()
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          INSTALL_STATUS: ${{ steps.install.outcome }}
+          COVERAGE_STATUS: ${{ steps.test_coverage.outputs.coverage_status }}
+          TEST_PROJECT_COUNT: ${{ steps.test_coverage.outputs.test_project_count }}
+          FAILED_PROJECT_COUNT: ${{ steps.test_coverage.outputs.failed_project_count }}
+          FAILED_PROJECTS: ${{ steps.test_coverage.outputs.failed_projects }}
+          HAS_COVERAGE: ${{ steps.aggregate.outputs.has_coverage }}
+          SUMMARY_COUNT: ${{ steps.aggregate.outputs.summary_count }}
+          LINES_TOTAL: ${{ steps.aggregate.outputs.lines_total }}
+          LINES_COVERED: ${{ steps.aggregate.outputs.lines_covered }}
+          LINES_PCT: ${{ steps.aggregate.outputs.lines_pct }}
+          STATEMENTS_TOTAL: ${{ steps.aggregate.outputs.statements_total }}
+          STATEMENTS_COVERED: ${{ steps.aggregate.outputs.statements_covered }}
+          STATEMENTS_PCT: ${{ steps.aggregate.outputs.statements_pct }}
+          FUNCTIONS_TOTAL: ${{ steps.aggregate.outputs.functions_total }}
+          FUNCTIONS_COVERED: ${{ steps.aggregate.outputs.functions_covered }}
+          FUNCTIONS_PCT: ${{ steps.aggregate.outputs.functions_pct }}
+          BRANCHES_TOTAL: ${{ steps.aggregate.outputs.branches_total }}
+          BRANCHES_COVERED: ${{ steps.aggregate.outputs.branches_covered }}
+          BRANCHES_PCT: ${{ steps.aggregate.outputs.branches_pct }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          COMMIT_SHA: ${{ github.sha }}
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const repositoryUrl = `https://github.com/${owner}/${repo}`;
+            const now = new Date();
+            const reportDate = new Intl.DateTimeFormat('en-CA', {
+              timeZone: 'America/Boise',
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+            }).format(now);
+            const title = `Code coverage report — ${reportDate}`;
+            const normalize = (value) =>
+              String(value ?? '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, '');
+
+            const repository = await github.graphql(
+              `query CoverageDiscussionContext($owner: String!, $repo: String!) {
+                repository(owner: $owner, name: $repo) {
+                  id
+                  discussionCategories(first: 100) {
+                    nodes {
+                      id
+                      name
+                      slug
+                    }
+                  }
+                }
+              }`,
+              { owner, repo },
+            );
+
+            const category = repository.repository.discussionCategories.nodes.find(
+              (item) => normalize(item.slug) === 'codecoverage' || normalize(item.name) === 'codecoverage',
+            );
+
+            if (!category) {
+              core.setFailed('The Code Coverage discussion category was not found.');
+              return;
+            }
+
+            const coverageStatus = process.env.COVERAGE_STATUS || 'not-run';
+            const installStatus = process.env.INSTALL_STATUS || 'unknown';
+            const hasCoverage = process.env.HAS_COVERAGE === 'true';
+            const overall =
+              installStatus === 'success' && coverageStatus === 'passed' && hasCoverage
+                ? '✅ Coverage completed successfully'
+                : '❌ Coverage did not complete successfully';
+            const metric = (covered, total, percentage) =>
+              Number(total || 0) > 0
+                ? `${covered}/${total} (${percentage}%)`
+                : 'Not measured';
+            const commitShort = process.env.COMMIT_SHA.slice(0, 7);
+            const failedProjects = (process.env.FAILED_PROJECTS || '')
+              .split(',')
+              .map((project) => project.trim())
+              .filter(Boolean);
+
+            const body = [
+              '<!-- aerealith-daily-code-coverage -->',
+              '# Daily code coverage',
+              '',
+              `**Result:** ${overall}`,
+              `**Commit:** [\`${commitShort}\`](${repositoryUrl}/commit/${process.env.COMMIT_SHA})`,
+              `**Workflow:** [Open run details](${process.env.RUN_URL})`,
+              '',
+              '## Aggregate coverage',
+              '',
+              '| Metric | Covered |',
+              '| --- | ---: |',
+              `| Lines | ${metric(process.env.LINES_COVERED, process.env.LINES_TOTAL, process.env.LINES_PCT)} |`,
+              `| Statements | ${metric(process.env.STATEMENTS_COVERED, process.env.STATEMENTS_TOTAL, process.env.STATEMENTS_PCT)} |`,
+              `| Functions | ${metric(process.env.FUNCTIONS_COVERED, process.env.FUNCTIONS_TOTAL, process.env.FUNCTIONS_PCT)} |`,
+              `| Branches | ${metric(process.env.BRANCHES_COVERED, process.env.BRANCHES_TOTAL, process.env.BRANCHES_PCT)} |`,
+              '',
+              '## Run details',
+              '',
+              `- Dependency install: **${installStatus}**`,
+              `- Coverage execution: **${coverageStatus}**`,
+              `- Nx test projects discovered: **${process.env.TEST_PROJECT_COUNT || '0'}**`,
+              `- Coverage summaries aggregated: **${process.env.SUMMARY_COUNT || '0'}**`,
+              `- Failed projects: **${process.env.FAILED_PROJECT_COUNT || '0'}**`,
+              ...(failedProjects.length > 0
+                ? ['', '### Projects needing attention', '', ...failedProjects.map((project) => `- \`${project}\``)]
+                : []),
+              '',
+              'Coverage artifacts are retained with the workflow run for 14 days.',
+              '',
+              '_Generated automatically by Aerealith repository automation._',
+            ].join('\n');
+
+            const existing = await github.graphql(
+              `query ExistingCoverageReport(
+                $owner: String!
+                $repo: String!
+                $categoryId: ID!
+              ) {
+                repository(owner: $owner, name: $repo) {
+                  discussions(
+                    first: 100
+                    categoryId: $categoryId
+                    orderBy: { field: UPDATED_AT, direction: DESC }
+                  ) {
+                    nodes {
+                      id
+                      title
+                    }
+                  }
+                }
+              }`,
+              { owner, repo, categoryId: category.id },
+            );
+
+            const current = existing.repository.discussions.nodes.find(
+              (item) => item.title === title,
+            );
+
+            if (current) {
+              await github.graphql(
+                `mutation UpdateCoverageReport(
+                  $discussionId: ID!
+                  $title: String!
+                  $body: String!
+                ) {
+                  updateDiscussion(
+                    input: {
+                      discussionId: $discussionId
+                      title: $title
+                      body: $body
+                    }
+                  ) {
+                    discussion {
+                      url
+                    }
+                  }
+                }`,
+                { discussionId: current.id, title, body },
+              );
+              return;
+            }
+
+            await github.graphql(
+              `mutation CreateCoverageReport(
+                $repositoryId: ID!
+                $categoryId: ID!
+                $title: String!
+                $body: String!
+              ) {
+                createDiscussion(
+                  input: {
+                    repositoryId: $repositoryId
+                    categoryId: $categoryId
+                    title: $title
+                    body: $body
+                  }
+                ) {
+                  discussion {
+                    url
+                  }
+                }
+              }`,
+              {
+                repositoryId: repository.repository.id,
+                categoryId: category.id,
+                title,
+                body,
+              },
+            );
+
+      - name: Fail after publishing an unsuccessful report
+        if: always()
+        env:
+          INSTALL_STATUS: ${{ steps.install.outcome }}
+          COVERAGE_STATUS: ${{ steps.test_coverage.outputs.coverage_status }}
+          HAS_COVERAGE: ${{ steps.aggregate.outputs.has_coverage }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$INSTALL_STATUS" != 'success' ]] ||
+            [[ "$COVERAGE_STATUS" != 'passed' ]] ||
+            [[ "$HAS_COVERAGE" != 'true' ]]; then
+            echo '::error::Daily coverage did not complete successfully. The Discussion report was published before this job failed.'
+            exit 1
+          fi
+
+          echo 'Daily coverage completed and the Discussion report was published.'

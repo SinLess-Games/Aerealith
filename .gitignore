@@ -2,7 +2,7 @@
 # Dependencies
 # -----------------------------------------------------------------------------
 
-/node_modules/
+node_modules/
 
 # pnpm keeps its global store outside the repository by default, but this
 # covers any local package-manager cache that may be created.
@@ -151,3 +151,15 @@ Desktop.ini
 .translation-cache/
 
 **/.obsidian/
+
+# Generated TypeScript outputs that should not live beside source files
+**/src/**/*.js
+**/src/**/*.d.ts
+
+.nx/polygraph
+.claude/worktrees
+
+.agents/
+.claude/
+.codex/
+.gemini/

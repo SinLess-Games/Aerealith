@@ -3,7 +3,7 @@
 
   <a href="https://aerealith.com">
     <img
-      src="apps/frontend/public/images/brand/logos/aerealith-ai-primary-poster.png"
+      src="docs/images/brand/logos/aerealith-ai-primary-poster.png"
       alt="Aerealith AI"
       width="560"
     />
@@ -54,8 +54,8 @@
       alt="Node.js 25.9.0"
     />
     <img
-      src="https://img.shields.io/badge/pnpm-11.5.2-F69220?style=for-the-badge&amp;logo=pnpm&amp;logoColor=white"
-      alt="pnpm 11.5.2"
+      src="https://img.shields.io/badge/pnpm-11.12.0-F69220?style=for-the-badge&amp;logo=pnpm&amp;logoColor=white"
+      alt="pnpm 11.12.0"
     />
     <img
       src="https://img.shields.io/badge/Nx-monorepo-143055?style=for-the-badge&amp;logo=nx&amp;logoColor=white"
@@ -200,7 +200,7 @@ This keeps the platform easier to test, reuse, migrate, and self-host later.
 ### Requirements
 
 - **Node.js 25.9.0**
-- **pnpm 11.5.2**
+- **pnpm 11.12.0**
 - **Git**
 - Optional: Docker for container-focused development and security scanning
 

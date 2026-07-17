@@ -32,3 +32,15 @@ export const libreTranslateLocaleCodes = {
 export function providerCodeForLocale(locale: SupportedLocale): string {
   return libreTranslateLocaleCodes[locale]
 }
+
+export function providerCodesForLocales(
+  locales: readonly SupportedLocale[],
+): readonly string[] {
+  return [
+    ...new Set(locales.map((locale) => providerCodeForLocale(locale))),
+  ].sort((left, right) => left.localeCompare(right))
+}
+
+export const libreTranslateLoadOnlyLanguages = providerCodesForLocales(
+  Object.keys(libreTranslateLocaleCodes) as SupportedLocale[],
+).join(',')

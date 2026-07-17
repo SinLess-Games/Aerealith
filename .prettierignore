@@ -7,6 +7,7 @@ node_modules/
 # Package-manager and workspace caches
 .pnpm-store/
 **/.pnpm-store/
+pnpm-lock.yaml
 .nx/
 **/.nx/
 .turbo/

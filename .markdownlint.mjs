@@ -206,11 +206,11 @@ const config = {
    * Enforce compact readable tables:
    *
    * | Header | Header |
-   * | --- | --- |
-   * | Value | Value |
+   * | ------ | ------ |
+   * | Value  | Value  |
    */
   MD060: {
-    style: 'compact',
+    style: 'pipe-aligned',
   },
 }
 

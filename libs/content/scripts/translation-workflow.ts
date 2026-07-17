@@ -45,7 +45,7 @@ export async function translateLocale(
   const supported = options.supportedLanguages.has(targetLanguage)
   if (!supported) {
     throw new Error(
-      `LibreTranslate target language ${targetLanguage} is not installed for ${options.locale}. Recreate LibreTranslate to install the configured models.`,
+      `LibreTranslate target language ${targetLanguage} is not installed for ${options.locale}. Restart LibreTranslate so it can update the configured models, or set LIBRETRANSLATE_LOAD_LANGUAGES to include ${targetLanguage}.`,
     )
   }
   const counters: TranslationCounters = { cacheHits: 0, translatedStrings: 0 }

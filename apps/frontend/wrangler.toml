@@ -5,12 +5,47 @@ main = "src/worker.ts"
 compatibility_date = "2026-07-08"
 compatibility_flags = ["nodejs_compat"]
 preview_urls = true
+upload_source_maps = true
+routes = [
+  { pattern = "aerealith.com", custom_domain = true },
+]
+
+# ---------------------------------------------------------------
+# Assets
+# ---------------------------------------------------------------
 
 [assets]
 directory = "../../dist/apps/frontend"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
 run_worker_first = ["/__aerealith/*", "/api/*"]
+
+# ---------------------------------------------------------------
+# Observability
+# ---------------------------------------------------------------
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = true
+persist = true
+head_sampling_rate = 1
+
+# ---------------------------------------------------------------
+# Bindings
+# ---------------------------------------------------------------
+
+[[queues.producers]]
+binding = "EVENTBUS"
+queue = "events"
 
 [[kv_namespaces]]
 binding = "AEREALITH_KV"
@@ -38,20 +73,8 @@ remote = true
 binding = "AEREALITH_ANALYTICS"
 dataset = "Aerealith"
 
-[observability]
+# ---------------------------------------------------------------
+# Cache
+# ---------------------------------------------------------------
+[cache]
 enabled = true
-
-[observability.logs]
-enabled = true
-head_sampling_rate = 1.0
-invocation_logs = true
-persist = true
-
-[observability.traces]
-enabled = true
-head_sampling_rate = 1.0
-persist = true
-
-[[queues.producers]]
-binding = "EVENTBUS"
-queue = "events"

@@ -11,14 +11,27 @@ export class LibreTranslateProvider implements TranslationProvider {
   readonly name = 'libretranslate'
   readonly baseUrl: string
   readonly apiKey?: string
+  readonly maxConcurrency: number
+  readonly requestTimeoutMs: number
+  private activeRequests = 0
+  private readonly requestWaiters: Array<() => void> = []
 
-  constructor(options: { baseUrl?: string; apiKey?: string } = {}) {
+  constructor(
+    options: {
+      baseUrl?: string
+      apiKey?: string
+      maxConcurrency?: number
+      requestTimeoutMs?: number
+    } = {},
+  ) {
     this.baseUrl = (
       options.baseUrl ??
       process.env['LIBRETRANSLATE_URL'] ??
       'http://localhost:5000'
     ).replace(/\/$/, '')
     this.apiKey = options.apiKey ?? process.env['LIBRETRANSLATE_API_KEY']
+    this.maxConcurrency = Math.max(1, Math.floor(options.maxConcurrency ?? 4))
+    this.requestTimeoutMs = Math.max(1, options.requestTimeoutMs ?? 120_000)
   }
 
   async getSupportedLanguages(): Promise<ReadonlySet<string>> {
@@ -36,32 +49,50 @@ export class LibreTranslateProvider implements TranslationProvider {
     targetLanguage: string
     context?: string
   }): Promise<string> {
-    const body: Record<string, string> = {
-      q: input.text,
-      source: input.sourceLanguage,
-      target: input.targetLanguage,
-      format: 'text',
-    }
-    if (this.apiKey) body['api_key'] = this.apiKey
-    const response = await this.request('/translate', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(body),
+    return this.withRequestSlot(async () => {
+      const body: Record<string, string> = {
+        q: input.text,
+        source: input.sourceLanguage,
+        target: input.targetLanguage,
+        format: 'text',
+      }
+      if (this.apiKey) body['api_key'] = this.apiKey
+      const response = await this.request('/translate', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const result = (await response.json()) as Partial<LibreTranslation>
+      if (typeof result.translatedText !== 'string') {
+        throw new Error(
+          'LibreTranslate returned an invalid translation response.',
+        )
+      }
+      return result.translatedText
     })
-    const result = (await response.json()) as Partial<LibreTranslation>
-    if (typeof result.translatedText !== 'string') {
-      throw new Error(
-        'LibreTranslate returned an invalid translation response.',
-      )
+  }
+
+  private async withRequestSlot<T>(operation: () => Promise<T>): Promise<T> {
+    if (this.activeRequests >= this.maxConcurrency) {
+      await new Promise<void>((resolve) => this.requestWaiters.push(resolve))
     }
-    return result.translatedText
+    this.activeRequests += 1
+    try {
+      return await operation()
+    } finally {
+      this.activeRequests -= 1
+      this.requestWaiters.shift()?.()
+    }
   }
 
   private async request(path: string, init: RequestInit): Promise<Response> {
     let lastError: unknown
     for (let attempt = 0; attempt < 3; attempt += 1) {
       const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 20_000)
+      const timeout = setTimeout(
+        () => controller.abort(),
+        this.requestTimeoutMs,
+      )
       try {
         const response = await fetch(`${this.baseUrl}${path}`, {
           ...init,

@@ -61,13 +61,18 @@ export default async function serviceGenerator(
     const marker = "import { Routes, Route } from 'react-router-dom';"
     const serviceRoute = `import { ${className}Page } from '../services/${serviceName}/routes';`
     const serviceElement = `      <Route path="${routePrefix}" element={<${className}Page />} />`
+    let updated = current
 
-    const updated = current
-      .replace(marker, `${marker}\n${serviceRoute}`)
-      .replace(
+    if (!updated.includes(serviceRoute)) {
+      updated = updated.replace(marker, `${marker}\n${serviceRoute}`)
+    }
+
+    if (!updated.includes(serviceElement)) {
+      updated = updated.replace(
         '  return (\n    <Routes>',
         `  return (\n    <Routes>\n${serviceElement}`,
       )
+    }
 
     tree.write(frontendRoutesFile, updated)
   }
@@ -200,7 +205,7 @@ export default async function serviceGenerator(
 
   tree.write(
     `${projectRoot}/Dockerfile`,
-    `FROM node:20-alpine\nWORKDIR /app\nCOPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./\nCOPY apps/services/${serviceName} ./apps/services/${serviceName}\nRUN corepack enable && pnpm install --frozen-lockfile\nCMD ["pnpm", "exec", "tsx", "apps/services/${serviceName}/src/main.ts"]\n`,
+    `FROM node:24-alpine\nWORKDIR /app\nCOPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./\nCOPY apps/services/${serviceName} ./apps/services/${serviceName}\nRUN corepack enable && pnpm install --frozen-lockfile\nCMD ["pnpm", "exec", "tsx", "apps/services/${serviceName}/src/main.ts"]\n`,
   )
 
   tree.write(
