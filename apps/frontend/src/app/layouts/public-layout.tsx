@@ -21,7 +21,13 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 export function PublicLayout() {
   return (
     <div className='flex min-h-screen flex-col'>
-      <header className='sticky top-0 z-10 border-b border-[var(--ae-border-subtle)]'>
+      <header
+        className='sticky top-0 z-50 border-b border-[var(--ae-border)] shadow-[0_8px_24px_rgba(0,0,0,0.18)] backdrop-blur-xl'
+        style={{
+          backgroundColor:
+            'color-mix(in srgb, var(--ae-background) 94%, transparent)',
+        }}
+      >
         <div className='mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-6 py-4'>
           <NavLink to='/' className='flex items-center gap-3'>
             <img

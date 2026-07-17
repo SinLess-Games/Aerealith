@@ -19,6 +19,84 @@ export const AboutDescription =
 
 export const AboutHeader = 'About Helix AI'
 
+/** Content model for the public About landing page. */
+export const aboutPageContent = {
+  eyebrow: 'About Helix AI',
+  heading: 'Intelligent by Design.',
+  highlightedHeading: 'Built for Control.',
+  description:
+    'Helix AI is an adaptive digital companion and secure command center that unifies your apps, data, and communities. From automations to dashboards and developer tools, everything is designed to reduce friction and keep you in control.',
+  brandImage: {
+    src: '/images/brand/mark-no-background.png',
+    alt: 'Aerealith AI mark',
+  },
+  highlights: ['Trust First', 'You Stay in Control', 'Modular & Flexible'],
+  features: [
+    {
+      title: 'Unified Command Center',
+      description:
+        'Bring your apps, data, automations, and workflows together in one intelligent and organized platform.',
+      accent: '#a855f7',
+    },
+    {
+      title: 'Trust First, Always',
+      description:
+        'Built with user control, permissioned memory, transparent automations, and strong privacy boundaries.',
+      accent: '#249cff',
+    },
+    {
+      title: 'Modular by Design',
+      description:
+        'Enable only what you need. Every module is independent, powerful, and designed to scale with you.',
+      accent: '#18d9f4',
+    },
+    {
+      title: 'Smart Automations',
+      description:
+        'Create powerful automations with human approval at every meaningful step. You stay in control.',
+      accent: '#ff9e42',
+    },
+    {
+      title: 'Scoped Integrations',
+      description:
+        'Connect the tools and services you trust. Integrations are scoped, secure, and easy to manage.',
+      accent: '#18d9d2',
+    },
+    {
+      title: 'Responsible AI',
+      description:
+        'AI features designed with intention and aligned with user values and real-world practicality.',
+      accent: '#a958ff',
+    },
+    {
+      title: 'Discord, Supercharged',
+      description:
+        'A deeper Discord management experience built for busy communities, teams, and moderators.',
+      accent: '#7e63ff',
+    },
+    {
+      title: 'Insight That Matters',
+      description:
+        'Dashboards and analytics that turn complex information into clarity and actionable insight.',
+      accent: '#219cff',
+    },
+    {
+      title: 'Built for the Long Haul',
+      description:
+        'Designed for personal use today and enterprise-ready environments tomorrow.',
+      accent: '#bd55ff',
+    },
+  ],
+  cta: {
+    heading: 'Helix AI grows with you.',
+    description: 'One platform. Infinite possibilities.',
+    secondaryLabel: 'Explore Features',
+    secondaryHref: '/pricing',
+    primaryLabel: 'Get Started for Free',
+    primaryHref: '/sign-up',
+  },
+} as const
+
 export const aboutContent = [
   {
     title: 'Who We Are',

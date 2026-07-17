@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { AboutContent, AboutDescription, AboutHeader, AboutImage } from '.'
+import {
+  AboutContent,
+  AboutDescription,
+  AboutHeader,
+  AboutImage,
+  aboutPageContent,
+} from '.'
 
 describe('about content', () => {
   it('provides complete page copy and accessible media', () => {
@@ -11,5 +17,12 @@ describe('about content', () => {
         (section) => section.title && section.paragraphs.length,
       ),
     ).toBe(true)
+  })
+
+  it('provides the landing page hero, features, and calls to action', () => {
+    expect(aboutPageContent.heading).toBeTruthy()
+    expect(aboutPageContent.highlights).toHaveLength(3)
+    expect(aboutPageContent.features).toHaveLength(9)
+    expect(aboutPageContent.cta.primaryHref).toMatch(/^\//)
   })
 })

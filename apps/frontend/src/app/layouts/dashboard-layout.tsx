@@ -39,7 +39,13 @@ export function DashboardLayout() {
 
   return (
     <div className='min-h-screen bg-[var(--ae-background)] text-[var(--ae-foreground)]'>
-      <header className='border-b border-[var(--ae-border-subtle)] bg-[var(--ae-glass-background)] backdrop-blur'>
+      <header
+        className='sticky top-0 z-50 border-b border-[var(--ae-border)] shadow-[0_8px_24px_rgba(0,0,0,0.18)] backdrop-blur-xl'
+        style={{
+          backgroundColor:
+            'color-mix(in srgb, var(--ae-background) 94%, transparent)',
+        }}
+      >
         <div className='mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-6 py-4'>
           <NavLink to='/app' className='flex items-center gap-3'>
             <img
