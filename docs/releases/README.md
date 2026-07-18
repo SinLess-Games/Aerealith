@@ -1,12 +1,21 @@
 # Releases
 
-The `docs/releases/` folder defines how Aerealith AI is built, staged, tested, and launched over time.
+Status: Active
+Owner: SinLess Games LLC
+Last Updated: 2026-07-18
+Document Type: Delivery Planning Index
+Implementation State: Plans and gates; repository evidence proves completion
 
-Release documentation turns the product vision into a practical delivery path.
+The `docs/releases/` folder defines how Aerealith is staged, tested, and
+launched over time. Release documents turn product direction into a delivery
+path; they do not make planned capabilities current.
 
-Aerealith AI should grow through clear milestones, not random feature piles.
+## Project Context
 
----
+- [Project Overview](../Project-Overview.md)
+- [Company and Project Structure](../Company-and-Project-Structure.md)
+- [Current State](../CURRENT_STATE.md)
+- [Documentation Index](../README.md)
 
 ## Purpose
 

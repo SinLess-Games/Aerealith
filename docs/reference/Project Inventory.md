@@ -7,6 +7,13 @@ Document Type: Reference
 Source: Nx project metadata inspected on the `master` branch
 Generation State: Manual baseline; automate through Nx
 
+## Project Context
+
+- [Project Overview](../Project-Overview.md)
+- [Company and Project Structure](../Company-and-Project-Structure.md)
+- [Current State](../CURRENT_STATE.md)
+- [Documentation Index](../README.md)
+
 ## Implemented Nx Projects
 
 | Project             | Path                       | Type            | Tags                         | Key Targets                                      |

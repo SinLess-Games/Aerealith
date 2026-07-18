@@ -1,7 +1,7 @@
 # Secrets
 
 Status: Draft
-Owner: Tim Pierce / SinLess Games
+Owner: SinLess Games LLC
 Last Updated: 2026-07-13
 Security Classification: Internal Engineering
 Primary Secret Sources: Cloudflare secrets, HashiCorp Vault, Kubernetes Secrets with External Secrets, CI secret stores, Docker secrets, and approved local secret storage

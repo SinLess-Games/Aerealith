@@ -156,7 +156,7 @@ export function PublicHeader() {
             <HeaderAuthNav />
 
             <NavLink
-              to='/sign-up'
+              to='/#waitlist'
               className={[
                 'inline-flex min-h-11 items-center justify-center rounded-xl px-5',
                 'bg-gradient-to-r from-fuchsia-600 via-violet-500 to-cyan-500',
@@ -169,7 +169,7 @@ export function PublicHeader() {
                 'focus-visible:outline-[var(--ae-accent)]',
               ].join(' ')}
             >
-              Get Started
+              Join Waitlist
             </NavLink>
 
             <ThemeButton />
@@ -275,7 +275,7 @@ export function PublicHeader() {
               <HeaderAuthNav mobile />
 
               <NavLink
-                to='/sign-up'
+                to='/#waitlist'
                 onClick={() => setIsMenuOpen(false)}
                 className={[
                   'inline-flex min-h-12 items-center justify-center rounded-xl px-4 py-3',
@@ -287,7 +287,7 @@ export function PublicHeader() {
                   'focus-visible:outline-[var(--ae-accent)]',
                 ].join(' ')}
               >
-                Get Started
+                Join Waitlist
               </NavLink>
 
               <ThemeButton mobile />

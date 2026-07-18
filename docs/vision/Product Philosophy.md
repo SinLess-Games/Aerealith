@@ -112,9 +112,9 @@ and more time accomplishing what matters.
 
 ---
 
-# The Product Philosophies
+## The Product Philosophies
 
-## 1. Cohesion Over Fragmentation
+### 1. Cohesion Over Fragmentation
 
 Modern digital life is fragmented.
 
@@ -153,7 +153,7 @@ limitations, risks, and behavior of each underlying service.
 
 ---
 
-## 2. Integrate Before Replace
+### 2. Integrate Before Replace
 
 The digital world already contains exceptional specialized software.
 
@@ -198,7 +198,7 @@ Replacement must be intentional.
 
 ---
 
-## 3. Progressive Trust
+### 3. Progressive Trust
 
 Trust should be earned through experience.
 
@@ -248,7 +248,7 @@ authority.
 
 ---
 
-## 4. Explain Before Meaningful Action
+### 4. Explain Before Meaningful Action
 
 Artificial intelligence and automation should not behave like black boxes.
 
@@ -282,7 +282,7 @@ It is not optional polish.
 
 ---
 
-## 5. Enhance, Never Displace Human Authority
+### 5. Enhance, Never Displace Human Authority
 
 Artificial intelligence exists to make people more capable.
 
@@ -317,7 +317,7 @@ Aerealith exists to strengthen those decisions.
 
 ---
 
-## 6. Context Before Action
+### 6. Context Before Action
 
 Good decisions require context.
 
@@ -350,7 +350,7 @@ boundary.
 
 ---
 
-## 7. Quiet by Default, Visible When Necessary
+### 7. Quiet by Default, Visible When Necessary
 
 The best technology does not constantly demand attention.
 
@@ -386,7 +386,7 @@ automation history.
 
 ---
 
-## 8. Adapt Without Becoming Intrusive
+### 8. Adapt Without Becoming Intrusive
 
 Attention is valuable.
 
@@ -416,7 +416,7 @@ attention.
 
 ---
 
-## 9. Replaceable by Design
+### 9. Replaceable by Design
 
 Major external dependencies should be replaceable where practical.
 
@@ -476,7 +476,7 @@ should not become permanent traps.
 
 ---
 
-## 10. Interfaces Before Implementations
+### 10. Interfaces Before Implementations
 
 Platform capabilities should be exposed through stable and consistent
 interfaces.
@@ -524,7 +524,7 @@ separated.
 
 ---
 
-## 11. Evolve Deliberately
+### 11. Evolve Deliberately
 
 Technology changes rapidly.
 
@@ -553,7 +553,7 @@ Complexity should be introduced only when it provides meaningful value.
 
 ---
 
-## 12. Eliminate Unnecessary Complexity
+### 12. Eliminate Unnecessary Complexity
 
 Everything Aerealith builds should reduce complexity without removing meaningful
 capability or control.
@@ -597,7 +597,7 @@ The goal is to remove unnecessary friction.
 
 ---
 
-## 13. Modularity Over Monolithic Growth
+### 13. Modularity Over Monolithic Growth
 
 Aerealith should grow through independently understandable capabilities.
 
@@ -633,7 +633,7 @@ boundaries and future extensibility.
 
 ---
 
-## 14. Security as Product Behavior
+### 14. Security as Product Behavior
 
 Security is not a separate layer added after product design.
 
@@ -663,7 +663,7 @@ hostile.
 
 ---
 
-## 15. Reversibility and Recovery
+### 15. Reversibility and Recovery
 
 Actions should be reversible when technically possible.
 
@@ -691,7 +691,7 @@ not hidden from the user.
 
 ---
 
-## 16. Accessibility and Inclusive Capability
+### 16. Accessibility and Inclusive Capability
 
 Aerealith should remain usable by people with different abilities, devices,
 technical backgrounds, and levels of experience.
@@ -718,7 +718,7 @@ Simplicity for beginners should not remove capability from advanced users.
 
 ---
 
-## 17. Documentation Is Part of the Product
+### 17. Documentation Is Part of the Product
 
 Undocumented behavior is incomplete behavior.
 
@@ -751,7 +751,7 @@ Documentation should not present aspiration as implementation.
 
 ---
 
-# Artificial Intelligence Philosophy
+## Artificial Intelligence Philosophy
 
 Artificial intelligence is a capability within Aerealith.
 
@@ -805,7 +805,7 @@ A model action must remain subject to platform controls.
 
 ---
 
-# Automation Philosophy
+## Automation Philosophy
 
 Automation should reduce repetitive work while preserving authority,
 explainability, and recovery.
@@ -840,7 +840,7 @@ Automation should be trusted because it remains controlled and observable.
 
 ---
 
-# Connectivity Philosophy
+## Connectivity Philosophy
 
 Internet connectivity should not be treated as permanently guaranteed.
 
@@ -873,7 +873,7 @@ be described as currently available until implemented.
 
 ---
 
-# Learning and Memory Philosophy
+## Learning and Memory Philosophy
 
 Aerealith should learn with users, not exploit them.
 
@@ -908,7 +908,7 @@ Memory should not quietly become surveillance.
 
 ---
 
-# Data Philosophy
+## Data Philosophy
 
 Data collection should be proportional to capability.
 
@@ -936,7 +936,7 @@ Aerealith should act as a responsible steward, not as the owner of that data.
 
 ---
 
-# Platform Philosophy
+## Platform Philosophy
 
 Aerealith is not simply an application.
 
@@ -977,7 +977,7 @@ Third-party extensibility should not mean unrestricted access.
 
 ---
 
-# Self-Hosting Philosophy
+## Self-Hosting Philosophy
 
 Aerealith should be cloud-capable without being permanently cloud-dependent.
 
@@ -1012,7 +1012,7 @@ freedom from unnecessary lock-in.
 
 ---
 
-# Ethical Philosophy
+## Ethical Philosophy
 
 Aerealith should never intentionally compromise user trust.
 
@@ -1040,7 +1040,7 @@ risks can be addressed.
 
 ---
 
-# Product Decision Hierarchy
+## Product Decision Hierarchy
 
 When principles appear to conflict, decisions should generally prioritize:
 
@@ -1065,7 +1065,7 @@ engineering, product, or security decision process.
 
 ---
 
-# Current, Planned, Future, and Vision
+## Current, Planned, Future, and Vision
 
 Product philosophy defines how Aerealith should behave.
 
@@ -1083,19 +1083,19 @@ claim.
 
 For implementation status, refer to:
 
-- [`CURRENT_STATE.md`](./CURRENT_STATE.md)
+- [`CURRENT_STATE.md`](../CURRENT_STATE.md)
 - Product roadmap documentation
 - Release documentation
 - Architecture documentation
 
 ---
 
-# The Aerealith Test
+## The Aerealith Test
 
 Every meaningful feature, service, integration, module, workflow, and design
 decision should be evaluated using the following questions.
 
-## Trust and Control
+### Trust and Control
 
 - Does this build trust?
 - Does this keep the user in control?
@@ -1103,7 +1103,7 @@ decision should be evaluated using the following questions.
 - Can permissions be understood and revoked?
 - Is responsibility attributable?
 
-## Product Value
+### Product Value
 
 - Does this solve a real problem?
 - Does this reduce digital complexity?
@@ -1111,7 +1111,7 @@ decision should be evaluated using the following questions.
 - Does this fit within the product boundary?
 - Does this strengthen the shared platform?
 
-## Transparency and Safety
+### Transparency and Safety
 
 - Does this explain itself?
 - Are risks and uncertainty visible?
@@ -1120,7 +1120,7 @@ decision should be evaluated using the following questions.
 - Is recovery possible?
 - Are irreversible actions clearly identified?
 
-## Architecture and Longevity
+### Architecture and Longevity
 
 - Does this integrate before replacing?
 - Is the capability modular?
@@ -1129,7 +1129,7 @@ decision should be evaluated using the following questions.
 - Can it evolve without unnecessary breakage?
 - Does it degrade gracefully?
 
-## Privacy and Ethics
+### Privacy and Ethics
 
 - Does this protect user privacy?
 - Is data collection proportional to the capability?
@@ -1137,7 +1137,7 @@ decision should be evaluated using the following questions.
 - Does it avoid manipulation and dark patterns?
 - Would we be comfortable publicly explaining how it works?
 
-## Experience and Inclusion
+### Experience and Inclusion
 
 - Is it understandable?
 - Is it accessible?
@@ -1145,7 +1145,7 @@ decision should be evaluated using the following questions.
 - Does it avoid unnecessary complexity?
 - Can both new and advanced users operate it effectively?
 
-## Long-Term Standard
+### Long-Term Standard
 
 - Does documentation accurately describe its current state?
 - Would we still be proud to ship and support this ten years from now?
@@ -1155,7 +1155,7 @@ re-scoped, deferred, or supported by exceptional documented justification.
 
 ---
 
-# Our North Star
+## Our North Star
 
 > **Reduce digital complexity without reducing user control.**
 

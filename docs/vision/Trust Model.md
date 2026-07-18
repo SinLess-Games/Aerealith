@@ -139,9 +139,9 @@ Trust should be re-evaluated whenever meaningful context changes.
 
 ---
 
-# Progressive Trust Model
+## Progressive Trust Model
 
-## Progressive Trust Flow
+### Progressive Trust Flow
 
 ```mermaid
 stateDiagram-v2
@@ -174,7 +174,7 @@ stateDiagram-v2
 
 ---
 
-## Trust Stages
+### Trust Stages
 
 | Stage | Name               | Description                                                                                      |
 | ----: | ------------------ | ------------------------------------------------------------------------------------------------ |
@@ -209,7 +209,7 @@ Aerealith may move backward when:
 
 ---
 
-## The Trust Loop
+### The Trust Loop
 
 ```mermaid
 flowchart TD
@@ -253,7 +253,7 @@ type.
 
 ---
 
-# Trust Dimensions
+## Trust Dimensions
 
 A trust decision should evaluate more than whether an action is technically
 allowed.
@@ -280,9 +280,9 @@ No single trust score should replace explicit authorization and policy checks.
 
 ---
 
-# Permission Model
+## Permission Model
 
-## Permission Principles
+### Permission Principles
 
 Permissions should be:
 
@@ -303,7 +303,7 @@ Broad permissions should require stronger justification and clearer explanation.
 
 ---
 
-## Permission Levels
+### Permission Levels
 
 Aerealith permissions should be more expressive than simple allow or deny.
 
@@ -326,7 +326,7 @@ Aerealith permissions should be more expressive than simple allow or deny.
 
 ---
 
-## Permission Scope
+### Permission Scope
 
 A permission should identify:
 
@@ -354,7 +354,7 @@ authorization.
 
 ---
 
-## Permission Precedence
+### Permission Precedence
 
 When multiple permission sources apply, the most restrictive valid rule should
 generally prevail.
@@ -376,9 +376,9 @@ AI recommendations must never override a higher-level permission or policy.
 
 ---
 
-# Risk Model
+## Risk Model
 
-## Risk Principles
+### Risk Principles
 
 Risk should be evaluated before execution and re-evaluated when context changes.
 
@@ -400,7 +400,7 @@ Risk classification should consider:
 
 ---
 
-## Risk Levels
+### Risk Levels
 
 ```mermaid
 flowchart TD
@@ -434,7 +434,7 @@ target, timing, data sensitivity, or environment.
 
 ---
 
-## Risk Escalation Conditions
+### Risk Escalation Conditions
 
 Aerealith should increase the effective risk level when:
 
@@ -459,9 +459,9 @@ Aerealith should increase the effective risk level when:
 
 ---
 
-# Approval Model
+## Approval Model
 
-## Approval Requirements
+### Approval Requirements
 
 Aerealith should normally require approval when an action:
 
@@ -487,7 +487,7 @@ When uncertainty is meaningful, Aerealith should ask.
 
 ---
 
-## Approval Quality
+### Approval Quality
 
 Approval should be:
 
@@ -513,7 +513,7 @@ An approval prompt should explain:
 
 ---
 
-## Approval Must Not Be Manipulative
+### Approval Must Not Be Manipulative
 
 Aerealith must not:
 
@@ -529,7 +529,7 @@ Aerealith must not:
 
 ---
 
-# Verification Before Action
+## Verification Before Action
 
 Verification is required when consequences matter.
 
@@ -572,7 +572,7 @@ Verification should become stronger as risk increases.
 
 ---
 
-## Strong Confirmation
+### Strong Confirmation
 
 High-risk or irreversible actions may require:
 
@@ -592,9 +592,9 @@ Strong confirmation should protect users without becoming meaningless ritual.
 
 ---
 
-# Execution Model
+## Execution Model
 
-## Execution Requirements
+### Execution Requirements
 
 Before execution, Aerealith should confirm that:
 
@@ -611,7 +611,7 @@ Before execution, Aerealith should confirm that:
 
 ---
 
-## Execution Safety
+### Execution Safety
 
 Where practical, actions should use:
 
@@ -634,9 +634,9 @@ Approval does not remove the need for technical safety controls.
 
 ---
 
-# Explanation Model
+## Explanation Model
 
-## Explain Before Action
+### Explain Before Action
 
 For meaningful actions, Aerealith should explain enough for the user to make an
 informed decision.
@@ -655,7 +655,7 @@ A pre-action explanation should answer:
 
 ---
 
-## Explain After Action
+### Explain After Action
 
 After completing a meaningful action, Aerealith should explain:
 
@@ -694,7 +694,7 @@ threshold.
 
 ---
 
-## Explanation Honesty
+### Explanation Honesty
 
 Aerealith should clearly distinguish:
 
@@ -710,9 +710,9 @@ It must not present uncertain reasoning as unquestionable fact.
 
 ---
 
-# Auditability
+## Auditability
 
-## Audit Principle
+### Audit Principle
 
 Every meaningful action should produce an audit event.
 
@@ -731,7 +731,7 @@ Audit records should make it possible to determine:
 
 ---
 
-## Audit Event Fields
+### Audit Event Fields
 
 Audit events should include, where applicable:
 
@@ -785,7 +785,7 @@ flowchart LR
 
 ---
 
-## Audit Integrity
+### Audit Integrity
 
 Audit records should be:
 
@@ -804,9 +804,9 @@ Logs should avoid storing secrets and unnecessary private content.
 
 ---
 
-# Automation Eligibility
+## Automation Eligibility
 
-## Eligibility Principles
+### Eligibility Principles
 
 Aerealith should offer automation only when repeated approved behavior shows
 that automation would be useful, safe, and understandable.
@@ -833,7 +833,7 @@ It should consider:
 
 ---
 
-## Automation May Be Suggested When
+### Automation May Be Suggested When
 
 - The same action has been approved multiple times
 - The context is consistent
@@ -849,7 +849,7 @@ It should consider:
 
 ---
 
-## Automation Should Not Be Suggested When
+### Automation Should Not Be Suggested When
 
 - The user has recently denied similar actions
 - The user appears uncertain
@@ -867,7 +867,7 @@ It should consider:
 
 ---
 
-## Suggested Automation Thresholds
+### Suggested Automation Thresholds
 
 These thresholds are initial guidance, not permanent guarantees.
 
@@ -893,9 +893,9 @@ It only permits Aerealith to consider offering automation.
 
 ---
 
-# Trusted Automation
+## Trusted Automation
 
-## Trusted Automation Boundaries
+### Trusted Automation Boundaries
 
 Every trusted automation must define:
 
@@ -928,7 +928,7 @@ Trusted automation must never become unlimited permission.
 
 ---
 
-## Automation Review
+### Automation Review
 
 Trusted automation should be reviewed when:
 
@@ -952,7 +952,7 @@ insufficiently understood.
 
 ---
 
-## Automation States
+### Automation States
 
 An automation may be:
 
@@ -972,9 +972,9 @@ users.
 
 ---
 
-# Revocation
+## Revocation
 
-## Revocation Principle
+### Revocation Principle
 
 Every permission and automation should be revocable unless a legal or technical
 constraint makes immediate revocation impossible.
@@ -998,7 +998,7 @@ Revocation should be easy to find and easy to understand.
 
 ---
 
-## Revocation Behavior
+### Revocation Behavior
 
 After revocation, Aerealith should:
 
@@ -1019,7 +1019,7 @@ That distinction must be clearly explained.
 
 ---
 
-# Trust by Context
+## Trust by Context
 
 Trust is scoped.
 
@@ -1049,7 +1049,7 @@ access to personal data.
 
 ---
 
-# Multi-Tenant Trust
+## Multi-Tenant Trust
 
 Aerealith must prevent trust and data from leaking across tenants.
 
@@ -1071,7 +1071,7 @@ tenant, role, and resource context is active.
 
 ---
 
-# Discord Trust Model
+## Discord Trust Model
 
 Discord communities require special care because actions can affect many people.
 
@@ -1143,7 +1143,7 @@ Technical capability is not authorization.
 
 ---
 
-## Discord Moderation
+### Discord Moderation
 
 Moderation decisions should consider:
 
@@ -1174,9 +1174,9 @@ community-approved policy and appropriate safeguards.
 
 ---
 
-# AI Trust Model
+## AI Trust Model
 
-## AI Authority
+### AI Authority
 
 AI should not receive special permission merely because it can interpret
 language or generate recommendations.
@@ -1202,7 +1202,7 @@ A model confidence score is not a permission grant.
 
 ---
 
-## AI Actions Should Be
+### AI Actions Should Be
 
 - Explainable
 - Permissioned
@@ -1217,7 +1217,7 @@ A model confidence score is not a permission grant.
 
 ---
 
-## AI Must Never
+### AI Must Never
 
 - Hide meaningful actions
 - Pretend certainty
@@ -1235,7 +1235,7 @@ A model confidence score is not a permission grant.
 
 ---
 
-## AI Confidence
+### AI Confidence
 
 AI confidence may inform whether Aerealith should ask a clarifying question.
 
@@ -1251,7 +1251,7 @@ Low confidence should generally lead to:
 
 ---
 
-# Human Override
+## Human Override
 
 Users should be able to reject or override AI recommendations.
 
@@ -1274,9 +1274,9 @@ trust level.
 
 ---
 
-# Failure Behavior
+## Failure Behavior
 
-## Failure Principle
+### Failure Principle
 
 Failure should never be hidden.
 
@@ -1299,7 +1299,7 @@ Failure becomes part of the trust history.
 
 ---
 
-## Partial Failure
+### Partial Failure
 
 For multi-step actions, Aerealith should distinguish:
 
@@ -1316,7 +1316,7 @@ The platform should not report overall success when material steps failed.
 
 ---
 
-## Retry Behavior
+### Retry Behavior
 
 Retries should be:
 
@@ -1333,7 +1333,7 @@ defined thresholds.
 
 ---
 
-# Emergency Actions
+## Emergency Actions
 
 Emergency automation may be appropriate for narrowly defined situations such as:
 
@@ -1359,7 +1359,7 @@ Emergency action must be:
 
 ---
 
-# Trust Metrics
+## Trust Metrics
 
 Aerealith may use trust-related signals to improve recommendations and determine
 whether automation should be offered.
@@ -1392,7 +1392,7 @@ Metrics must not replace authorization, policy, or human judgment.
 
 ---
 
-## Trust Score Limitations
+### Trust Score Limitations
 
 A single universal trust score should not determine authorization.
 
@@ -1410,7 +1410,7 @@ Aerealith should prefer explicit, inspectable trust signals over opaque scoring.
 
 ---
 
-# Trust Model Data Shape
+## Trust Model Data Shape
 
 Example internal representation:
 
@@ -1480,7 +1480,7 @@ documentation.
 
 ---
 
-# Privacy and Trust Data
+## Privacy and Trust Data
 
 Trust records may contain sensitive behavioral information.
 
@@ -1500,7 +1500,7 @@ Trust history must not become a covert behavioral profile.
 
 ---
 
-# Trust Model Rules
+## Trust Model Rules
 
 Aerealith must follow these rules:
 
@@ -1527,11 +1527,11 @@ Aerealith must follow these rules:
 
 ---
 
-# The Trust Test
+## The Trust Test
 
 Before shipping a feature, integration, automation, or workflow, ask:
 
-## Authorization
+### Authorization
 
 - Does this action require user approval?
 - Is the approving actor authorized?
@@ -1539,14 +1539,14 @@ Before shipping a feature, integration, automation, or workflow, ask:
 - Is least privilege applied?
 - Does approval expire or require review?
 
-## Intent
+### Intent
 
 - Is the requested outcome clear?
 - Could the target be misunderstood?
 - Could this surprise the user?
 - Does the action match the user's current context?
 
-## Risk
+### Risk
 
 - What could go wrong?
 - How many people or systems could be affected?
@@ -1554,28 +1554,28 @@ Before shipping a feature, integration, automation, or workflow, ask:
 - Does the risk increase in production?
 - Are stronger safeguards required?
 
-## Transparency
+### Transparency
 
 - Can the proposed action be explained?
 - Can the completed result be explained?
 - Is AI involvement visible where relevant?
 - Are uncertainty and limitations clear?
 
-## Control
+### Control
 
 - Can the user pause or revoke it?
 - Can the scope be reduced?
 - Can the action be reversed where practical?
 - Is the automation easy to find and manage?
 
-## Auditability
+### Auditability
 
 - Can the action be attributed?
 - Can the approval be verified?
 - Can the affected resources be identified?
 - Can failure and rollback be reconstructed?
 
-## Safety
+### Safety
 
 - Does it fail safely?
 - Are retries bounded?
@@ -1583,14 +1583,14 @@ Before shipping a feature, integration, automation, or workflow, ask:
 - Can a compromised integration be isolated?
 - Would emergency behavior remain controlled?
 
-## Privacy
+### Privacy
 
 - Is the minimum necessary data being used?
 - Is trust history appropriately protected?
 - Is data retained only as long as needed?
 - Could this become surveillance?
 
-## Long-Term Standard
+### Long-Term Standard
 
 - Would we still defend this behavior publicly?
 - Would we still be proud to support it ten years from now?
@@ -1600,7 +1600,7 @@ supported by exceptional documented justification.
 
 ---
 
-# Current, Planned, Future, and Vision
+## Current, Planned, Future, and Vision
 
 This document defines the intended trust behavior of the Aerealith platform.
 
@@ -1628,7 +1628,7 @@ Implementation documentation defines the present capability.
 
 ---
 
-# Final Standard
+## Final Standard
 
 Aerealith succeeds when users trust it with important parts of their digital
 lives because it repeatedly proves worthy of that trust.

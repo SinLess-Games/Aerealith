@@ -1,16 +1,26 @@
 # Product Documentation
 
-The `docs/product/` folder defines what Aerealith AI is as a product.
+Status: Accepted
+Owner: SinLess Games LLC
+Last Updated: 2026-07-18
+Document Type: Target Product Index
+Implementation State: Intended behavior; not proof of current availability
 
-These documents explain who Aerealith serves, what capabilities it provides, how users interact with it, how Discord fits into the platform, how AI behaves, how automation works, and how the product should grow over time.
-
-Aerealith AI brings your digital life together into one intelligent, secure, customizable control center.
+The `docs/product/` folder defines the intended user-facing shape of Aerealith.
+Aerealith is the platform; Aerealith AI is the assistant within it. Product
+documents must be checked against [Current State](../CURRENT_STATE.md) before a
+capability is described as available.
 
 **Tagline:** One Platform. Infinite Possibilities.
 
 **North Star:** Reduce digital complexity without reducing user control.
 
----
+## Project Context
+
+- [Project Overview](../Project-Overview.md)
+- [Company and Project Structure](../Company-and-Project-Structure.md)
+- [Current State](../CURRENT_STATE.md)
+- [Documentation Index](../README.md)
 
 ## Purpose
 

@@ -1,7 +1,7 @@
 # Module Architecture
 
 Status: Draft
-Owner: Tim Pierce / SinLess Games
+Owner: SinLess Games LLC
 Last Updated: 2026-07-12
 Security Classification: Internal Architecture
 Primary Release: `0.7 — Discord Platform Foundation`

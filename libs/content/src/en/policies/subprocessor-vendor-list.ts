@@ -56,7 +56,7 @@ export const subprocessorVendorListPolicy = {
       title: '1. Purpose',
       body: [
         'This Subprocessor and Vendor List identifies third parties that SinLess Games LLC may use to provide, secure, operate, support, monitor, bill, analyze, improve, and maintain Aerealith AI.',
-        'Aerealith AI is operated by SinLess Games LLC.',
+        'Aerealith is operated under SinLess Industries and provided by SinLess Games LLC. Aerealith AI is the assistant within Aerealith.',
         'This list is intended to provide transparency about vendors that may process, store, transmit, access, or support data related to Aerealith AI.',
         'This document should be read together with:',
       ],
@@ -797,8 +797,8 @@ export const subprocessorVendorListPolicy = {
         },
         {
           label: 'Support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
       ],
     },

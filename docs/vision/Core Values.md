@@ -7,7 +7,7 @@ Document Type: Vision
 
 ---
 
-# Foundation
+## Foundation
 
 Aerealith exists to reduce digital complexity without reducing user control.
 
@@ -63,7 +63,7 @@ Practicality --> Simplicity
 Practicality --> Reliability
 ```
 
-# Trust
+## Trust
 
 Trust is the foundation of Aerealith.
 
@@ -75,7 +75,7 @@ Every interaction should increase confidence rather than uncertainty.
 
 ---
 
-# User Ownership
+## User Ownership
 
 Users remain in control of:
 
@@ -95,7 +95,7 @@ Aerealith never assumes ownership of user information.
 
 ---
 
-# User Control
+## User Control
 
 The user is always the final authority.
 
@@ -114,7 +114,7 @@ replace, or override platform behavior.
 
 ---
 
-# Transparency
+## Transparency
 
 Nothing important should happen silently.
 
@@ -132,7 +132,7 @@ Users should never need to guess why something occurred.
 
 ---
 
-# Security
+## Security
 
 Security is part of the product—not an optional enterprise feature.
 
@@ -151,7 +151,7 @@ operate.
 
 ---
 
-# Privacy
+## Privacy
 
 Collect only the information required to provide a capability.
 
@@ -170,7 +170,7 @@ Privacy is the default—not an upgrade.
 
 ---
 
-# Explainability
+## Explainability
 
 Artificial intelligence should never become an excuse for opaque behavior.
 
@@ -185,7 +185,7 @@ Explanations should be understandable to end users—not only developers.
 
 ---
 
-# Auditability
+## Auditability
 
 Meaningful actions create meaningful records.
 
@@ -206,7 +206,7 @@ collecting unnecessary personal information.
 
 ---
 
-# Safety
+## Safety
 
 Automation should never silently bypass user intent.
 
@@ -222,7 +222,7 @@ Protecting user trust always takes precedence over convenience.
 
 ---
 
-# Modularity
+## Modularity
 
 Every capability should function as an independent module whenever practical.
 
@@ -239,7 +239,7 @@ A modular platform is easier to understand, maintain, secure, and evolve.
 
 ---
 
-# Extensibility
+## Extensibility
 
 Aerealith is designed as a platform—not a closed application.
 
@@ -259,7 +259,7 @@ Growth should come through composition instead of increasing complexity.
 
 ---
 
-# Self-Hosting
+## Self-Hosting
 
 Users should have meaningful deployment choice.
 
@@ -275,7 +275,7 @@ Deployment flexibility is part of user ownership.
 
 ---
 
-# Practicality
+## Practicality
 
 Technology exists to solve real problems.
 
@@ -290,7 +290,7 @@ long-term vision should not be added.
 
 ---
 
-# Simplicity
+## Simplicity
 
 Prefer the simplest solution that satisfies the requirements.
 
@@ -307,7 +307,7 @@ Good engineering reduces complexity instead of hiding it.
 
 ---
 
-# Reliability
+## Reliability
 
 Users should be able to depend on the platform.
 
@@ -324,7 +324,7 @@ Trust is impossible without reliability.
 
 ---
 
-# Reversibility
+## Reversibility
 
 Whenever technically possible, actions should be reversible.
 
@@ -338,7 +338,7 @@ Mistakes should be recoverable whenever practical.
 
 ---
 
-# Accountability
+## Accountability
 
 Every meaningful action should have a responsible actor.
 
@@ -357,7 +357,7 @@ Responsibility should never be hidden behind automation.
 
 ---
 
-# Final Standard
+## Final Standard
 
 Every decision made within Aerealith should support one guiding principle:
 

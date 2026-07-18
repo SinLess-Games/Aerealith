@@ -6,6 +6,13 @@ Last Updated: 2026-07-14
 Document Type: Engineering Reference
 Authority: Canonical for approved technology choices
 
+## Project Context
+
+- [Project Overview](./Project-Overview.md)
+- [Company and Project Structure](./Company-and-Project-Structure.md)
+- [Current State](./CURRENT_STATE.md)
+- [Documentation Index](./README.md)
+
 ## Purpose
 
 This document defines the current and planned technology stack for Aerealith AI.

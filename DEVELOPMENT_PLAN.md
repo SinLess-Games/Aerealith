@@ -1,4 +1,14 @@
-# Aerealith AI — Development Plan
+# Aerealith — Development Plan
+
+Status: Superseded
+Owner: SinLess Games LLC
+Last Updated: 2026-07-18
+Document Type: Historical Planning Snapshot
+Authority: Non-authoritative; use docs/CURRENT_STATE.md and docs/releases/
+
+> This plan is retained as a planning snapshot. It does not prove current
+> implementation status and must not override the active documentation index,
+> current architecture, project inventory, decisions, or release evidence.
 
 This is the delivery plan for building Aerealith AI from release `0.1` to
 `1.1 — MVP Production Launch`.
@@ -27,7 +37,7 @@ This document defines:
 
 It is a delivery plan. It is not a product spec, an architecture spec, or a replacement
 for the RFCs. Those remain authoritative in [docs/product/](docs/product/),
-[docs/architecture/](docs/architecture/), and [docs/rfcs/](docs/rfcs/).
+[docs/architecture/](docs/architecture/), and [docs/decisions/](docs/decisions/).
 
 ---
 
@@ -35,14 +45,14 @@ for the RFCs. Those remain authoritative in [docs/product/](docs/product/),
 
 The documents conflict. When they do, resolve in this order.
 
-| Rank | Source                                                                                                | Why it wins                                                                                                                          |
-| ---- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| 1    | [docs/rfcs/](docs/rfcs/)                                                                              | RFCs 0002–0005 carry `status: Implemented`. Per [RFC 0001](docs/rfcs/0001-rfc-process.md) they are binding decisions, not proposals. |
-| 2    | [docs/vision/Trust Model.md](docs/vision/Trust%20Model.md)                                            | Trust rules are described as a per-feature ship gate ("The Trust Test"), not a milestone. They constrain every release.              |
-| 3    | [docs/product/MVP Scope.md](docs/product/MVP%20Scope.md)                                              | Declares itself: "This document is a scope gate."                                                                                    |
-| 4    | [docs/releases/README.md](docs/releases/README.md) + [docs/vision/Roadmap.md](docs/vision/Roadmap.md) | The release spine. These two agree with each other.                                                                                  |
-| 5    | [docs/architecture/System Architecture.md](docs/architecture/System%20Architecture.md)                | Explicitly says it "does not fully define" schema, auth, bot internals, workflow engine, and more. Directional.                      |
-| 6    | Everything else in `docs/product/`                                                                    | Feature-area detail. Defers to the scope gate.                                                                                       |
+| Rank | Source                                                                                                | Why it wins                                                                                                                              |
+| ---- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | [docs/decisions/](docs/decisions/)                                                                    | RFCs 0002–0005 carry `status: Implemented`. Per [Decision Register](docs/decisions/README.md) they are binding decisions, not proposals. |
+| 2    | [docs/vision/Trust Model.md](docs/vision/Trust%20Model.md)                                            | Trust rules are described as a per-feature ship gate ("The Trust Test"), not a milestone. They constrain every release.                  |
+| 3    | [docs/product/MVP Scope.md](docs/product/MVP%20Scope.md)                                              | Declares itself: "This document is a scope gate."                                                                                        |
+| 4    | [docs/releases/README.md](docs/releases/README.md) + [docs/vision/Roadmap.md](docs/vision/Roadmap.md) | The release spine. These two agree with each other.                                                                                      |
+| 5    | [Architecture Index](docs/architecture/README.md)                                                     | Explicitly says it "does not fully define" schema, auth, bot internals, workflow engine, and more. Directional.                          |
+| 6    | Everything else in `docs/product/`                                                                    | Feature-area detail. Defers to the scope gate.                                                                                           |
 
 This ordering matters immediately: the System Architecture document specifies the route
 prefix `/api/v1/`, and RFC 0003 specifies `/api/V1/` with an uppercase `V` and explicitly
@@ -218,7 +228,7 @@ never escalate permission silently; never prioritize convenience over user trust
 
 [docs/product/Product Philosophy.md](docs/vision/Product%20Philosophy.md) → AI
 Philosophy: "Core platform capabilities should never depend entirely on a single AI
-provider." [docs/architecture/System Architecture.md](docs/architecture/System%20Architecture.md)
+provider." [Architecture Index](docs/architecture/README.md)
 names "Risk: AI Becomes Too Central" and requires "Core platform behavior must work
 without AI." [docs/product/MVP Scope.md](docs/product/MVP%20Scope.md) → Launch Readiness
 requires "The platform should still work if AI is unavailable."
@@ -247,7 +257,7 @@ public; routes under `/api/V1/` with an uppercase `V`; responses in the RFC 0004
 carrying `requestId` and `traceId`; and **never return a persistence entity from an API**.
 
 Library boundary rule, verbatim from
-[RFC 0002](docs/rfcs/0002-monorepo-library-boundaries.md): "libs/\* may depend on
+[DEC-005](docs/decisions/DEC-005-shared-library-set.md): "libs/\* may depend on
 libs/core only."
 
 ---
@@ -280,7 +290,7 @@ Recommendation column is my proposal, not a doc citation. It needs a human decis
 
 ### DEC-03 deserves its own paragraph
 
-The product is called **Aerealith AI**. The vision centers AI. And the roadmap ships the
+The platform is called **Aerealith**. Aerealith AI is its assistant, and the roadmap ships the
 AI assistant **after** the MVP launches.
 
 This is not necessarily wrong — [docs/vision/Product Philosophy.md](docs/vision/Product%20Philosophy.md)
@@ -302,7 +312,7 @@ models — stays in `1.3`.
 
 ## RFCs Required Before Code
 
-[RFC 0001](docs/rfcs/0001-rfc-process.md) → "When to Write an RFC" requires an RFC for
+[Decision Register](docs/decisions/README.md) → "When to Write an RFC" requires an RFC for
 decisions affecting architecture, data models, API contracts, security, trust,
 permissions, AI behavior, memory, automation, Discord actions, the module system,
 integrations, provider lock-in, or self-hosting.
@@ -337,7 +347,7 @@ section says `Pending`. Three states in one document. And its lifecycle diagram 
 
 ## Architecture Target
 
-From [docs/architecture/System Architecture.md](docs/architecture/System%20Architecture.md).
+From [Architecture Index](docs/architecture/README.md).
 
 ### Ten layers
 
@@ -788,7 +798,7 @@ Found while reading `docs/`. These are cheap and they are load-bearing.
 | ID     | Defect                                                                                                                                                                                                                                                                                                 |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | DOC-01 | [docs/MASTER_INDEX.md](docs/MASTER_INDEX.md) is **0 bytes**, despite its name implying the documentation index.                                                                                                                                                                                        |
-| DOC-02 | [docs/Untitled.md](docs/Untitled.md) is **0 bytes**. Delete it.                                                                                                                                                                                                                                        |
+| DOC-02 | `docs/Untitled.md` is **0 bytes**. Delete it.                                                                                                                                                                                                                                                          |
 | DOC-03 | `docs/vision/Core Values.md.md` has a **double extension**. `README.md` links to it three times as `./Core%20Values.md`, which does not exist. Three broken links. Rename the file.                                                                                                                    |
 | DOC-04 | [docs/README.md](docs/README.md) lists reading-order files in `UPPER_SNAKE_CASE.md` (`PROJECT_VISION.md`, `PRODUCT_OVERVIEW.md`, `SYSTEM_ARCHITECTURE.md`). Every other document prescribes Title Case with spaces. None of the UPPER_SNAKE files exist.                                               |
 | DOC-05 | RFC 0001 declares three different statuses for itself: frontmatter `Implemented`, metadata block `Draft`, Decision section `Pending`.                                                                                                                                                                  |
@@ -810,7 +820,7 @@ Named in the docs, plus what I observed reading them.
 | Risk                                                                                                                          | Source                                  | Mitigation                                                                                      |
 | ----------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | **Overbuilding too early.**                                                                                                   | System Architecture §Architecture Risks | "Avoid marketplace/plugin runtime before first-party modules work." Two deployables, not seven. |
-| **AI becomes too central.** The product is named "Aerealith AI" and the roadmap ships the assistant after launch.             | System Architecture; DEC-03             | Make "works without AI" a test that runs every release.                                         |
+| **AI becomes too central.** Aerealith AI is only one platform capability, and the roadmap ships the assistant after launch.   | System Architecture; DEC-03             | Make "works without AI" a test that runs every release.                                         |
 | **Discord complexity spreads everywhere.**                                                                                    | System Architecture §Architecture Risks | Keep Discord logic in Discord services; expose normalized contracts.                            |
 | **Weak auditability.**                                                                                                        | System Architecture §Architecture Risks | Audit as a platform behavior, written by an event consumer, not at call sites.                  |
 | **Dependency spaghetti.** RFC 0002 asks whether to enforce boundaries "immediately or after 0.2."                             | RFC 0002 §Open Questions                | Enforce in `0.2` with lint. The graph is smallest now.                                          |

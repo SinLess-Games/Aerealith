@@ -176,9 +176,13 @@ const config = {
 
   /**
    * MD049/emphasis-style
+   *
+   * Require each document to use one emphasis style consistently. Prettier
+   * owns the exact marker choice and currently normalizes emphasis to
+   * underscores.
    */
   MD049: {
-    style: 'asterisk',
+    style: 'consistent',
   },
 
   /**

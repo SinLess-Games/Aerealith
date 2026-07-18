@@ -73,11 +73,11 @@ closer to this goal.
 
 ---
 
-# Roadmap Philosophy
+## Roadmap Philosophy
 
 Aerealith follows six delivery principles.
 
-## 1. Milestones Over Dates
+### 1. Milestones Over Dates
 
 Dates provide planning structure.
 
@@ -87,7 +87,7 @@ A release should not ship merely because its target week has arrived.
 
 ---
 
-## 2. Foundation Before Expansion
+### 2. Foundation Before Expansion
 
 Aerealith should not expand into advanced AI, marketplace, mobile, or broad
 integration work before its core platform can support those capabilities
@@ -95,7 +95,7 @@ securely.
 
 ---
 
-## 3. Vertical Progress Over Isolated Components
+### 3. Vertical Progress Over Isolated Components
 
 Each development phase should produce usable end-to-end progress.
 
@@ -104,7 +104,7 @@ documentation should evolve together.
 
 ---
 
-## 4. Documentation Is Part of Delivery
+### 4. Documentation Is Part of Delivery
 
 A feature is incomplete when its behavior, operation, configuration, security
 requirements, or limitations are undocumented.
@@ -114,7 +114,7 @@ until the end of a release.
 
 ---
 
-## 5. Security and Trust Are Release Gates
+### 5. Security and Trust Are Release Gates
 
 Security, permissions, auditability, validation, and safe failure behavior are
 not optional post-launch improvements.
@@ -123,7 +123,7 @@ They are release requirements.
 
 ---
 
-## 6. Discord First, Not Discord Only
+### 6. Discord First, Not Discord Only
 
 Discord is the first flagship integration and community surface.
 
@@ -143,7 +143,7 @@ product.
 
 ---
 
-# Strategic Direction
+## Strategic Direction
 
 Aerealith is larger than any single product surface.
 
@@ -171,7 +171,7 @@ private-beta candidate.
 
 ---
 
-# Twenty-Week Objective
+## Twenty-Week Objective
 
 The primary objective of the initial 20-week production period is:
 
@@ -198,7 +198,7 @@ within 20 weeks.
 
 ---
 
-# Planning Assumptions
+## Planning Assumptions
 
 The 20-week plan assumes:
 
@@ -223,7 +223,7 @@ Team size affects throughput, not release standards.
 
 ---
 
-# Release Flow
+## Release Flow
 
 ```mermaid
 flowchart TD
@@ -258,7 +258,7 @@ flowchart TD
 
 ---
 
-# Twenty-Week Summary
+## Twenty-Week Summary
 
 | Week | Primary Focus                                             | Target Release |
 | ---: | --------------------------------------------------------- | -------------- |
@@ -285,16 +285,16 @@ flowchart TD
 
 ---
 
-# Week-by-Week Production Plan
+## Week-by-Week Production Plan
 
-## Week 1 — Repository Baseline and Workspace Stabilization
+### Week 1 — Repository Baseline and Workspace Stabilization
 
 **Release:** `0.1`
 **Theme:** Establish the source of truth
 **Primary Outcome:** The repository has a verified, documented, repeatable
 baseline.
 
-### Development
+#### Development
 
 - Audit the current Nx workspace
 - Confirm all applications and libraries are represented in the workspace
@@ -314,7 +314,7 @@ baseline.
 - Confirm test commands
 - Confirm lint and type-check commands
 
-### Documentation
+#### Documentation
 
 - Update root `README.md`
 - Update `CONTRIBUTING.md`
@@ -328,7 +328,7 @@ baseline.
 - Confirm `docs/README.md` is the documentation entry point
 - Correct broken internal documentation links
 
-### Security and Quality
+#### Security and Quality
 
 - Audit committed environment files
 - Confirm secrets are excluded from Git
@@ -338,7 +338,7 @@ baseline.
 - Establish protected-branch expectations
 - Define the baseline pull-request checklist
 
-### Deliverables
+#### Deliverables
 
 - Reproducible local installation
 - Verified workspace graph
@@ -347,7 +347,7 @@ baseline.
 - Initial dependency-boundary rules
 - Updated contributor documentation
 
-### Exit Criteria
+#### Exit Criteria
 
 - A clean clone can install successfully
 - The workspace graph renders without unexplained failures
@@ -358,13 +358,13 @@ baseline.
 
 ---
 
-## Week 2 — Shared Tooling, CI, Docker, and Contributor Workflow
+### Week 2 — Shared Tooling, CI, Docker, and Contributor Workflow
 
 **Release:** `0.1`
 **Theme:** Enforce the engineering baseline
 **Primary Outcome:** The development foundation is automatically validated.
 
-### Development
+#### Development
 
 - Standardize ESLint configuration
 - Standardize Prettier configuration
@@ -381,7 +381,7 @@ baseline.
 - Standardize package scripts
 - Configure Nx affected commands
 
-### Continuous Integration
+#### Continuous Integration
 
 - Add pull-request validation workflow
 - Add lint validation
@@ -398,7 +398,7 @@ baseline.
 - Add workflow failure guidance
 - Publish CI status expectations
 
-### Documentation
+#### Documentation
 
 - Document CI jobs
 - Document local equivalents of CI commands
@@ -409,7 +409,7 @@ baseline.
 - Document branch and pull-request workflow
 - Document release `0.1` verification procedure
 
-### Deliverables
+#### Deliverables
 
 - Enforced quality pipeline
 - Docker baseline
@@ -417,7 +417,7 @@ baseline.
 - Contributor workflow
 - Security and dependency scanning baseline
 
-### Exit Criteria
+#### Exit Criteria
 
 - Pull requests automatically lint, type-check, test, and build affected code
 - Security scanners execute or have documented implementation blockers
@@ -428,14 +428,14 @@ baseline.
 
 ---
 
-## Week 3 — Domain Language, Contracts, Validation, and Errors
+### Week 3 — Domain Language, Contracts, Validation, and Errors
 
 **Release:** `0.2`
 **Theme:** Define shared platform language
 **Primary Outcome:** Core platform entities and contracts have stable initial
 definitions.
 
-### Development
+#### Development
 
 - Define the initial tenant model
 - Define user and account concepts
@@ -458,7 +458,7 @@ definitions.
 - Define serialization conventions
 - Define public versus internal data shapes
 
-### Architecture
+#### Architecture
 
 - Document domain boundaries
 - Document tenant ownership
@@ -468,7 +468,7 @@ definitions.
 - Record material decisions through ADRs or DECs
 - Map domain entities to future services
 
-### Documentation
+#### Documentation
 
 - Create domain glossary
 - Document naming conventions
@@ -478,7 +478,7 @@ definitions.
 - Document current limitations
 - Mark speculative entities as future rather than current
 
-### Testing
+#### Testing
 
 - Add schema tests
 - Add serialization tests
@@ -486,7 +486,7 @@ definitions.
 - Add error-contract tests
 - Add contract compatibility fixtures
 
-### Deliverables
+#### Deliverables
 
 - Initial shared domain library
 - Shared validation library
@@ -495,7 +495,7 @@ definitions.
 - Domain glossary
 - Domain ownership documentation
 
-### Exit Criteria
+#### Exit Criteria
 
 - Core entities have reviewed definitions
 - Public contracts do not expose internal persistence details
@@ -506,14 +506,14 @@ definitions.
 
 ---
 
-## Week 4 — Database, Drizzle, Repositories, and Migrations
+### Week 4 — Database, Drizzle, Repositories, and Migrations
 
 **Release:** `0.2`
 **Theme:** Establish persistence safely
 **Primary Outcome:** Aerealith has a reproducible and testable database
 foundation.
 
-### Development
+#### Development
 
 - Configure PostgreSQL or CockroachDB environments
 - Configure Drizzle
@@ -538,7 +538,7 @@ foundation.
 - Add migration status checks
 - Add rollback guidance where technically supported
 
-### Security
+#### Security
 
 - Separate application and migration credentials
 - Document least-privilege database roles
@@ -547,7 +547,7 @@ foundation.
 - Review tenant-scoping requirements
 - Add initial data-classification notes
 
-### Testing
+#### Testing
 
 - Test clean database creation
 - Test migration from previous schema state
@@ -558,7 +558,7 @@ foundation.
 - Test transactional failure behavior
 - Test database startup in local containers
 
-### Documentation
+#### Documentation
 
 - Database setup guide
 - Migration guide
@@ -568,7 +568,7 @@ foundation.
 - Backup and recovery assumptions
 - Environment-specific migration process
 
-### Deliverables
+#### Deliverables
 
 - Drizzle configuration
 - Initial production schemas
@@ -577,7 +577,7 @@ foundation.
 - Database development environment
 - Persistence documentation
 
-### Exit Criteria
+#### Exit Criteria
 
 - A clean database can be created from migrations
 - Application repositories pass integration tests
@@ -588,13 +588,13 @@ foundation.
 
 ---
 
-## Week 5 — Authentication Architecture and Account Lifecycle
+### Week 5 — Authentication Architecture and Account Lifecycle
 
 **Release:** `0.3`
 **Theme:** Secure account entry
 **Primary Outcome:** Users can begin creating and verifying accounts safely.
 
-### Development
+#### Development
 
 - Finalize authentication architecture
 - Implement sign-up
@@ -615,7 +615,7 @@ foundation.
 - Add authentication events to audit logging
 - Add authentication configuration validation
 
-### Security
+#### Security
 
 - Threat-model account creation and login
 - Review token generation
@@ -628,7 +628,7 @@ foundation.
 - Define compromised-account response
 - Define session invalidation requirements
 
-### Frontend
+#### Frontend
 
 - Create sign-up screen
 - Create login screen
@@ -639,7 +639,7 @@ foundation.
 - Add accessibility validation
 - Add privacy and consent links
 
-### Documentation
+#### Documentation
 
 - Authentication overview
 - Sign-up sequence
@@ -649,7 +649,7 @@ foundation.
 - Authentication environment configuration
 - Troubleshooting guide
 
-### Deliverables
+#### Deliverables
 
 - Working account creation
 - Working verification delivery
@@ -658,7 +658,7 @@ foundation.
 - Authentication audit events
 - Authentication threat model
 
-### Exit Criteria
+#### Exit Criteria
 
 - A user can create and verify an account
 - Login failures do not expose account existence unnecessarily
@@ -668,14 +668,14 @@ foundation.
 
 ---
 
-## Week 6 — Sessions, Authorization, Consent, and Identity Hardening
+### Week 6 — Sessions, Authorization, Consent, and Identity Hardening
 
 **Release:** `0.3`
 **Theme:** Enforce identity beyond login
 **Primary Outcome:** Protected resources consistently evaluate identity,
 permissions, and consent.
 
-### Development
+#### Development
 
 - Implement session creation
 - Implement session rotation
@@ -696,7 +696,7 @@ permissions, and consent.
 - Add stale-authentication detection
 - Add reauthentication hooks for high-risk actions
 
-### Security
+#### Security
 
 - Review session fixation risks
 - Review cross-site request protections
@@ -709,7 +709,7 @@ permissions, and consent.
 - Add security headers
 - Define privileged-action confirmation requirements
 
-### Frontend
+#### Frontend
 
 - Add session-expired handling
 - Add active-session management
@@ -719,7 +719,7 @@ permissions, and consent.
 - Add logout-all-sessions control
 - Add account lifecycle messaging
 
-### Documentation
+#### Documentation
 
 - Session lifecycle
 - Authorization model
@@ -729,7 +729,7 @@ permissions, and consent.
 - Privileged-action guidance
 - Identity incident-response notes
 
-### Deliverables
+#### Deliverables
 
 - Secure session lifecycle
 - Authorization middleware
@@ -738,7 +738,7 @@ permissions, and consent.
 - Account security settings
 - Identity security test suite
 
-### Exit Criteria
+#### Exit Criteria
 
 - Protected endpoints consistently enforce authorization
 - Sessions can be listed and revoked
@@ -749,14 +749,14 @@ permissions, and consent.
 
 ---
 
-## Week 7 — Design System and Public Frontend Shell
+### Week 7 — Design System and Public Frontend Shell
 
 **Release:** `0.4`
 **Theme:** Establish a coherent visual platform
 **Primary Outcome:** Aerealith has a reusable frontend foundation and public
 shell.
 
-### Development
+#### Development
 
 - Configure Vite application structure
 - Configure React Router
@@ -781,7 +781,7 @@ shell.
 - Add empty-state standards
 - Add frontend configuration validation
 
-### Accessibility
+#### Accessibility
 
 - Establish keyboard-navigation requirements
 - Establish focus-state requirements
@@ -791,7 +791,7 @@ shell.
 - Add automated accessibility checks
 - Test shared components with keyboard navigation
 
-### Documentation
+#### Documentation
 
 - Design-system overview
 - Component-contribution rules
@@ -801,7 +801,7 @@ shell.
 - State-management guidance
 - Error and loading-state guidance
 
-### Deliverables
+#### Deliverables
 
 - Shared UI library
 - Public site shell
@@ -810,7 +810,7 @@ shell.
 - Design tokens
 - Accessibility baseline
 
-### Exit Criteria
+#### Exit Criteria
 
 - Shared components are reusable across frontend surfaces
 - Public pages work across supported screen sizes
@@ -820,14 +820,14 @@ shell.
 
 ---
 
-## Week 8 — Authenticated App Shell, Settings, and Accessibility
+### Week 8 — Authenticated App Shell, Settings, and Accessibility
 
 **Release:** `0.4`
 **Theme:** Deliver the first coherent user workspace
 **Primary Outcome:** Authenticated users can navigate a functional application
 shell and manage core account settings.
 
-### Development
+#### Development
 
 - Build authenticated application layout
 - Build primary navigation
@@ -850,7 +850,7 @@ shell and manage core account settings.
 - Add form validation
 - Add responsive navigation
 
-### Observability
+#### Observability
 
 - Add frontend error reporting
 - Add page-view telemetry with privacy controls
@@ -858,7 +858,7 @@ shell and manage core account settings.
 - Add correlation identifiers for API failures
 - Ensure sensitive form data is excluded from telemetry
 
-### Testing
+#### Testing
 
 - Add component tests
 - Add route tests
@@ -868,7 +868,7 @@ shell and manage core account settings.
 - Add session-revocation end-to-end test
 - Add accessibility scans
 
-### Documentation
+#### Documentation
 
 - User settings guide
 - Frontend observability guide
@@ -876,7 +876,7 @@ shell and manage core account settings.
 - Form standards
 - Accessibility exceptions and remediation process
 
-### Deliverables
+#### Deliverables
 
 - Authenticated app shell
 - Account and profile settings
@@ -884,7 +884,7 @@ shell and manage core account settings.
 - Permission-aware navigation
 - Frontend end-to-end baseline
 
-### Exit Criteria
+#### Exit Criteria
 
 - Core account workflows function end to end
 - Protected routes reject unauthenticated users
@@ -895,13 +895,13 @@ shell and manage core account settings.
 
 ---
 
-## Week 9 — Service Templates, HTTP Standards, and API Contracts
+### Week 9 — Service Templates, HTTP Standards, and API Contracts
 
 **Release:** `0.5`
 **Theme:** Standardize backend service development
 **Primary Outcome:** New services can be created and operated consistently.
 
-### Development
+#### Development
 
 - Finalize Hono service conventions
 - Create service generator or template
@@ -927,7 +927,7 @@ shell and manage core account settings.
 - Define GraphQL boundaries where justified
 - Define WebSocket conventions where justified
 
-### Docker and Operations
+#### Docker and Operations
 
 - Create shared container patterns
 - Add non-root execution
@@ -937,7 +937,7 @@ shell and manage core account settings.
 - Add development container support
 - Define container tagging conventions
 
-### Documentation
+#### Documentation
 
 - Service-development guide
 - API style guide
@@ -947,7 +947,7 @@ shell and manage core account settings.
 - Service security checklist
 - Versioning policy
 
-### Testing
+#### Testing
 
 - Service-template tests
 - Middleware tests
@@ -956,7 +956,7 @@ shell and manage core account settings.
 - Graceful-shutdown tests
 - Container startup tests
 
-### Deliverables
+#### Deliverables
 
 - Service template
 - Shared backend middleware
@@ -964,7 +964,7 @@ shell and manage core account settings.
 - Container baseline
 - Service-development documentation
 
-### Exit Criteria
+#### Exit Criteria
 
 - A new service can be generated from the template
 - Generated services pass lint, test, type-check, and build
@@ -974,14 +974,14 @@ shell and manage core account settings.
 
 ---
 
-## Week 10 — Auth/User Services and End-to-End API Integration
+### Week 10 — Auth/User Services and End-to-End API Integration
 
 **Release:** `0.5`
 **Theme:** Prove the service platform
 **Primary Outcome:** Core identity and user capabilities operate through
 deployable services and the web application.
 
-### Development
+#### Development
 
 - Extract or formalize Auth service
 - Extract or formalize User service
@@ -1002,7 +1002,7 @@ deployable services and the web application.
 - Implement timeout rules
 - Implement standardized client error handling
 
-### Testing
+#### Testing
 
 - Auth service unit tests
 - User service unit tests
@@ -1014,7 +1014,7 @@ deployable services and the web application.
 - Container integration tests
 - Failure and timeout tests
 
-### Documentation
+#### Documentation
 
 - Auth service reference
 - User service reference
@@ -1024,7 +1024,7 @@ deployable services and the web application.
 - Troubleshooting distributed requests
 - Known limitations
 
-### Deliverables
+#### Deliverables
 
 - Deployable Auth service
 - Deployable User service
@@ -1032,7 +1032,7 @@ deployable services and the web application.
 - Generated API documentation
 - End-to-end service tests
 
-### Exit Criteria
+#### Exit Criteria
 
 - Core user workflows operate through service APIs
 - Services are independently deployable and testable
@@ -1043,14 +1043,14 @@ deployable services and the web application.
 
 ---
 
-## Week 11 — Developer Portal, API Documentation, Keys, and Webhooks
+### Week 11 — Developer Portal, API Documentation, Keys, and Webhooks
 
 **Release:** `0.6`
 **Theme:** Establish the developer experience
 **Primary Outcome:** Developers can understand and begin integrating with the
 platform.
 
-### Development
+#### Development
 
 - Build developer portal navigation
 - Publish API overview
@@ -1076,7 +1076,7 @@ platform.
 - Implement webhook disable behavior
 - Add developer diagnostics foundation
 
-### Security
+#### Security
 
 - Prevent raw API keys from being stored
 - Display secrets only at creation
@@ -1087,7 +1087,7 @@ platform.
 - Add abuse-monitoring expectations
 - Add secret-rotation procedure
 
-### Documentation
+#### Documentation
 
 - Quick-start guide
 - API-key guide
@@ -1098,7 +1098,7 @@ platform.
 - Developer support expectations
 - API deprecation policy
 
-### Deliverables
+#### Deliverables
 
 - Developer portal baseline
 - API reference
@@ -1107,7 +1107,7 @@ platform.
 - Developer quick start
 - Integration diagnostics baseline
 
-### Exit Criteria
+#### Exit Criteria
 
 - A developer can discover and understand available APIs
 - API keys can be created, scoped, and revoked
@@ -1118,13 +1118,13 @@ platform.
 
 ---
 
-## Week 12 — Discord Application, Installation, and Guild Linking
+### Week 12 — Discord Application, Installation, and Guild Linking
 
 **Release:** `0.7`
 **Theme:** Establish Discord as the first flagship integration
 **Primary Outcome:** A Discord community can install and link Aerealith safely.
 
-### Development
+#### Development
 
 - Confirm official Discord application configuration
 - Establish bot package and service architecture
@@ -1146,7 +1146,7 @@ platform.
 - Add guild-link audit events
 - Add installation error handling
 
-### Frontend
+#### Frontend
 
 - Build Discord connection screen
 - Build guild-selection screen
@@ -1156,7 +1156,7 @@ platform.
 - Build guild overview shell
 - Display acting tenant and guild clearly
 
-### Security
+#### Security
 
 - Protect Discord credentials
 - Validate OAuth state
@@ -1167,7 +1167,7 @@ platform.
 - Avoid requesting unnecessary Discord permissions
 - Log installation and authorization changes
 
-### Documentation
+#### Documentation
 
 - Discord installation guide
 - Required permissions
@@ -1177,7 +1177,7 @@ platform.
 - Data-access explanation
 - Privacy and retention notes
 
-### Deliverables
+#### Deliverables
 
 - Official application integration
 - Guild installation flow
@@ -1185,7 +1185,7 @@ platform.
 - Permission validation
 - Discord connection dashboard
 
-### Exit Criteria
+#### Exit Criteria
 
 - An authorized Discord administrator can install Aerealith
 - A guild can be linked to the correct Aerealith tenant
@@ -1195,14 +1195,14 @@ platform.
 
 ---
 
-## Week 13 — Discord Commands, Events, Permissions, and Modules
+### Week 13 — Discord Commands, Events, Permissions, and Modules
 
 **Release:** `0.7`
 **Theme:** Build the modular Discord runtime
 **Primary Outcome:** Discord interactions are reliable, authorized, observable,
 and configurable.
 
-### Development
+#### Development
 
 - Implement Discord event ingestion
 - Implement slash-command registration
@@ -1226,7 +1226,7 @@ and configurable.
 - Add baseline help command
 - Add baseline configuration command
 
-### Testing
+#### Testing
 
 - Event-handler tests
 - Command authorization tests
@@ -1238,7 +1238,7 @@ and configurable.
 - Duplicate-event tests
 - Interaction timeout tests
 
-### Documentation
+#### Documentation
 
 - Discord architecture
 - Command-development guide
@@ -1249,7 +1249,7 @@ and configurable.
 - Guild configuration model
 - Audit-event mapping
 
-### Deliverables
+#### Deliverables
 
 - Discord runtime
 - Slash-command system
@@ -1258,7 +1258,7 @@ and configurable.
 - Permission and role mapping
 - Discord operational documentation
 
-### Exit Criteria
+#### Exit Criteria
 
 - Commands are available only when authorized
 - Modules can be enabled and disabled safely
@@ -1269,14 +1269,14 @@ and configurable.
 
 ---
 
-## Week 14 — Moderation Foundation and Audit Workflows
+### Week 14 — Moderation Foundation and Audit Workflows
 
 **Release:** `0.8`
 **Theme:** Deliver controlled community moderation
 **Primary Outcome:** Authorized moderators can perform basic actions with clear
 audit records.
 
-### Development
+#### Development
 
 - Define moderation case model
 - Implement warning workflow
@@ -1299,7 +1299,7 @@ audit records.
 - Add configurable moderation channels
 - Add initial automod rule structure without unrestricted enforcement
 
-### Trust and Safety
+#### Trust and Safety
 
 - Align moderation actions with Trust Model
 - Require explicit confirmation for high-impact actions
@@ -1309,7 +1309,7 @@ audit records.
 - Define moderator override records
 - Prevent actions against protected or higher-ranked users
 
-### Frontend
+#### Frontend
 
 - Build moderation case list
 - Build moderation case detail
@@ -1318,7 +1318,7 @@ audit records.
 - Build moderation action review
 - Build permission warnings
 
-### Testing
+#### Testing
 
 - Authorization tests
 - Hierarchy tests
@@ -1328,7 +1328,7 @@ audit records.
 - Guild-isolation tests
 - High-risk confirmation tests
 
-### Documentation
+#### Documentation
 
 - Moderator guide
 - Moderation policy integration
@@ -1337,7 +1337,7 @@ audit records.
 - Retention guidance
 - Known limitations
 
-### Deliverables
+#### Deliverables
 
 - Basic moderation suite
 - Moderation cases
@@ -1345,7 +1345,7 @@ audit records.
 - Moderator dashboard
 - Permission-aware controls
 
-### Exit Criteria
+#### Exit Criteria
 
 - Authorized moderators can perform supported actions
 - Every meaningful moderation action is auditable
@@ -1355,14 +1355,14 @@ audit records.
 
 ---
 
-## Week 15 — Ticket System, Transcripts, and Staff Workflows
+### Week 15 — Ticket System, Transcripts, and Staff Workflows
 
 **Release:** `0.8`
 **Theme:** Deliver community support operations
 **Primary Outcome:** Communities can create, manage, close, and audit support
 tickets.
 
-### Development
+#### Development
 
 - Define ticket domain model
 - Define ticket category model
@@ -1387,7 +1387,7 @@ tickets.
 - Implement duplicate-ticket controls
 - Implement ticket limits and rate limiting
 
-### Frontend
+#### Frontend
 
 - Build ticket configuration screen
 - Build ticket category screen
@@ -1398,7 +1398,7 @@ tickets.
 - Build retention settings
 - Build escalation configuration
 
-### Security and Privacy
+#### Security and Privacy
 
 - Protect private ticket content
 - Prevent unauthorized transcript access
@@ -1408,7 +1408,7 @@ tickets.
 - Avoid storing unnecessary message content
 - Audit transcript access
 
-### Testing
+#### Testing
 
 - Ticket lifecycle tests
 - Access-control tests
@@ -1419,7 +1419,7 @@ tickets.
 - Guild-isolation tests
 - Failure recovery tests
 
-### Documentation
+#### Documentation
 
 - Ticket administrator guide
 - Staff workflow guide
@@ -1428,7 +1428,7 @@ tickets.
 - Privacy considerations
 - Recovery procedures
 
-### Deliverables
+#### Deliverables
 
 - Ticket lifecycle
 - Staff assignment
@@ -1437,7 +1437,7 @@ tickets.
 - Ticket audit trail
 - Ticket management UI
 
-### Exit Criteria
+#### Exit Criteria
 
 - Users can open supported tickets
 - Authorized staff can claim and manage tickets
@@ -1448,14 +1448,14 @@ tickets.
 
 ---
 
-## Week 16 — Onboarding, Roles, Verification, and Community UI
+### Week 16 — Onboarding, Roles, Verification, and Community UI
 
 **Release:** `0.8`
 **Theme:** Complete the initial community-operations experience
 **Primary Outcome:** Communities can configure basic onboarding, verification,
 roles, moderation, and tickets through one platform.
 
-### Development
+#### Development
 
 - Implement welcome configuration
 - Implement onboarding message
@@ -1476,7 +1476,7 @@ roles, moderation, and tickets through one platform.
 - Add permission-drift warnings
 - Add disconnected-integration warnings
 
-### Frontend
+#### Frontend
 
 - Build community dashboard
 - Build module-management screen
@@ -1487,7 +1487,7 @@ roles, moderation, and tickets through one platform.
 - Build configuration validation messages
 - Build audit-history view foundation
 
-### Testing
+#### Testing
 
 - Onboarding tests
 - Verification tests
@@ -1498,7 +1498,7 @@ roles, moderation, and tickets through one platform.
 - Multi-community tests
 - End-to-end community setup test
 
-### Documentation
+#### Documentation
 
 - Community administrator guide
 - Onboarding guide
@@ -1507,7 +1507,7 @@ roles, moderation, and tickets through one platform.
 - Module management guide
 - Community launch checklist
 
-### Deliverables
+#### Deliverables
 
 - Community dashboard
 - Onboarding
@@ -1516,7 +1516,7 @@ roles, moderation, and tickets through one platform.
 - Module management
 - End-to-end community configuration
 
-### Exit Criteria
+#### Exit Criteria
 
 - A community can configure onboarding without direct developer assistance
 - Module state is visible and controllable
@@ -1527,14 +1527,14 @@ roles, moderation, and tickets through one platform.
 
 ---
 
-## Week 17 — Logging, Metrics, Tracing, Dashboards, and Alerts
+### Week 17 — Logging, Metrics, Tracing, Dashboards, and Alerts
 
 **Release:** `0.9`
 **Theme:** Make the platform observable
 **Primary Outcome:** Critical workflows can be measured and traced across
 services.
 
-### Development and Operations
+#### Development and Operations
 
 - Standardize structured logging
 - Add request correlation
@@ -1560,7 +1560,7 @@ services.
 - Add log redaction
 - Add telemetry sampling rules
 
-### Alerts
+#### Alerts
 
 - Service unavailable
 - Elevated error rate
@@ -1577,7 +1577,7 @@ services.
 - Backup failure
 - Security scanner failure
 
-### Documentation
+#### Documentation
 
 - Observability architecture
 - Logging standard
@@ -1588,7 +1588,7 @@ services.
 - Telemetry privacy requirements
 - Redaction rules
 
-### Deliverables
+#### Deliverables
 
 - Structured logs
 - Distributed traces
@@ -1598,7 +1598,7 @@ services.
 - Incident context
 - Telemetry documentation
 
-### Exit Criteria
+#### Exit Criteria
 
 - Critical workflows can be traced end to end
 - Alerts identify actionable conditions
@@ -1609,13 +1609,13 @@ services.
 
 ---
 
-## Week 18 — Reliability, Backup, Recovery, Security, and Load Testing
+### Week 18 — Reliability, Backup, Recovery, Security, and Load Testing
 
 **Release:** `0.9`
 **Theme:** Prove operational readiness
 **Primary Outcome:** The platform can fail, recover, and be operated responsibly.
 
-### Reliability
+#### Reliability
 
 - Define service-level objectives for beta
 - Run baseline load tests
@@ -1631,7 +1631,7 @@ services.
 - Test circuit breakers
 - Test partial-failure reporting
 
-### Backup and Recovery
+#### Backup and Recovery
 
 - Define database backup procedure
 - Define transcript backup behavior
@@ -1645,7 +1645,7 @@ services.
 - Test release rollback
 - Test failed migration recovery
 
-### Security
+#### Security
 
 - Run dependency review
 - Run Snyk review
@@ -1663,7 +1663,7 @@ services.
 - Review CI permissions
 - Resolve critical and high findings or formally block release
 
-### Documentation
+#### Documentation
 
 - Incident-response plan
 - Backup runbook
@@ -1674,7 +1674,7 @@ services.
 - Known operational risks
 - Beta support escalation
 
-### Deliverables
+#### Deliverables
 
 - Tested backups
 - Tested restore
@@ -1684,7 +1684,7 @@ services.
 - Reliability report
 - Incident-response process
 
-### Exit Criteria
+#### Exit Criteria
 
 - A tested restore has succeeded
 - A release rollback has succeeded
@@ -1695,14 +1695,14 @@ services.
 
 ---
 
-## Week 19 — Private-Beta Preparation, Documentation, and Onboarding
+### Week 19 — Private-Beta Preparation, Documentation, and Onboarding
 
 **Release:** `1.0-beta.1`
 **Theme:** Prepare for controlled external use
 **Primary Outcome:** Invited users and communities can be onboarded through a
 documented process.
 
-### Product Preparation
+#### Product Preparation
 
 - Freeze beta feature scope
 - Finalize beta-supported features
@@ -1719,7 +1719,7 @@ documented process.
 - Add issue-reporting workflow
 - Add beta status and known-limitations page
 
-### Documentation
+#### Documentation
 
 - Private-beta guide
 - User onboarding guide
@@ -1737,7 +1737,7 @@ documented process.
 - Beta exit criteria
 - Release notes draft
 
-### Operations
+#### Operations
 
 - Define beta participant limit
 - Define invited-community limit
@@ -1751,7 +1751,7 @@ documented process.
 - Prepare launch dashboards
 - Prepare feedback review cadence
 
-### Testing
+#### Testing
 
 - Full onboarding test
 - New-user test
@@ -1765,7 +1765,7 @@ documented process.
 - Accessibility regression
 - Cross-browser regression
 
-### Deliverables
+#### Deliverables
 
 - Beta documentation
 - Beta support process
@@ -1775,7 +1775,7 @@ documented process.
 - Beta participant plan
 - Release candidate build
 
-### Exit Criteria
+#### Exit Criteria
 
 - A new user can onboard without developer intervention
 - A Discord community can install and configure supported modules
@@ -1786,14 +1786,14 @@ documented process.
 
 ---
 
-## Week 20 — Release Candidate Validation and Beta Launch Decision
+### Week 20 — Release Candidate Validation and Beta Launch Decision
 
 **Release:** `1.0-beta.1`
 **Theme:** Decide based on evidence
 **Primary Outcome:** Ship a controlled private beta or formally defer with a
 documented remediation plan.
 
-### Release Validation
+#### Release Validation
 
 - Execute the complete release checklist
 - Validate production configuration
@@ -1819,7 +1819,7 @@ documented remediation plan.
 - Validate known limitations
 - Confirm current-state documentation
 
-### Pilot Rollout
+#### Pilot Rollout
 
 - Deploy release candidate to staging
 - Run smoke tests
@@ -1832,7 +1832,7 @@ documented remediation plan.
 - Repeat failed validation
 - Conduct final go/no-go review
 
-### Go/No-Go Criteria
+#### Go/No-Go Criteria
 
 The beta may proceed only when:
 
@@ -1854,9 +1854,9 @@ The beta may proceed only when:
 - No known critical security defect remains
 - No known critical data-loss defect remains
 
-### Possible Outcomes
+#### Possible Outcomes
 
-#### Go
+##### Go
 
 - Begin controlled private beta
 - Onboard the first approved participants
@@ -1865,7 +1865,7 @@ The beta may proceed only when:
 - Maintain strict scope
 - Publish beta release notes
 
-#### Conditional Go
+##### Conditional Go
 
 - Begin with reduced participant count
 - Disable affected optional modules
@@ -1873,7 +1873,7 @@ The beta may proceed only when:
 - Assign deadlines for required remediation
 - Increase operational monitoring
 
-#### No-Go
+##### No-Go
 
 - Do not launch
 - Document blocking failures
@@ -1881,7 +1881,7 @@ The beta may proceed only when:
 - Revise the beta target
 - Repeat the readiness review after blockers are resolved
 
-### Deliverables
+#### Deliverables
 
 - Final release candidate
 - Go/no-go report
@@ -1891,7 +1891,7 @@ The beta may proceed only when:
 - Post-release monitoring plan
 - Remediation plan where necessary
 
-### Exit Criteria
+#### Exit Criteria
 
 One of the following must be true:
 
@@ -1904,11 +1904,11 @@ the correct decision is not to launch.
 
 ---
 
-# Weekly Operating Rhythm
+## Weekly Operating Rhythm
 
 Each week should follow a consistent operating rhythm.
 
-## Monday — Plan and Confirm
+### Monday — Plan and Confirm
 
 - Review the weekly objective
 - Confirm scope
@@ -1920,7 +1920,7 @@ Each week should follow a consistent operating rhythm.
 - Confirm acceptance criteria
 - Confirm release risks
 
-## Tuesday Through Thursday — Build and Validate
+### Tuesday Through Thursday — Build and Validate
 
 - Implement planned work
 - Review pull requests
@@ -1931,7 +1931,7 @@ Each week should follow a consistent operating rhythm.
 - Keep work behind feature flags where appropriate
 - Demonstrate completed vertical slices
 
-## Friday — Integrate and Review
+### Friday — Integrate and Review
 
 - Merge completed work
 - Run full affected validation
@@ -1946,7 +1946,7 @@ Each week should follow a consistent operating rhythm.
 
 ---
 
-# Required Workstreams
+## Required Workstreams
 
 Every week should account for the following workstreams.
 
@@ -1965,7 +1965,7 @@ A weekly objective is incomplete when one of its required workstreams is ignored
 
 ---
 
-# Definition of Ready
+## Definition of Ready
 
 Work should not enter active development until it has:
 
@@ -1986,7 +1986,7 @@ Research work may begin with less certainty, but implementation should not.
 
 ---
 
-# Definition of Done
+## Definition of Done
 
 A feature is done only when:
 
@@ -2011,25 +2011,25 @@ Merged code is not automatically completed work.
 
 ---
 
-# Release Gates
+## Release Gates
 
 Every release should pass the following gates.
 
-## Product Gate
+### Product Gate
 
 - Scope is clear
 - User value is demonstrated
 - Acceptance criteria are satisfied
 - Out-of-scope behavior is documented
 
-## Architecture Gate
+### Architecture Gate
 
 - Boundaries are respected
 - Contracts are documented
 - Significant decisions are recorded
 - Dependencies are justified
 
-## Security Gate
+### Security Gate
 
 - Authorization is enforced
 - Secrets are protected
@@ -2037,7 +2037,7 @@ Every release should pass the following gates.
 - Critical findings are resolved
 - Data handling is documented
 
-## Quality Gate
+### Quality Gate
 
 - Tests pass
 - CI passes
@@ -2045,7 +2045,7 @@ Every release should pass the following gates.
 - Performance is acceptable
 - Regression risks are understood
 
-## Trust Gate
+### Trust Gate
 
 - Meaningful actions are explainable
 - Approval is required where appropriate
@@ -2053,14 +2053,14 @@ Every release should pass the following gates.
 - Permissions are scoped
 - Revocation is possible
 
-## Documentation Gate
+### Documentation Gate
 
 - User guidance is current
 - Developer documentation is current
 - Operational documentation is current
 - Current and future capability are distinguished
 
-## Operations Gate
+### Operations Gate
 
 - Health checks exist
 - Logs are actionable
@@ -2073,17 +2073,17 @@ documented acceptance of the risk.
 
 ---
 
-# Release 0.1 — Foundation and Workspace
+## Release 0.1 — Foundation and Workspace
 
 **Target Weeks:** 1–2
 **Status:** Current Epic
 **Theme:** Engineering foundation
 
-## Strategic Goal
+### Strategic Goal
 
 Create a reliable, enforceable, and documented development foundation.
 
-## Focus Areas
+### Focus Areas
 
 - Nx monorepo
 - pnpm workspace
@@ -2097,7 +2097,7 @@ Create a reliable, enforceable, and documented development foundation.
 - Contributor documentation
 - Security-scanning baseline
 
-## Exit Criteria
+### Exit Criteria
 
 - Clean installation succeeds
 - Lint passes
@@ -2110,18 +2110,18 @@ Create a reliable, enforceable, and documented development foundation.
 
 ---
 
-# Release 0.2 — Core Domain and Data Platform
+## Release 0.2 — Core Domain and Data Platform
 
 **Target Weeks:** 3–4
 **Status:** Planned
 **Theme:** Shared domain and persistence foundation
 
-## Strategic Goal
+### Strategic Goal
 
 Create stable domain contracts, validation, database schemas, migrations, and
 repository patterns.
 
-## Focus Areas
+### Focus Areas
 
 - Core entities
 - Shared enums
@@ -2137,7 +2137,7 @@ repository patterns.
 - Consent and session records
 - Audit-event foundation
 
-## Exit Criteria
+### Exit Criteria
 
 - Core entities have reviewed contracts
 - Database migrations are reproducible
@@ -2147,17 +2147,17 @@ repository patterns.
 
 ---
 
-# Release 0.3 — Authentication and Identity
+## Release 0.3 — Authentication and Identity
 
 **Target Weeks:** 5–6
 **Status:** Planned
 **Theme:** Secure identity foundation
 
-## Strategic Goal
+### Strategic Goal
 
 Allow users to securely create, verify, access, and manage Aerealith accounts.
 
-## Focus Areas
+### Focus Areas
 
 - Sign-up
 - Login
@@ -2174,7 +2174,7 @@ Allow users to securely create, verify, access, and manage Aerealith accounts.
 - Security settings
 - Session revocation
 
-## Exit Criteria
+### Exit Criteria
 
 - Users can authenticate securely
 - Sessions can be reviewed and revoked
@@ -2185,18 +2185,18 @@ Allow users to securely create, verify, access, and manage Aerealith accounts.
 
 ---
 
-# Release 0.4 — Frontend Platform
+## Release 0.4 — Frontend Platform
 
 **Target Weeks:** 7–8
 **Status:** Planned
 **Theme:** Unified web experience
 
-## Strategic Goal
+### Strategic Goal
 
 Create the shared frontend foundation for the public website, authenticated app,
 documentation, and developer portal.
 
-## Focus Areas
+### Focus Areas
 
 - Vite
 - React
@@ -2213,7 +2213,7 @@ documentation, and developer portal.
 - Account settings
 - Frontend observability
 
-## Exit Criteria
+### Exit Criteria
 
 - Shared design system is operational
 - Core account workflows are usable
@@ -2224,17 +2224,17 @@ documentation, and developer portal.
 
 ---
 
-# Release 0.5 — API and Service Platform
+## Release 0.5 — API and Service Platform
 
 **Target Weeks:** 9–10
 **Status:** Planned
 **Theme:** Service and API foundation
 
-## Strategic Goal
+### Strategic Goal
 
 Create consistent service patterns that support the long-term platform.
 
-## Focus Areas
+### Focus Areas
 
 - Hono conventions
 - Service template
@@ -2250,7 +2250,7 @@ Create consistent service patterns that support the long-term platform.
 - API documentation
 - Service observability
 
-## Exit Criteria
+### Exit Criteria
 
 - Services are independently deployable
 - Services share validation and error behavior
@@ -2260,17 +2260,17 @@ Create consistent service patterns that support the long-term platform.
 
 ---
 
-# Release 0.6 — Developer Portal and Integrations
+## Release 0.6 — Developer Portal and Integrations
 
 **Target Week:** 11
 **Status:** Planned
 **Theme:** Developer experience
 
-## Strategic Goal
+### Strategic Goal
 
 Make Aerealith understandable and integratable by developers.
 
-## Focus Areas
+### Focus Areas
 
 - Developer portal
 - API reference
@@ -2284,7 +2284,7 @@ Make Aerealith understandable and integratable by developers.
 - Deprecation policy
 - SDK strategy
 
-## Exit Criteria
+### Exit Criteria
 
 - Developers can discover supported APIs
 - API keys can be created and revoked
@@ -2294,17 +2294,17 @@ Make Aerealith understandable and integratable by developers.
 
 ---
 
-# Release 0.7 — Discord Platform Foundation
+## Release 0.7 — Discord Platform Foundation
 
 **Target Weeks:** 12–13
 **Status:** Planned
 **Theme:** First flagship integration
 
-## Strategic Goal
+### Strategic Goal
 
 Allow Discord communities to install, link, configure, and manage Aerealith.
 
-## Focus Areas
+### Focus Areas
 
 - Official Discord application
 - Bot architecture
@@ -2320,7 +2320,7 @@ Allow Discord communities to install, link, configure, and manage Aerealith.
 - Discord auditing
 - Rate-limit behavior
 
-## Exit Criteria
+### Exit Criteria
 
 - A Discord server can install Aerealith
 - Guild ownership is verified
@@ -2331,18 +2331,18 @@ Allow Discord communities to install, link, configure, and manage Aerealith.
 
 ---
 
-# Release 0.8 — Moderation, Tickets, and Community Operations
+## Release 0.8 — Moderation, Tickets, and Community Operations
 
 **Target Weeks:** 14–16
 **Status:** Planned
 **Theme:** Initial community-management product
 
-## Strategic Goal
+### Strategic Goal
 
 Allow communities to manage moderation, support, onboarding, verification,
 roles, and core workflows.
 
-## Focus Areas
+### Focus Areas
 
 - Warnings
 - Timeouts
@@ -2362,7 +2362,7 @@ roles, and core workflows.
 - Module management
 - Trust and audit requirements
 
-## Exit Criteria
+### Exit Criteria
 
 - Moderation actions are authorized and audited
 - Ticket workflows operate end to end
@@ -2373,17 +2373,17 @@ roles, and core workflows.
 
 ---
 
-# Release 0.9 — Observability, Reliability, and Operations
+## Release 0.9 — Observability, Reliability, and Operations
 
 **Target Weeks:** 17–18
 **Status:** Planned
 **Theme:** Production-readiness foundation
 
-## Strategic Goal
+### Strategic Goal
 
 Make the platform measurable, diagnosable, secure, recoverable, and supportable.
 
-## Focus Areas
+### Focus Areas
 
 - Structured logging
 - Metrics
@@ -2401,7 +2401,7 @@ Make the platform measurable, diagnosable, secure, recoverable, and supportable.
 - Performance baselines
 - Recovery procedures
 
-## Exit Criteria
+### Exit Criteria
 
 - Critical workflows are traceable
 - Dashboards and alerts are active
@@ -2413,17 +2413,17 @@ Make the platform measurable, diagnosable, secure, recoverable, and supportable.
 
 ---
 
-# Release 1.0-beta.1 — Private Beta Candidate
+## Release 1.0-beta.1 — Private Beta Candidate
 
 **Target Weeks:** 19–20
 **Status:** Planned
 **Theme:** Controlled external readiness
 
-## Strategic Goal
+### Strategic Goal
 
 Prepare and validate the first private-beta candidate.
 
-## Required Capabilities
+### Required Capabilities
 
 - Account creation
 - Email verification
@@ -2443,7 +2443,7 @@ Prepare and validate the first private-beta candidate.
 - Terms and privacy pages
 - Support and incident workflows
 
-## Exit Criteria
+### Exit Criteria
 
 - Invited users can onboard without developer intervention
 - Invited communities can install and configure supported capabilities
@@ -2455,23 +2455,23 @@ Prepare and validate the first private-beta candidate.
 
 ---
 
-# Post-20-Week Roadmap
+## Post-20-Week Roadmap
 
 The following releases continue after the initial 20-week production period.
 
 ---
 
-## 1.0 — Private Beta
+### 1.0 — Private Beta
 
 **Status:** Planned
 **Theme:** Controlled external validation
 
-### Strategic Goal
+#### Strategic Goal
 
 Operate Aerealith with invited users and communities while maintaining limited
 scope, close support, and rapid feedback.
 
-### Focus Areas
+#### Focus Areas
 
 - Participant onboarding
 - Feedback collection
@@ -2484,7 +2484,7 @@ scope, close support, and rapid feedback.
 - Support operations
 - Beta success metrics
 
-### Success Criteria
+#### Success Criteria
 
 - Beta users complete core workflows
 - Critical defects remain controlled
@@ -2494,17 +2494,17 @@ scope, close support, and rapid feedback.
 
 ---
 
-## 1.1 — MVP Production Launch
+### 1.1 — MVP Production Launch
 
 **Status:** Planned
 **Theme:** First public product release
 
-### Strategic Goal
+#### Strategic Goal
 
 Make Aerealith publicly available with stable account, web, API, and Discord
 capabilities.
 
-### Focus Areas
+#### Focus Areas
 
 - Public onboarding
 - Launch communications
@@ -2516,7 +2516,7 @@ capabilities.
 - Usage analytics
 - Basic plan and entitlement foundation
 
-### Success Criteria
+#### Success Criteria
 
 - Public onboarding is reliable
 - Reliability and security standards are met
@@ -2526,16 +2526,16 @@ capabilities.
 
 ---
 
-## 1.2 — Billing, Entitlements, and Plans
+### 1.2 — Billing, Entitlements, and Plans
 
 **Status:** Planned
 **Theme:** Monetization foundation
 
-### Strategic Goal
+#### Strategic Goal
 
 Create understandable and trustworthy plans, entitlements, and subscriptions.
 
-### Focus Areas
+#### Focus Areas
 
 - Plans
 - Tiers
@@ -2551,7 +2551,7 @@ Create understandable and trustworthy plans, entitlements, and subscriptions.
 - Grace periods
 - Billing notifications
 
-### Success Criteria
+#### Success Criteria
 
 - Users understand their plans
 - Entitlements are enforced consistently
@@ -2560,16 +2560,16 @@ Create understandable and trustworthy plans, entitlements, and subscriptions.
 
 ---
 
-## 1.3 — Aerealith AI and Memory Foundation
+### 1.3 — Aerealith AI and Memory Foundation
 
 **Status:** Planned
 **Theme:** Intelligent assistant foundation
 
-### Strategic Goal
+#### Strategic Goal
 
 Introduce user-controlled AI assistance, context, provider routing, and memory.
 
-### Focus Areas
+#### Focus Areas
 
 - Assistant identity
 - Conversational interface
@@ -2584,7 +2584,7 @@ Introduce user-controlled AI assistance, context, provider routing, and memory.
 - AI action transparency
 - Local-model compatibility path
 
-### Success Criteria
+#### Success Criteria
 
 - Users can interact with Aerealith AI
 - Memory remains visible and controlled
@@ -2593,17 +2593,17 @@ Introduce user-controlled AI assistance, context, provider routing, and memory.
 
 ---
 
-## 1.4 — Workflow Automation Builder
+### 1.4 — Workflow Automation Builder
 
 **Status:** Planned
 **Theme:** User-controlled automation
 
-### Strategic Goal
+#### Strategic Goal
 
 Allow users and communities to build reusable workflows without surrendering
 control.
 
-### Focus Areas
+#### Focus Areas
 
 - Workflow builder
 - Triggers
@@ -2618,7 +2618,7 @@ control.
 - Progressive-trust automation
 - Revocation
 
-### Success Criteria
+#### Success Criteria
 
 - Workflows are permission-scoped
 - Meaningful actions remain auditable
@@ -2627,16 +2627,16 @@ control.
 
 ---
 
-## 1.5 — Marketplace and Module Ecosystem
+### 1.5 — Marketplace and Module Ecosystem
 
 **Status:** Planned
 **Theme:** Extensible platform growth
 
-### Strategic Goal
+#### Strategic Goal
 
 Enable first-party and third-party capabilities to expand the platform safely.
 
-### Focus Areas
+#### Focus Areas
 
 - Module marketplace
 - Workflow marketplace
@@ -2650,7 +2650,7 @@ Enable first-party and third-party capabilities to expand the platform safely.
 - Permission review
 - Publishing workflow
 
-### Success Criteria
+#### Success Criteria
 
 - Extensions can be discovered and installed
 - Permissions are disclosed before installation
@@ -2659,16 +2659,16 @@ Enable first-party and third-party capabilities to expand the platform safely.
 
 ---
 
-## 1.6 — Mobile and Desktop Companion
+### 1.6 — Mobile and Desktop Companion
 
 **Status:** Planned
 **Theme:** Companion surfaces
 
-### Strategic Goal
+#### Strategic Goal
 
 Make Aerealith accessible where users already work.
 
-### Focus Areas
+#### Focus Areas
 
 - Desktop companion
 - Mobile companion
@@ -2680,7 +2680,7 @@ Make Aerealith accessible where users already work.
 - Offline-aware behavior
 - Local context where explicitly permitted
 
-### Success Criteria
+#### Success Criteria
 
 - Users can review and approve actions outside the web app
 - Notifications remain intentional
@@ -2688,17 +2688,17 @@ Make Aerealith accessible where users already work.
 
 ---
 
-## 1.7 — Digital Life OS Expansion
+### 1.7 — Digital Life OS Expansion
 
 **Status:** Planned
 **Theme:** Broader digital-life management
 
-### Strategic Goal
+#### Strategic Goal
 
 Expand beyond initial community operations into a broader digital control
 center.
 
-### Focus Areas
+#### Focus Areas
 
 - Personal dashboard expansion
 - Cross-platform activity
@@ -2711,7 +2711,7 @@ center.
 - User-controlled context graph
 - Broader Aerealith AI capability
 
-### Success Criteria
+#### Success Criteria
 
 - Aerealith feels like one coherent platform
 - Users manage more of their digital environment from one place
@@ -2719,17 +2719,17 @@ center.
 
 ---
 
-## 1.8 — Advanced Integrations and Ecosystem Growth
+### 1.8 — Advanced Integrations and Ecosystem Growth
 
 **Status:** Planned
 **Theme:** Integration expansion
 
-### Strategic Goal
+#### Strategic Goal
 
 Connect more of the user's digital ecosystem while preserving modularity and
 control.
 
-### Focus Areas
+#### Focus Areas
 
 - GitHub
 - Google
@@ -2743,7 +2743,7 @@ control.
 - Cross-integration workflows
 - Provider diagnostics
 
-### Success Criteria
+#### Success Criteria
 
 - Integrations remain modular
 - Permissions are clear
@@ -2752,16 +2752,16 @@ control.
 
 ---
 
-## 1.9 — Cloud Independence and Self-Hosting Foundations
+### 1.9 — Cloud Independence and Self-Hosting Foundations
 
 **Status:** Planned
 **Theme:** Deployment portability
 
-### Strategic Goal
+#### Strategic Goal
 
 Prepare Aerealith for supported self-hosting.
 
-### Focus Areas
+#### Focus Areas
 
 - Docker Compose reference deployment
 - Provider abstraction
@@ -2775,7 +2775,7 @@ Prepare Aerealith for supported self-hosting.
 - Deployment documentation
 - Self-hosting architecture review
 
-### Success Criteria
+#### Success Criteria
 
 - Hosted dependencies have replacement paths
 - Portable deployment is testable
@@ -2784,17 +2784,17 @@ Prepare Aerealith for supported self-hosting.
 
 ---
 
-## 2.0 — Self-Hosted Preview
+### 2.0 — Self-Hosted Preview
 
 **Status:** Planned
 **Theme:** Deployment independence
 
-### Strategic Goal
+#### Strategic Goal
 
 Allow technically capable users and organizations to operate Aerealith in their
 own environments.
 
-### Focus Areas
+#### Focus Areas
 
 - Supported preview package
 - Docker Compose deployment
@@ -2808,7 +2808,7 @@ own environments.
 - Security guidance
 - Known limitations
 
-### Success Criteria
+#### Success Criteria
 
 - A capable user can deploy Aerealith without internal assistance
 - Installation and upgrades are documented
@@ -2817,7 +2817,7 @@ own environments.
 
 ---
 
-# Dependency Model
+## Dependency Model
 
 ```mermaid
 flowchart TD
@@ -2854,7 +2854,7 @@ flowchart TD
 
 ---
 
-# Scope Management
+## Scope Management
 
 When the schedule is threatened, scope should be reduced in this order:
 
@@ -2884,9 +2884,9 @@ The following should not be weakened to preserve the schedule:
 
 ---
 
-# Roadmap Rules
+## Roadmap Rules
 
-## Milestones Over Dates
+### Milestones Over Dates
 
 The 20-week plan is a target.
 
@@ -2894,14 +2894,14 @@ Exit criteria remain authoritative.
 
 ---
 
-## Quality Before Expansion
+### Quality Before Expansion
 
 New product areas should not begin until their dependencies are stable enough to
 support them.
 
 ---
 
-## Documentation Alongside Development
+### Documentation Alongside Development
 
 Documentation tasks should be created with development tasks.
 
@@ -2909,7 +2909,7 @@ Documentation must not become a final-week cleanup project.
 
 ---
 
-## High-Security Work Requires Appropriate Ownership
+### High-Security Work Requires Appropriate Ownership
 
 Tasks involving:
 
@@ -2928,7 +2928,7 @@ experience.
 
 ---
 
-## Docker Early, Self-Hosting Later
+### Docker Early, Self-Hosting Later
 
 Every deployable service should have a Dockerfile early.
 
@@ -2941,7 +2941,7 @@ Self-hosting is a product.
 
 ---
 
-## APIs Are Product Surface
+### APIs Are Product Surface
 
 Major capabilities should use stable interfaces.
 
@@ -2950,7 +2950,7 @@ should operate through governed platform interfaces rather than hidden access.
 
 ---
 
-## Current State Must Remain Honest
+### Current State Must Remain Honest
 
 Roadmap status should distinguish:
 
@@ -2967,7 +2967,7 @@ A planned week does not mean a capability is implemented.
 
 ---
 
-# Twenty-Week Success Standard
+## Twenty-Week Success Standard
 
 The first 20 weeks are successful when Aerealith has:
 
@@ -3002,7 +3002,7 @@ stage.
 
 ---
 
-# Final Direction
+## Final Direction
 
 Aerealith should grow into a trusted and extensible operating system for digital
 life.

@@ -5,6 +5,13 @@ Owner: SinLess Games LLC
 Last Updated: 2026-07-18
 Document Type: Vision Index
 
+## Project Context
+
+- [Project Overview](../Project-Overview.md)
+- [Company and Project Structure](../Company-and-Project-Structure.md)
+- [Current State](../CURRENT_STATE.md)
+- [Documentation Index](../README.md)
+
 ## Purpose
 
 The `docs/vision` directory defines why Aerealith exists, what it stands for,
@@ -112,11 +119,11 @@ For implementation status, refer to:
 
 ---
 
-# Reading Order
+## Reading Order
 
 The vision documents should be read in the following order.
 
-## 1. [Vision](./Vision.md)
+### 1. [Vision](./Vision.md)
 
 Defines the future Aerealith exists to create.
 
@@ -132,7 +139,7 @@ It explains:
 
 ---
 
-## 2. [Mission](./Mission.md)
+### 2. [Mission](./Mission.md)
 
 Defines what Aerealith must do to move toward the vision.
 
@@ -146,7 +153,7 @@ It should describe:
 
 ---
 
-## 3. [Core Values](./Core%20Values.md)
+### 3. [Core Values](./Core%20Values.md)
 
 Defines the values that should guide decisions and behavior.
 
@@ -165,7 +172,7 @@ It should establish expectations around:
 
 ---
 
-## 4. [Product Philosophy](./Product%20Philosophy.md)
+### 4. [Product Philosophy](./Product%20Philosophy.md)
 
 Defines how Aerealith should be designed, built, operated, and experienced.
 
@@ -189,7 +196,7 @@ It establishes principles such as:
 
 ---
 
-## 5. [Trust Model](./Trust%20Model.md)
+### 5. [Trust Model](./Trust%20Model.md)
 
 Defines how authority is requested, granted, exercised, reviewed, and revoked.
 
@@ -214,7 +221,7 @@ It covers:
 
 ---
 
-## 6. [Positioning](./Positioning.md)
+### 6. [Positioning](./Positioning.md)
 
 Defines how Aerealith should be understood and communicated.
 
@@ -235,7 +242,7 @@ It should clarify:
 
 ---
 
-## 7. [Manifesto](./Manifesto.md)
+### 7. [Manifesto](./Manifesto.md)
 
 Expresses the conviction behind Aerealith.
 
@@ -253,7 +260,7 @@ documents, but it should remain consistent with them.
 
 ---
 
-## 8. [Roadmap](./Roadmap.md)
+### 8. [Roadmap](./Roadmap.md)
 
 Defines the planned sequence through which the vision becomes real.
 
@@ -277,12 +284,12 @@ It does not override release quality or exit criteria.
 
 ---
 
-# Reading Paths by Audience
+## Reading Paths by Audience
 
 Different readers may begin with different documents while preserving the full
 reading order for deeper understanding.
 
-## Product and Leadership
+### Product and Leadership
 
 1. [Vision](./Vision.md)
 2. [Mission](./Mission.md)
@@ -293,7 +300,7 @@ reading order for deeper understanding.
 
 ---
 
-## Architecture and Engineering
+### Architecture and Engineering
 
 1. [Vision](./Vision.md)
 2. [Product Philosophy](./Product%20Philosophy.md)
@@ -304,7 +311,7 @@ reading order for deeper understanding.
 
 ---
 
-## Security and Operations
+### Security and Operations
 
 1. [Trust Model](./Trust%20Model.md)
 2. [Product Philosophy](./Product%20Philosophy.md)
@@ -314,7 +321,7 @@ reading order for deeper understanding.
 
 ---
 
-## Contributors
+### Contributors
 
 1. [Vision](./Vision.md)
 2. [Mission](./Mission.md)
@@ -324,7 +331,7 @@ reading order for deeper understanding.
 
 ---
 
-## Marketing and Public Communication
+### Marketing and Public Communication
 
 1. [Positioning](./Positioning.md)
 2. [Vision](./Vision.md)
@@ -337,7 +344,7 @@ publication.
 
 ---
 
-## Module and Integration Developers
+### Module and Integration Developers
 
 1. [Product Philosophy](./Product%20Philosophy.md)
 2. [Trust Model](./Trust%20Model.md)
@@ -348,7 +355,7 @@ publication.
 
 ---
 
-# North Star
+## North Star
 
 > **Reduce digital complexity without reducing user control.**
 
@@ -365,7 +372,7 @@ Aerealith should pursue both capability and control.
 
 ---
 
-# Tagline
+## Tagline
 
 > **One Platform. Infinite Possibilities.**
 
@@ -375,9 +382,9 @@ It must not be used to imply that every possible capability currently exists.
 
 ---
 
-# Core Ideas
+## Core Ideas
 
-## Aerealith Is the Platform
+### Aerealith Is the Platform
 
 Aerealith is the operating system for your digital life.
 
@@ -387,7 +394,7 @@ assistance.
 
 ---
 
-## Aerealith AI Is the Assistant
+### Aerealith AI Is the Assistant
 
 Aerealith AI is the intelligent assistant inside the platform.
 
@@ -398,7 +405,7 @@ It should not receive authority merely because it is intelligent.
 
 ---
 
-## Trust Is Earned
+### Trust Is Earned
 
 Trust should never be assumed.
 
@@ -409,7 +416,7 @@ explicit limits.
 
 ---
 
-## Users and Communities Own Their Data
+### Users and Communities Own Their Data
 
 Aerealith should act as a steward of data rather than treating access as
 ownership.
@@ -422,7 +429,7 @@ Organizational data belongs to the organization.
 
 ---
 
-## Artificial Intelligence Is a Capability
+### Artificial Intelligence Is a Capability
 
 AI enhances the platform.
 
@@ -434,7 +441,7 @@ providers are unavailable.
 
 ---
 
-## Meaningful Actions Require Trust Controls
+### Meaningful Actions Require Trust Controls
 
 Meaningful actions should be:
 
@@ -449,7 +456,7 @@ Meaningful actions should be:
 
 ---
 
-## Integrate Before Replacing
+### Integrate Before Replacing
 
 Aerealith should connect excellent existing tools before rebuilding them.
 
@@ -458,7 +465,7 @@ integration.
 
 ---
 
-## Cohesion Is More Valuable Than Feature Volume
+### Cohesion Is More Valuable Than Feature Volume
 
 A large collection of disconnected capabilities would recreate the problem
 Aerealith exists to solve.
@@ -468,7 +475,7 @@ coherent experience.
 
 ---
 
-## Discord Is the First Flagship Integration
+### Discord Is the First Flagship Integration
 
 Discord is a major early platform surface.
 
@@ -489,7 +496,7 @@ Discord is not the entire product.
 
 ---
 
-## Architecture Should Start Simple
+### Architecture Should Start Simple
 
 Aerealith should use the smallest architecture that can satisfy present
 requirements without creating unnecessary dead ends.
@@ -499,7 +506,7 @@ complexity.
 
 ---
 
-## Dependencies Should Be Replaceable
+### Dependencies Should Be Replaceable
 
 Critical external providers should have replacement paths where practical.
 
@@ -507,7 +514,7 @@ Replaceability should be intentional and evidence-driven rather than speculative
 
 ---
 
-## Interfaces Are Product Surfaces
+### Interfaces Are Product Surfaces
 
 Major capabilities should become accessible through governed interfaces where
 appropriate.
@@ -529,7 +536,7 @@ distinguished.
 
 ---
 
-## Security Is Product Behavior
+### Security Is Product Behavior
 
 Security is not a final implementation phase.
 
@@ -538,7 +545,7 @@ recovery should be designed into capabilities from the beginning.
 
 ---
 
-## Documentation Is Part of the Product
+### Documentation Is Part of the Product
 
 A capability is incomplete when users, operators, developers, or contributors
 cannot understand how it works.
@@ -547,7 +554,7 @@ Documentation should evolve alongside implementation.
 
 ---
 
-# Vision Hierarchy
+## Vision Hierarchy
 
 The vision documentation should remain internally consistent.
 
@@ -575,7 +582,7 @@ Any significant conflict should be documented and intentionally resolved.
 
 ---
 
-# Relationship to Other Documentation
+## Relationship to Other Documentation
 
 ```mermaid
 flowchart TD
@@ -625,9 +632,9 @@ Other documentation should describe what, how, when, and in what current state.
 
 ---
 
-# Documentation Boundaries
+## Documentation Boundaries
 
-## Vision Documentation Should Define
+### Vision Documentation Should Define
 
 - Purpose
 - Direction
@@ -641,7 +648,7 @@ Other documentation should describe what, how, when, and in what current state.
 
 ---
 
-## Vision Documentation Should Not Define
+### Vision Documentation Should Not Define
 
 - Exact package versions
 - Runtime-specific implementation details
@@ -656,7 +663,7 @@ Other documentation should describe what, how, when, and in what current state.
 
 ---
 
-# Change Policy
+## Change Policy
 
 Vision documents are long-lived and should not change casually.
 
@@ -675,7 +682,7 @@ A material change requires additional review.
 
 ---
 
-## Material Changes
+### Material Changes
 
 A change is material when it alters:
 
@@ -701,7 +708,7 @@ A change is material when it alters:
 
 ---
 
-## Requirements for Material Changes
+### Requirements for Material Changes
 
 A material change requires:
 
@@ -726,7 +733,7 @@ Material changes should not be hidden inside routine wording edits.
 
 ---
 
-## Change Review Questions
+### Change Review Questions
 
 Before changing a vision document, ask:
 
@@ -748,11 +755,11 @@ When the answer is unclear, the change should receive broader review.
 
 ---
 
-# Consistency Requirements
+## Consistency Requirements
 
 All vision documents should use consistent language for core concepts.
 
-## Required Terminology
+### Required Terminology
 
 Use:
 
@@ -773,7 +780,7 @@ documentation unless quoting historical language or branding.
 
 ---
 
-## Required Principles
+### Required Principles
 
 Vision documents should not contradict the following principles without a
 formal material change:
@@ -792,7 +799,7 @@ formal material change:
 
 ---
 
-# Public Messaging Rules
+## Public Messaging Rules
 
 Public communication derived from vision documentation must:
 
@@ -815,7 +822,7 @@ Product claims must remain verifiable.
 
 ---
 
-# Implementation Conflict Policy
+## Implementation Conflict Policy
 
 When an implementation idea conflicts with the vision:
 
@@ -839,7 +846,7 @@ The conflict must be resolved intentionally.
 
 ---
 
-# Documentation Maintenance
+## Documentation Maintenance
 
 The vision index should be reviewed when:
 
@@ -868,17 +875,17 @@ Each review should confirm:
 
 ---
 
-# Vision Documentation Test
+## Vision Documentation Test
 
 Before approving a new or updated vision document, ask:
 
-## Purpose
+### Purpose
 
 - Does the document clearly belong in the vision directory?
 - Does it define why, what, or long-term direction rather than implementation?
 - Does it contribute something distinct?
 
-## Consistency
+### Consistency
 
 - Does it preserve the North Star?
 - Does it distinguish Aerealith from Aerealith AI?
@@ -886,21 +893,21 @@ Before approving a new or updated vision document, ask:
 - Does it align with Product Philosophy?
 - Does it contradict another active vision document?
 
-## Trust and Control
+### Trust and Control
 
 - Does it preserve user control?
 - Does it protect user and community ownership?
 - Does it avoid granting AI implicit authority?
 - Does it preserve revocation and auditability?
 
-## Accuracy
+### Accuracy
 
 - Does it distinguish current capability from future direction?
 - Could any statement be mistaken for a current product claim?
 - Are roadmap and release references accurate?
 - Are links valid?
 
-## Longevity
+### Longevity
 
 - Is the language durable?
 - Is it too dependent on a specific technology?
@@ -912,7 +919,7 @@ active.
 
 ---
 
-# Final Standard
+## Final Standard
 
 The vision directory should provide a stable foundation for the entire
 Aerealith project.

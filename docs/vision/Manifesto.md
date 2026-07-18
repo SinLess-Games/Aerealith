@@ -7,7 +7,7 @@ Document Type: Vision
 
 ---
 
-# Why We Exist
+## Why We Exist
 
 Technology was supposed to simplify life.
 
@@ -39,7 +39,7 @@ control the digital world they already live in.
 
 ---
 
-# We Believe Technology Should Serve People
+## We Believe Technology Should Serve People
 
 Technology exists to help people accomplish meaningful work.
 
@@ -60,7 +60,7 @@ time accomplishing what matters.
 
 ---
 
-# We Believe Trust Must Be Earned
+## We Believe Trust Must Be Earned
 
 Trust cannot be demanded.
 
@@ -90,7 +90,7 @@ Trust is the foundation upon which every feature is built.
 
 ---
 
-# We Believe People Should Remain in Control
+## We Believe People Should Remain in Control
 
 People should always remain the decision makers.
 
@@ -114,7 +114,7 @@ The purpose of intelligence is to improve human decisions—not replace them.
 
 ---
 
-# We Believe Simplicity Is Powerful
+## We Believe Simplicity Is Powerful
 
 Complex systems are unavoidable.
 
@@ -134,7 +134,7 @@ Simplicity is thoughtful design.
 
 ---
 
-# We Believe Everything Should Work Together
+## We Believe Everything Should Work Together
 
 The future is not one application.
 
@@ -173,7 +173,7 @@ Cohesion creates clarity.
 
 ---
 
-# We Believe Knowledge Should Be Connected
+## We Believe Knowledge Should Be Connected
 
 Information should not disappear because it was stored in the wrong place.
 
@@ -192,7 +192,7 @@ Understanding creates intelligence.
 
 ---
 
-# We Believe Platforms Should Empower Builders
+## We Believe Platforms Should Empower Builders
 
 Great platforms outgrow their creators.
 
@@ -210,7 +210,7 @@ A platform succeeds when other people succeed because it exists.
 
 ---
 
-# We Believe Freedom Matters
+## We Believe Freedom Matters
 
 Users should decide where their software runs.
 
@@ -234,7 +234,7 @@ Freedom is a product principle.
 
 ---
 
-# We Believe Privacy Is a Right
+## We Believe Privacy Is a Right
 
 Personal information belongs to the people who create it.
 
@@ -252,7 +252,7 @@ Respect for data is respect for people.
 
 ---
 
-# We Believe AI Should Remain Understandable
+## We Believe AI Should Remain Understandable
 
 Artificial intelligence should never become an invisible authority.
 
@@ -273,7 +273,7 @@ Trust builds adoption.
 
 ---
 
-# We Believe Security Enables Freedom
+## We Believe Security Enables Freedom
 
 Security is not the opposite of usability.
 
@@ -298,7 +298,7 @@ Protection should never become unnecessary restriction.
 
 ---
 
-# We Believe Good Software Ages Well
+## We Believe Good Software Ages Well
 
 Technology changes.
 
@@ -321,7 +321,7 @@ Our principles should remain stable.
 
 ---
 
-# We Are Building for the Long Term
+## We Are Building for the Long Term
 
 We are not building another productivity application.
 
@@ -350,7 +350,7 @@ That is why Aerealith exists.
 
 ---
 
-# Our Promise
+## Our Promise
 
 We believe people deserve technology they can understand.
 
@@ -370,7 +370,7 @@ If it does not, we should not build it.
 
 ---
 
-# One Platform. Infinite Possibilities.
+## One Platform. Infinite Possibilities
 
 Reduce digital complexity.
 

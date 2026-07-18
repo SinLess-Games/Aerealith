@@ -6,6 +6,13 @@ Last Updated: 2026-07-15
 Document Type: Architecture
 Implementation State: Current repository truth
 
+## Project Context
+
+- [Project Overview](../Project-Overview.md)
+- [Company and Project Structure](../Company-and-Project-Structure.md)
+- [Current State](../CURRENT_STATE.md)
+- [Documentation Index](../README.md)
+
 ## Purpose
 
 This document describes only architecture that is present in the repository.

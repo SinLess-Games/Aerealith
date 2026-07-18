@@ -769,7 +769,7 @@ Public communication must distinguish aspiration from implementation.
 
 Current status should be documented in:
 
-- [`CURRENT_STATE.md`](./CURRENT_STATE.md)
+- [`CURRENT_STATE.md`](../CURRENT_STATE.md)
 - Product roadmap documentation
 - Release documentation
 - Architecture documentation

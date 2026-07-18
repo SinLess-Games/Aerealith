@@ -1,8 +1,8 @@
-# Aerealith AI Documentation
+# Aerealith Documentation
 
 Status: Active
 Owner: SinLess Games LLC
-Last Updated: 2026-07-15
+Last Updated: 2026-07-18
 Document Type: Documentation Index
 Authority: Canonical navigation and documentation-authority map
 
@@ -25,6 +25,16 @@ Aerealith documentation answers eight questions:
 6. How is Aerealith operated and recovered?
 7. What is being delivered now?
 8. Where are exact registries and generated facts recorded?
+
+## Start Here
+
+- [Project Overview](./Project-Overview.md)
+- [Company and Project Structure](./Company-and-Project-Structure.md)
+- [Current State](./CURRENT_STATE.md)
+- [Approved Technology Stack](./STACK.md)
+- [Current Architecture](./architecture/Current%20Architecture.md)
+- [Project Inventory](./reference/Project%20Inventory.md)
+- [Master Index](./MASTER_INDEX.md)
 
 ## Canonical Structure
 
@@ -171,13 +181,15 @@ why it was archived and identify its replacement when one exists.
 
 ### New Contributor
 
-1. [`README.md`](../README.md)
-2. [`docs/README.md`](./README.md)
-3. [`docs/STACK.md`](./STACK.md)
-4. [`Current Architecture.md`](./architecture/Current%20Architecture.md)
-5. [`Local Development.md`](./engineering/Local%20Development.md)
-6. [`Monorepo Rules.md`](./engineering/Monorepo%20Rules.md)
-7. [`Testing.md`](./engineering/Testing.md)
+1. [Root README](../README.md)
+2. [Project Overview](./Project-Overview.md)
+3. [Company and Project Structure](./Company-and-Project-Structure.md)
+4. [Current State](./CURRENT_STATE.md)
+5. [Approved Technology Stack](./STACK.md)
+6. [Current Architecture](./architecture/Current%20Architecture.md)
+7. [Local Development](./engineering/Local%20Development.md)
+8. [Monorepo Rules](./engineering/Monorepo%20Rules.md)
+9. [Testing](./engineering/Testing.md)
 
 ### Product Contributor
 
@@ -185,7 +197,7 @@ why it was archived and identify its replacement when one exists.
 2. [`Product Overview.md`](./product/Product%20Overview.md)
 3. [`MVP Scope.md`](./product/MVP%20Scope.md)
 4. [`User Personas.md`](./product/User%20Personas.md)
-5. Current release documentation
+5. [Current release 0.1](./releases/0.1/README.md)
 
 ### Backend Contributor
 

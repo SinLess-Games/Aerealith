@@ -88,7 +88,7 @@ export const developerPolicy = {
       title: '1. Purpose',
       body: [
         'This Developer Policy explains the rules for building, integrating, publishing, automating, extending, or connecting software with Aerealith AI.',
-        'Aerealith AI is operated by SinLess Games LLC.',
+        'Aerealith is operated under SinLess Industries and provided by SinLess Games LLC. Aerealith AI is the assistant within Aerealith.',
         'Aerealith AI may provide APIs, SDKs, webhooks, plugins, marketplace items, automations, workflows, dashboards, templates, personalities, connectors, developer tools, and third-party integration features. Because these features may access user data, organization data, AI memory, files, integrations, automations, billing systems, and connected services, developers must follow clear safety, security, privacy, and responsible AI requirements.',
         'This policy applies whether you are building for yourself, your organization, your customers, a private deployment, or the Aerealith AI marketplace.',
       ],
@@ -1302,8 +1302,8 @@ export const developerPolicy = {
         },
         {
           label: 'Support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
         {
           label: 'Legal',
@@ -1563,7 +1563,7 @@ export const developerPolicy = {
       title: '57. Appeals',
       body: [
         'If a developer believes enforcement action was taken in error, they may request review.',
-        'Appeals should be sent to support@sinlessgames.com.',
+        'Appeals should be sent to support@aerealith.com.',
         'Appeals should include:',
         'Submitting an appeal does not guarantee reversal, reinstatement, payout release, marketplace restoration, or API reactivation.',
       ],
@@ -1579,8 +1579,8 @@ export const developerPolicy = {
       contacts: [
         {
           label: 'Support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
       ],
     },
@@ -1652,8 +1652,8 @@ export const developerPolicy = {
       contacts: [
         {
           label: 'Developer support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
         {
           label: 'Security',

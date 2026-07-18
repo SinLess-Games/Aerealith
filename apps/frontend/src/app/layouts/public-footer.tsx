@@ -366,16 +366,13 @@ export function PublicFooter() {
           ].join(' ')}
         >
           <span className='footer-muted'>
-            {'\u00A9'} {new Date().getFullYear()} Aerealith AI. All rights
+            {'\u00A9'} {new Date().getFullYear()} SinLess Games LLC. All rights
             reserved.
           </span>
 
-          <span className='footer-muted inline-flex items-center gap-1.5'>
-            Made with
-            <span className='inline-flex text-fuchsia-500'>
-              <HeartIcon />
-            </span>
-            by SinLess Games LLC
+          <span className='footer-muted'>
+            Aerealith is developed by SinLess Games LLC and operated under
+            SinLess Industries.
           </span>
 
           <div className='flex items-center gap-3'>
@@ -792,18 +789,6 @@ function Icon({
       strokeLinejoin='round'
     >
       {children}
-    </svg>
-  )
-}
-
-function HeartIcon() {
-  return (
-    <svg
-      aria-hidden='true'
-      viewBox='0 0 24 24'
-      className='h-4 w-4 fill-current'
-    >
-      <path d='M12 21s-7.5-4.6-9.6-9C.8 8.6 2.6 5 6.2 5c2.1 0 3.5 1.2 4.3 2.4C11.3 6.2 12.7 5 14.8 5c3.6 0 5.4 3.6 3.8 7-2.1 4.4-6.6 9-6.6 9Z' />
     </svg>
   )
 }

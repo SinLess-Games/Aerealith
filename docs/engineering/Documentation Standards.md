@@ -1,7 +1,7 @@
 # Documentation Standards
 
 Status: Draft
-Owner: Tim Pierce / SinLess Games
+Owner: SinLess Games LLC
 Last Updated: 2026-07-13
 Security Classification: Internal Engineering
 Primary Documentation Format: Markdown
@@ -1089,67 +1089,42 @@ Future direction should be labeled clearly.
 
 ## Terminology
 
-Aerealith terminology must remain consistent.
+Aerealith terminology must follow
+[Company and Project Structure](../Company-and-Project-Structure.md).
 
 Canonical terms include:
 
-```text
-Aerealith AI
-SinLess Games
-SinLess Industries
-module
-workflow
-integration
-provider
-adapter
-capability
-approval
-audit record
-request ID
-trace ID
-community
-organization
-account
-```
+- **SinLess Industries:** Operating parent and organizational umbrella.
+- **SinLess Games LLC:** Legal company, studio, and current contracting party.
+- **Aerealith:** Product and platform.
+- **Aerealith AI:** Assistant and intelligence layer within Aerealith.
+- **Module:** Independently understandable platform capability.
+- **Workflow:** Defined sequence of triggers, conditions, approvals, and actions.
+- **Integration:** Connection to an external system or service.
+- **Provider:** Replaceable implementation behind a platform boundary.
 
-Historic terminology such as:
-
-```text
-LegacyProductName
-```
-
-may appear only when describing project history or migration.
+Historic terminology such as **Helix AI** may appear only in clearly labeled
+historical or migration context. Technical identifiers such as the
+`@aerealith-ai/*` package scope may remain unchanged for compatibility.
 
 ---
 
-## Product Naming
+## Product and Organization Naming
 
-Use:
+Use **Aerealith** for the product, platform, website, and repository. Use
+**Aerealith AI** only for the assistant or intelligence layer. The names must
+not be used interchangeably in authoritative, technical, legal, or public copy.
 
-```text
-Aerealith AI
-```
+Use **SinLess Games LLC** in legal, ownership, copyright, policy, funding, and
+contracting contexts. Use **SinLess Industries** for the operating umbrella.
+Preferred public attribution is:
 
-on first reference in major documents.
+> Aerealith is developed by SinLess Games LLC and operated under SinLess
+> Industries.
 
-Use:
-
-```text
-Aerealith
-```
-
-afterward.
-
-Do not write inconsistent variations such as:
-
-```text
-AerealithAI
-Aerealith.AI
-Aerialith
-Aerolith
-```
-
-unless referencing an external identifier that requires exact spelling.
+Do not write inconsistent variations such as `AerealithAI`, `Aerealith.AI`,
+`Aerialith`, or `Aerolith` unless an external technical identifier requires
+exact spelling.
 
 ---
 

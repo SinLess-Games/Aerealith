@@ -1,7 +1,7 @@
 # Integration Architecture
 
 Status: Draft
-Owner: Tim Pierce / SinLess Games
+Owner: SinLess Games LLC
 Last Updated: 2026-07-12
 Security Classification: Internal Architecture
 Initial Integration Release: `0.6 — Developer Portal & Integrations`

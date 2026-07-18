@@ -1637,7 +1637,7 @@ export const privacyPolicy = {
         'Privacy questions, data requests, deletion requests, export requests, correction requests, or privacy concerns may be sent to privacy@sinlessgames.com.',
         'Security concerns may be sent to security@sinlessgames.com.',
         'Legal questions may be sent to legal@sinlessgames.com.',
-        'General support may be sent to support@sinlessgames.com.',
+        'General support may be sent to support@aerealith.com.',
         'Before publishing this policy, confirm these email aliases exist and are monitored.',
       ],
       contacts: [
@@ -1658,8 +1658,8 @@ export const privacyPolicy = {
         },
         {
           label: 'Support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
       ],
     },

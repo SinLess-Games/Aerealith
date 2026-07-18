@@ -1,7 +1,7 @@
 # Data Architecture
 
 Status: Draft
-Owner: Tim Pierce / SinLess Games
+Owner: SinLess Games LLC
 Last Updated: 2026-07-12
 Related RFCs:
 

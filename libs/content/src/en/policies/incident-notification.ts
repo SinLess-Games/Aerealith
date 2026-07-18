@@ -751,8 +751,8 @@ export const incidentNotificationPolicy = {
         },
         {
           label: 'Service incidents',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
         {
           label: 'Abuse or misuse',
@@ -1014,8 +1014,8 @@ export const incidentNotificationPolicy = {
         },
         {
           label: 'Support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
       ],
     },

@@ -19,34 +19,6 @@ const commitTypes = [
   'hotfix',
 ] as const
 
-const commitScopes = [
-  'frontend',
-  'docs',
-  'devportal',
-
-  'core',
-  'db',
-  'api',
-  'ui',
-  'utils',
-  'config',
-  'flags',
-
-  'auth',
-  'user',
-  'discord',
-
-  'infra',
-  'cloudflare',
-  'nx-cloud',
-  'docker',
-  'ci',
-
-  'repo',
-  'deps',
-  'tooling',
-] as const
-
 const config: UserConfig = {
   extends: ['@commitlint/config-conventional'],
 
@@ -57,9 +29,9 @@ const config: UserConfig = {
     'type-enum': [2, 'always', [...commitTypes]],
     'type-case': [2, 'always', 'lower-case'],
 
-    // A scope is optional. When present, it must be one of the approved scopes.
+    // Scope is optional and may use any value.
     'scope-empty': [0],
-    'scope-enum': [2, 'always', [...commitScopes]],
+    'scope-enum': [0],
     'scope-case': [2, 'always', 'lower-case'],
 
     // Allow lowercase or sentence-case subjects without fighting names,

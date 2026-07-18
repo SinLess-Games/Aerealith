@@ -1,7 +1,7 @@
 # Local Development
 
 Status: Draft
-Owner: Tim Pierce / SinLess Games
+Owner: SinLess Games LLC
 Last Updated: 2026-07-13
 Security Classification: Internal Engineering
 Primary Audience: Aerealith contributors and maintainers

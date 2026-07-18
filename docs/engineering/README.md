@@ -1,13 +1,20 @@
 # Engineering Documentation
 
 Status: Active
-Owner: Tim Pierce / SinLess Games
+Owner: SinLess Games LLC
 Last Updated: 2026-07-13
 Security Classification: Internal Engineering
 Primary Audience: Aerealith contributors, maintainers, reviewers, operators, and technical leadership
 Documentation Root: `docs/engineering/`
 
 ---
+
+## Project Context
+
+- [Project Overview](../Project-Overview.md)
+- [Company and Project Structure](../Company-and-Project-Structure.md)
+- [Current State](../CURRENT_STATE.md)
+- [Documentation Index](../README.md)
 
 ## Purpose
 
@@ -110,9 +117,9 @@ how behavior must be tested
 
 ### Level 2.2: Repository and Dependency Boundaries
 
-5. [Monorepo Rules](./Monorepo%20Rules.md)
-6. [Dependency Rules](./Dependency%20Rules.md)
-7. [Package Management](./Package%20Management.md)
+1. [Monorepo Rules](./Monorepo%20Rules.md)
+2. [Dependency Rules](./Dependency%20Rules.md)
+3. [Package Management](./Package%20Management.md)
 
 These documents explain:
 
@@ -124,8 +131,8 @@ how external packages are owned and managed
 
 ### Level 2.3: Configuration and Security
 
-8. [Environment Variables](./Environment%20Variables.md)
-9. [Secrets](./Secrets.md)
+1. [Environment Variables](./Environment%20Variables.md)
+2. [Secrets](./Secrets.md)
 
 These documents explain:
 
@@ -136,8 +143,8 @@ how sensitive values are stored, injected, rotated, and protected
 
 ### Level 2.4: Runtime and Deployment
 
-10. [Docker](./Docker.md)
-11. [Cloudflare](./Cloudflare.md)
+1. [Docker](./Docker.md)
+2. [Cloudflare](./Cloudflare.md)
 
 These documents explain:
 
@@ -148,7 +155,7 @@ how Cloudflare is used without making the platform Cloudflare-dependent
 
 ### Level 2.5: Documentation
 
-12. [Documentation Standards](./Documentation%20Standards.md)
+1. [Documentation Standards](./Documentation%20Standards.md)
 
 This document explains:
 

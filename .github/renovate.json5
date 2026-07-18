@@ -72,7 +72,7 @@
 
   dependencyDashboardHeader: '## 🛠️ Aerealith Dependency Command Center\n\nKeep Aerealith secure, stable, and boring in the best possible way.\n\n### How this dashboard works\n\n- 🚧 **Major upgrades** wait here until you explicitly approve them.\n- 🛡️ **Security updates** should be reviewed first.\n- 📦 **Minor, patch, digest, and lockfile updates** are created within the configured concurrency limits.\n- 🧪 Every Renovate PR still needs normal CI, review, and merge approval.\n\n> **Aerealith policy:** Renovate never automerges dependency changes.',
 
-  dependencyDashboardFooter: '### 🧭 Aerealith Dependency Policy\n\n- 🧪 Merge only after required checks are green.\n- 🔎 Review changelogs, migration notes, and breaking changes before merging.\n- 🧩 Keep Renovate pull requests focused; avoid mixing unrelated work into them.\n- 🚨 Treat security updates as time-sensitive, but still validate them properly.\n\n_Managed by Renovate for Aerealith AI._',
+  dependencyDashboardFooter: '### 🧭 Aerealith Dependency Policy\n\n- 🧪 Merge only after required checks are green.\n- 🔎 Review changelogs, migration notes, and breaking changes before merging.\n- 🧩 Keep Renovate pull requests focused; avoid mixing unrelated work into them.\n- 🚨 Treat security updates as time-sensitive, but still validate them properly.\n\n_Managed by Renovate for Aerealith._',
 
   // ---------------------------------------------------------------------------
   // Approval and security policy

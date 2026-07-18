@@ -4,509 +4,246 @@ Status: Active
 Owner: SinLess Games LLC
 Last Updated: 2026-07-18
 Document Type: Project Overview
+Authority: Canonical high-level introduction
 
----
+## Purpose
 
-# Purpose
+This document is the primary introduction to Aerealith for contributors,
+developers, community members, partners, and supporters. It explains what the
+project is, why it exists, how its names relate, and where verified detail
+lives.
 
-This document provides a high-level overview of the Aerealith project.
+For implementation status, use [Current State](./CURRENT_STATE.md). For company,
+legal, and naming context, use
+[Company and Project Structure](./Company-and-Project-Structure.md).
 
-It serves as the primary introduction for contributors, developers, community
-members, potential partners, investors, and anyone who wants to understand what
-Aerealith is, why it exists, and where it is going.
-
-Unlike the vision documents, this document focuses on the project itself rather
-than long-term philosophy.
-
-Unlike architecture documentation, it avoids implementation details.
-
-Unlike roadmap documentation, it does not describe individual releases.
-
-It answers one question:
-
-> **What is Aerealith?**
-
----
-
-# Executive Summary
+## Executive Summary
 
 **Aerealith** is a modular digital platform designed to reduce the complexity of
-modern digital life.
+modern digital life. It aims to connect applications, communities, data,
+workflows, automation, and intelligent capabilities through one trusted,
+user-controlled layer.
 
-Instead of forcing users to manage dozens of disconnected applications,
-dashboards, services, communities, automations, and AI tools, Aerealith provides
-a single trusted platform that brings them together while allowing users to
-remain in control.
-
-At the heart of the platform is **Aerealith AI**, an intelligent assistant that
-helps users understand information, coordinate workflows, automate repetitive
-tasks, and interact naturally with the platform.
-
-Rather than replacing existing tools, Aerealith is designed to connect them into
-one cohesive ecosystem.
-
----
-
-# The Problem
-
-Modern digital life is fragmented.
-
-Individuals, creators, developers, communities, and organizations now rely on
-large collections of independent tools.
-
-Examples include:
-
-- Discord
-- GitHub
-- Email
-- Calendars
-- Cloud providers
-- Documentation systems
-- Ticket systems
-- Automation platforms
-- Monitoring dashboards
-- AI assistants
-- Development environments
-- Infrastructure tools
-
-Each tool solves a specific problem.
-
-Together they create a much larger one.
-
-Users spend increasing amounts of time switching between applications,
-duplicating information, recreating context, managing permissions, responding to
-notifications, and maintaining disconnected workflows.
-
-Technology has become increasingly capable.
-
-Managing technology has become increasingly difficult.
-
----
-
-# The Solution
-
-Aerealith provides a unified platform that connects existing services rather than
-replacing them.
-
-The platform provides:
-
-- Connected applications
-- Shared identity
-- Unified workflows
-- Community management
-- Developer integrations
-- Secure automation
-- AI-assisted decision support
-- Centralized configuration
-- Modular capabilities
-- Operational visibility
-- User-controlled data
-- Extensible architecture
-
-Instead of becoming another isolated application, Aerealith becomes the trusted
-layer connecting the applications users already rely on.
-
----
-
-# Vision
+The long-term vision is:
 
 > **Aerealith is the operating system for your digital life.**
 
-Its long-term goal is to make managing digital systems feel as coherent as using
-a single thoughtfully designed application.
+That statement is a product direction, documented in
+[Vision](./vision/Vision.md) and [Positioning](./vision/Positioning.md), not a
+claim that every planned capability is available today.
 
-The platform should reduce complexity without reducing user control.
+**Aerealith AI** is the assistant within Aerealith. It helps users understand
+information, coordinate workflows, review recommendations, and perform actions
+within explicit permissions and approval boundaries. Its scope is defined in
+[AI Assistant](./product/AI%20Assistant.md) and
+[DEC-003](./decisions/DEC-003-mvp-ai-assistant-boundaries.md).
 
----
+## Company and Product Relationship
 
-# Mission
+The canonical hierarchy is:
 
-Aerealith exists to help people:
+```text
+SinLess Industries
+`-- SinLess Games LLC
+    `-- Aerealith
+        `-- Aerealith AI
+```
 
-- Understand complex digital systems
-- Reduce repetitive work
-- Connect disconnected services
-- Automate responsibly
-- Manage communities
-- Coordinate workflows
-- Protect their information
-- Remain in control of their technology
+SinLess Industries is the operating umbrella. SinLess Games LLC is the legal
+company currently identified for development, publication, contracts, policies,
+funding, and copyright. Aerealith is the platform, and Aerealith AI is the
+assistant within it.
 
----
+See [Company and Project Structure](./Company-and-Project-Structure.md) for the
+complete legal, organizational, contributor, and public-naming rules.
 
-# Canonical Product Distinction
+## The Problem
 
-## Aerealith
+Modern digital life is fragmented across applications, dashboards, services,
+communities, notifications, automations, and AI tools. People spend increasing
+time switching contexts, duplicating information, rebuilding permissions, and
+maintaining disconnected workflows.
 
-**Aerealith** is the platform.
+Technology has become more capable while managing it has become more difficult.
 
-It provides the shared foundation for:
+## The Product Direction
 
-- Identity
-- Permissions
-- Integrations
-- Automation
-- Community operations
-- Workflows
-- Modules
-- APIs
-- Security
-- Auditability
-- Observability
+Aerealith is intended to connect existing services rather than replace them
+without cause. The platform direction includes:
 
----
+- Shared identity and permission boundaries.
+- Connected applications and community operations.
+- Modular capabilities and integrations.
+- User-controlled workflows and automation.
+- Explainable, auditable actions.
+- Aerealith AI assistance within explicit trust boundaries.
+- Replaceable external providers where practical.
+- Hosted service and future self-hosted deployment paths.
 
-## Aerealith AI
+The integration, modularity, and provider-boundary principles come from
+[Product Philosophy](./vision/Product%20Philosophy.md) and
+[DEC-011](./decisions/DEC-011-platform-providers-vs-integrations.md).
+Self-hosting is a future direction in the
+[Roadmap](./vision/Roadmap.md), not a currently available distribution.
 
-**Aerealith AI** is the intelligent assistant inside the platform.
+## Canonical Product Distinction
 
-It helps users:
+### Aerealith
 
-- Find information
-- Explain systems
-- Recommend actions
-- Build workflows
-- Understand events
-- Summarize activity
-- Coordinate connected services
-- Interact naturally with Aerealith
+Aerealith is the platform. It provides or is intended to provide the shared
+foundation for identity, permissions, integrations, workflows, modules,
+security, auditability, observability, and user-facing experiences.
 
-Aerealith AI operates within the platform's trust model.
+### Aerealith AI
 
-It does not possess unrestricted authority.
+Aerealith AI is the intelligent assistant inside Aerealith. It may explain,
+recommend, summarize, coordinate, and perform approved actions. It does not
+possess unrestricted authority and must remain useful within the platform's
+[Trust Model](./vision/Trust%20Model.md).
 
----
+The names are not interchangeable in technical, legal, or authoritative
+documentation.
 
-# Platform Principles
+## Platform Principles
 
-Aerealith is built around several long-term principles.
-
-## User Control
+### User Control
 
 Users remain in control of their data, permissions, automations, and connected
-services.
+services. See [Trust Model](./vision/Trust%20Model.md).
 
----
+### Progressive Trust
 
-## Progressive Trust
+Automation earns authority through explicit scope, approvals, observable
+behavior, and revocation. Trust is not assumed.
 
-Automation is earned through repeated approved behavior rather than assumed.
-
----
-
-## Transparency
+### Transparency
 
 Meaningful actions should be explainable, auditable, and understandable.
 
----
+### Integration Before Replacement
 
-## Integration Before Replacement
+Aerealith connects existing tools when practical instead of recreating every
+service.
 
-Existing tools should be connected whenever practical instead of unnecessarily
-replaced.
+### Modularity
 
----
+Capabilities should remain independently understandable and configurable.
 
-## Modularity
+### Security
 
-Capabilities should be independently configurable rather than forming one
-monolithic application.
+Security, privacy, permissions, and auditability are product behavior rather
+than later additions.
 
----
+### Provider Independence
 
-## Security
+Critical provider dependencies should remain replaceable where practical.
+Provider-neutral platform boundaries are defined in
+[DEC-011](./decisions/DEC-011-platform-providers-vs-integrations.md).
 
-Security should be designed into the platform rather than added later.
+## Initial Product Focus
 
----
+Aerealith begins with a focused proof of its wider platform direction.
 
-## Provider Independence
+### Individuals
 
-Critical external dependencies should remain replaceable where practical.
+The long-term individual experience is a trusted control center for connected
+digital tools, information, and workflows.
 
----
+### Discord Communities
 
-# Core Capabilities
+Discord is the first flagship integration, as documented in the
+[Roadmap](./vision/Roadmap.md),
+[Discord Platform](./product/Discord%20Platform.md), and
+[DEC-014](./decisions/DEC-014-mvp-persona-priority.md).
 
-The platform is intended to provide capabilities including:
+This is a delivery priority, not the complete identity of Aerealith and not a
+claim that all planned Discord capabilities are implemented.
 
-- Account management
-- Identity and permissions
-- Community management
-- Discord integration
-- Workflow automation
-- AI assistance
-- Knowledge management
-- Notifications
-- Developer APIs
-- Modules
-- Marketplace
-- Operational dashboards
-- Analytics
-- Audit logging
-- Integrations
-- Self-hosted deployment
-- Hosted deployment
+## Current and Planned Capabilities
 
-Not every capability is currently implemented.
+The platform direction includes community management, integrations, workflows,
+notifications, developer APIs, modules, marketplace capabilities, audit
+logging, Aerealith AI, hosted deployment, and future self-hosting.
 
-Implementation status is documented separately.
+Not every capability is implemented. Use these sources to keep claims honest:
 
----
+- [Current State](./CURRENT_STATE.md) for the concise present-versus-planned
+  boundary.
+- [Current Architecture](./architecture/Current%20Architecture.md) for current
+  repository truth.
+- [Project Inventory](./reference/Project%20Inventory.md) for exact implemented
+  Nx projects.
+- [MVP Scope](./product/MVP%20Scope.md) for accepted product boundaries.
+- [Roadmap](./vision/Roadmap.md) for planned sequencing.
+- [Release 0.1](./releases/0.1/README.md) for the current foundation milestone.
 
-# Initial Product Focus
+A capability described in product, roadmap, funding, or target architecture
+material must not be presented as live without implementation evidence.
 
-The first public versions of Aerealith concentrate on two primary audiences.
+## Technology Overview
 
-## Individuals
+Aerealith is currently a TypeScript and Nx monorepo. Its implemented foundation
+includes React, Vite, React Router, Tailwind CSS, Vitest, Playwright, Hono,
+Drizzle ORM, PostgreSQL, and Cloudflare-oriented deployment tooling.
 
-Helping people manage increasingly complicated digital lives.
+Technology status and approval live in the
+[Stack](./STACK.md). Exact installed versions live in `package.json`, the
+lockfile, and runtime pin files. Planned technologies must remain labeled as
+planned.
 
----
+## Development Approach
 
-## Discord Communities
+Aerealith is developed incrementally with foundations, trust, secure identity,
+reliable integrations, documentation, testing, and operational readiness ahead
+of broad feature expansion.
 
-Helping communities manage moderation, onboarding, tickets, workflows,
-permissions, analytics, and automation through one modular platform.
+The architecture is intentionally modular and should remain useful without
+requiring AI for every task. Significant technical choices are recorded in the
+[Decision Register](./decisions/README.md).
 
-Discord is the first flagship integration.
+## Success
 
-It is not the complete product.
+Aerealith succeeds when it reduces digital complexity without reducing user
+control. Feature count alone is not success. The platform should remain:
 
----
+- Trustworthy and secure.
+- Transparent and explainable.
+- Modular and maintainable.
+- Extensible without uncontrolled authority.
+- Respectful of user data and permissions.
+- Useful to users, communities, and developers.
 
-# Long-Term Audience
+## Where to Go Next
 
-As the platform grows it should support:
+### Understand the Direction
 
-- Individuals
-- Creators
-- Developers
-- Online communities
-- Discord servers
-- Small businesses
-- Organizations
-- Infrastructure operators
-- Self-hosted users
-- Extension developers
+1. [Vision](./vision/Vision.md)
+2. [Product Philosophy](./vision/Product%20Philosophy.md)
+3. [Trust Model](./vision/Trust%20Model.md)
+4. [Roadmap](./vision/Roadmap.md)
+5. [Product Overview](./product/Product%20Overview.md)
 
-Each audience should receive the capabilities it needs without unnecessary
-complexity.
+### Understand the Repository
 
----
+1. [Current State](./CURRENT_STATE.md)
+2. [Current Architecture](./architecture/Current%20Architecture.md)
+3. [Approved Technology Stack](./STACK.md)
+4. [Project Inventory](./reference/Project%20Inventory.md)
+5. [Decision Register](./decisions/README.md)
 
-# Platform Architecture
+### Start Contributing
 
-The platform is designed around several major layers.
+1. [Documentation Index](./README.md)
+2. [Local Development](./engineering/Local%20Development.md)
+3. [Monorepo Rules](./engineering/Monorepo%20Rules.md)
+4. [Testing](./engineering/Testing.md)
+5. [Release Index](./releases/README.md)
+6. [Current Release 0.1](./releases/0.1/README.md)
 
-```text
-                    Users
-                      │
-              Aerealith AI
-                      │
-          Web • Mobile • Desktop
-                      │
-       APIs • Modules • Workflows
-                      │
- Identity • Permissions • Trust
-                      │
- Integrations • Services • Storage
-                      │
- Infrastructure • Observability
-```
+## Final Statement
 
-The implementation evolves over time, but the layered architecture should remain
-stable.
+Aerealith is an effort to build a trustworthy platform that helps people manage
+an increasingly complex digital world without sacrificing ownership,
+transparency, or control.
 
----
-
-# Major Components
-
-Current and planned components include:
-
-- Web Platform
-- Discord Platform
-- Authentication
-- User Management
-- Permissions
-- Community Management
-- Workflow Engine
-- Module Framework
-- Developer APIs
-- Marketplace
-- AI Platform
-- Knowledge Layer
-- Audit System
-- Notification System
-- Observability
-- Deployment Platform
-
----
-
-# Technology Overview
-
-The project currently centers around a modern TypeScript monorepo.
-
-Major technologies include:
-
-## Frontend
-
-- React
-- Vite
-- React Router
-- Tailwind CSS
-- TanStack libraries
-
-## Backend
-
-- Hono
-- TypeScript
-
-## Data
-
-- PostgreSQL / CockroachDB
-- Drizzle ORM
-
-## Infrastructure
-
-- Docker
-- GitHub Actions
-
-## Observability
-
-- Datadog
-- Grafana-compatible architecture
-
-## Security
-
-- Snyk
-- Semgrep
-- Dependabot
-- Renovate
-
-Technology choices may evolve while preserving platform principles.
-
----
-
-# Development Philosophy
-
-Aerealith is developed incrementally.
-
-Development priorities are:
-
-1. Strong foundations
-2. Stable architecture
-3. Secure identity
-4. User trust
-5. Reliable integrations
-6. High-quality documentation
-7. Operational readiness
-8. Feature expansion
-
-Quality should take priority over rapid feature growth.
-
----
-
-# Documentation
-
-Documentation is treated as part of the product.
-
-Major documentation areas include:
-
-- Vision
-- Product
-- Architecture
-- Engineering
-- Security
-- Operations
-- Development
-- API
-- Releases
-- Decisions
-
-Documentation evolves alongside implementation.
-
----
-
-# Roadmap
-
-Development proceeds through milestone-based releases.
-
-Current major phases include:
-
-- Engineering foundation
-- Core platform
-- Identity
-- Frontend
-- APIs
-- Developer platform
-- Discord integration
-- Community operations
-- Observability
-- Private Beta
-- Public MVP
-- AI platform expansion
-- Marketplace
-- Automation
-- Self-hosting
-
-The roadmap emphasizes quality over release dates.
-
----
-
-# Success
-
-Aerealith succeeds when users spend less time managing technology and more time
-using it.
-
-Success is measured not only by features, but by whether the platform remains:
-
-- Trustworthy
-- Secure
-- Transparent
-- Modular
-- Extensible
-- Explainable
-- User-controlled
-- Maintainable
-- Developer-friendly
-
----
-
-# Relationship to Other Documentation
-
-```text
-Project Overview
-├── introduces the project
-├── links to vision
-├── links to product documentation
-├── links to architecture
-├── links to engineering
-├── links to roadmap
-└── directs readers to implementation details
-```
-
-Recommended reading after this document:
-
-1. `docs/vision/README.md`
-2. `docs/product/README.md`
-3. `docs/architecture/README.md`
-4. `docs/engineering/README.md`
-5. `docs/releases/README.md`
-
----
-
-# Final Statement
-
-Aerealith is more than a collection of tools.
-
-It is an effort to build a trustworthy platform that helps people manage an
-increasingly complex digital world without sacrificing ownership, transparency,
-or control.
-
-Rather than asking users to replace everything they already use, Aerealith aims
-to bring those systems together into one coherent experience.
-
-Its goal is simple:
-
-> **Reduce digital complexity without reducing user control.**
+It is developed by SinLess Games LLC and operated under SinLess Industries.

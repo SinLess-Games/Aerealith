@@ -64,7 +64,7 @@ export const billingRefundCancellationPolicy = {
       title: '1. Purpose',
       body: [
         'This Billing, Refund, and Cancellation Policy explains how billing, subscriptions, renewals, refunds, cancellations, credits, add-ons, usage charges, failed payments, and account changes work for Aerealith AI.',
-        'Aerealith AI is operated by SinLess Games LLC.',
+        'Aerealith is operated under SinLess Industries and provided by SinLess Games LLC. Aerealith AI is the assistant within Aerealith.',
         'This policy is intended to provide clear expectations for users, customers, organizations, developers, and enterprise accounts.',
         'By purchasing, subscribing to, or using paid Aerealith AI services, you agree to this policy, our Terms of Use, Privacy Policy, Data Policy, Security Policy, Acceptable Use Policy, and any applicable order form, invoice, service agreement, or enterprise agreement.',
       ],
@@ -868,8 +868,8 @@ export const billingRefundCancellationPolicy = {
         },
         {
           label: 'Support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
         {
           label: 'Legal',

@@ -47,6 +47,7 @@ generated/
 **/*.generated.*
 **/*.gen.*
 **/*.map
+libs/content/translations/**/*.json
 
 # Environment and secrets
 .env

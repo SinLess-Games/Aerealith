@@ -53,9 +53,10 @@ must not imply that planned or aspirational functionality is already available.
 
 Implementation status is documented separately in:
 
-- [The product roadmap](./Roadmap.md)
-- Release documentation
-- Architecture documentation
+- [Current State](../CURRENT_STATE.md)
+- [Roadmap](./Roadmap.md)
+- [Release documentation](../releases/README.md)
+- [Architecture documentation](../architecture/README.md)
 
 Documentation and public messaging should use the following capability states:
 
@@ -90,9 +91,10 @@ The names must not be used interchangeably when technical precision matters.
 >
 > **Aerealith AI is the assistant that helps users interact with the platform.**
 
-Public-facing language may sometimes use “Aerealith AI” as the primary product
-brand where that name is more familiar, but authoritative documentation should
-preserve the platform-and-assistant distinction.
+Public-facing language must use **Aerealith** for the platform and **Aerealith
+AI** only for the assistant or intelligence layer. Technical compatibility
+identifiers may retain existing names, but public product copy must preserve the
+platform-and-assistant distinction.
 
 ---
 
@@ -706,9 +708,10 @@ Aerealith messaging should follow a consistent hierarchy.
 
 ### Discord Application Description
 
-> Aerealith AI is a modular Discord management platform for moderation, tickets,
-> automation, logging, analytics, roles, forms, personas, and community
-> operations.
+> Aerealith for Discord is the planned flagship community integration for
+> moderation, tickets, automation, logging, analytics, roles, forms, and
+> community operations. Aerealith AI may provide permission-bound assistance
+> within that experience.
 
 This description is specific to the Discord application and must not be treated
 as the definition of the entire platform.
