@@ -74,6 +74,19 @@ type FooterSectionData = (typeof footerSections)[number]
 type FooterSectionIcon = FooterSectionData['icon']
 type MessageType = 'idle' | 'success' | 'error'
 
+function isValidEmail(value: string) {
+  const atIndex = value.indexOf('@')
+  const dotIndex = value.lastIndexOf('.')
+
+  return (
+    atIndex > 0 &&
+    value.indexOf('@', atIndex + 1) === -1 &&
+    dotIndex > atIndex + 1 &&
+    dotIndex < value.length - 1 &&
+    !value.includes(' ')
+  )
+}
+
 export function PublicFooter() {
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
@@ -84,10 +97,7 @@ export function PublicFooter() {
 
     const normalizedEmail = email.trim()
 
-    if (
-      !normalizedEmail ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)
-    ) {
+    if (!normalizedEmail || !isValidEmail(normalizedEmail)) {
       setMessage('Enter a valid email address.')
       setMessageType('error')
       return

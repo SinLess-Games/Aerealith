@@ -8,6 +8,7 @@
  */
 
 @import 'tailwindcss';
+@import '../../../libs/ui/src/styles/index.css';
 
 /*
  * Generate the utility classes used by the shared UI library. Tailwind v4 only
@@ -15,6 +16,3 @@
  * explicitly — otherwise `@aerealith-ai/ui` components render unstyled.
  */
 @source '../../../libs/ui/src';
-
-/* Aerealith design system (see libs/ui/src/styles/index.css for import order). */
-@import '../../../libs/ui/src/styles/index.css';
