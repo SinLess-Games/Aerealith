@@ -38,7 +38,7 @@ describe('AppRoutes', () => {
     renderAt('/')
 
     expect(screen.getByRole('heading', { level: 1 }).textContent).toContain(
-      'Aerealith AI',
+      'Your Digital Life',
     )
   })
 
@@ -46,7 +46,7 @@ describe('AppRoutes', () => {
     renderAt('/about')
 
     expect(screen.getByRole('heading', { level: 1 }).textContent).toContain(
-      'About Aerealith AI',
+      'Intelligent by Design',
     )
   })
 
@@ -54,7 +54,7 @@ describe('AppRoutes', () => {
     renderAt('/pricing')
 
     expect(screen.getByRole('heading', { level: 1 }).textContent).toContain(
-      'Pricing Preview',
+      'One platform',
     )
   })
 
@@ -62,7 +62,7 @@ describe('AppRoutes', () => {
     renderAt('/contact')
 
     expect(screen.getByRole('heading', { level: 1 }).textContent).toContain(
-      'Contact Aerealith AI',
+      'Build the Future',
     )
   })
 
@@ -77,14 +77,14 @@ describe('AppRoutes', () => {
   it('renders the 404 page for an unknown policy slug', () => {
     renderAt('/policies/does-not-exist')
 
-    expect(screen.getByText('404')).toBeTruthy()
+    expect(screen.getByText(/404/)).toBeTruthy()
   })
 
   it('renders the 404 page for an unknown path', () => {
     renderAt('/does-not-exist')
 
-    expect(screen.getByText('404')).toBeTruthy()
-    expect(screen.getByText(/could not be found/i)).toBeTruthy()
+    expect(screen.getByText(/404/)).toBeTruthy()
+    expect(screen.getByRole('heading', { name: /not found/i })).toBeTruthy()
   })
 
   it('shows the primary navigation in the public layout', () => {

@@ -30,7 +30,7 @@ describe('App', () => {
     )
 
     expect(screen.getByRole('heading', { level: 1 }).textContent).toContain(
-      'Aerealith AI',
+      'Your Digital Life',
     )
     expect(screen.getByRole('button', { name: /theme/i })).toBeTruthy()
   })

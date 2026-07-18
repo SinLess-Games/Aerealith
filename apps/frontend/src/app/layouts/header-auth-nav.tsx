@@ -1,5 +1,3 @@
-// apps/frontend/src/app/layouts/header-auth-nav.tsx
-
 import { NavLink } from 'react-router'
 
 import { useLogout, useSession } from '../../features/auth/use-session'
@@ -9,12 +7,7 @@ const linkClass = 'rounded-md px-3 py-2 text-sm font-medium transition-colors'
 const buttonClass =
   'rounded-md border border-[var(--ae-border)] px-3 py-2 text-sm font-medium transition-colors'
 
-/**
- * The right-hand auth area of the site header. Reflects the current session:
- * signed-out shows "Sign in"; signed-in shows a dashboard link, the username,
- * and a sign-out button. Uses the shared session hooks.
- */
-export function HeaderAuthNav() {
+export function HeaderAuthNav({ mobile = false }: { mobile?: boolean }) {
   const { user, isAuthenticated, isLoading } = useSession()
   const logout = useLogout()
 
@@ -23,32 +16,44 @@ export function HeaderAuthNav() {
       <span
         aria-busy='true'
         aria-label='Checking session'
-        className='inline-block h-9 w-16'
+        className={mobile ? 'h-11 w-full' : 'inline-block h-9 w-16'}
       />
     )
   }
 
   if (isAuthenticated && user) {
     return (
-      <div className='flex items-center gap-2'>
-        <NavLink to='/app' className={linkClass}>
+      <div className={mobile ? 'grid gap-2' : 'flex items-center gap-2'}>
+        <NavLink
+          to='/app'
+          className={mobile ? linkClass + ' text-center' : linkClass}
+        >
           Dashboard
         </NavLink>
-        <span className='hidden text-sm sm:inline'>{user.username}</span>
+        <span
+          className={
+            mobile ? 'text-center text-sm' : 'hidden text-sm sm:inline'
+          }
+        >
+          {user.username}
+        </span>
         <button
           type='button'
-          className={buttonClass}
+          className={mobile ? buttonClass + ' w-full' : buttonClass}
           disabled={logout.isPending}
           onClick={() => logout.mutate()}
         >
-          {logout.isPending ? 'Signing out…' : 'Sign out'}
+          {logout.isPending ? 'Signing out...' : 'Sign out'}
         </button>
       </div>
     )
   }
 
   return (
-    <NavLink to='/sign-in' className={buttonClass}>
+    <NavLink
+      to='/sign-in'
+      className={mobile ? buttonClass + ' text-center' : buttonClass}
+    >
       Sign in
     </NavLink>
   )

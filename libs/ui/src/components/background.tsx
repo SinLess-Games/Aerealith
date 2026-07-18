@@ -75,7 +75,10 @@ function useResolvedTheme(mode: BackgroundMode): BackgroundMode {
 
 function subscribeToThemeChanges(onStoreChange: () => void) {
   const root = document.documentElement
-  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+  const mediaQuery =
+    typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-color-scheme: dark)')
+      : null
   const observer = new MutationObserver(onStoreChange)
 
   observer.observe(root, {
@@ -83,11 +86,11 @@ function subscribeToThemeChanges(onStoreChange: () => void) {
     attributes: true,
   })
 
-  mediaQuery.addEventListener('change', onStoreChange)
+  mediaQuery?.addEventListener('change', onStoreChange)
 
   return () => {
     observer.disconnect()
-    mediaQuery.removeEventListener('change', onStoreChange)
+    mediaQuery?.removeEventListener('change', onStoreChange)
   }
 }
 
@@ -100,7 +103,10 @@ function resolveTheme(): BackgroundMode {
     }
   }
 
-  if (typeof window !== 'undefined') {
+  if (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function'
+  ) {
     return window.matchMedia('(prefers-color-scheme: dark)').matches
       ? 'dark'
       : 'light'

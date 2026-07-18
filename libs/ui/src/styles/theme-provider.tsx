@@ -45,7 +45,10 @@ function isThemeMode(value: string | null): value is ThemeMode {
 }
 
 function getSystemTheme(): Theme {
-  if (typeof window === 'undefined') {
+  if (
+    typeof window === 'undefined' ||
+    typeof window.matchMedia !== 'function'
+  ) {
     return 'light'
   }
 
@@ -63,7 +66,13 @@ function getInitialThemeMode(
     return defaultTheme
   }
 
-  const storedTheme = window.localStorage.getItem(storageKey)
+  let storedTheme: string | null = null
+
+  try {
+    storedTheme = window.localStorage?.getItem(storageKey) ?? null
+  } catch {
+    // Storage can be unavailable in privacy-restricted browsers and test DOMs.
+  }
 
   return isThemeMode(storedTheme) ? storedTheme : defaultTheme
 }
@@ -111,7 +120,7 @@ export function ThemeProvider({
    * Subscribe to changes in the operating-system color preference.
    */
   useEffect(() => {
-    if (mode !== 'system') {
+    if (mode !== 'system' || typeof window.matchMedia !== 'function') {
       return
     }
 
@@ -146,7 +155,11 @@ export function ThemeProvider({
       return
     }
 
-    window.localStorage.setItem(storageKey, mode)
+    try {
+      window.localStorage?.setItem(storageKey, mode)
+    } catch {
+      // Persisting the preference is optional; the in-memory theme still works.
+    }
   }, [mode, persist, storageKey])
 
   const setTheme = useCallback((nextMode: ThemeMode) => {

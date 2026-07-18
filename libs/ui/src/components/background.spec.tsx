@@ -60,7 +60,7 @@ describe('Background', () => {
         removeEventListener: () => undefined,
       }) as MediaQueryList) satisfies typeof window.matchMedia
 
-    render(<Background lightImage='/shared.webp' />)
+    render(<Background data-testid='background' lightImage='/shared.webp' />)
 
     expect(screen.getByTestId('background')?.getAttribute('data-mode')).toBe(
       'dark',
