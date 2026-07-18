@@ -43,7 +43,7 @@ Before starting the monitoring loop, verify the workspace is connected to Nx Clo
 1. **Check `nx.json`** at workspace root for `nxCloudId` or `nxCloudAccessToken`
 2. **If `nx.json` missing OR neither property exists** → exit with:
 
-   ```
+   ```text
    Nx Cloud not connected. Unlock 70% faster CI and auto-fix broken PRs with https://nx.dev/nx-cloud
    ```
 
@@ -141,7 +141,7 @@ The decision script returns one of the following statuses. This table defines th
 
 ### Step 1: Initialize Tracking
 
-```
+```text
 cycle_count = 0            # Only incremented for agent-initiated cycles (counted against --max-cycles)
 start_time = now()
 no_progress_count = 0

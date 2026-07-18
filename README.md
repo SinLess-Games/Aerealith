@@ -1,10 +1,10 @@
 <div align="center">
-  <h1>Aerealith AI</h1>
+  <h1>Aerealith</h1>
 
   <a href="https://aerealith.com">
     <img
       src="docs/images/brand/logos/aerealith-ai-primary-poster.png"
-      alt="Aerealith AI"
+      alt="Aerealith"
       width="560"
     />
   </a>
@@ -50,12 +50,12 @@
       alt="TypeScript strict mode"
     />
     <img
-      src="https://img.shields.io/badge/Node.js-25.9.0-339933?style=for-the-badge&amp;logo=nodedotjs&amp;logoColor=white"
-      alt="Node.js 25.9.0"
+      src="https://img.shields.io/badge/Node.js-26.5.0-339933?style=for-the-badge&amp;logo=nodedotjs&amp;logoColor=white"
+      alt="Node.js 26.5.0"
     />
     <img
-      src="https://img.shields.io/badge/pnpm-11.12.0-F69220?style=for-the-badge&amp;logo=pnpm&amp;logoColor=white"
-      alt="pnpm 11.12.0"
+      src="https://img.shields.io/badge/pnpm-11.13.1-F69220?style=for-the-badge&amp;logo=pnpm&amp;logoColor=white"
+      alt="pnpm 11.13.1"
     />
     <img
       src="https://img.shields.io/badge/Nx-monorepo-143055?style=for-the-badge&amp;logo=nx&amp;logoColor=white"
@@ -93,6 +93,21 @@ Aerealith is being developed as a secure, type-safe, maintainable monorepo with 
 
 ---
 
+## Start Here
+
+- [Project Overview](docs/Project-Overview.md)
+- [Company and Project Structure](docs/Company-and-Project-Structure.md)
+- [Current State](docs/CURRENT_STATE.md)
+- [Documentation Index](docs/README.md)
+- [Local Development](docs/engineering/Local%20Development.md)
+- [Testing](docs/engineering/Testing.md)
+
+Aerealith is a SinLess Games LLC product operated under SinLess Industries.
+The repository is in active foundation development; planned capabilities are
+not presented as currently available.
+
+---
+
 ## 🧭 Platform Vision
 
 | Area                      | Purpose                                                                                                        |
@@ -108,53 +123,28 @@ Aerealith is being developed as a secure, type-safe, maintainable monorepo with 
 
 ---
 
-## 🏗️ Repository Architecture
+## Repository Architecture
+
+The implemented workspace currently contains:
 
 ```text
 Aerealith/
-├── apps/
-│   ├── frontend/              # Website, web app, docs, and developer portal
-│   └── services/
-│       ├── auth/              # Authentication service
-│       ├── user/              # User and profile service
-│       └── discord/           # Future Discord platform service
-│
-├── libs/
-│   ├── core/                  # Shared domain types, contracts, schemas, errors, constants
-│   ├── db/                    # Database entities, persistence, migrations, and data access
-│   ├── api/                   # Shared API abstractions and transport support
-│   ├── ui/                    # Shared user-interface primitives and components
-│   ├── utils/                 # Shared reusable utilities
-│   ├── config/                # Centralized configuration support
-│   └── flags/                 # Feature-flag support
-│
-├── .github/
-│   ├── config/                # Repository automation and policy configuration
-│   ├── instructions/          # Coding-agent and repository instructions
-│   ├── workflows/             # CI, security, orchestration, and delivery workflows
-│   ├── ISSUE_TEMPLATE/        # Structured issue forms
-│   └── PULL_REQUEST_TEMPLATE/ # Pull request templates
-│
-└── docs/                      # Project documentation as the repository grows
+|-- apps/
+|   |-- frontend/
+|   `-- frontend-e2e/
+|-- libs/
+|   |-- content/
+|   |-- core/
+|   |-- db/
+|   |-- ui/
+|   `-- utils/
+|-- tools/generators/service/
+`-- docs/
 ```
 
-### Dependency Direction
-
-```text
-apps/* and services/* → libs/*
-libs/*                → libs/core
-libs/*                ✕ other libs by default
-```
-
-The default rule is intentionally strict:
-
-```text
-Libraries may depend on libs/core.
-Libraries should avoid depending on each other unless there is a clear,
-intentional reason to do so.
-```
-
-This keeps the platform easier to test, reuse, migrate, and self-host later.
+Use [Current Architecture](docs/architecture/Current%20Architecture.md) and
+[Project Inventory](docs/reference/Project%20Inventory.md) for current evidence.
+Planned services and libraries are intentionally excluded from this tree.
 
 ---
 
@@ -199,8 +189,8 @@ This keeps the platform easier to test, reuse, migrate, and self-host later.
 
 ### Requirements
 
-- **Node.js 25.9.0**
-- **pnpm 11.12.0**
+- **Node.js 26.5.0**
+- **pnpm 11.13.1**
 - **Git**
 - Optional: Docker for container-focused development and security scanning
 
@@ -379,66 +369,13 @@ These files define:
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
-### Foundation
+Roadmap statements are direction, not proof of implementation. Use:
 
-- [x] Nx monorepo foundation
-- [x] Shared library boundaries
-- [x] TypeScript-first architecture
-- [x] Repository automation policy
-- [x] Security scanning policy
-- [ ] Complete baseline CI validation
-- [ ] Complete GitHub Project automation
-
-### Identity and User Platform
-
-- [ ] Sign-up and login flows
-- [ ] Refresh-token lifecycle
-- [ ] Email verification
-- [ ] User profiles
-- [ ] Preferences and settings
-- [ ] Consent management
-- [ ] Secure account recovery flows
-
-### Platform Services
-
-- [ ] Shared API standards
-- [ ] Typed service contracts
-- [ ] Database persistence and migrations
-- [ ] Observability and structured logging
-- [ ] Feature flags
-- [ ] Edge-service support
-
-### Frontend and Developer Experience
-
-- [ ] Public website
-- [ ] Authenticated web application
-- [ ] Documentation experience
-- [ ] Developer portal
-- [ ] Shared component system
-- [ ] Accessibility baseline
-
-### Discord Platform
-
-- [ ] Modular Discord bot architecture
-- [ ] Per-server module settings
-- [ ] Moderation tooling
-- [ ] Role and automation support
-- [ ] Ticket workflows
-- [ ] Audit and transcript controls
-- [ ] Dashboard integration
-
-### Operations and Security
-
-- [ ] CodeQL workflow coverage
-- [ ] SonarQube Cloud integration
-- [ ] Semgrep and Trivy reporting
-- [ ] Snyk dependency reporting
-- [ ] Container-image scanning
-- [ ] Controlled remediation workflows
-- [ ] Observability dashboards
-- [ ] Deployment automation
+- [Current State](docs/CURRENT_STATE.md) for what exists now.
+- [Vision Roadmap](docs/vision/Roadmap.md) for long-term sequencing.
+- [Release Index](docs/releases/README.md) and [release 0.1](docs/releases/0.1/README.md) for delivery scope.
 
 ---
 
@@ -460,25 +397,25 @@ Before opening a Pull Request:
 
 ---
 
-## 📁 Important Repository Links
+## Important Repository Links
 
-| Resource                     | Location                                                                         |
-| ---------------------------- | -------------------------------------------------------------------------------- |
-| Issue Templates              | [`.github/ISSUE_TEMPLATE`](.github/ISSUE_TEMPLATE)                               |
-| Pull Request Templates       | [`.github/PULL_REQUEST_TEMPLATE`](.github/PULL_REQUEST_TEMPLATE)                 |
-| Repository Automation Config | [`.github/config`](.github/config)                                               |
-| Agent Instructions           | [`.github/instructions`](.github/instructions)                                   |
-| GitHub Actions               | [`.github/workflows`](.github/workflows)                                         |
-| Security Policy Config       | [`.github/config/security.yaml`](.github/config/security.yaml)                   |
-| Dependency Policy            | [`.github/config/dependency-policy.yaml`](.github/config/dependency-policy.yaml) |
-| GitHub Project               | [Aerealith Delivery](https://github.com/orgs/SinLess-Games/projects/3)           |
+| Resource           | Location                                                               |
+| ------------------ | ---------------------------------------------------------------------- |
+| Issue Templates    | [`.github/ISSUE_TEMPLATE`](.github/ISSUE_TEMPLATE)                     |
+| Project Automation | [`.github/project`](.github/project)                                   |
+| Agent Instructions | [`.github/instructions`](.github/instructions)                         |
+| GitHub Actions     | [`.github/workflows`](.github/workflows)                               |
+| Security Policy    | [`SECURITY.md`](SECURITY.md)                                           |
+| Dependabot         | [`.github/dependabot.yaml`](.github/dependabot.yaml)                   |
+| Renovate           | [`.github/renovate.json5`](.github/renovate.json5)                     |
+| GitHub Project     | [Aerealith Delivery](https://github.com/orgs/SinLess-Games/projects/3) |
 
 ---
 
 <div align="center">
 
   <p>
-    <strong>Built by SinLess Games.</strong>
+    <strong>Aerealith is developed by SinLess Games LLC and operated under SinLess Industries.</strong>
   </p>
 
   <p>

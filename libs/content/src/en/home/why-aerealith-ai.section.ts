@@ -5,7 +5,7 @@ export const aerealithDifferentiators = [
     id: 'user-owned-data',
     title: 'User-Owned Data',
     description:
-      'Aerealith AI is built around the principle that users own their data. The platform should support export, deletion, transparency, and clear boundaries around how data is used.',
+      'Aerealith is built around the principle that users own their data. The platform should support export, deletion, transparency, and clear boundaries around how data is used.',
     icon: '🛡️',
   },
   {
@@ -19,7 +19,7 @@ export const aerealithDifferentiators = [
     id: 'automation-with-boundaries',
     title: 'Automation With Boundaries',
     description:
-      'Aerealith AI can help automate workflows, monitor systems, and assist with actions while preserving approval flows, permissions, and user control.',
+      'Aerealith AI is intended to help automate workflows, monitor systems, and assist with actions while preserving approval flows, permissions, and user control.',
     icon: '⚙️',
   },
   {
@@ -33,14 +33,14 @@ export const aerealithDifferentiators = [
     id: 'dashboards-and-analytics',
     title: 'Dashboards and Analytics',
     description:
-      'Aerealith AI is planned with user-fed dashboards, annotations, sharing, and operational insights so users can understand their systems at a glance.',
+      'Aerealith is planned with user-fed dashboards, annotations, sharing, and operational insights so users can understand their systems at a glance.',
     icon: '📊',
   },
   {
     id: 'developer-ready-platform',
     title: 'Developer-Ready Platform',
     description:
-      'Aerealith AI is being structured with SDKs, APIs, plugin manifests, marketplace support, automation hooks, and extensibility from the beginning.',
+      'Aerealith is being structured with SDKs, APIs, plugin manifests, marketplace support, automation hooks, and extensibility from the beginning.',
     icon: '🧑‍💻',
   },
   {
@@ -62,11 +62,11 @@ export const aerealithDifferentiators = [
 export const whyAerealithAiSection = {
   component: 'marketing-section',
   id: 'why-aerealith-ai-is-different',
-  eyebrow: 'Why Aerealith AI',
+  eyebrow: 'Why Aerealith',
   title: 'Built Different From the Start',
   description:
-    'Aerealith AI combines assistant intelligence, user control, integrations, analytics, memory, and automation into one long-term platform vision.',
-  body: 'Aerealith AI is being designed as more than a chatbot. It is a secure, extensible assistant platform built around user-owned data, contextual memory, automations, integrations, analytics, and transparent control. The goal is to make your digital systems easier to understand, easier to operate, and easier to trust.',
+    'Aerealith combines user control, integrations, analytics, memory, automation, and the Aerealith AI assistant in one long-term platform vision.',
+  body: 'Aerealith is being designed as a secure, extensible platform rather than a chatbot wrapper. Aerealith AI is the assistant within it. The goal is to make connected digital systems easier to understand, operate, and trust.',
   features: aerealithDifferentiators,
 } as const satisfies HomeWhyAerealithAiSectionContent
 
@@ -78,7 +78,6 @@ export const whyAerealithAiHighlights = [
 ] as const
 
 export const DIFFERENT_SECTION = whyAerealithAiSection
-export const HELIX_DIFFERENTIATORS = aerealithDifferentiators
 export const AEREALITH_DIFFERENTIATORS = aerealithDifferentiators
 
 export const differentSection = whyAerealithAiSection

@@ -1,20 +1,35 @@
 # Product Documentation
 
-The `docs/product/` folder defines what Aerealith AI is as a product.
+Status: Accepted
+Owner: SinLess Games LLC
+Last Updated: 2026-07-18
+Document Type: Target Product Index
+Implementation State: Intended behavior; not proof of current availability
+Authority: Product navigation; [Project Overview](../Project-Overview.md) defines product identity and boundaries
 
-These documents explain who Aerealith serves, what capabilities it provides, how users interact with it, how Discord fits into the platform, how AI behaves, how automation works, and how the product should grow over time.
+The `docs/product/` folder defines the intended user-facing shape of Aerealith.
+Aerealith is the platform; Aerealith AI is the assistant within it. Product
+documents must be checked against [Current State](../CURRENT_STATE.md) before a
+capability is described as available.
 
-Aerealith AI brings your digital life together into one intelligent, secure, customizable control center.
+SinLess Industries is the operating umbrella for SinLess Games and Aerealith AI.
+SinLess Games LLC remains the legal project steward and the service provider where
+identified; see [Company and Project Structure](../Company-and-Project-Structure.md).
 
 **Tagline:** One Platform. Infinite Possibilities.
 
 **North Star:** Reduce digital complexity without reducing user control.
 
----
+## Project Context
+
+- [Project Overview](../Project-Overview.md)
+- [Company and Project Structure](../Company-and-Project-Structure.md)
+- [Current State](../CURRENT_STATE.md)
+- [Documentation Index](../README.md)
 
 ## Purpose
 
-The product documentation exists to define the user-facing shape of Aerealith AI before implementation details are considered.
+The product documentation exists to define the intended user-facing shape of the Aerealith platform before implementation details are considered.
 
 It should answer:
 
@@ -34,7 +49,7 @@ This folder should guide product planning, roadmap decisions, UX design, enginee
 
 ## Product Position
 
-Aerealith AI is the operating system for your digital life.
+Aerealith is the operating system for your digital life.
 
 It is a modular platform that combines:
 
@@ -133,7 +148,7 @@ flowchart TD
 
 **File:** [Product Overview.md](./Product%20Overview.md)
 
-Defines Aerealith AI as a product.
+Expands the target product experience for the Aerealith platform.
 
 This document explains:
 
@@ -765,7 +780,7 @@ If the feature does not make Aerealith more useful, trustworthy, understandable,
 
 ## Final Product Standard
 
-Aerealith AI should make the digital world feel manageable again.
+Aerealith should make the digital world feel manageable again.
 
 It should bring together personal workflows, Discord communities, AI assistance, automation, integrations, dashboards, modules, APIs, and future ecosystem capabilities into one coherent control center.
 

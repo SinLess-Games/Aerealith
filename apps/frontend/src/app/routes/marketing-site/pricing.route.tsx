@@ -49,7 +49,7 @@ const plans: PricingPlan[] = [
     name: 'Free',
     monthlyPrice: 0,
     description:
-      'Everything you need to get started with Aerealith AI—free forever.',
+      'Illustrative entry tier for a product in development. Final features and availability may change.',
     buttonLabel: 'Get Started',
     accent: '#00d9ff',
   },
@@ -430,7 +430,8 @@ const valuePropositions: ValueProposition[] = [
   },
   {
     title: 'Deploy anywhere.',
-    description: 'Cloud, on-premises, self-hosted, or air-gapped.',
+    description:
+      'Planned deployment flexibility; self-hosted and air-gapped options are not currently available.',
     accent: '#00b8ff',
     icon: 'globe',
   },
@@ -957,14 +958,15 @@ export function PricingRoute() {
           </h1>
 
           <p className='pricing-text mx-auto mt-5 max-w-2xl text-base leading-7 sm:text-lg'>
-            Choose the Aerealith subscription that matches how you work today,
-            then scale into deeper automation, collaboration, security, and
-            deployment control as your needs grow.
+            Review the proposed Aerealith plan structure. These illustrative
+            concepts are shown for planning and feedback while the product
+            remains in active development.
           </p>
 
           <p className='pricing-muted mt-3 text-sm'>
-            Subscription purchases are not yet available. Buttons are shown as
-            previews and remain disabled.
+            Subscriptions, listed features, and deployment options are not yet
+            available for purchase. Plan names, prices, limits, and contents are
+            illustrative, may change, and all purchase buttons remain disabled.
           </p>
         </header>
 
@@ -1182,13 +1184,14 @@ export function PricingRoute() {
         </div>
         <footer className='pricing-muted mt-9 text-center text-sm leading-7'>
           <p>
-            All plans include continuous updates, new AI models, and platform
-            improvements.
+            Proposed plans are expected to evolve as Aerealith is implemented
+            and validated with users.
           </p>
 
           <p>
-            Prices are in USD. Yearly pricing includes a 20% discount and is
-            billed once per year. Taxes may apply.
+            Illustrative prices are displayed in USD for planning only. No
+            billing commitment, annual discount, or tax treatment is currently
+            offered.
           </p>
         </footer>
       </section>

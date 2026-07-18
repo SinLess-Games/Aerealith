@@ -1,8 +1,10 @@
 # Code Style
 
 Status: Draft
-Owner: Tim Pierce / SinLess Games
-Last Updated: 2026-07-13
+Implementation State: Draft standard; examples may describe target configuration
+Current-State Source: [Current Architecture](../architecture/Current%20Architecture.md)
+Owner: SinLess Games LLC
+Last Updated: 2026-07-18
 Security Classification: Internal Engineering
 Primary Language: TypeScript
 Primary Runtime: Node.js 24.x
@@ -51,7 +53,7 @@ Related RFCs:
 
 ## Purpose
 
-This document defines the code-style standards for Aerealith AI.
+This document defines the code-style standards for the Aerealith platform.
 
 It governs how contributors write, organize, name, format, validate, test, document, review, and maintain source code throughout the Aerealith monorepo.
 

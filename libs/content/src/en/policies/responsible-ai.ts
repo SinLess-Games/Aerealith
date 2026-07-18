@@ -1123,8 +1123,8 @@ export const responsibleAiPolicy = {
         },
         {
           label: 'Support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
         {
           label: 'Legal',
@@ -1336,7 +1336,7 @@ export const responsibleAiPolicy = {
       body: [
         'Users may request review of certain AI-related enforcement actions where supported.',
         'Review may be available for:',
-        'Appeals should be sent to support@sinlessgames.com.',
+        'Appeals should be sent to support@aerealith.com.',
         'Appeals involving legal issues may be sent to legal@sinlessgames.com.',
         'Submitting an appeal does not guarantee reversal.',
       ],
@@ -1352,8 +1352,8 @@ export const responsibleAiPolicy = {
       contacts: [
         {
           label: 'Support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
         {
           label: 'Legal',
@@ -1423,8 +1423,8 @@ export const responsibleAiPolicy = {
         },
         {
           label: 'Support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
         {
           label: 'Privacy',

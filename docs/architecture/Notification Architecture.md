@@ -1,8 +1,10 @@
 # Notification Architecture
 
 Status: Draft
-Owner: Tim Pierce / SinLess Games
-Last Updated: 2026-07-12
+Implementation State: Target architecture; not current implementation evidence
+Current-State Source: [Current Architecture](./Current%20Architecture.md)
+Owner: SinLess Games LLC
+Last Updated: 2026-07-18
 Security Classification: Internal Architecture
 Foundation Release: `0.5 — API & Service Platform`
 Primary Product Release: `0.8 — Moderation, Tickets & Community Operations`
@@ -43,7 +45,7 @@ Related Architecture:
 
 ## Purpose
 
-This document defines the notification architecture for Aerealith AI.
+This document defines the intended notification architecture for the Aerealith platform.
 
 Notifications communicate meaningful platform information to users, administrators, developers, communities, and operators through controlled delivery channels.
 

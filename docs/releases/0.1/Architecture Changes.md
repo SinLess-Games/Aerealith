@@ -1,6 +1,6 @@
 # 0.1 — Architecture Changes
 
-Release `0.1 — Foundation & Workspace` introduces the first architectural foundation for Aerealith AI.
+Release `0.1 — Foundation & Workspace` introduces the first architectural foundation for Aerealith.
 
 This release does not define the final production architecture.
 

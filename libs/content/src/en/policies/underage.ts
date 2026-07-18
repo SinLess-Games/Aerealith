@@ -703,8 +703,8 @@ export const underagePolicy = {
         },
         {
           label: 'Support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
       ],
     },
@@ -874,7 +874,7 @@ export const underagePolicy = {
       id: 'appeals',
       title: '31. Appeals',
       body: [
-        'If a user believes an age restriction, account restriction, or underage enforcement action was applied in error, they may contact support@sinlessgames.com.',
+        'If a user believes an age restriction, account restriction, or underage enforcement action was applied in error, they may contact support@aerealith.com.',
         'Appeals should include:',
         'SinLess Games LLC may require verification before changing an age-related restriction.',
         'Submitting an appeal does not guarantee reversal.',
@@ -890,8 +890,8 @@ export const underagePolicy = {
       contacts: [
         {
           label: 'Support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
       ],
     },
@@ -1045,8 +1045,8 @@ export const underagePolicy = {
         },
         {
           label: 'Support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
         {
           label: 'Legal',
@@ -1127,8 +1127,8 @@ export const underagePolicy = {
       contacts: [
         {
           label: 'Support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
         {
           label: 'Privacy',

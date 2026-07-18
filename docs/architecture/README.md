@@ -1,28 +1,28 @@
 # Architecture
 
-The `docs/architecture/` folder defines how Aerealith AI is designed, structured, connected, deployed, secured, observed, and prepared for long-term growth.
+Status: Active
+Owner: SinLess Games LLC
+Last Updated: 2026-07-18
+Document Type: Architecture Index
+Implementation State: Mixed; current truth is explicitly identified
 
-Architecture docs explain the shape of the system.
+The `docs/architecture/` folder explains how Aerealith is designed and how
+accepted target boundaries relate to repository reality. Use
+[Current Architecture](./Current%20Architecture.md) for what exists now; other
+documents may describe accepted or planned target states.
 
-They answer:
+## Project Context
 
-```text
-What are the major parts?
-How do they connect?
-Where do responsibilities live?
-What boundaries exist?
-What tradeoffs are we making?
-What should stay simple?
-What needs to scale later?
-```
-
----
+- [Project Overview](../Project-Overview.md)
+- [Company and Project Structure](../Company-and-Project-Structure.md)
+- [Current State](../CURRENT_STATE.md)
+- [Documentation Index](../README.md)
 
 ## Purpose
 
-Aerealith AI is designed to become a modular, intelligent, trusted control center for digital life.
+Aerealith is the platform being designed as a modular, intelligent, trusted control center for digital life. Aerealith AI is its assistant and intelligence layer.
 
-The platform is expected to support:
+The target platform architecture includes:
 
 - web dashboard
 - Discord community management
@@ -165,9 +165,9 @@ AI should enhance the platform, not hold it hostage.
 
 ## Current Architecture Documents
 
-| Document                                          | Purpose                                                  |
-| ------------------------------------------------- | -------------------------------------------------------- |
-| [System Architecture](./System%20Architecture.md) | High-level architecture for the full Aerealith platform. |
+| Document                                            | Purpose                                                          |
+| --------------------------------------------------- | ---------------------------------------------------------------- |
+| [Current Architecture](./Current%20Architecture.md) | Current repository truth for implemented Aerealith architecture. |
 
 ---
 
@@ -177,7 +177,7 @@ This folder should eventually include:
 
 ```text
 docs/architecture/README.md
-docs/architecture/System Architecture.md
+docs/architecture/Current Architecture.md
 docs/architecture/Monorepo Architecture.md
 docs/architecture/Frontend Architecture.md
 docs/architecture/API Architecture.md
@@ -201,7 +201,7 @@ docs/architecture/Observability Architecture.md
 
 Start here:
 
-1. [System Architecture](./System%20Architecture.md)
+1. [Current Architecture](./Current%20Architecture.md)
 2. [Monorepo Architecture](./Monorepo%20Architecture.md)
 3. [Frontend Architecture](./Frontend%20Architecture.md)
 4. [API Architecture](./API%20Architecture.md)
@@ -709,4 +709,4 @@ Aerealith architecture should make the platform easier to build, easier to trust
 
 The standard is:
 
-> Aerealith is built as a trusted orchestration layer where users can connect services, enable modules, approve actions, review audit logs, automate workflows, and use AI assistance without losing control.
+> The target architecture defines Aerealith as a trusted orchestration layer where users can connect services, enable modules, approve actions, review audit logs, automate workflows, and use Aerealith AI assistance without losing control.

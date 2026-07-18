@@ -1541,7 +1541,7 @@ export const securityPolicy = {
         'Security issues should be reported to security@sinlessgames.com.',
         'Abuse or misuse should be reported to abuse@sinlessgames.com.',
         'Privacy or data concerns should be reported to privacy@sinlessgames.com.',
-        'General support issues should be reported to support@sinlessgames.com.',
+        'General support issues should be reported to support@aerealith.com.',
         'Legal notices should be sent to legal@sinlessgames.com.',
         'Before publishing this policy, confirm these email aliases exist and are monitored.',
       ],
@@ -1563,8 +1563,8 @@ export const securityPolicy = {
         },
         {
           label: 'Support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
         {
           label: 'Legal',
@@ -1716,8 +1716,8 @@ export const securityPolicy = {
         },
         {
           label: 'Support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
         {
           label: 'Legal',

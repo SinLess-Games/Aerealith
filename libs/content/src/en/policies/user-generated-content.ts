@@ -88,7 +88,7 @@ export const userGeneratedContentPolicy = {
       title: '1. Purpose',
       body: [
         'This User-Generated Content Policy explains how Aerealith AI handles content created, uploaded, generated, transformed, published, shared, distributed, or otherwise processed by users.',
-        'Aerealith AI is operated by SinLess Games LLC.',
+        'Aerealith is operated under SinLess Industries and provided by SinLess Games LLC. Aerealith AI is the assistant within Aerealith.',
         'Aerealith AI allows users to create and work with prompts, messages, files, code, images, documents, dashboards, workflows, automations, marketplace items, plugins, templates, AI-generated outputs, and other content. This policy explains ownership, user responsibility, required attribution, prohibited content, moderation, takedowns, and public-sharing rules.',
         'The core rule is:',
         'Users own what they generate through Aerealith AI, as between the user and SinLess Games LLC, but Aerealith AI must be attributed in a reasonable manner when generated or AI-assisted content is published, distributed, sold, submitted professionally, or used publicly.',
@@ -988,8 +988,8 @@ export const userGeneratedContentPolicy = {
         },
         {
           label: 'Support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
         {
           label: 'Legal',
@@ -1051,7 +1051,7 @@ export const userGeneratedContentPolicy = {
       title: '36. Appeals',
       body: [
         'If your User Content is removed, restricted, disabled, or moderated and you believe the action was taken in error, you may request review.',
-        'Appeals should be sent to support@sinlessgames.com.',
+        'Appeals should be sent to support@aerealith.com.',
         'Appeals should include:',
         'Submitting an appeal does not guarantee reversal, restoration, republication, or reinstatement.',
       ],
@@ -1066,8 +1066,8 @@ export const userGeneratedContentPolicy = {
       contacts: [
         {
           label: 'Support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
       ],
     },
@@ -1470,8 +1470,8 @@ export const userGeneratedContentPolicy = {
       contacts: [
         {
           label: 'Support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
         {
           label: 'Abuse',

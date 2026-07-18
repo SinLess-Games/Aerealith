@@ -7,11 +7,11 @@
  * @decorator content
  */
 export const HERO_DATA = {
-  title: 'Aerealith AI — Your Digital Life, Intelligently Connected',
+  title: 'Aerealith - Your Digital Life, Intelligently Connected',
   subtitle:
-    'Aerealith AI is a secure virtual assistant designed to bring your digital life into one intelligent command center. It goes beyond basic voice commands by connecting your apps, organizing your data, automating repetitive tasks, monitoring important systems, and turning scattered information into clear, actionable insight. Built for work, home, creators, developers, and infrastructure operators, Aerealith AI helps you ask better questions, manage complex workflows, track what matters, and stay in control across the tools and platforms you rely on every day.',
+    'Aerealith is a modular platform being built to connect applications, communities, information, and workflows through one trust-first control layer. Aerealith AI is the assistant within the platform, designed to help users understand context, review recommendations, and perform approved actions. The project is in active development, and planned capabilities are released only after they are implemented and tested.',
   imageUrl: '/images/marketing/hero/hero-1.png',
-  imageAlt: 'Aerealith AI futuristic hero artwork',
+  imageAlt: 'Aerealith platform artwork',
 } as const
 
 export const INVESTOR_VIDEO = {
@@ -19,5 +19,5 @@ export const INVESTOR_VIDEO = {
   src: 'Aerealith_AI_Investor_wvztbl',
   title: 'A Call to Investors',
   eyebrow: 'Investor Opportunity',
-  body: 'Aerealith AI is being built as more than another assistant. It is a secure, extensible command center for modern digital life.',
+  body: 'Aerealith is being built as a secure, extensible platform for modern digital life. Aerealith AI is its permission-bound assistant.',
 } as const

@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 test.describe('public marketing site', () => {
   test('navigates through the primary public routes', async ({ page }) => {
     await page.goto('/')
-    await expect(page).toHaveTitle(/Aerealith AI/i)
+    await expect(page).toHaveTitle(/Aerealith/i)
     await expect(
       page.getByRole('heading', { level: 1, name: /your digital life/i }),
     ).toBeVisible()

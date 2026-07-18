@@ -1,6 +1,12 @@
 # Discord Platform
 
-Aerealith AI treats Discord as a major first-party product area.
+Status: Target specification
+Document Type: Target Discord Product Specification
+Implementation State: Intended and phased Discord capabilities; verify current availability in [Current State](../CURRENT_STATE.md)
+Authority: Target product behavior; [Project Overview](../Project-Overview.md) defines product identity and boundaries
+
+Aerealith is the platform; Aerealith AI is its assistant/application layer.
+Aerealith treats Discord as a major first-party product area.
 
 Discord is not just another integration.
 

@@ -88,7 +88,7 @@ export const termsOfUsePolicy = {
       title: '1. Purpose',
       body: [
         'These Terms of Use govern access to and use of Aerealith AI.',
-        'Aerealith AI is operated by SinLess Games LLC.',
+        'Aerealith is operated under SinLess Industries and provided by SinLess Games LLC. Aerealith AI is the assistant within Aerealith.',
         'Aerealith AI is designed to help users think, create, automate, analyze, monitor, and act across connected systems. Because Aerealith AI may involve artificial intelligence, user data, memory, files, integrations, automations, APIs, plugins, marketplace items, dashboards, analytics, and organization workspaces, these Terms explain the rights, responsibilities, limits, and conditions that apply when using the service.',
         'By accessing or using Aerealith AI, you agree to these Terms and all policies incorporated by reference.',
         'If you do not agree to these Terms, do not use Aerealith AI.',
@@ -141,15 +141,15 @@ export const termsOfUsePolicy = {
       id: 'company-information',
       title: '3. Company Information',
       body: [
-        'Aerealith AI is operated by SinLess Games LLC.',
+        'Aerealith is operated under SinLess Industries and provided by SinLess Games LLC. Aerealith AI is the assistant within Aerealith.',
         'Before publishing these Terms, insert the official business address and required contact information.',
         'Before publishing, confirm that these email aliases exist and are monitored.',
       ],
       contacts: [
         {
           label: 'General contact',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
         {
           label: 'Legal contact',
@@ -1639,7 +1639,7 @@ export const termsOfUsePolicy = {
       title: '70. Contact',
       body: [
         'Questions about these Terms may be sent to legal@sinlessgames.com.',
-        'General support questions may be sent to support@sinlessgames.com.',
+        'General support questions may be sent to support@aerealith.com.',
         'Billing questions may be sent to billing@sinlessgames.com.',
         'Privacy questions may be sent to privacy@sinlessgames.com.',
         'Security issues may be sent to security@sinlessgames.com.',
@@ -1653,8 +1653,8 @@ export const termsOfUsePolicy = {
         },
         {
           label: 'Support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
         {
           label: 'Billing',

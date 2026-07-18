@@ -247,8 +247,8 @@ export const supportPolicy = {
       contacts: [
         {
           label: 'General support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
         {
           label: 'Billing support',
@@ -1510,8 +1510,8 @@ export const supportPolicy = {
       contacts: [
         {
           label: 'Support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
         {
           label: 'Billing',

@@ -1,6 +1,12 @@
 # Developer Platform
 
-The Aerealith Developer Platform gives developers, builders, module creators, automation users, and future marketplace contributors a clear way to build on top of Aerealith AI.
+Status: Target specification
+Document Type: Target Developer Platform Specification
+Implementation State: Intended and phased developer capabilities; verify current availability in [Current State](../CURRENT_STATE.md)
+Authority: Target product behavior; [Project Overview](../Project-Overview.md) defines product identity and boundaries
+
+Aerealith is the platform; Aerealith AI is its assistant/application layer.
+The Aerealith Developer Platform gives developers, builders, module creators, automation users, and future marketplace contributors a clear way to build on top of Aerealith.
 
 Aerealith should not only be a product people use.
 
@@ -12,7 +18,7 @@ The Developer Platform should make Aerealith programmable, documented, observabl
 
 ## Purpose
 
-This document defines the Developer Platform as a product area inside Aerealith AI.
+This document defines the Developer Platform as a product area inside Aerealith.
 
 It explains:
 
@@ -37,7 +43,7 @@ Those belong in architecture, engineering, API reference, and service documentat
 
 The Developer Platform is:
 
-> The programmable foundation for building with, extending, integrating, and automating Aerealith AI.
+> The programmable foundation for building with, extending, integrating, and automating Aerealith.
 
 It should allow developers to:
 

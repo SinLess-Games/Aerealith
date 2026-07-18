@@ -6,6 +6,13 @@ Last Updated: 2026-07-15
 Document Type: Decision Index
 Authority: Canonical index for accepted Aerealith project decisions
 
+## Project Context
+
+- [Project Overview](../Project-Overview.md)
+- [Company and Project Structure](../Company-and-Project-Structure.md)
+- [Current State](../CURRENT_STATE.md)
+- [Documentation Index](../README.md)
+
 ## Purpose
 
 This directory records decisions that resolve conflicts across product,

@@ -89,7 +89,7 @@ export const aiTransparencyPolicy = {
       id: 'what-aerealith-ai-is',
       title: '3. What Aerealith AI Is',
       body: [
-        'Aerealith AI is an artificial intelligence assistant platform operated by SinLess Games LLC.',
+        'Aerealith AI is the artificial intelligence assistant within Aerealith, which is operated under SinLess Industries and provided by SinLess Games LLC.',
         'Aerealith AI may help users:',
         'Aerealith AI is not a human, attorney, doctor, financial advisor, accountant, therapist, emergency responder, government official, or licensed professional.',
       ],
@@ -649,8 +649,8 @@ export const aiTransparencyPolicy = {
         },
         {
           label: 'General support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
       ],
       bullets: [

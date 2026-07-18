@@ -352,9 +352,7 @@ export default defineConfig(({ mode }) => {
       globals: true,
       environment: 'jsdom',
 
-      include: [
-        '{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
-      ],
+      include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
 
       exclude: [
         '**/node_modules/**',

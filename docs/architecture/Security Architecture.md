@@ -1,8 +1,10 @@
 # Security Architecture
 
 Status: Draft
-Owner: Tim Pierce / SinLess Games
-Last Updated: 2026-07-12
+Implementation State: Target architecture; not current implementation evidence
+Current-State Source: [Current Architecture](./Current%20Architecture.md)
+Owner: SinLess Games LLC
+Last Updated: 2026-07-18
 Security Classification: Internal Architecture
 Review Requirement: Security review required before production launch
 
@@ -35,7 +37,7 @@ Related Architecture:
 
 ## Purpose
 
-This document defines the security architecture for Aerealith AI.
+This document defines the intended security architecture for the Aerealith platform.
 
 The security architecture governs how Aerealith protects:
 

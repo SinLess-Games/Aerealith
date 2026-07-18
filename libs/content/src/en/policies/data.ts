@@ -72,7 +72,7 @@ export const dataPolicy = {
       title: '1. Purpose',
       body: [
         'This Data Policy explains how Aerealith AI handles data provided by users, organizations, developers, integrations, automations, plugins, and connected services.',
-        'Aerealith AI is operated by SinLess Games LLC.',
+        'Aerealith is operated under SinLess Industries and provided by SinLess Games LLC. Aerealith AI is the assistant within Aerealith.',
         'This policy explains:',
         'The core principle is simple:',
         'Users own their data. Aerealith AI does not sell user data. Aerealith AI does not use user data outside of legitimate service business logic and approved research purposes.',
@@ -1470,7 +1470,7 @@ export const dataPolicy = {
       title: '56. Data Contact',
       body: [
         'Data questions, data access requests, deletion requests, export requests, or data policy questions may be sent to privacy@sinlessgames.com.',
-        'General support questions may be sent to support@sinlessgames.com.',
+        'General support questions may be sent to support@aerealith.com.',
         'Legal questions may be sent to legal@sinlessgames.com.',
         'Before publishing this policy, confirm these email aliases exist and are monitored.',
       ],
@@ -1482,8 +1482,8 @@ export const dataPolicy = {
         },
         {
           label: 'Support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
         {
           label: 'Legal',

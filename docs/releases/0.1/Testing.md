@@ -1,6 +1,6 @@
 # 0.1 — Testing
 
-Release `0.1 — Foundation & Workspace` must prove that the Aerealith AI workspace can be installed, checked, formatted, typechecked, tested, and built reliably.
+Release `0.1 — Foundation & Workspace` must prove that the Aerealith workspace can be installed, checked, formatted, typechecked, tested, and built reliably.
 
 This release does not require deep product test coverage because it does not ship major product features.
 

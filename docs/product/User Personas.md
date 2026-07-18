@@ -1,6 +1,12 @@
 # User Personas
 
-Aerealith AI is designed for people and communities trying to manage an increasingly fragmented digital world.
+Status: Target specification
+Document Type: Target Persona Specification
+Implementation State: Intended personas and experience priorities; verify current availability in [Current State](../CURRENT_STATE.md)
+Authority: Target product behavior; [Project Overview](../Project-Overview.md) defines product identity and boundaries
+
+Aerealith is the platform; Aerealith AI is its assistant/application layer.
+Aerealith is designed for people and communities trying to manage an increasingly fragmented digital world.
 
 This document defines the primary, secondary, and future user personas for Aerealith. These personas should guide product decisions, feature prioritization, onboarding, interface design, automation behavior, Discord module design, and long-term platform planning.
 
@@ -82,7 +88,7 @@ Discord admins, moderators, staff members, and community members are also critic
 
 ```mermaid
 flowchart TD
-    A["Aerealith AI"]
+    A["Aerealith Platform"]
 
     A --> Individuals["Individuals"]
     A --> Communities["Discord Communities"]

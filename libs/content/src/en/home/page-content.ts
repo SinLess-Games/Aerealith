@@ -9,12 +9,12 @@ import {
 
 export const homeLandingPageContent = {
   hero: {
-    eyebrow: 'Aerealith AI',
+    eyebrow: 'Aerealith',
     title: 'Your Digital Life,',
     highlightedTitle: 'Intelligently Connected.',
     description:
-      'Aerealith AI is a personal digital assistant that unifies your apps, data, and workflows in one intelligent layer. Smarter automation, richer insights, and a life organized the way it is built for you.',
-    primaryAction: { label: 'Get started', href: '/sign-up' },
+      'Aerealith is a modular platform in active development. Aerealith AI is the assistant within it, designed to help connect context and coordinate approved workflows while keeping users in control.',
+    primaryAction: { label: 'Join the waitlist', href: '#waitlist' },
     secondaryAction: { label: 'See updates', href: '/contact' },
     image: {
       src: '/images/brand/mark-no-background.png',
@@ -79,7 +79,7 @@ export const homeLandingPageContent = {
     eyebrow: 'Plans & Pricing',
     title: 'Plans for Every Journey',
     description:
-      'Start free. Scale as you grow. All plans include powerful AI and privacy-first design.',
+      'Illustrative plan concepts for a product in development. Prices, features, and limits are not final, and subscriptions are not yet available.',
     action: { label: 'See all plans', href: '/pricing' },
     tiers: [
       {
@@ -128,7 +128,7 @@ export const homeLandingPageContent = {
     ],
   },
   finalCta: {
-    title: 'Ready to Take Control?',
+    title: 'Help Shape Aerealith',
     description:
       'Join early, shape what we build, and be part of the next evolution in intelligent living.',
     primaryAction: { label: 'Join the waitlist', href: '#waitlist' },

@@ -60,7 +60,7 @@ export const cookieTrackingPolicy = {
       title: '1. Purpose',
       body: [
         'This Cookie and Tracking Policy explains how Aerealith AI uses cookies, pixels, local storage, software development kits, analytics tags, device identifiers, log data, and similar tracking technologies.',
-        'Aerealith AI is operated by SinLess Games LLC.',
+        'Aerealith is operated under SinLess Industries and provided by SinLess Games LLC. Aerealith AI is the assistant within Aerealith.',
         'This policy explains:',
         'This policy should be read together with our Privacy Policy, Data Policy, Security Policy, and Terms of Use.',
       ],
@@ -1159,8 +1159,8 @@ export const cookieTrackingPolicy = {
         },
         {
           label: 'Support',
-          email: 'support@sinlessgames.com',
-          href: 'mailto:support@sinlessgames.com',
+          email: 'support@aerealith.com',
+          href: 'mailto:support@aerealith.com',
         },
         {
           label: 'Legal',
