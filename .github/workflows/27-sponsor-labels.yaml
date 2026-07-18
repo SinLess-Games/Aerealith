@@ -71,6 +71,8 @@ jobs:
 
           existing_labels="$(gh api "/repos/${REPOSITORY}/issues/${ITEM_NUMBER}/labels")"
 
+          # $label is a jq variable supplied by --arg, not a shell variable.
+          # shellcheck disable=SC2016
           if jq -e --arg label "$LABEL" \
             'any(.[]; .name == $label)' \
             <<< "$existing_labels" >/dev/null; then
