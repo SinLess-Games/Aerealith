@@ -15,9 +15,6 @@ const footerSections = [
     links: [
       { label: 'Features', to: '/#features' },
       { label: 'Pricing', to: '/pricing' },
-      { label: 'Roadmap', to: '/roadmap' },
-      { label: 'Changelog', to: '/changelog' },
-      { label: 'Status', to: '/status' },
     ],
   },
   {
@@ -27,8 +24,6 @@ const footerSections = [
     links: [
       { label: 'About us', to: '/about' },
       { label: 'Contact', to: '/contact' },
-      { label: 'Careers', to: '/careers' },
-      { label: 'Development blog', to: '/devblog' },
       {
         label: 'GitHub',
         href: 'https://github.com/SinLess-Games/Aerealith',
@@ -40,8 +35,6 @@ const footerSections = [
     icon: 'resources',
     accent: '#06b6d4',
     links: [
-      { label: 'Documentation', to: '/docs' },
-      { label: 'API reference', to: '/api' },
       {
         label: 'Issues',
         href: 'https://github.com/SinLess-Games/Aerealith/issues',
@@ -60,8 +53,7 @@ const footerSections = [
     links: [
       { label: 'Privacy policy', to: '/policies/privacy' },
       { label: 'Terms of service', to: '/policies/terms-of-use' },
-      { label: 'Accessibility', to: '/accessibility' },
-      { label: 'Security', to: '/security' },
+      { label: 'Security', to: '/policies/security' },
       {
         label: 'Licenses',
         href: 'https://github.com/SinLess-Games/Aerealith/blob/master/LICENSE',
@@ -83,7 +75,7 @@ function isValidEmail(value: string) {
     value.indexOf('@', atIndex + 1) === -1 &&
     dotIndex > atIndex + 1 &&
     dotIndex < value.length - 1 &&
-    !value.includes(' ')
+    !/\s/.test(value)
   )
 }
 
@@ -471,7 +463,7 @@ function FooterBrand() {
         </SocialLink>
 
         <SocialLink
-          href='mailto:support@aerealith.ai'
+          href='mailto:support@aerealith.com'
           label='Email Aerealith AI'
           accent='#06b6d4'
         >

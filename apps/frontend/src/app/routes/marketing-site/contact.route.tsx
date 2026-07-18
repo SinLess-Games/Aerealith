@@ -124,7 +124,7 @@ export function ContactRoute() {
       '',
       String(data.get('message') ?? ''),
     ].join('\n')
-    window.location.href = `mailto:support@aerealith.ai?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    window.location.href = `mailto:support@aerealith.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
   }
 
   return (
@@ -310,22 +310,22 @@ export function ContactRoute() {
           <div className='grid gap-x-8 gap-y-3 sm:grid-cols-2'>
             {[
               {
-                to: '/docs',
+                to: '/#features',
                 icon: 'document' as const,
-                title: 'Documentation',
-                text: 'Read the docs',
+                title: 'Features',
+                text: 'Explore features',
               },
               {
-                to: '/faq',
+                to: '/#faq',
                 icon: 'question' as const,
                 title: 'FAQ',
                 text: 'Find answers',
               },
               {
-                to: '/roadmap',
+                to: '/about',
                 icon: 'map' as const,
-                title: 'Roadmap',
-                text: "See what's coming",
+                title: 'About',
+                text: 'Learn about Aerealith',
               },
               {
                 to: '/pricing',

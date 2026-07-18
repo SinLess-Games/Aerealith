@@ -16,7 +16,7 @@ export function SignInRoute() {
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    mutate({ usernameOrEmail, password }, { onSuccess: () => navigate('/') })
+    mutate({ usernameOrEmail, password }, { onSuccess: () => navigate('/app') })
   }
 
   return (

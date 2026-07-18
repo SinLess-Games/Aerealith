@@ -235,12 +235,12 @@ const capabilities: Capability[] = [
     name: 'Developer API',
     description: 'Rate limited',
     values: {
-      free: <CheckMark />,
-      basic: <CheckMark />,
+      free: <NotIncluded />,
+      basic: <NotIncluded />,
       'basic-plus': <CheckMark />,
-      premium: <NotIncluded />,
-      'premium-plus': <NotIncluded />,
-      pro: <NotIncluded />,
+      premium: <CheckMark />,
+      'premium-plus': <CheckMark />,
+      pro: <CheckMark />,
       'pro-plus': <CheckMark />,
     },
   },
@@ -259,7 +259,7 @@ const capabilities: Capability[] = [
   {
     name: 'Storage',
     values: {
-      free: '15 GB',
+      free: '1 GB',
       basic: '2 GB',
       'basic-plus': '5 GB',
       premium: '20 GB',
@@ -319,10 +319,10 @@ const capabilities: Capability[] = [
   {
     name: 'Data Export Formats',
     values: {
-      free: 'CSV, JSON, YAML',
+      free: 'CSV',
       basic: 'CSV, JSON',
       'basic-plus': 'CSV, JSON, YAML',
-      premium: 'CSV, JSON',
+      premium: 'CSV, JSON, YAML',
       'premium-plus': 'CSV, JSON, YAML',
       pro: 'CSV, JSON, YAML, PDF',
       'pro-plus': 'All formats + API',

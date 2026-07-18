@@ -17,7 +17,7 @@ export function SignUpRoute() {
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    mutate({ username, email, password }, { onSuccess: () => navigate('/') })
+    mutate({ username, email, password }, { onSuccess: () => navigate('/app') })
   }
 
   return (

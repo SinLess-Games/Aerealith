@@ -33,7 +33,7 @@ test('submits sign-in credentials and returns home', async ({ page }) => {
   await page.getByLabel('Username or email').fill('ada@example.com')
   await page.getByLabel('Password').fill('correct-horse-battery-staple')
   await page.getByRole('button', { name: 'Sign in' }).click()
-  await expect(page).toHaveURL(/\/$/)
+  await expect(page).toHaveURL(/\/app$/)
 })
 
 test('shows a rejected sign-in response', async ({ page }) => {
@@ -77,5 +77,5 @@ test('submits a new account registration', async ({ page }) => {
     .fill('grace@example.com')
   await page.getByLabel('Password').fill('a-secure-password')
   await page.getByRole('button', { name: 'Create account' }).click()
-  await expect(page).toHaveURL(/\/$/)
+  await expect(page).toHaveURL(/\/app$/)
 })
