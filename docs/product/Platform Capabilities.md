@@ -1,6 +1,12 @@
 # Platform Capabilities
 
-Aerealith AI brings your digital life together into one intelligent, secure, customizable control center.
+Status: Target specification
+Document Type: Target Capability Catalog
+Implementation State: Intended and phased platform capabilities; verify current availability in [Current State](../CURRENT_STATE.md)
+Authority: Target product behavior; [Project Overview](../Project-Overview.md) defines product identity and boundaries
+
+Aerealith is the platform; Aerealith AI is its assistant/application layer.
+Aerealith brings your digital life together into one intelligent, secure, customizable control center.
 
 This document defines the major platform capabilities Aerealith should support across its product surfaces, releases, modules, APIs, integrations, and long-term ecosystem.
 
@@ -89,7 +95,7 @@ Capabilities use simple IDs for planning, documentation, GitHub issues, and rele
 
 ```mermaid
 flowchart TD
-    A["Aerealith AI Platform"]
+    A["Aerealith Platform"]
 
     A --> ID["Identity & Accounts"]
     A --> WEB["Web Dashboard"]

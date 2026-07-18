@@ -1,6 +1,12 @@
 # Product Overview
 
-Aerealith AI brings your digital life together into one intelligent, secure, customizable control center.
+Status: Target specification
+Document Type: Target Product Experience
+Implementation State: Intended and phased product behavior; verify current availability in [Current State](../CURRENT_STATE.md)
+Authority: Target product behavior; [Project Overview](../Project-Overview.md) defines product identity and boundaries
+
+Aerealith is the platform; Aerealith AI is its assistant/application layer.
+Aerealith brings your digital life together into one intelligent, secure, customizable control center.
 
 It is designed to reduce app sprawl, connect fragmented tools, simplify online workflows, and give users a trusted place to manage their digital world without giving up control.
 
@@ -12,7 +18,7 @@ It is a modular platform for managing digital life, communities, workflows, auto
 
 ## Purpose
 
-This document defines Aerealith AI as a product.
+This document expands the target product experience for the Aerealith platform.
 
 It explains:
 
@@ -79,7 +85,7 @@ Aerealith exists because the digital world has become too scattered to manage co
 
 ## Product Positioning
 
-Aerealith AI is a secure, modular, user-controlled digital life platform.
+Aerealith is a secure, modular, user-controlled digital life platform.
 
 It combines AI assistance, memory, workflows, automation, integrations, dashboards, Discord community management, APIs, developer tools, and long-term extensibility into one trusted system.
 
@@ -180,7 +186,7 @@ Aerealith is built around ten product pillars.
 flowchart TD
     User["User / Community / Organization"]
 
-    ControlCenter["Aerealith AI<br/>Digital Life Control Center"]
+    ControlCenter["Aerealith Platform<br/>Digital Life Control Center"]
 
     Assistant["AI Assistant"]
     Memory["Memory & Context"]

@@ -1,8 +1,10 @@
 # Monorepo Rules
 
 Status: Draft
+Implementation State: Draft standard; examples may describe target configuration
+Current-State Source: [Current Architecture](../architecture/Current%20Architecture.md)
 Owner: SinLess Games LLC
-Last Updated: 2026-07-13
+Last Updated: 2026-07-18
 Security Classification: Internal Engineering
 Workspace Manager: pnpm
 Task Orchestration: Nx
@@ -60,7 +62,7 @@ Related RFCs:
 
 ## Purpose
 
-This document defines the engineering rules for the Aerealith AI monorepo.
+This document defines the engineering rules for the Aerealith platform monorepo.
 
 It governs how contributors create, organize, name, connect, build, test, version, publish, and remove projects within the repository.
 

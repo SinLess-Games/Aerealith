@@ -1,8 +1,10 @@
 # Service Architecture
 
 Status: Draft
+Implementation State: Target architecture; not current implementation evidence
+Current-State Source: [Current Architecture](./Current%20Architecture.md)
 Owner: SinLess Games LLC
-Last Updated: 2026-07-12
+Last Updated: 2026-07-18
 Related RFCs:
 
 - `docs/rfcs/0002-monorepo-library-boundaries.md`
@@ -20,7 +22,7 @@ Related Architecture:
 
 ## Purpose
 
-This document defines the service architecture for Aerealith AI.
+This document defines the intended service architecture for the Aerealith platform.
 
 Services are the runtime units that execute platform-owned behavior, expose APIs, consume events, run scheduled work, coordinate integrations, enforce permissions, and produce audit records.
 

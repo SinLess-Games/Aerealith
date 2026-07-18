@@ -20,9 +20,9 @@ documents may describe accepted or planned target states.
 
 ## Purpose
 
-Aerealith AI is designed to become a modular, intelligent, trusted control center for digital life.
+Aerealith is the platform being designed as a modular, intelligent, trusted control center for digital life. Aerealith AI is its assistant and intelligence layer.
 
-The platform is expected to support:
+The target platform architecture includes:
 
 - web dashboard
 - Discord community management
@@ -165,9 +165,9 @@ AI should enhance the platform, not hold it hostage.
 
 ## Current Architecture Documents
 
-| Document                                            | Purpose                                                  |
-| --------------------------------------------------- | -------------------------------------------------------- |
-| [Current Architecture](./Current%20Architecture.md) | High-level architecture for the full Aerealith platform. |
+| Document                                            | Purpose                                                          |
+| --------------------------------------------------- | ---------------------------------------------------------------- |
+| [Current Architecture](./Current%20Architecture.md) | Current repository truth for implemented Aerealith architecture. |
 
 ---
 
@@ -709,4 +709,4 @@ Aerealith architecture should make the platform easier to build, easier to trust
 
 The standard is:
 
-> Aerealith is built as a trusted orchestration layer where users can connect services, enable modules, approve actions, review audit logs, automate workflows, and use AI assistance without losing control.
+> The target architecture defines Aerealith as a trusted orchestration layer where users can connect services, enable modules, approve actions, review audit logs, automate workflows, and use Aerealith AI assistance without losing control.

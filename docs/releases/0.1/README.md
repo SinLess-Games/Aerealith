@@ -1,6 +1,6 @@
 # 0.1 — Foundation & Workspace
 
-Release `0.1` establishes the foundation for the Aerealith AI repository, workspace, tooling, documentation structure, and early development standards.
+Release `0.1` establishes the foundation for the Aerealith repository, workspace, tooling, documentation structure, and early development standards.
 
 This release is not about shipping product features.
 
@@ -10,7 +10,7 @@ It is about making sure the project can be built, checked, formatted, documented
 
 ## Release Goal
 
-The goal of `0.1 — Foundation & Workspace` is to create a clean, reliable development foundation for Aerealith AI.
+The goal of `0.1 — Foundation & Workspace` is to create a clean, reliable development foundation for Aerealith.
 
 This release should prove:
 
@@ -24,7 +24,7 @@ Before Aerealith can ship Discord modules, AI assistant features, workflows, das
 
 ## Why This Release Exists
 
-Aerealith AI is planned as a large modular platform.
+Aerealith is planned as a large modular platform.
 
 That means the project needs strong foundations early:
 

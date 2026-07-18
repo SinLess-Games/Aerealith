@@ -1,8 +1,10 @@
 # AI Architecture
 
 Status: Draft
+Implementation State: Target architecture; not current implementation evidence
+Current-State Source: [Current Architecture](./Current%20Architecture.md)
 Owner: SinLess Games LLC
-Last Updated: 2026-07-12
+Last Updated: 2026-07-18
 Security Classification: Internal Architecture
 Initial Product Release: `0.8 — Moderation, Tickets & Community Operations`
 Expanded AI Platform: Post-MVP
@@ -43,9 +45,9 @@ Related Architecture:
 
 ## Purpose
 
-This document defines the artificial intelligence architecture for Aerealith AI.
+This document defines the intended architecture for Aerealith AI, the assistant and intelligence layer within the Aerealith platform.
 
-The AI architecture governs how Aerealith:
+The AI architecture governs how Aerealith AI:
 
 ```text
 receives assistant requests
@@ -68,7 +70,7 @@ observes AI behavior
 supports future Aerealith-owned models
 ```
 
-The objective is to create an AI platform that is:
+The objective is to create an assistant layer that is:
 
 ```text
 provider-neutral
@@ -3136,7 +3138,7 @@ Arbitrary code execution is outside the MVP.
 
 ## AI and Discord
 
-Discord is the first major AI-assisted product surface.
+Discord is the planned first major AI-assisted product surface.
 
 Initial Discord AI capabilities may include:
 

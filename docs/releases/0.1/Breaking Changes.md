@@ -1,6 +1,6 @@
 # 0.1 — Breaking Changes
 
-Release `0.1 — Foundation & Workspace` is the first formal Aerealith AI release.
+Release `0.1 — Foundation & Workspace` is the first formal Aerealith release.
 
 Because this is the first structured release, there are no product-facing breaking changes.
 

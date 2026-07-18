@@ -1,8 +1,9 @@
 # Engineering Documentation
 
 Status: Active
+Implementation State: Index active; individual standards retain their own status
 Owner: SinLess Games LLC
-Last Updated: 2026-07-13
+Last Updated: 2026-07-18
 Security Classification: Internal Engineering
 Primary Audience: Aerealith contributors, maintainers, reviewers, operators, and technical leadership
 Documentation Root: `docs/engineering/`
@@ -18,9 +19,9 @@ Documentation Root: `docs/engineering/`
 
 ## Purpose
 
-This directory contains the engineering standards that govern how Aerealith AI is developed, tested, secured, packaged, documented, deployed, and maintained.
+This directory contains the engineering standards for developing, testing, securing, packaging, documenting, deploying, and maintaining the Aerealith platform.
 
-These documents translate the platform architecture into enforceable engineering rules.
+Each document translates platform architecture into engineering rules at the status shown in that document. Draft standards may describe target configuration rather than current repository behavior.
 
 They define:
 

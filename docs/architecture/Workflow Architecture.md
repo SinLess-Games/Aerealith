@@ -1,8 +1,10 @@
 # Workflow Architecture
 
 Status: Draft
+Implementation State: Target architecture; not current implementation evidence
+Current-State Source: [Current Architecture](./Current%20Architecture.md)
 Owner: SinLess Games LLC
-Last Updated: 2026-07-12
+Last Updated: 2026-07-18
 Security Classification: Internal Architecture
 Foundation Release: `0.5 — API & Service Platform`
 Full Builder Release: `1.4 — Workflow Builder`
@@ -42,7 +44,7 @@ Related Architecture:
 
 ## Purpose
 
-This document defines the workflow architecture for Aerealith AI.
+This document defines the intended workflow architecture for the Aerealith platform.
 
 Workflows coordinate trusted platform behavior across:
 

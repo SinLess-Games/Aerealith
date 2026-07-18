@@ -1,5 +1,11 @@
 # Dashboard
 
+Status: Target specification
+Document Type: Target Dashboard Specification
+Implementation State: Intended and phased dashboard behavior; verify current availability in [Current State](../CURRENT_STATE.md)
+Authority: Target product behavior; [Project Overview](../Project-Overview.md) defines product identity and boundaries
+
+Aerealith is the platform; Aerealith AI is its assistant/application layer.
 The Aerealith Dashboard is the main control center for the platform.
 
 It is where users manage their digital life, Discord communities, modules, workflows, integrations, assistant settings, notifications, audit logs, analytics, and future organization controls.
@@ -36,7 +42,7 @@ Those belong in architecture, engineering, design system, and UI documentation.
 
 The dashboard is:
 
-> The visual control center for Aerealith AI.
+> The visual control center for Aerealith.
 
 It should give users one place to:
 

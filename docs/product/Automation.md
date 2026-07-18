@@ -1,6 +1,12 @@
 # Automation
 
-Aerealith AI uses automation to reduce repetitive digital work without reducing user control.
+Status: Target specification
+Document Type: Target Automation Specification
+Implementation State: Intended and phased automation behavior; verify current availability in [Current State](../CURRENT_STATE.md)
+Authority: Target product behavior; [Project Overview](../Project-Overview.md) defines product identity and boundaries
+
+Aerealith is the platform; Aerealith AI is its assistant/application layer.
+Aerealith uses automation to reduce repetitive digital work without reducing user control.
 
 Automation is not blind autonomy.
 
@@ -14,7 +20,7 @@ The goal is simple:
 
 ## Purpose
 
-This document defines automation as a product area inside Aerealith AI.
+This document defines automation as a product area inside Aerealith.
 
 It explains:
 

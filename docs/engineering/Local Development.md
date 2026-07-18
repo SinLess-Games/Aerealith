@@ -1,8 +1,10 @@
 # Local Development
 
 Status: Draft
+Implementation State: Draft standard; examples may describe target configuration
+Current-State Source: [Current Architecture](../architecture/Current%20Architecture.md)
 Owner: SinLess Games LLC
-Last Updated: 2026-07-13
+Last Updated: 2026-07-18
 Security Classification: Internal Engineering
 Primary Audience: Aerealith contributors and maintainers
 
@@ -45,7 +47,7 @@ Related Architecture:
 
 ## Purpose
 
-This document defines the local development architecture and contributor workflow for Aerealith AI.
+This document defines the local development architecture and contributor workflow for the Aerealith platform.
 
 It governs how contributors:
 

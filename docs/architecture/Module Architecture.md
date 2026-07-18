@@ -1,8 +1,10 @@
 # Module Architecture
 
 Status: Draft
+Implementation State: Target architecture; not current implementation evidence
+Current-State Source: [Current Architecture](./Current%20Architecture.md)
 Owner: SinLess Games LLC
-Last Updated: 2026-07-12
+Last Updated: 2026-07-18
 Security Classification: Internal Architecture
 Primary Release: `0.7 — Discord Platform Foundation`
 
@@ -40,7 +42,7 @@ Related Architecture:
 
 ## Purpose
 
-This document defines the module architecture for Aerealith AI.
+This document defines the intended module architecture for the Aerealith platform.
 
 Modules are installable or enableable units of platform behavior that add capabilities to an account, community, integration, dashboard, workflow, or provider connection.
 
@@ -3189,7 +3191,7 @@ calling ordinary in-process TypeScript a sandbox
 
 ## Relationship to Discord Architecture
 
-Discord is the first provider surface used to prove the module architecture.
+Discord is the planned first provider surface used to prove the module architecture.
 
 Discord modules must follow:
 

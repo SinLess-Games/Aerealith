@@ -836,7 +836,7 @@ When complete, update this section.
 ```text
 Release 0.1 — Foundation & Workspace has been completed.
 
-The Aerealith AI repository can be installed, checked, formatted, typechecked, tested with at least 80% coverage, built, documented, and used as the foundation for release 0.2.
+The Aerealith repository can be installed, checked, formatted, typechecked, tested with at least 80% coverage, built, documented, and used as the foundation for release 0.2.
 ```
 
 ---

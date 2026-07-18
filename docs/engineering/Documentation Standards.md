@@ -1,8 +1,10 @@
 # Documentation Standards
 
 Status: Draft
+Implementation State: Draft standard; examples may describe target configuration
+Current-State Source: [Current Architecture](../architecture/Current%20Architecture.md)
 Owner: SinLess Games LLC
-Last Updated: 2026-07-13
+Last Updated: 2026-07-18
 Security Classification: Internal Engineering
 Primary Documentation Format: Markdown
 Documentation Model: Docs as Code
@@ -67,7 +69,7 @@ Related RFCs:
 
 ## Purpose
 
-This document defines the documentation standards for Aerealith AI.
+This document defines the documentation standards for the Aerealith platform.
 
 It governs how contributors create, organize, write, review, update, validate, publish, archive, and remove technical documentation throughout the repository.
 

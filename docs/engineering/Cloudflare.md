@@ -1,8 +1,10 @@
 # Cloudflare
 
 Status: Draft
+Implementation State: Draft standard; examples may describe target configuration
+Current-State Source: [Current Architecture](../architecture/Current%20Architecture.md)
 Owner: SinLess Games LLC
-Last Updated: 2026-07-13
+Last Updated: 2026-07-18
 Security Classification: Internal Engineering
 Primary Edge Platform: Cloudflare Developer Platform
 Primary Edge Runtime: Cloudflare Workers
@@ -63,7 +65,7 @@ Related RFCs:
 
 ## Purpose
 
-This document defines the Cloudflare engineering standards for Aerealith AI.
+This document defines the Cloudflare engineering standards for the Aerealith platform.
 
 It governs how contributors design, build, configure, test, deploy, observe, secure, and maintain Aerealith services running on the Cloudflare Developer Platform.
 
