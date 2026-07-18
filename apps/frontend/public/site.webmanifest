@@ -6,21 +6,13 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "display_override": [
-    "window-controls-overlay",
-    "standalone",
-    "minimal-ui"
-  ],
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "orientation": "any",
   "background_color": "#09090b",
   "theme_color": "#09090b",
   "lang": "en-US",
   "dir": "ltr",
-  "categories": [
-    "developer",
-    "productivity",
-    "utilities"
-  ],
+  "categories": ["developer", "productivity", "utilities"],
   "icons": [
     {
       "src": "/icons/favicon-16x16.png",
