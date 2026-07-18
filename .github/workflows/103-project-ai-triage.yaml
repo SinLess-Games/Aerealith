@@ -1374,22 +1374,68 @@ jobs:
             }
           GRAPHQL
 
+          update_issue_field_mutation = <<~GRAPHQL
+            mutation(
+              $issueId: ID!
+              $fieldId: ID!
+              $textValue: String
+              $singleSelectOptionId: ID
+            ) {
+              updateIssueFieldValue(
+                input: {
+                  issueId: $issueId
+                  issueField: {
+                    fieldId: $fieldId
+                    textValue: $textValue
+                    singleSelectOptionId: $singleSelectOptionId
+                  }
+                }
+              ) {
+                clientMutationId
+              }
+            }
+          GRAPHQL
+
+          update_item_field = lambda do |field_id:, text_value: nil, single_select_option_id: nil|
+            if item["__typename"] == "Issue"
+              client.graphql(
+                update_issue_field_mutation,
+                {
+                  "issueId" => item.fetch("id"),
+                  "fieldId" => field_id,
+                  "textValue" => text_value,
+                  "singleSelectOptionId" => single_select_option_id,
+                },
+              )
+            else
+              value =
+                if single_select_option_id
+                  { "singleSelectOptionId" => single_select_option_id }
+                else
+                  { "text" => text_value }
+                end
+
+              client.graphql(
+                update_project_field_mutation,
+                {
+                  "projectId" => live_project.fetch("id"),
+                  "itemId" => project_item.fetch("id"),
+                  "fieldId" => field_id,
+                  "value" => value,
+                },
+              )
+            end
+          end
+
           ai_project_fields_updated = []
 
           if project_item
             ai_summary_matches = project_fields[ai_summary_field_name] || []
 
             if ai_summary_matches.length == 1 && present?(ai_summary)
-              client.graphql(
-                update_project_field_mutation,
-                {
-                  "projectId" => live_project.fetch("id"),
-                  "itemId" => project_item.fetch("id"),
-                  "fieldId" => ai_summary_matches.first.fetch("id"),
-                  "value" => {
-                    "text" => ai_summary,
-                  },
-                },
+              update_item_field.call(
+                field_id: ai_summary_matches.first.fetch("id"),
+                text_value: ai_summary,
               )
 
               ai_project_fields_updated << "#{ai_summary_field_name}: updated"
@@ -1408,16 +1454,9 @@ jobs:
                   .find { |option| option["name"] == "Suggested" }
 
                 if suggested_option
-                  client.graphql(
-                    update_project_field_mutation,
-                    {
-                      "projectId" => live_project.fetch("id"),
-                      "itemId" => project_item.fetch("id"),
-                      "fieldId" => ai_triage_field.fetch("id"),
-                      "value" => {
-                        "singleSelectOptionId" => suggested_option.fetch("id"),
-                      },
-                    },
+                  update_item_field.call(
+                    field_id: ai_triage_field.fetch("id"),
+                    single_select_option_id: suggested_option.fetch("id"),
                   )
 
                   ai_project_fields_updated << "#{ai_triage_field_name}: Suggested"

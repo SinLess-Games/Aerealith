@@ -53,8 +53,7 @@ must not imply that planned or aspirational functionality is already available.
 
 Implementation status is documented separately in:
 
-- [`CURRENT_STATE.md`](./CURRENT_STATE.md)
-- The product roadmap
+- [The product roadmap](./Roadmap.md)
 - Release documentation
 - Architecture documentation
 
