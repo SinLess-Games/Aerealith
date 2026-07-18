@@ -1352,28 +1352,6 @@ jobs:
 
           warnings = []
 
-          update_project_field_mutation = <<~GRAPHQL
-            mutation(
-              $projectId: ID!
-              $itemId: ID!
-              $fieldId: ID!
-              $value: ProjectV2FieldValue!
-            ) {
-              updateProjectV2ItemFieldValue(
-                input: {
-                  projectId: $projectId
-                  itemId: $itemId
-                  fieldId: $fieldId
-                  value: $value
-                }
-              ) {
-                projectV2Item {
-                  id
-                }
-              }
-            }
-          GRAPHQL
-
           update_issue_field_mutation = <<~GRAPHQL
             mutation(
               $issueId: ID!
@@ -1396,35 +1374,23 @@ jobs:
             }
           GRAPHQL
 
-          update_item_field = lambda do |field_id:, text_value: nil, single_select_option_id: nil|
-            if item["__typename"] == "Issue"
-              client.graphql(
-                update_issue_field_mutation,
-                {
-                  "issueId" => item.fetch("id"),
-                  "fieldId" => field_id,
-                  "textValue" => text_value,
-                  "singleSelectOptionId" => single_select_option_id,
-                },
-              )
-            else
-              value =
-                if single_select_option_id
-                  { "singleSelectOptionId" => single_select_option_id }
-                else
-                  { "text" => text_value }
-                end
-
-              client.graphql(
-                update_project_field_mutation,
-                {
-                  "projectId" => live_project.fetch("id"),
-                  "itemId" => project_item.fetch("id"),
-                  "fieldId" => field_id,
-                  "value" => value,
-                },
-              )
+          update_issue_field = lambda do |field_name:, field_id:, text_value: nil, single_select_option_id: nil|
+            unless item["__typename"] == "Issue"
+              warnings << "Issue field `#{field_name}` cannot be updated for pull requests."
+              next false
             end
+
+            client.graphql(
+              update_issue_field_mutation,
+              {
+                "issueId" => item.fetch("id"),
+                "fieldId" => field_id,
+                "textValue" => text_value,
+                "singleSelectOptionId" => single_select_option_id,
+              },
+            )
+
+            true
           end
 
           ai_project_fields_updated = []
@@ -1433,12 +1399,13 @@ jobs:
             ai_summary_matches = project_fields[ai_summary_field_name] || []
 
             if ai_summary_matches.length == 1 && present?(ai_summary)
-              update_item_field.call(
+              if update_issue_field.call(
+                field_name: ai_summary_field_name,
                 field_id: ai_summary_matches.first.fetch("id"),
                 text_value: ai_summary,
               )
-
-              ai_project_fields_updated << "#{ai_summary_field_name}: updated"
+                ai_project_fields_updated << "#{ai_summary_field_name}: updated"
+              end
             elsif ai_summary_matches.empty?
               warnings << "Project field `#{ai_summary_field_name}` was not found."
             elsif ai_summary_matches.length > 1
@@ -1454,12 +1421,13 @@ jobs:
                   .find { |option| option["name"] == "Suggested" }
 
                 if suggested_option
-                  update_item_field.call(
+                  if update_issue_field.call(
+                    field_name: ai_triage_field_name,
                     field_id: ai_triage_field.fetch("id"),
                     single_select_option_id: suggested_option.fetch("id"),
                   )
-
-                  ai_project_fields_updated << "#{ai_triage_field_name}: Suggested"
+                    ai_project_fields_updated << "#{ai_triage_field_name}: Suggested"
+                  end
                 else
                   warnings << "Project field `#{ai_triage_field_name}` does not contain a `Suggested` option."
                 end

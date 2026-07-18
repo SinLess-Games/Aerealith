@@ -78,4 +78,15 @@ describe('project AI triage workflow item query', () => {
 
     expect(matches).toHaveLength(2)
   })
+
+  it('never uses the ProjectV2 mutation for organization issue fields', () => {
+    expect(workflowContent).toContain('updateIssueFieldValue(')
+    expect(workflowContent).not.toContain('updateProjectV2ItemFieldValue(')
+  })
+
+  it('skips issue field writes for pull requests', () => {
+    expect(workflowContent).toContain('unless item["__typename"] == "Issue"')
+    expect(workflowContent).toContain('cannot be updated for pull requests.')
+    expect(workflowContent).toContain('if update_issue_field.call(')
+  })
 })
