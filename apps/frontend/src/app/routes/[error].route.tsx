@@ -9,8 +9,8 @@ import {
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { Link } from 'react-router'
 
-type ErrorRouteProps = { error?: unknown; reset?: () => void }
-type BoundaryProps = { children: ReactNode }
+type ErrorRouteProps = Readonly<{ error?: unknown; reset?: () => void }>
+type BoundaryProps = Readonly<{ children: ReactNode }>
 type BoundaryState = { error?: unknown }
 type ErrorView = {
   statusCode: number
@@ -52,6 +52,16 @@ function getMessage(data: unknown) {
   return undefined
 }
 
+function resolveStatusErrorCode(candidate: unknown, status: number) {
+  if (isErrorCode(candidate)) {
+    return candidate
+  }
+
+  return status === HttpStatus.NotFound
+    ? CommonErrorCode.NOT_FOUND
+    : CommonErrorCode.UNKNOWN_ERROR
+}
+
 export function resolveError(error: unknown): ErrorView {
   if (error instanceof AerealithError) {
     const http = getHttpErrorByStatus(
@@ -80,11 +90,7 @@ export function resolveError(error: unknown): ErrorView {
         : undefined
     return {
       statusCode: error.status,
-      code: isErrorCode(candidate)
-        ? candidate
-        : error.status === HttpStatus.NotFound
-          ? CommonErrorCode.NOT_FOUND
-          : CommonErrorCode.UNKNOWN_ERROR,
+      code: resolveStatusErrorCode(candidate, error.status),
       title: error.statusText || http?.reason || fallback.title,
       description:
         getMessage(error.data) ?? http?.meaning ?? fallback.description,
@@ -153,7 +159,7 @@ export class GlobalErrorBoundary extends Component<
     console.error('Unhandled frontend route error', error, info.componentStack)
   }
 
-  private reset = () => {
+  private readonly reset = () => {
     this.setState({ error: undefined })
   }
 

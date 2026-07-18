@@ -38,7 +38,7 @@ export function Background({
   mode = 'auto',
   style,
   ...props
-}: BackgroundProps) {
+}: Readonly<BackgroundProps>) {
   const resolvedTheme = useResolvedTheme(mode)
   const resolvedLightImage = toCssUrl(lightImage)
   const resolvedDarkImage = toCssUrl(darkImage ?? lightImage)
@@ -116,6 +116,6 @@ function resolveTheme(): BackgroundMode {
 }
 
 function toCssUrl(image: string): string {
-  const escapedImage = image.replaceAll('"', '\\"')
+  const escapedImage = image.replaceAll('"', String.raw`\"`)
   return `url("${escapedImage}")`
 }

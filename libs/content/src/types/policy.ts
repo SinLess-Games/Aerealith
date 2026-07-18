@@ -1,8 +1,6 @@
 export type PolicyStatus =
   'draft' | 'review' | 'approved' | 'published' | 'archived'
 
-export type PolicyOwner = 'SinLess Games LLC' | string
-
 export type PolicyHref =
   | `/${string}`
   | `./${string}`
@@ -28,7 +26,7 @@ export type PolicyMeta = {
   description: string
   effectiveDate: string
   lastUpdated: string
-  owner: PolicyOwner
+  owner: string
   status: PolicyStatus
 }
 

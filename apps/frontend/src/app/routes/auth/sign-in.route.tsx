@@ -1,7 +1,7 @@
 // apps/frontend/src/app/routes/sign-in.route.tsx
 
 import { Button, Input, Label } from '@aerealith-ai/ui'
-import { useState, type FormEvent } from 'react'
+import { useState, type SubmitEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 
 import { useLogin } from '../../../features/auth/use-session'
@@ -14,7 +14,7 @@ export function SignInRoute() {
   const navigate = useNavigate()
   const { mutate, isPending, isError, error } = useLogin()
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  function onSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
     mutate({ usernameOrEmail, password }, { onSuccess: () => navigate('/app') })
   }

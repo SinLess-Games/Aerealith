@@ -8,12 +8,12 @@ export function AuthCard({
   subtitle,
   children,
   footer,
-}: {
+}: Readonly<{
   title: string
   subtitle?: string
   children: ReactNode
   footer?: ReactNode
-}) {
+}>) {
   return (
     <section className='mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-16'>
       <div className='rounded-2xl border border-[var(--ae-border)] p-8'>

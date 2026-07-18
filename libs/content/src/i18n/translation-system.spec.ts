@@ -119,6 +119,7 @@ describe('translation system', () => {
 
   it('generates safe, typed locale modules', () => {
     expect(localeExportName('pt-BR')).toBe('ptBRContent')
+    expect(localeExportName('123')).toBe('locale123Content')
     const module = formatLocaleModule('es', englishContent)
     expect(module).toContain('export const esContent =')
     expect(module).toContain('as const satisfies TranslationContent')

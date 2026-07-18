@@ -6,6 +6,27 @@ import { useParams } from 'react-router'
 
 import { ErrorRoute } from '../[error].route'
 
+interface KeyedText {
+  readonly key: string
+  readonly text: string
+}
+
+function keyRepeatedText(
+  values: readonly string[] | undefined,
+  prefix: string,
+): readonly KeyedText[] {
+  const occurrences = new Map<string, number>()
+
+  return (values ?? []).map((text) => {
+    const occurrence = (occurrences.get(text) ?? 0) + 1
+    occurrences.set(text, occurrence)
+
+    return {
+      key: `${prefix}:${text}:${occurrence}`,
+      text,
+    }
+  })
+}
 const policyNotFoundError = new AerealithError(
   'The requested policy could not be found.',
   {
@@ -37,35 +58,50 @@ export function PolicyRoute() {
       </p>
 
       <div className='mt-10 space-y-10'>
-        {policy.sections.map((section) => (
-          <section key={section.id}>
-            <h2 className='text-lg font-semibold'>{section.title}</h2>
-            {section.body?.map((paragraph, index) => (
-              <p key={index} className='mt-3 text-sm leading-relaxed'>
-                {paragraph}
-              </p>
-            ))}
-            {section.bullets ? (
-              <ul className='mt-3 list-disc space-y-1 pl-6 text-sm'>
-                {section.bullets.map((bullet) => (
-                  <li key={bullet}>{bullet}</li>
-                ))}
-              </ul>
-            ) : null}
-            {section.orderedItems ? (
-              <ol className='mt-3 list-decimal space-y-1 pl-6 text-sm'>
-                {section.orderedItems.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ol>
-            ) : null}
-            {section.note ? (
-              <p className='mt-3 rounded-md border border-[var(--ae-border-subtle)] p-3 text-sm'>
-                {section.note}
-              </p>
-            ) : null}
-          </section>
-        ))}
+        {policy.sections.map((section) => {
+          const paragraphs = keyRepeatedText(
+            section.body,
+            `${section.id}:paragraph`,
+          )
+          const bullets = keyRepeatedText(
+            section.bullets,
+            `${section.id}:bullet`,
+          )
+          const orderedItems = keyRepeatedText(
+            section.orderedItems,
+            `${section.id}:ordered-item`,
+          )
+
+          return (
+            <section key={section.id}>
+              <h2 className='text-lg font-semibold'>{section.title}</h2>
+              {paragraphs.map((paragraph) => (
+                <p key={paragraph.key} className='mt-3 text-sm leading-relaxed'>
+                  {paragraph.text}
+                </p>
+              ))}
+              {bullets.length > 0 ? (
+                <ul className='mt-3 list-disc space-y-1 pl-6 text-sm'>
+                  {bullets.map((bullet) => (
+                    <li key={bullet.key}>{bullet.text}</li>
+                  ))}
+                </ul>
+              ) : null}
+              {orderedItems.length > 0 ? (
+                <ol className='mt-3 list-decimal space-y-1 pl-6 text-sm'>
+                  {orderedItems.map((item) => (
+                    <li key={item.key}>{item.text}</li>
+                  ))}
+                </ol>
+              ) : null}
+              {section.note ? (
+                <p className='mt-3 rounded-md border border-[var(--ae-border-subtle)] p-3 text-sm'>
+                  {section.note}
+                </p>
+              ) : null}
+            </section>
+          )
+        })}
       </div>
     </article>
   )

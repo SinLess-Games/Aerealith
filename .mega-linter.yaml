@@ -158,6 +158,7 @@ JAVASCRIPT_DEFAULT_STYLE: prettier
 # Keep documentation checks focused on authored Markdown, not generated content.
 # ------------------------------------------------------------------------------
 
+MARKDOWN_MARKDOWNLINT_CONFIG_FILE: .markdownlint.json
 MARKDOWN_MARKDOWNLINT_FILTER_REGEX_EXCLUDE: '(^|/)(node_modules|dist|coverage|\.nx|\.git|generated|artifacts|reports|__tests__|tests?|e2e|cypress|playwright|fixtures|__fixtures__|__snapshots__)(/|$)'
 
 # ------------------------------------------------------------------------------

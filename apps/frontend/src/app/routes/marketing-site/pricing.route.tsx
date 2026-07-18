@@ -274,43 +274,43 @@ const capabilities: Capability[] = [
     values: {
       free: (
         <>
-          No limit
+          <span>No limit</span>
           <small>Priority and rate limited</small>
         </>
       ),
       basic: (
         <>
-          No limit
+          <span>No limit</span>
           <small>Priority and rate limited</small>
         </>
       ),
       'basic-plus': (
         <>
-          No limit
+          <span>No limit</span>
           <small>Priority and rate limited</small>
         </>
       ),
       premium: (
         <>
-          No limit
+          <span>No limit</span>
           <small>Priority and rate limited</small>
         </>
       ),
       'premium-plus': (
         <>
-          No limit
+          <span>No limit</span>
           <small>Priority and rate limited</small>
         </>
       ),
       pro: (
         <>
-          No limit
+          <span>No limit</span>
           <small>Priority and rate limited</small>
         </>
       ),
       'pro-plus': (
         <>
-          No limit
+          <span>No limit</span>
           <small>Priority and rate limited</small>
         </>
       ),
@@ -442,7 +442,7 @@ const valuePropositions: ValueProposition[] = [
   },
 ]
 
-function PlanIcon({ id }: { id: PlanId }) {
+function PlanIcon({ id }: Readonly<{ id: PlanId }>) {
   const commonProps = {
     'aria-hidden': true,
     className: 'h-9 w-9',
@@ -518,7 +518,7 @@ function PlanIcon({ id }: { id: PlanId }) {
   }
 }
 
-function ValueIcon({ name }: { name: ValueProposition['icon'] }) {
+function ValueIcon({ name }: Readonly<{ name: ValueProposition['icon'] }>) {
   const commonProps = {
     'aria-hidden': true,
     className: 'h-10 w-10',
@@ -950,7 +950,7 @@ export function PricingRoute() {
           </p>
 
           <h1 className='text-4xl font-bold tracking-[-0.04em] sm:text-5xl lg:text-6xl'>
-            One platform.
+            <span className='block'>One platform.</span>
             <span className='block bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-500 bg-clip-text text-transparent'>
               A plan for every workflow.
             </span>
@@ -969,11 +969,8 @@ export function PricingRoute() {
         </header>
 
         <div className='mb-8 flex justify-center'>
-          <div
-            className='billing-toggle inline-flex rounded-2xl border p-1.5 backdrop-blur-md'
-            role='group'
-            aria-label='Billing cycle'
-          >
+          <fieldset className='billing-toggle inline-flex rounded-2xl border p-1.5 backdrop-blur-md'>
+            <legend className='sr-only'>Billing cycle</legend>
             <button
               type='button'
               aria-pressed={billingCycle === 'monthly'}
@@ -999,12 +996,12 @@ export function PricingRoute() {
                   : 'hover:text-current',
               ].join(' ')}
             >
-              Yearly
+              <span>Yearly</span>
               <span className='ml-2 rounded-md bg-emerald-500/15 px-2 py-0.5 text-[0.65rem] font-bold text-emerald-400'>
                 20% off
               </span>
             </button>
-          </div>
+          </fieldset>
         </div>
 
         <div className='plans-grid'>
@@ -1081,9 +1078,8 @@ export function PricingRoute() {
         </div>
 
         <div className='pricing-table-shell mt-6 overflow-hidden rounded-2xl border backdrop-blur-md'>
-          <div
+          <section
             className='pricing-table-scroller'
-            role='region'
             aria-label='Scrollable pricing comparison'
           >
             <table className='pricing-table w-full min-w-[1660px] border-collapse text-left text-xs'>
@@ -1150,7 +1146,7 @@ export function PricingRoute() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </section>
         </div>
 
         <div className='mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>

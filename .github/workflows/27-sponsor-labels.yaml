@@ -80,6 +80,8 @@ jobs:
             exit 0
           fi
 
+          # GraphQL variables are intentionally preserved for the API request.
+          # shellcheck disable=SC2016
           query='
             query SponsorLabel($owner: String!, $cursor: String) {
               repositoryOwner(login: $owner) {
@@ -142,6 +144,8 @@ jobs:
               exit 0
             fi
 
+            # $author_id is a jq variable supplied by --arg, not a shell variable.
+            # shellcheck disable=SC2016
             if jq -e --arg author_id "$ITEM_AUTHOR_NODE_ID" \
               '.data.repositoryOwner.sponsorships.nodes[]? | select(.sponsor.id == $author_id)' \
               <<< "$response" >/dev/null; then

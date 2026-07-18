@@ -10,7 +10,7 @@ import { useState, type ReactNode } from 'react'
  * - `AccessibilityProvider` applies contrast/motion/reading preferences.
  * - `QueryClientProvider` supplies TanStack Query for server state (auth, etc.).
  */
-export function AppProviders({ children }: { children: ReactNode }) {
+export function AppProviders({ children }: Readonly<{ children: ReactNode }>) {
   const [queryClient] = useState(
     () =>
       new QueryClient({

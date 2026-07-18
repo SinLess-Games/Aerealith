@@ -4,7 +4,7 @@ import { Badge } from '@aerealith-ai/ui'
 
 import { useLogout, useSession } from '../../../features/auth/use-session'
 
-function Field({ label, value }: { label: string; value: string }) {
+function Field({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
     <div className='flex items-center justify-between gap-4 border-b border-[var(--ae-border-subtle)] py-3 last:border-b-0'>
       <span className='text-sm text-[var(--ae-foreground-muted)]'>{label}</span>

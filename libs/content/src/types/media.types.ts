@@ -1,10 +1,8 @@
-import type { ContentId } from './shared.types'
-
 export type ImageFit = 'contain' | 'cover'
 
 export interface ImageContent {
   readonly type: 'image'
-  readonly id?: ContentId
+  readonly id?: string
   readonly src: string
   readonly alt: string
   readonly width?: number
@@ -20,7 +18,7 @@ export interface VideoSource {
 
 export interface VideoContent {
   readonly type: 'video'
-  readonly id?: ContentId
+  readonly id?: string
   readonly src: string
   readonly sources?: readonly VideoSource[]
   readonly title: string
@@ -41,7 +39,7 @@ export interface VideoContent {
  */
 export interface ComponentContent<TProps = Readonly<Record<string, unknown>>> {
   readonly type: 'component'
-  readonly id?: ContentId
+  readonly id?: string
   readonly component: string
   readonly props: TProps
   readonly label?: string

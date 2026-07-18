@@ -49,52 +49,101 @@ function compareNode(
   }
 
   if (Array.isArray(source)) {
-    if (!Array.isArray(translation)) {
-      result.errors.push(`${path}: expected an array`)
-      return
-    }
-    if (source.length !== translation.length) {
-      result.errors.push(
-        `${path}: expected ${source.length} items, received ${translation.length}`,
-      )
-    }
-    const sharedLength = Math.min(source.length, translation.length)
-    for (let index = 0; index < sharedLength; index += 1) {
-      compareNode(
-        source[index],
-        translation[index],
-        joinPath(path, `${index}`),
-        result,
-      )
-    }
+    compareArray(source, translation, path, result)
     return
   }
 
   if (isObject(source)) {
-    if (!isObject(translation)) {
-      result.errors.push(`${path}: expected an object`)
-      return
-    }
-    const sourceKeys = Object.keys(source)
-    const translationKeys = Object.keys(translation)
-    for (const key of sourceKeys) {
-      const childPath = joinPath(path, key)
-      if (!(key in translation)) result.errors.push(`${childPath}: missing key`)
-      else compareNode(source[key], translation[key], childPath, result)
-    }
-    for (const key of translationKeys) {
-      if (!(key in source)) {
-        result.errors.push(`${joinPath(path, key)}: unknown key`)
-      }
-    }
+    compareObject(source, translation, path, result)
     return
   }
 
-  if (source !== translation) {
+  comparePreservedValue(source, translation, path, result)
+}
+
+function compareArray(
+  source: unknown[],
+  translation: unknown,
+  path: string,
+  result: TranslationValidationResult,
+): void {
+  if (!Array.isArray(translation)) {
+    result.errors.push(`${path}: expected an array`)
+    return
+  }
+
+  if (source.length !== translation.length) {
     result.errors.push(
-      `${path}: expected preserved value ${JSON.stringify(source)}, received ${JSON.stringify(translation)}`,
+      `${path}: expected ${source.length} items, received ${translation.length}`,
     )
   }
+
+  const sharedLength = Math.min(source.length, translation.length)
+  for (let index = 0; index < sharedLength; index += 1) {
+    compareNode(
+      source[index],
+      translation[index],
+      joinPath(path, `${index}`),
+      result,
+    )
+  }
+}
+
+function compareObject(
+  source: Record<string, unknown>,
+  translation: unknown,
+  path: string,
+  result: TranslationValidationResult,
+): void {
+  if (!isObject(translation)) {
+    result.errors.push(`${path}: expected an object`)
+    return
+  }
+
+  compareObjectEntries(source, translation, path, result)
+  reportUnknownKeys(source, translation, path, result)
+}
+
+function compareObjectEntries(
+  source: Record<string, unknown>,
+  translation: Record<string, unknown>,
+  path: string,
+  result: TranslationValidationResult,
+): void {
+  for (const key of Object.keys(source)) {
+    const childPath = joinPath(path, key)
+    if (key in translation) {
+      compareNode(source[key], translation[key], childPath, result)
+    } else {
+      result.errors.push(`${childPath}: missing key`)
+    }
+  }
+}
+
+function reportUnknownKeys(
+  source: Record<string, unknown>,
+  translation: Record<string, unknown>,
+  path: string,
+  result: TranslationValidationResult,
+): void {
+  for (const key of Object.keys(translation)) {
+    if (!(key in source)) {
+      result.errors.push(`${joinPath(path, key)}: unknown key`)
+    }
+  }
+}
+
+function comparePreservedValue(
+  source: unknown,
+  translation: unknown,
+  path: string,
+  result: TranslationValidationResult,
+): void {
+  if (source === translation) return
+
+  result.errors.push(
+    `${path}: expected preserved value ${JSON.stringify(source)}, received ${JSON.stringify(translation)}`,
+  )
 }
 
 function compareString(

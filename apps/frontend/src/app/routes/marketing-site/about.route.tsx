@@ -5,18 +5,18 @@ import type { CSSProperties } from 'react'
 import { Link } from 'react-router'
 
 interface FeatureIconProps {
-  index: number
-  accent: string
+  readonly index: number
+  readonly accent: string
 }
 
 interface ArrowIconProps {
-  className?: string
+  readonly className?: string
 }
 
 /**
  * Icons shown beside the three short hero highlights.
  */
-function HighlightIcon({ index }: { index: number }) {
+function HighlightIcon({ index }: Readonly<{ index: number }>) {
   const commonProps = {
     'aria-hidden': true,
     className: 'h-5 w-5',

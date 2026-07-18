@@ -15,7 +15,7 @@ You can check those via `nx show project <projectname> --json`, for example `nx 
 
 ## Run a single task
 
-```
+```text
 nx run <project>:<task>
 ```
 
@@ -23,7 +23,7 @@ where `project` is the project name defined in `package.json` or `project.json` 
 
 ## Run multiple tasks
 
-```
+```text
 nx run-many -t build test lint typecheck
 ```
 
@@ -39,7 +39,7 @@ Examples:
 
 Use `nx affected` to only run tasks on projects that have been changed and projects that depend on changed projects. This is especially useful in CI and for large workspaces.
 
-```
+```text
 nx affected -t build test lint
 ```
 

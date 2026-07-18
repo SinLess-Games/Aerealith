@@ -99,19 +99,19 @@ Result in `package.json`:
 
 ## Examples
 
-**Example 1: pnpm - link ui lib to app**
+### Example 1: pnpm - link ui lib to app
 
 ```bash
 pnpm add @org/ui --filter @org/app --workspace
 ```
 
-**Example 2: npm - link multiple packages**
+### Example 2: npm - link multiple packages
 
 ```bash
 npm install @org/data-access @org/ui --workspace @org/dashboard
 ```
 
-**Example 3: Debug "Cannot find module"**
+### Example 3: Debug "Cannot find module"
 
 1. Check if dependency is declared in consumer's `package.json`
 2. If not, add it using appropriate command above

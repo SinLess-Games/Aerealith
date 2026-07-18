@@ -7,6 +7,12 @@ import { Link } from 'react-router'
 const panelClass =
   'home-panel rounded-2xl border shadow-[0_0_30px_rgba(76,29,149,.12),inset_0_1px_0_rgba(255,255,255,.05)] backdrop-blur-md'
 
+const promiseAccentClasses = [
+  'text-fuchsia-500',
+  'text-violet-500',
+  'text-cyan-500',
+] as const
+
 export function HomeRoute() {
   const content = homeLandingPageContent
   const [email, setEmail] = useState('')
@@ -457,11 +463,7 @@ export function HomeRoute() {
               <span
                 className={[
                   'text-2xl',
-                  index === 0
-                    ? 'text-fuchsia-500'
-                    : index === 1
-                      ? 'text-violet-500'
-                      : 'text-cyan-500',
+                  promiseAccentClasses[index] ?? 'text-cyan-500',
                 ].join(' ')}
                 aria-hidden='true'
               >
@@ -736,11 +738,11 @@ function SectionIntro({
   eyebrow,
   title,
   description,
-}: {
+}: Readonly<{
   eyebrow: string
   title: string
   description: string
-}) {
+}>) {
   return (
     <header>
       <p className='text-[10px] font-semibold tracking-[0.24em] text-cyan-500 uppercase'>
@@ -756,7 +758,10 @@ function SectionIntro({
   )
 }
 
-function GradientLink({ href, label }: { href: string; label: string }) {
+function GradientLink({
+  href,
+  label,
+}: Readonly<{ href: string; label: string }>) {
   return (
     <Link
       to={href}
@@ -771,7 +776,10 @@ function GradientLink({ href, label }: { href: string; label: string }) {
   )
 }
 
-function OutlineLink({ href, label }: { href: string; label: string }) {
+function OutlineLink({
+  href,
+  label,
+}: Readonly<{ href: string; label: string }>) {
   return (
     <Link
       to={href}

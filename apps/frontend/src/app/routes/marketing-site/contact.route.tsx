@@ -1,5 +1,5 @@
 import { ContactDescription, contactOptions } from '@aerealith-ai/content'
-import type { CSSProperties, FormEvent, ReactNode } from 'react'
+import type { CSSProperties, ReactNode, SubmitEvent } from 'react'
 import { Link } from 'react-router'
 
 type IconName =
@@ -19,10 +19,10 @@ type IconName =
 function Icon({
   name,
   className = 'h-5 w-5',
-}: {
+}: Readonly<{
   name: IconName
   className?: string
-}) {
+}>) {
   const common = {
     'aria-hidden': true,
     className,
@@ -105,6 +105,31 @@ const channelMeta = [
   { icon: 'github' as const, accent: '#60a5fa' },
 ]
 
+function getFormText(data: FormData, field: string, fallback = '') {
+  const value = data.get(field)
+  return typeof value === 'string' ? value : fallback
+}
+
+function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+  event.preventDefault()
+  const data = new FormData(event.currentTarget)
+  const firstName = getFormText(data, 'firstName')
+  const lastName = getFormText(data, 'lastName')
+  const name = (firstName + ' ' + lastName).trim()
+  const subject = getFormText(data, 'subject', 'Contact request')
+  const body = [
+    'From: ' + name,
+    'Reply to: ' + getFormText(data, 'email'),
+    '',
+    getFormText(data, 'message'),
+  ].join('\n')
+  window.location.href =
+    'mailto:support@aerealith.com?subject=' +
+    encodeURIComponent(subject) +
+    '&body=' +
+    encodeURIComponent(body)
+}
+
 export function ContactRoute() {
   const channels = [
     contactOptions[0],
@@ -112,20 +137,6 @@ export function ContactRoute() {
     contactOptions[1],
     contactOptions[3],
   ]
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const data = new FormData(event.currentTarget)
-    const name =
-      `${data.get('firstName') ?? ''} ${data.get('lastName') ?? ''}`.trim()
-    const subject = String(data.get('subject') ?? 'Contact request')
-    const body = [
-      `From: ${name}`,
-      `Reply to: ${data.get('email') ?? ''}`,
-      '',
-      String(data.get('message') ?? ''),
-    ].join('\n')
-    window.location.href = `mailto:support@aerealith.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-  }
 
   return (
     <main className='contact-route relative isolate flex-1 overflow-hidden bg-transparent'>
@@ -154,7 +165,7 @@ export function ContactRoute() {
               Contact us
             </p>
             <h1 className='mt-5 text-4xl leading-[1.08] font-bold tracking-[-.045em] sm:text-5xl xl:text-6xl'>
-              Let&apos;s Build the Future
+              <span className='block'>Let&apos;s Build the Future</span>
               <span className='block bg-gradient-to-r from-fuchsia-500 via-violet-400 to-cyan-400 bg-clip-text text-transparent'>
                 Together
               </span>
@@ -371,14 +382,14 @@ function Field({
   type = 'text',
   autoComplete,
   wide = false,
-}: {
+}: Readonly<{
   name: string
   label: string
   icon: IconName
   type?: string
   autoComplete?: string
   wide?: boolean
-}) {
+}>) {
   return (
     <label className={`relative ${wide ? 'sm:col-span-2' : ''}`}>
       <span className='sr-only'>{label}</span>

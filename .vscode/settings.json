@@ -130,15 +130,15 @@
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.expand": false,
   "explorer.fileNesting.patterns": {
-    "package.json": "pnpm-lock.yaml, pnpm-workspace.yaml, .node-version, nx.json, project.json, tsconfig.base.json, eslint.config.mjs, prettier.config.ts, commitlint.config.ts, lint-staged.config.ts, vitest.config.ts, vitest.workspace.ts, .editorconfig",
+    "package.json": "pnpm-lock.yaml, pnpm-workspace.yaml, .node-version, nx.json, project.json, tsconfig.base.json, eslint.config.mjs, prettier.config.ts, commitlint.config.ts, lint-staged.config.mts, vitest.config.ts, vitest.workspace.ts, .editorconfig, .markdownlint.json, .mega-linter.yaml",
     ".gitignore": ".dockerignore, .env, .gitattributes, .gitleaksignore, .prettierignore, .snyk",
     "trivy.yaml": ".trivyignore.yaml",
-    "README.md": "notes.md",
     "project.json": "tsconfig.json, tsconfig.app.json, tsconfig.lib.json, tsconfig.spec.json, vite.config.ts, vitest.config.ts",
     "*.ts": "${capture}.d.ts, ${capture}.spec.ts, ${capture}.test.ts",
     "*.tsx": "${capture}.d.ts, ${capture}.spec.tsx, ${capture}.test.tsx",
     "*.yaml": "${capture}.local.yaml, ${capture}.override.yaml",
-    "*.yml": "${capture}.local.yml, ${capture}.override.yml"
+    "*.yml": "${capture}.local.yml, ${capture}.override.yml",
+    "README.md": "DEVELOPMENT_PLAN.md, AGENTS.md, CLAUDE.md, CONTRIBUTING.md, LICENSE.md, RELEASE_NOTES.md, ROADMAP.md, SECURITY.md, SUPPORT.md, UPGRADE_GUIDE.md, notes.md"
   },
 
   "markdown.validate.enabled": true,

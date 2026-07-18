@@ -2,7 +2,7 @@ import {
   useId,
   useState,
   type CSSProperties,
-  type FormEvent,
+  type SubmitEvent,
   type ReactNode,
 } from 'react'
 import { Link } from 'react-router'
@@ -66,13 +66,19 @@ type FooterSectionData = (typeof footerSections)[number]
 type FooterSectionIcon = FooterSectionData['icon']
 type MessageType = 'idle' | 'success' | 'error'
 
+const messageTypeClass: Record<MessageType, string> = {
+  idle: 'footer-muted',
+  success: 'text-emerald-500',
+  error: 'text-rose-500',
+}
+
 function isValidEmail(value: string) {
   const atIndex = value.indexOf('@')
   const dotIndex = value.lastIndexOf('.')
 
   return (
     atIndex > 0 &&
-    value.indexOf('@', atIndex + 1) === -1 &&
+    !value.slice(atIndex + 1).includes('@') &&
     dotIndex > atIndex + 1 &&
     dotIndex < value.length - 1 &&
     !/\s/.test(value)
@@ -84,7 +90,7 @@ export function PublicFooter() {
   const [message, setMessage] = useState('')
   const [messageType, setMessageType] = useState<MessageType>('idle')
 
-  function subscribe(event: FormEvent<HTMLFormElement>) {
+  function subscribe(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
 
     const normalizedEmail = email.trim()
@@ -371,11 +377,11 @@ export function PublicFooter() {
           </span>
 
           <span className='footer-muted inline-flex items-center gap-1.5'>
-            Made with
+            <span>Made with</span>
             <span className='inline-flex text-fuchsia-500'>
               <HeartIcon />
             </span>
-            by SinLess Games LLC
+            <span>by SinLess Games LLC</span>
           </span>
 
           <div className='flex items-center gap-3'>
@@ -575,12 +581,12 @@ function FooterLink({
   label,
   mobile = false,
   to,
-}: {
+}: Readonly<{
   href?: string
   label: string
   mobile?: boolean
   to?: string
-}) {
+}>) {
   const className = [
     'footer-link inline-flex max-w-full items-center gap-2 text-sm leading-5',
     'transition-colors focus-visible:rounded-sm focus-visible:outline-2',
@@ -615,13 +621,13 @@ function Newsletter({
   messageType,
   onEmailChange,
   onSubmit,
-}: {
+}: Readonly<{
   email: string
   message: string
   messageType: MessageType
   onEmailChange: (value: string) => void
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void
-}) {
+  onSubmit: (event: SubmitEvent<HTMLFormElement>) => void
+}>) {
   const emailId = useId()
   const messageId = useId()
 
@@ -686,11 +692,7 @@ function Newsletter({
           id={messageId}
           className={[
             'mt-3 min-h-5 text-xs leading-5',
-            messageType === 'error'
-              ? 'text-rose-500'
-              : messageType === 'success'
-                ? 'text-emerald-500'
-                : 'footer-muted',
+            messageTypeClass[messageType],
           ].join(' ')}
           aria-live='polite'
         >
@@ -706,12 +708,12 @@ function SocialLink({
   children,
   href,
   label,
-}: {
+}: Readonly<{
   accent: string
   children: ReactNode
   href: string
   label: string
-}) {
+}>) {
   const isExternal = href.startsWith('http')
 
   return (
@@ -737,7 +739,7 @@ function SocialLink({
   )
 }
 
-function SectionIcon({ name }: { name: FooterSectionIcon }) {
+function SectionIcon({ name }: Readonly<{ name: FooterSectionIcon }>) {
   switch (name) {
     case 'product':
       return (
@@ -776,10 +778,10 @@ function SectionIcon({ name }: { name: FooterSectionIcon }) {
 function Icon({
   children,
   className = 'h-5 w-5',
-}: {
+}: Readonly<{
   children: ReactNode
   className?: string
-}) {
+}>) {
   return (
     <svg
       aria-hidden='true'
