@@ -18,7 +18,7 @@ routes = [
 directory = "../../dist/apps/frontend"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
-run_worker_first = ["/__aerealith/*"]
+run_worker_first = ["/__aerealith/*", "/api/*"]
 
 # ---------------------------------------------------------------
 # Observability
@@ -50,6 +50,9 @@ queue = "events"
 [[kv_namespaces]]
 binding = "AEREALITH_KV"
 id = "9873b606bf1346aca48de61c9bb96968"
+
+# Add a Hyperdrive binding only after provisioning a real configuration with
+# `wrangler hyperdrive create`. Placeholder IDs make every deployment fail.
 
 [[r2_buckets]]
 binding = "AEREALITH_AI"

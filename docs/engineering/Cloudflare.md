@@ -729,9 +729,13 @@ Core logic should accept interfaces such as:
 
 ```ts
 export interface ObjectStore {
-  put(key: string, value: ReadableStream | ArrayBuffer, metadata?: Readonly<Record<string, string>>): Promise<Result<void, AerealithError>>;
+  put(
+    key: string,
+    value: ReadableStream | ArrayBuffer,
+    metadata?: Readonly<Record<string, string>>,
+  ): Promise<Result<void, AerealithError>>
 
-  get(key: string): Promise<Result<StoredObject | null, AerealithError>>;
+  get(key: string): Promise<Result<StoredObject | null, AerealithError>>
 }
 ```
 
@@ -756,10 +760,14 @@ Example:
 
 ```ts
 export default {
-  async fetch(request: Request, environment: WorkerEnvironment, context: ExecutionContext): Promise<Response> {
-    return handleRequest(request, loadWorkerDependencies(environment, context));
+  async fetch(
+    request: Request,
+    environment: WorkerEnvironment,
+    context: ExecutionContext,
+  ): Promise<Response> {
+    return handleRequest(request, loadWorkerDependencies(environment, context))
   },
-};
+}
 ```
 
 The entry point should remain thin.
@@ -807,63 +815,68 @@ execute unapproved AI tools
 ## Example Hono Worker
 
 ```ts
-import { Hono } from 'hono';
+import { Hono } from 'hono'
 
-import type { ApiErrorResponse, ApiSuccessResponse } from '@aerealith/contracts/api';
-import { createRequestContext } from '@aerealith/core/request-context';
+import type {
+  ApiErrorResponse,
+  ApiSuccessResponse,
+} from '@aerealith/contracts/api'
+import { createRequestContext } from '@aerealith/core/request-context'
 
-import type { WorkerEnvironment } from './worker-environment.js';
-import { createWorkerServices } from './composition/create-worker-services.js';
+import type { WorkerEnvironment } from './worker-environment.js'
+import { createWorkerServices } from './composition/create-worker-services.js'
 
-type Bindings = WorkerEnvironment;
+type Bindings = WorkerEnvironment
 
 const app = new Hono<{
-  Bindings: Bindings;
-}>();
+  Bindings: Bindings
+}>()
 
 app.use('*', async (context, next) => {
   const requestContext = createRequestContext({
     requestId: context.req.header('x-request-id') ?? crypto.randomUUID(),
     cloudflareRayId: context.req.header('cf-ray'),
-  });
+  })
 
-  context.set('requestContext', requestContext);
+  context.set('requestContext', requestContext)
 
-  await next();
+  await next()
 
-  context.header('x-request-id', requestContext.requestId);
-});
+  context.header('x-request-id', requestContext.requestId)
+})
 
 app.get('/health/live', (context) => {
   return context.json({
     status: 'live',
-  });
-});
+  })
+})
 
 app.get('/api/V1/modules', async (context) => {
-  const services = createWorkerServices(context.env, context.executionCtx);
+  const services = createWorkerServices(context.env, context.executionCtx)
 
-  const result = await services.moduleQueryService.list(context.get('requestContext'));
+  const result = await services.moduleQueryService.list(
+    context.get('requestContext'),
+  )
 
   if (!result.ok) {
     const response: ApiErrorResponse = {
       success: false,
       error: result.error,
-    };
+    }
 
-    return context.json(response, 500);
+    return context.json(response, 500)
   }
 
   const response: ApiSuccessResponse<typeof result.value> = {
     success: true,
     data: result.value,
     requestId: context.get('requestContext').requestId,
-  };
+  }
 
-  return context.json(response);
-});
+  return context.json(response)
+})
 
-export default app;
+export default app
 ```
 
 ---
@@ -918,7 +931,9 @@ Good:
 export class CloudflareEventPublisher implements EventPublisher {
   public constructor(private readonly queue: Queue) {}
 
-  public async publish(event: AerealithEvent): Promise<Result<void, AerealithError>> {
+  public async publish(
+    event: AerealithEvent,
+  ): Promise<Result<void, AerealithError>> {
     // ...
   }
 }
@@ -962,16 +977,16 @@ Each Worker should define an explicit environment interface.
 
 ```ts
 export interface WorkerEnvironment {
-  readonly AEREALITH_ENVIRONMENT: string;
-  readonly AEREALITH_SERVICE_NAME: string;
+  readonly AEREALITH_ENVIRONMENT: string
+  readonly AEREALITH_SERVICE_NAME: string
 
-  readonly AEREALITH_AUTH_SECRET: string;
+  readonly AEREALITH_AUTH_SECRET: string
 
-  readonly AEREALITH_DATABASE: Hyperdrive;
-  readonly AEREALITH_EDGE_CACHE: KVNamespace;
-  readonly AEREALITH_OBJECT_STORAGE: R2Bucket;
-  readonly AEREALITH_EVENTS_QUEUE: Queue;
-  readonly AEREALITH_INTERNAL_API: Fetcher;
+  readonly AEREALITH_DATABASE: Hyperdrive
+  readonly AEREALITH_EDGE_CACHE: KVNamespace
+  readonly AEREALITH_OBJECT_STORAGE: R2Bucket
+  readonly AEREALITH_EVENTS_QUEUE: Queue
+  readonly AEREALITH_INTERNAL_API: Fetcher
 }
 ```
 
@@ -1158,7 +1173,10 @@ Example:
 
 ```ts
 export interface InternalModuleService {
-  listAvailableModules(request: ListModulesRequest, context: RequestContext): Promise<Result<readonly ModuleSummary[], AerealithError>>;
+  listAvailableModules(
+    request: ListModulesRequest,
+    context: RequestContext,
+  ): Promise<Result<readonly ModuleSummary[], AerealithError>>
 }
 ```
 
@@ -1307,16 +1325,18 @@ libs/db
 Example composition:
 
 ```ts
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
+import { drizzle } from 'drizzle-orm/postgres-js'
+import postgres from 'postgres'
 
-export function createCloudflareDatabase(hyperdrive: Hyperdrive): AerealithDatabase {
+export function createCloudflareDatabase(
+  hyperdrive: Hyperdrive,
+): AerealithDatabase {
   const client = postgres(hyperdrive.connectionString, {
     max: 5,
     prepare: false,
-  });
+  })
 
-  return createAerealithDatabase(drizzle(client));
+  return createAerealithDatabase(drizzle(client))
 }
 ```
 
@@ -1812,15 +1832,15 @@ Every message should use the Aerealith event envelope.
 
 ```ts
 export interface QueueMessageEnvelope<TPayload> {
-  readonly eventId: string;
-  readonly eventType: string;
-  readonly eventVersion: number;
-  readonly occurredAt: string;
-  readonly requestId?: string;
-  readonly traceId?: string;
-  readonly idempotencyKey: string;
-  readonly scope: EventScope;
-  readonly payload: TPayload;
+  readonly eventId: string
+  readonly eventType: string
+  readonly eventVersion: number
+  readonly occurredAt: string
+  readonly requestId?: string
+  readonly traceId?: string
+  readonly idempotencyKey: string
+  readonly scope: EventScope
+  readonly payload: TPayload
 }
 ```
 
@@ -1866,15 +1886,17 @@ Example:
 export class CloudflareQueueEventPublisher implements EventPublisher {
   public constructor(private readonly queue: Queue) {}
 
-  public async publish(event: AerealithEvent): Promise<Result<void, AerealithError>> {
+  public async publish(
+    event: AerealithEvent,
+  ): Promise<Result<void, AerealithError>> {
     try {
       await this.queue.send(event, {
         contentType: 'json',
-      });
+      })
 
-      return ok(undefined);
+      return ok(undefined)
     } catch (error: unknown) {
-      return err(mapCloudflareQueueError(error));
+      return err(mapCloudflareQueueError(error))
     }
   }
 }
@@ -1888,35 +1910,39 @@ Example:
 
 ```ts
 export default {
-  async queue(batch: MessageBatch<unknown>, environment: WorkerEnvironment, context: ExecutionContext): Promise<void> {
-    const consumer = createEventConsumer(environment, context);
+  async queue(
+    batch: MessageBatch<unknown>,
+    environment: WorkerEnvironment,
+    context: ExecutionContext,
+  ): Promise<void> {
+    const consumer = createEventConsumer(environment, context)
 
     for (const message of batch.messages) {
-      const parsed = AerealithEventSchema.safeParse(message.body);
+      const parsed = AerealithEventSchema.safeParse(message.body)
 
       if (!parsed.success) {
-        message.ack();
-        await consumer.deadLetterInvalidMessage(message.id, parsed.error);
-        continue;
+        message.ack()
+        await consumer.deadLetterInvalidMessage(message.id, parsed.error)
+        continue
       }
 
-      const result = await consumer.consume(parsed.data);
+      const result = await consumer.consume(parsed.data)
 
       if (result.ok) {
-        message.ack();
-        continue;
+        message.ack()
+        continue
       }
 
       if (result.error.retryable) {
-        message.retry();
-        continue;
+        message.retry()
+        continue
       }
 
-      message.ack();
-      await consumer.deadLetterPermanentFailure(parsed.data, result.error);
+      message.ack()
+      await consumer.deadLetterPermanentFailure(parsed.data, result.error)
     }
   },
-};
+}
 ```
 
 Exact acknowledgment and retry behavior should follow the approved Queue consumer configuration.
@@ -2438,8 +2464,8 @@ Example:
 
 ```ts
 export interface CloudflareRequestContext extends RequestContext {
-  readonly cloudflareRayId?: string;
-  readonly cloudflareColo?: string;
+  readonly cloudflareRayId?: string
+  readonly cloudflareColo?: string
 }
 ```
 
@@ -2822,13 +2848,13 @@ logger.info('Workflow trigger accepted', {
   requestId,
   traceId,
   cloudflareRayId,
-});
+})
 ```
 
 Avoid:
 
 ```ts
-console.log('Workflow trigger accepted:', request, environment);
+console.log('Workflow trigger accepted:', request, environment)
 ```
 
 ---
@@ -3170,8 +3196,8 @@ The Worker project should use the supported Cloudflare Vitest integration rather
 ## Example Worker Test Configuration
 
 ```ts
-import { cloudflareTest } from '@cloudflare/vitest-pool-workers';
-import { defineConfig } from 'vitest/config';
+import { cloudflareTest } from '@cloudflare/vitest-pool-workers'
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   plugins: [
@@ -3193,7 +3219,7 @@ export default defineConfig({
       },
     },
   },
-});
+})
 ```
 
 Versions must be pinned according to the current supported compatibility matrix.
@@ -3903,7 +3929,7 @@ export function mapR2Error(error: unknown): AerealithError {
     category: 'storage',
     retryable: true,
     cause: error,
-  });
+  })
 }
 ```
 

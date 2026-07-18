@@ -72,7 +72,7 @@ export const contactOptions = [
     title: 'Email Support',
     description:
       'Contact the support team for account questions, billing concerns, access issues, platform help, partnership inquiries, or anything that needs a direct response.',
-    href: 'mailto:support@aerealith.ai',
+    href: 'mailto:support@aerealith.com',
     buttonText: 'Send Email',
     image: `${CONTACT_IMAGE_PATH}/email.png`,
     bgColor: DEFAULT_CONTACT_CARD_BG,
@@ -90,7 +90,7 @@ export const contactOptions = [
     title: 'Request a Feature',
     description:
       'Have an idea that would make Aerealith AI more useful? Submit a feature request through GitHub and help shape future workflows, integrations, automation, and platform capabilities.',
-    href: 'https://github.com/SinLess-Games/Aerealith-AI/issues/new/choose',
+    href: 'https://github.com/SinLess-Games/Aerealith/issues/new/choose',
     buttonText: 'Submit Request',
     image: `${CONTACT_IMAGE_PATH}/feature.png`,
     bgColor: DEFAULT_CONTACT_CARD_BG,
@@ -99,7 +99,7 @@ export const contactOptions = [
     title: 'Report a Bug',
     description:
       'Found something broken, confusing, or not working as expected? Open a bug report so the issue can be tracked, investigated, prioritized, and fixed.',
-    href: 'https://github.com/SinLess-Games/Aerealith-AI/issues/new/choose',
+    href: 'https://github.com/SinLess-Games/Aerealith/issues/new/choose',
     buttonText: 'Report Bug',
     image: `${CONTACT_IMAGE_PATH}/bug.png`,
     bgColor: DEFAULT_CONTACT_CARD_BG,

@@ -315,16 +315,16 @@ Use type inference when the type is obvious.
 Good:
 
 ```ts
-const retryCount = 3;
-const isEnabled = true;
-const moduleIds = ['aerealith.discord-moderation'];
+const retryCount = 3
+const isEnabled = true
+const moduleIds = ['aerealith.discord-moderation']
 ```
 
 Avoid unnecessary annotation:
 
 ```ts
-const retryCount: number = 3;
-const isEnabled: boolean = true;
+const retryCount: number = 3
+const isEnabled: boolean = true
 ```
 
 Require explicit types for:
@@ -345,7 +345,7 @@ Example:
 
 ```ts
 export function createRequestId(): string {
-  return `req_${crypto.randomUUID()}`;
+  return `req_${crypto.randomUUID()}`
 }
 ```
 
@@ -369,15 +369,17 @@ Bad:
 
 ```ts
 export function parsePayload(payload: any) {
-  return payload.user.id;
+  return payload.user.id
 }
 ```
 
 Good:
 
 ```ts
-export function parsePayload(payload: unknown): Result<ProviderPayload, AerealithError> {
-  const result = ProviderPayloadSchema.safeParse(payload);
+export function parsePayload(
+  payload: unknown,
+): Result<ProviderPayload, AerealithError> {
+  const result = ProviderPayloadSchema.safeParse(payload)
 
   if (!result.success) {
     return err(
@@ -387,10 +389,10 @@ export function parsePayload(payload: unknown): Result<ProviderPayload, Aerealit
         category: 'integration',
         retryable: false,
       }),
-    );
+    )
   }
 
-  return ok(result.data);
+  return ok(result.data)
 }
 ```
 
@@ -416,20 +418,20 @@ as unknown as SomeType
 Bad:
 
 ```ts
-const user = payload as User;
-const email = user.email!;
+const user = payload as User
+const email = user.email!
 ```
 
 Good:
 
 ```ts
-const result = UserSchema.safeParse(payload);
+const result = UserSchema.safeParse(payload)
 
 if (!result.success) {
-  return err(createValidationError(result.error));
+  return err(createValidationError(result.error))
 }
 
-const email = result.data.email;
+const email = result.data.email
 ```
 
 Type assertions are acceptable only when:
@@ -483,9 +485,9 @@ export const EnableModuleRequestSchema = z.object({
   moduleId: z.string().trim().min(1),
   scopeType: z.enum(['account', 'organization', 'community']),
   scopeId: z.string().trim().min(1),
-});
+})
 
-export type EnableModuleRequest = z.infer<typeof EnableModuleRequestSchema>;
+export type EnableModuleRequest = z.infer<typeof EnableModuleRequestSchema>
 ```
 
 Do not manually duplicate a TypeScript interface when it can be inferred safely from the schema.
@@ -534,7 +536,7 @@ export const CreateTicketRequestSchema = z
     description: z.string().trim().min(1).max(10_000),
     categoryId: z.string().trim().min(1),
   })
-  .strict();
+  .strict()
 ```
 
 Use `.strict()` at public boundaries unless forward compatibility requires unknown fields.
@@ -568,10 +570,19 @@ Example:
 
 ```ts
 export interface WorkflowActionExecutor {
-  execute(input: WorkflowActionInput, context: WorkflowExecutionContext): Promise<Result<WorkflowActionOutput, AerealithError>>;
+  execute(
+    input: WorkflowActionInput,
+    context: WorkflowExecutionContext,
+  ): Promise<Result<WorkflowActionOutput, AerealithError>>
 }
 
-export type WorkflowRunStatus = 'pending' | 'running' | 'waiting-for-approval' | 'succeeded' | 'failed' | 'cancelled';
+export type WorkflowRunStatus =
+  | 'pending'
+  | 'running'
+  | 'waiting-for-approval'
+  | 'succeeded'
+  | 'failed'
+  | 'cancelled'
 ```
 
 ---
@@ -612,9 +623,9 @@ export const ModuleStatus = {
   Degraded: 'degraded',
   Disabled: 'disabled',
   Revoked: 'revoked',
-} as const;
+} as const
 
-export type ModuleStatus = (typeof ModuleStatus)[keyof typeof ModuleStatus];
+export type ModuleStatus = (typeof ModuleStatus)[keyof typeof ModuleStatus]
 ```
 
 Avoid:
@@ -646,9 +657,9 @@ Public contracts should prefer immutable data.
 
 ```ts
 export interface ModuleManifest {
-  readonly id: string;
-  readonly version: string;
-  readonly permissions: readonly string[];
+  readonly id: string
+  readonly version: string
+  readonly permissions: readonly string[]
 }
 ```
 
@@ -689,8 +700,8 @@ Example:
 
 ```ts
 export interface UserProfile {
-  readonly displayName?: string;
-  readonly deletedAt: string | null;
+  readonly displayName?: string
+  readonly deletedAt: string | null
 }
 ```
 
@@ -717,17 +728,17 @@ allows
 Good:
 
 ```ts
-const isActive = module.status === 'active';
-const hasPermission = permissions.includes(requiredPermission);
-const requiresApproval = riskLevel === 'high';
+const isActive = module.status === 'active'
+const hasPermission = permissions.includes(requiredPermission)
+const requiresApproval = riskLevel === 'high'
 ```
 
 Bad:
 
 ```ts
-const active = true;
-const permission = false;
-const approval = true;
+const active = true
+const permission = false
+const approval = true
 ```
 
 ---
@@ -847,14 +858,14 @@ unless mapping a provider contract.
 Use `UPPER_SNAKE_CASE` only for true module-level constants.
 
 ```ts
-const MAX_RETRY_ATTEMPTS = 5;
-const DEFAULT_PAGE_SIZE = 50;
+const MAX_RETRY_ATTEMPTS = 5
+const DEFAULT_PAGE_SIZE = 50
 ```
 
 Use camelCase for ordinary immutable variables.
 
 ```ts
-const retryPolicy = createRetryPolicy();
+const retryPolicy = createRetryPolicy()
 ```
 
 Do not capitalize every `const`.
@@ -984,7 +995,7 @@ Preferred:
 
 ```ts
 export function createModuleRegistry(): ModuleRegistry {
-  return new ModuleRegistry();
+  return new ModuleRegistry()
 }
 ```
 
@@ -1062,14 +1073,14 @@ type-only imports where configured
 Example:
 
 ```ts
-import { randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto'
 
-import { z } from 'zod';
+import { z } from 'zod'
 
-import { createError, err, ok, type Result } from '@aerealith/core';
-import type { ModuleManifest } from '@aerealith/contracts';
+import { createError, err, ok, type Result } from '@aerealith/core'
+import type { ModuleManifest } from '@aerealith/contracts'
 
-import { ModuleRepository } from '../persistence/module.repository';
+import { ModuleRepository } from '../persistence/module.repository'
 ```
 
 Import sorting should be automated by ESLint or Prettier tooling.
@@ -1081,8 +1092,8 @@ Import sorting should be automated by ESLint or Prettier tooling.
 Use `import type` for types.
 
 ```ts
-import type { ModuleManifest } from '@aerealith/contracts';
-import { ModuleRegistry } from './module-registry';
+import type { ModuleManifest } from '@aerealith/contracts'
+import { ModuleRegistry } from './module-registry'
 ```
 
 This makes runtime dependencies visible and supports isolated module compilation.
@@ -1156,26 +1167,29 @@ response mapping
 Example:
 
 ```ts
-export async function enableModule(input: EnableModuleInput, context: RequestContext): Promise<Result<ModuleInstallation, AerealithError>> {
-  const authorization = await authorizeModuleEnablement(input, context);
+export async function enableModule(
+  input: EnableModuleInput,
+  context: RequestContext,
+): Promise<Result<ModuleInstallation, AerealithError>> {
+  const authorization = await authorizeModuleEnablement(input, context)
 
   if (!authorization.ok) {
-    return authorization;
+    return authorization
   }
 
-  const manifest = moduleRegistry.find(input.moduleId);
+  const manifest = moduleRegistry.find(input.moduleId)
 
   if (!manifest) {
-    return err(createModuleNotFoundError(input.moduleId));
+    return err(createModuleNotFoundError(input.moduleId))
   }
 
-  const validation = await validateModuleEnablement(input, manifest);
+  const validation = await validateModuleEnablement(input, manifest)
 
   if (!validation.ok) {
-    return validation;
+    return validation
   }
 
-  return persistEnabledModule(input, manifest, context);
+  return persistEnabledModule(input, manifest, context)
 }
 ```
 
@@ -1188,19 +1202,26 @@ Prefer a single input object when a function requires several related parameters
 Avoid:
 
 ```ts
-function createAuditRecord(eventId: string, actionId: string, actorId: string, targetId: string, scopeId: string, outcome: string) {}
+function createAuditRecord(
+  eventId: string,
+  actionId: string,
+  actorId: string,
+  targetId: string,
+  scopeId: string,
+  outcome: string,
+) {}
 ```
 
 Prefer:
 
 ```ts
 interface CreateAuditRecordInput {
-  readonly eventId: string;
-  readonly actionId: string;
-  readonly actor: AuditActor;
-  readonly target: AuditResourceReference;
-  readonly scope: AuditScope;
-  readonly outcome: AuditOutcome;
+  readonly eventId: string
+  readonly actionId: string
+  readonly actor: AuditActor
+  readonly target: AuditResourceReference
+  readonly scope: AuditScope
+  readonly outcome: AuditOutcome
 }
 
 function createAuditRecord(input: CreateAuditRecordInput): AuditRecord {}
@@ -1220,30 +1241,30 @@ Bad:
 if (connection) {
   if (connection.status === 'active') {
     if (hasPermission) {
-      return executeAction();
+      return executeAction()
     }
   }
 }
 
-return failure;
+return failure
 ```
 
 Good:
 
 ```ts
 if (!connection) {
-  return err(createConnectionNotFoundError());
+  return err(createConnectionNotFoundError())
 }
 
 if (connection.status !== 'active') {
-  return err(createConnectionNotActiveError());
+  return err(createConnectionNotActiveError())
 }
 
 if (!hasPermission) {
-  return err(createPermissionMissingError());
+  return err(createPermissionMissingError())
 }
 
-return executeAction();
+return executeAction()
 ```
 
 ---
@@ -1255,21 +1276,21 @@ Prefer clear conditions over compressed expressions.
 Avoid:
 
 ```ts
-return user && user.active && perms.includes('admin') ? run() : deny();
+return user && user.active && perms.includes('admin') ? run() : deny()
 ```
 
 Prefer:
 
 ```ts
 if (!user?.isActive) {
-  return denyInactiveUser();
+  return denyInactiveUser()
 }
 
 if (!permissions.includes('admin')) {
-  return denyMissingPermission();
+  return denyMissingPermission()
 }
 
-return run();
+return run()
 ```
 
 ---
@@ -1281,7 +1302,12 @@ Name complex conditions.
 Bad:
 
 ```ts
-if (module.status === 'active' && connection.status === 'active' && permissions.includes('moderation.timeout') && providerPermissions.includes('ModerateMembers')) {
+if (
+  module.status === 'active' &&
+  connection.status === 'active' &&
+  permissions.includes('moderation.timeout') &&
+  providerPermissions.includes('ModerateMembers')
+) {
   // ...
 }
 ```
@@ -1289,10 +1315,14 @@ if (module.status === 'active' && connection.status === 'active' && permissions.
 Good:
 
 ```ts
-const canExecuteTimeout = module.status === 'active' && connection.status === 'active' && permissions.includes('moderation.timeout') && providerPermissions.includes('ModerateMembers');
+const canExecuteTimeout =
+  module.status === 'active' &&
+  connection.status === 'active' &&
+  permissions.includes('moderation.timeout') &&
+  providerPermissions.includes('ModerateMembers')
 
 if (!canExecuteTimeout) {
-  return err(createModerationUnavailableError());
+  return err(createModerationUnavailableError())
 }
 ```
 
@@ -1308,19 +1338,19 @@ Use exhaustive switches for discriminated unions.
 export function getRunStatusLabel(status: WorkflowRunStatus): string {
   switch (status) {
     case 'pending':
-      return 'Pending';
+      return 'Pending'
     case 'running':
-      return 'Running';
+      return 'Running'
     case 'waiting-for-approval':
-      return 'Waiting for approval';
+      return 'Waiting for approval'
     case 'succeeded':
-      return 'Succeeded';
+      return 'Succeeded'
     case 'failed':
-      return 'Failed';
+      return 'Failed'
     case 'cancelled':
-      return 'Cancelled';
+      return 'Cancelled'
     default:
-      return assertNever(status);
+      return assertNever(status)
   }
 }
 ```
@@ -1329,7 +1359,7 @@ Helper:
 
 ```ts
 export function assertNever(value: never): never {
-  throw new Error(`Unexpected value: ${String(value)}`);
+  throw new Error(`Unexpected value: ${String(value)}`)
 }
 ```
 
@@ -1344,8 +1374,8 @@ Prefer expressive array operations when they remain readable.
 Good:
 
 ```ts
-const activeModules = modules.filter((module) => module.status === 'active');
-const moduleIds = activeModules.map((module) => module.id);
+const activeModules = modules.filter((module) => module.status === 'active')
+const moduleIds = activeModules.map((module) => module.id)
 ```
 
 Use loops when they improve clarity, support early exit, or avoid unnecessary allocations.
@@ -1353,7 +1383,7 @@ Use loops when they improve clarity, support early exit, or avoid unnecessary al
 ```ts
 for (const permission of requiredPermissions) {
   if (!grantedPermissions.has(permission)) {
-    missingPermissions.push(permission);
+    missingPermissions.push(permission)
   }
 }
 ```
@@ -1377,7 +1407,7 @@ registry entries
 Example:
 
 ```ts
-const grantedPermissions = new Set(connection.permissions);
+const grantedPermissions = new Set(connection.permissions)
 ```
 
 Do not repeatedly scan arrays when the code clearly represents a set.
@@ -1399,7 +1429,7 @@ const record: AuditRecord = {
   outcome: event.outcome,
   occurredAt: event.occurredAt,
   recordedAt: now.toISOString(),
-};
+}
 ```
 
 Avoid uncontrolled spreading of untrusted objects.
@@ -1410,7 +1440,7 @@ Bad:
 const record = {
   ...request.body,
   id: createAuditId(),
-};
+}
 ```
 
 Object spreading can accidentally copy:
@@ -1433,11 +1463,11 @@ Local mutation is acceptable when it improves clarity and remains contained.
 Good:
 
 ```ts
-const missingPermissions: string[] = [];
+const missingPermissions: string[] = []
 
 for (const permission of requiredPermissions) {
   if (!grantedPermissions.has(permission)) {
-    missingPermissions.push(permission);
+    missingPermissions.push(permission)
   }
 }
 ```
@@ -1493,15 +1523,17 @@ Bad:
 
 ```ts
 export function validateModule(module: ModuleManifest): boolean {
-  database.insert(module);
-  return true;
+  database.insert(module)
+  return true
 }
 ```
 
 Good:
 
 ```ts
-export function validateModule(module: ModuleManifest): Result<ValidatedModuleManifest, AerealithError> {
+export function validateModule(
+  module: ModuleManifest,
+): Result<ValidatedModuleManifest, AerealithError> {
   // Pure validation
 }
 ```
@@ -1517,15 +1549,15 @@ Use `async` and `await` for asynchronous control flow.
 Good:
 
 ```ts
-const connection = await connectionRepository.findById(connectionId);
+const connection = await connectionRepository.findById(connectionId)
 ```
 
 Avoid unnecessary promise wrapping:
 
 ```ts
 return new Promise((resolve) => {
-  resolve(value);
-});
+  resolve(value)
+})
 ```
 
 Return the value or promise directly.
@@ -1537,7 +1569,10 @@ Return the value or promise directly.
 Use `Promise.all` only when operations are independent.
 
 ```ts
-const [connection, moduleInstallation] = await Promise.all([connectionRepository.findById(connectionId), moduleRepository.findInstallation(moduleInstallationId)]);
+const [connection, moduleInstallation] = await Promise.all([
+  connectionRepository.findById(connectionId),
+  moduleRepository.findInstallation(moduleInstallationId),
+])
 ```
 
 Do not parallelize operations when:
@@ -1558,13 +1593,13 @@ Do not intentionally discard a promise without marking the intent.
 Bad:
 
 ```ts
-publishEvent(event);
+publishEvent(event)
 ```
 
 Acceptable:
 
 ```ts
-void publishOperationalMetric(metric);
+void publishOperationalMetric(metric)
 ```
 
 Use `void` only when:
@@ -1586,19 +1621,19 @@ Do not mix `await` and `.then()` chains without a clear reason.
 Avoid:
 
 ```ts
-await service.execute().then(handleSuccess).catch(handleFailure);
+await service.execute().then(handleSuccess).catch(handleFailure)
 ```
 
 Prefer:
 
 ```ts
-const result = await service.execute();
+const result = await service.execute()
 
 if (!result.ok) {
-  return handleFailure(result.error);
+  return handleFailure(result.error)
 }
 
-return handleSuccess(result.value);
+return handleSuccess(result.value)
 ```
 
 ---
@@ -1612,20 +1647,20 @@ Conceptual form:
 ```ts
 export type Result<TValue, TError> =
   | {
-      readonly ok: true;
-      readonly value: TValue;
+      readonly ok: true
+      readonly value: TValue
     }
   | {
-      readonly ok: false;
-      readonly error: TError;
-    };
+      readonly ok: false
+      readonly error: TError
+    }
 ```
 
 Helpers:
 
 ```ts
-return ok(value);
-return err(error);
+return ok(value)
+return err(error)
 ```
 
 Use results for:
@@ -1659,7 +1694,7 @@ Do not throw ordinary business errors from deep inside domain code when the call
 Avoid:
 
 ```ts
-throw new Error('User not found');
+throw new Error('User not found')
 ```
 
 Prefer:
@@ -1672,7 +1707,7 @@ return err(
     category: 'identity',
     retryable: false,
   }),
-);
+)
 ```
 
 ---
@@ -1683,9 +1718,9 @@ Caught errors are `unknown`.
 
 ```ts
 try {
-  return await provider.execute(input);
+  return await provider.execute(input)
 } catch (error: unknown) {
-  return err(mapProviderError(error));
+  return err(mapProviderError(error))
 }
 ```
 
@@ -1720,13 +1755,13 @@ Example:
 
 ```ts
 export interface AerealithError {
-  readonly code: string;
-  readonly message: string;
-  readonly category: string;
-  readonly retryable: boolean;
-  readonly requestId?: string;
-  readonly traceId?: string;
-  readonly details?: Readonly<Record<string, unknown>>;
+  readonly code: string
+  readonly message: string
+  readonly category: string
+  readonly retryable: boolean
+  readonly requestId?: string
+  readonly traceId?: string
+  readonly details?: Readonly<Record<string, unknown>>
 }
 ```
 
@@ -1804,13 +1839,15 @@ logger.info('Module enabled', {
   scopeId: installation.scope.id,
   requestId: context.requestId,
   traceId: context.traceId,
-});
+})
 ```
 
 Avoid interpolated logs:
 
 ```ts
-logger.info(`Module ${installation.moduleId} enabled for ${installation.scope.id}`);
+logger.info(
+  `Module ${installation.moduleId} enabled for ${installation.scope.id}`,
+)
 ```
 
 Structured fields improve:
@@ -1931,10 +1968,10 @@ Request and trace context should be propagated explicitly.
 
 ```ts
 export interface RequestContext {
-  readonly requestId: string;
-  readonly traceId?: string;
-  readonly actor?: AuthenticatedActor;
-  readonly scope?: AuthorizationScope;
+  readonly requestId: string
+  readonly traceId?: string
+  readonly actor?: AuthenticatedActor
+  readonly scope?: AuthorizationScope
 }
 ```
 
@@ -1958,7 +1995,7 @@ Bad:
 
 ```ts
 // Increment retry count
-retryCount += 1;
+retryCount += 1
 ```
 
 Good:
@@ -1966,7 +2003,7 @@ Good:
 ```ts
 // Discord may redeliver the same interaction after a gateway reconnect.
 // Keep the receipt until the interaction token expires.
-retryCount += 1;
+retryCount += 1
 ```
 
 ---
@@ -2025,7 +2062,9 @@ Use JSDoc for public or non-obvious APIs.
  * This checks provider permissions and Discord role hierarchy. It does not
  * check Aerealith authorization, which must occur before this policy runs.
  */
-export function evaluateDiscordModerationAuthority(input: DiscordModerationAuthorityInput): DiscordModerationAuthorityResult {
+export function evaluateDiscordModerationAuthority(
+  input: DiscordModerationAuthorityInput,
+): DiscordModerationAuthorityResult {
   // ...
 }
 ```
@@ -2065,7 +2104,10 @@ remain testable
 Good:
 
 ```ts
-export function canTransitionModuleStatus(current: ModuleStatus, next: ModuleStatus): boolean {
+export function canTransitionModuleStatus(
+  current: ModuleStatus,
+  next: ModuleStatus,
+): boolean {
   // ...
 }
 ```
@@ -2073,7 +2115,10 @@ export function canTransitionModuleStatus(current: ModuleStatus, next: ModuleSta
 Bad:
 
 ```ts
-export function canTransitionModuleStatus(request: HonoRequest, row: DrizzleModuleRow): boolean {
+export function canTransitionModuleStatus(
+  request: HonoRequest,
+  row: DrizzleModuleRow,
+): boolean {
   // ...
 }
 ```
@@ -2115,7 +2160,10 @@ export class EnableModuleService {
     private readonly eventPublisher: EventPublisher,
   ) {}
 
-  public async execute(input: EnableModuleInput, context: RequestContext): Promise<Result<ModuleInstallation, AerealithError>> {
+  public async execute(
+    input: EnableModuleInput,
+    context: RequestContext,
+  ): Promise<Result<ModuleInstallation, AerealithError>> {
     // ...
   }
 }
@@ -2130,13 +2178,18 @@ Use explicit constructor or factory injection.
 Preferred:
 
 ```ts
-const service = new EnableModuleService(moduleRegistry, moduleRepository, authorizationService, eventPublisher);
+const service = new EnableModuleService(
+  moduleRegistry,
+  moduleRepository,
+  authorizationService,
+  eventPublisher,
+)
 ```
 
 Avoid service-locator patterns:
 
 ```ts
-const service = globalContainer.resolve('enableModule');
+const service = globalContainer.resolve('enableModule')
 ```
 
 Framework-managed dependency injection is acceptable inside framework boundaries.
@@ -2153,9 +2206,13 @@ Repository interfaces should use domain-oriented inputs and outputs.
 
 ```ts
 export interface ModuleRepository {
-  findInstallationById(id: string): Promise<Result<ModuleInstallation | null, AerealithError>>;
+  findInstallationById(
+    id: string,
+  ): Promise<Result<ModuleInstallation | null, AerealithError>>
 
-  insertInstallation(installation: ModuleInstallation): Promise<Result<ModuleInstallation, AerealithError>>;
+  insertInstallation(
+    installation: ModuleInstallation,
+  ): Promise<Result<ModuleInstallation, AerealithError>>
 }
 ```
 
@@ -2178,21 +2235,23 @@ Database row types remain inside `libs/db`.
 Map rows explicitly.
 
 ```ts
-export function mapModuleInstallationRow(row: ModuleInstallationRow): ModuleInstallation {
+export function mapModuleInstallationRow(
+  row: ModuleInstallationRow,
+): ModuleInstallation {
   return {
     id: row.id,
     moduleId: row.moduleId,
     version: row.moduleVersion,
     status: row.status,
     createdAt: row.createdAt.toISOString(),
-  };
+  }
 }
 ```
 
 Avoid:
 
 ```ts
-return row;
+return row
 ```
 
 at domain or API boundaries.
@@ -2232,9 +2291,11 @@ export const moduleInstallations = pgTable(
       .defaultNow(),
   },
   (table) => ({
-    scopeModuleUnique: uniqueIndex('module_installations_scope_module_unique').on(table.scopeType, table.scopeId, table.moduleId),
+    scopeModuleUnique: uniqueIndex(
+      'module_installations_scope_module_unique',
+    ).on(table.scopeType, table.scopeId, table.moduleId),
   }),
-);
+)
 ```
 
 ---
@@ -2361,16 +2422,16 @@ Use explicit units in variable names.
 Good:
 
 ```ts
-const timeoutMs = 5_000;
-const retentionDays = 30;
-const approvalExpirationMinutes = 15;
+const timeoutMs = 5_000
+const retentionDays = 30
+const approvalExpirationMinutes = 15
 ```
 
 Bad:
 
 ```ts
-const timeout = 5;
-const retention = 30;
+const timeout = 5
+const retention = 30
 ```
 
 ---
@@ -2380,8 +2441,8 @@ const retention = 30;
 Use numeric separators for readability.
 
 ```ts
-const timeoutMs = 30_000;
-const maximumFileSizeBytes = 10_000_000;
+const timeoutMs = 30_000
+const maximumFileSizeBytes = 10_000_000
 ```
 
 ---
@@ -2402,8 +2463,8 @@ Example:
 
 ```ts
 interface Money {
-  readonly currency: string;
-  readonly amountMinor: bigint;
+  readonly currency: string
+  readonly amountMinor: bigint
 }
 ```
 
@@ -2500,25 +2561,31 @@ construct audit rows
 Hono route modules should group related endpoints.
 
 ```ts
-export function createModuleRoutes(dependencies: ModuleRouteDependencies): Hono {
-  const router = new Hono();
+export function createModuleRoutes(
+  dependencies: ModuleRouteDependencies,
+): Hono {
+  const router = new Hono()
 
-  router.post('/api/V1/modules/:moduleId/enable', validateJson(EnableModuleRequestSchema), async (context) => {
-    const requestContext = context.get('requestContext');
-    const input = context.req.valid('json');
+  router.post(
+    '/api/V1/modules/:moduleId/enable',
+    validateJson(EnableModuleRequestSchema),
+    async (context) => {
+      const requestContext = context.get('requestContext')
+      const input = context.req.valid('json')
 
-    const result = await dependencies.enableModuleService.execute(
-      {
-        ...input,
-        moduleId: context.req.param('moduleId'),
-      },
-      requestContext,
-    );
+      const result = await dependencies.enableModuleService.execute(
+        {
+          ...input,
+          moduleId: context.req.param('moduleId'),
+        },
+        requestContext,
+      )
 
-    return mapResultToResponse(context, result);
-  });
+      return mapResultToResponse(context, result)
+    },
+  )
 
-  return router;
+  return router
 }
 ```
 
@@ -2533,19 +2600,25 @@ NestJS controllers should remain transport adapters.
 ```ts
 @Controller('/api/V1/modules')
 export class ModuleController {
-  public constructor(private readonly enableModuleService: EnableModuleService) {}
+  public constructor(
+    private readonly enableModuleService: EnableModuleService,
+  ) {}
 
   @Post(':moduleId/enable')
-  public async enable(@Param('moduleId') moduleId: string, @Body() body: EnableModuleRequest, @RequestContext() context: RequestContext): Promise<ApiResponse<ModuleInstallationResponse>> {
+  public async enable(
+    @Param('moduleId') moduleId: string,
+    @Body() body: EnableModuleRequest,
+    @RequestContext() context: RequestContext,
+  ): Promise<ApiResponse<ModuleInstallationResponse>> {
     const result = await this.enableModuleService.execute(
       {
         moduleId,
         ...body,
       },
       context,
-    );
+    )
 
-    return mapResultToApiResponse(result);
+    return mapResultToApiResponse(result)
   }
 }
 ```
@@ -2570,10 +2643,10 @@ Success responses:
 
 ```ts
 export interface ApiSuccessResponse<T> {
-  readonly success: true;
-  readonly data: T;
-  readonly requestId: string;
-  readonly traceId?: string;
+  readonly success: true
+  readonly data: T
+  readonly requestId: string
+  readonly traceId?: string
 }
 ```
 
@@ -2581,16 +2654,16 @@ Error responses:
 
 ```ts
 export interface ApiErrorResponse {
-  readonly success: false;
+  readonly success: false
   readonly error: {
-    readonly code: string;
-    readonly message: string;
-    readonly category: string;
-    readonly retryable: boolean;
-    readonly requestId: string;
-    readonly traceId?: string;
-    readonly details?: Readonly<Record<string, unknown>> | null;
-  };
+    readonly code: string
+    readonly message: string
+    readonly category: string
+    readonly retryable: boolean
+    readonly requestId: string
+    readonly traceId?: string
+    readonly details?: Readonly<Record<string, unknown>> | null
+  }
 }
 ```
 
@@ -2637,8 +2710,8 @@ Props interfaces use the component name followed by `Props`.
 
 ```ts
 export interface ModuleHealthCardProps {
-  readonly module: ModuleHealthSummary;
-  readonly onReview: (moduleId: string) => void;
+  readonly module: ModuleHealthSummary
+  readonly onReview: (moduleId: string) => void
 }
 ```
 
@@ -2692,7 +2765,7 @@ interactive controls
 Client component files should include:
 
 ```ts
-'use client';
+'use client'
 ```
 
 at the top.
@@ -2748,14 +2821,14 @@ Bad:
 
 ```tsx
 useEffect(() => {
-  setFullName(`${firstName} ${lastName}`);
-}, [firstName, lastName]);
+  setFullName(`${firstName} ${lastName}`)
+}, [firstName, lastName])
 ```
 
 Good:
 
 ```tsx
-const fullName = `${firstName} ${lastName}`;
+const fullName = `${firstName} ${lastName}`
 ```
 
 ---
@@ -2794,7 +2867,7 @@ Prefer:
 const query = useQuery({
   queryKey: ['module-health', moduleId],
   queryFn: () => moduleApi.getHealth(moduleId),
-});
+})
 ```
 
 API clients should own:
@@ -2815,7 +2888,7 @@ Event handlers use `handle` internally.
 
 ```tsx
 function handleApprove(): void {
-  approveMutation.mutate(proposal.id);
+  approveMutation.mutate(proposal.id)
 }
 ```
 
@@ -2823,8 +2896,8 @@ Callback props use `on`.
 
 ```ts
 interface ApprovalCardProps {
-  readonly onApprove: () => void;
-  readonly onReject: () => void;
+  readonly onApprove: () => void
+  readonly onReject: () => void
 }
 ```
 
@@ -2845,7 +2918,13 @@ Avoid large inline expressions.
 Bad:
 
 ```tsx
-<Component label={module.status === 'degraded' && missing.length > 0 ? `${missing.length} missing` : module.status} />
+<Component
+  label={
+    module.status === 'degraded' && missing.length > 0
+      ? `${missing.length} missing`
+      : module.status
+  }
+/>
 ```
 
 Prefer a named value:
@@ -2864,18 +2943,18 @@ Use clear conditional rendering.
 
 ```tsx
 if (query.isLoading) {
-  return <ModuleHealthSkeleton />;
+  return <ModuleHealthSkeleton />
 }
 
 if (query.isError) {
-  return <ModuleHealthError error={query.error} />;
+  return <ModuleHealthError error={query.error} />
 }
 
 if (!query.data) {
-  return <ModuleHealthEmptyState />;
+  return <ModuleHealthEmptyState />
 }
 
-return <ModuleHealthCard module={query.data} />;
+return <ModuleHealthCard module={query.data} />
 ```
 
 Avoid deeply nested ternaries.
@@ -2902,13 +2981,13 @@ Prefer native HTML elements.
 Use:
 
 ```tsx
-<button type="button">Approve</button>
+<button type='button'>Approve</button>
 ```
 
 instead of:
 
 ```tsx
-<div role="button" onClick={handleApprove}>
+<div role='button' onClick={handleApprove}>
   Approve
 </div>
 ```
@@ -3196,7 +3275,7 @@ Do not write:
 
 ```ts
 if (modelResponse.tool === 'ban-member') {
-  await discord.banMember(modelResponse.arguments);
+  await discord.banMember(modelResponse.arguments)
 }
 ```
 
@@ -3224,9 +3303,9 @@ Prefer normalized internal types:
 
 ```ts
 interface CommunityMemberReference {
-  readonly provider: 'discord';
-  readonly serverId: string;
-  readonly memberId: string;
+  readonly provider: 'discord'
+  readonly serverId: string
+  readonly memberId: string
 }
 ```
 
@@ -3257,7 +3336,7 @@ const authorization = await moderationAuthorizationPolicy.evaluate({
   botMember,
   requiredAerealithPermission: 'moderation.timeout',
   requiredDiscordPermission: 'ModerateMembers',
-});
+})
 ```
 
 Do not hide permission or role-hierarchy checks inside an unreviewed generic helper.
@@ -3276,7 +3355,7 @@ export const DiscordModerationModuleManifest: ModuleManifest = {
   name: 'Discord Moderation',
   version: '0.1.0',
   // ...
-};
+}
 ```
 
 Module implementation should not construct:
@@ -3300,7 +3379,7 @@ export const TimeoutCommunityMemberAction: WorkflowActionDefinition = {
   id: 'community.member.timeout',
   version: 1,
   // ...
-};
+}
 ```
 
 Workflow definitions should remain data.
@@ -3314,11 +3393,12 @@ Do not embed arbitrary executable functions inside persisted workflow definition
 Notification types use stable IDs.
 
 ```ts
-export const IntegrationConnectionDegradedNotification: NotificationTypeDefinition = {
-  id: 'integration.connection-degraded',
-  category: 'integrations',
-  // ...
-};
+export const IntegrationConnectionDegradedNotification: NotificationTypeDefinition =
+  {
+    id: 'integration.connection-degraded',
+    category: 'integrations',
+    // ...
+  }
 ```
 
 Templates receive validated values.
@@ -3356,7 +3436,7 @@ Configuration is loaded once and validated.
 Good:
 
 ```ts
-export const config = loadApiConfiguration(process.env);
+export const config = loadApiConfiguration(process.env)
 ```
 
 Feature code receives typed configuration.
@@ -3400,7 +3480,7 @@ export const FeatureFlag = {
   DiscordTickets: 'discord-tickets',
   WorkflowApprovals: 'workflow-approvals',
   AiSuggestions: 'ai-suggestions',
-} as const;
+} as const
 ```
 
 Feature flags must not replace:
@@ -3465,7 +3545,7 @@ crypto.getRandomValues(...)
 Do not use:
 
 ```ts
-Math.random();
+Math.random()
 ```
 
 for:
@@ -3525,7 +3605,7 @@ const authorization = await authorizationService.authorize({
   actor: context.actor,
   permission: 'module.enable',
   scope: input.scope,
-});
+})
 ```
 
 Avoid hidden authorization in:
@@ -3563,7 +3643,7 @@ const approval = await approvalService.verify({
   actor: context.actor,
   target: input.target,
   fingerprint: createActionFingerprint(input),
-});
+})
 ```
 
 ---
@@ -3597,7 +3677,7 @@ List APIs should use explicit bounded pagination.
 export const ListAuditRecordsRequestSchema = z.object({
   cursor: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(50),
-});
+})
 ```
 
 Do not expose unbounded `listAll` endpoints for large resources.
@@ -3648,7 +3728,7 @@ Avoid constructing shell commands with user input.
 Bad:
 
 ```ts
-exec(`convert ${filename} output.png`);
+exec(`convert ${filename} output.png`)
 ```
 
 Prefer argument arrays:
@@ -3656,7 +3736,7 @@ Prefer argument arrays:
 ```ts
 spawn('convert', [inputPath, outputPath], {
   shell: false,
-});
+})
 ```
 
 Use allowlists and controlled paths.
@@ -3673,8 +3753,8 @@ Good:
 describe('ModuleManifestValidator', () => {
   it('rejects a manifest with an unknown permission', () => {
     // ...
-  });
-});
+  })
+})
 ```
 
 Avoid:
@@ -3683,8 +3763,8 @@ Avoid:
 describe('test validator', () => {
   it('works', () => {
     // ...
-  });
-});
+  })
+})
 ```
 
 ---
@@ -3703,19 +3783,19 @@ Example:
 
 ```ts
 it('blocks moderation when the bot is below the target role', async () => {
-  const policy = createModerationPolicy();
+  const policy = createModerationPolicy()
   const input = createModerationInput({
     botHighestRolePosition: 10,
     targetHighestRolePosition: 20,
-  });
+  })
 
-  const result = await policy.evaluate(input);
+  const result = await policy.evaluate(input)
 
   expect(result).toEqual({
     allowed: false,
     reason: 'role-hierarchy-blocked',
-  });
-});
+  })
+})
 ```
 
 Comments for Arrange, Act, Assert are optional when the structure is already clear.
@@ -3751,7 +3831,7 @@ Use builders or factories for complex test data.
 const connection = createIntegrationConnection({
   status: 'active',
   provider: 'discord',
-});
+})
 ```
 
 Builders should provide safe defaults and allow focused overrides.
@@ -3809,7 +3889,7 @@ where needed.
 Use a controlled clock.
 
 ```ts
-const clock = new FixedClock('2026-07-13T18:42:00.000Z');
+const clock = new FixedClock('2026-07-13T18:42:00.000Z')
 ```
 
 Avoid assertions based on the current wall clock.
@@ -4341,7 +4421,7 @@ Good:
 
 ```ts
 export interface Repository<TEntity, TId> {
-  findById(id: TId): Promise<Result<TEntity | null, AerealithError>>;
+  findById(id: TId): Promise<Result<TEntity | null, AerealithError>>
 }
 ```
 
@@ -4612,7 +4692,7 @@ Avoid assembling sentences through concatenation.
 Bad:
 
 ```ts
-const message = userName + ' enabled ' + moduleName;
+const message = userName + ' enabled ' + moduleName
 ```
 
 Prefer structured message inputs:
@@ -4621,7 +4701,7 @@ Prefer structured message inputs:
 const message = formatMessage('module.enabled', {
   userName,
   moduleName,
-});
+})
 ```
 
 The MVP may ship in English while preserving future localization boundaries.
@@ -4699,14 +4779,19 @@ export class DisconnectIntegrationService {
     private readonly clock: Clock,
   ) {}
 
-  public async execute(input: DisconnectIntegrationInput, context: RequestContext): Promise<Result<IntegrationConnection, AerealithError>> {
-    const connectionResult = await this.connectionRepository.findById(input.connectionId);
+  public async execute(
+    input: DisconnectIntegrationInput,
+    context: RequestContext,
+  ): Promise<Result<IntegrationConnection, AerealithError>> {
+    const connectionResult = await this.connectionRepository.findById(
+      input.connectionId,
+    )
 
     if (!connectionResult.ok) {
-      return connectionResult;
+      return connectionResult
     }
 
-    const connection = connectionResult.value;
+    const connection = connectionResult.value
 
     if (!connection) {
       return err(
@@ -4718,17 +4803,17 @@ export class DisconnectIntegrationService {
           requestId: context.requestId,
           traceId: context.traceId,
         }),
-      );
+      )
     }
 
     const authorization = await this.authorizationService.authorize({
       actor: context.actor,
       permission: 'integration.disconnect',
       scope: connection.scope,
-    });
+    })
 
     if (!authorization.ok) {
-      return authorization;
+      return authorization
     }
 
     const approval = await this.approvalService.verify({
@@ -4740,34 +4825,36 @@ export class DisconnectIntegrationService {
         id: connection.id,
       },
       fingerprint: createDisconnectIntegrationFingerprint(input),
-    });
+    })
 
     if (!approval.ok) {
-      return approval;
+      return approval
     }
 
-    const provider = this.providerRegistry.find(connection.provider);
+    const provider = this.providerRegistry.find(connection.provider)
 
     if (!provider) {
-      return err(createIntegrationProviderNotFoundError(connection.provider));
+      return err(createIntegrationProviderNotFoundError(connection.provider))
     }
 
-    const disconnectResult = await provider.disconnect(connection.id);
+    const disconnectResult = await provider.disconnect(connection.id)
 
     if (!disconnectResult.ok) {
-      return disconnectResult;
+      return disconnectResult
     }
 
     const disconnectedConnection: IntegrationConnection = {
       ...connection,
       status: 'disconnected',
       disconnectedAt: this.clock.now().toISOString(),
-    };
+    }
 
-    const persistenceResult = await this.connectionRepository.update(disconnectedConnection);
+    const persistenceResult = await this.connectionRepository.update(
+      disconnectedConnection,
+    )
 
     if (!persistenceResult.ok) {
-      return persistenceResult;
+      return persistenceResult
     }
 
     await this.eventPublisher.publish({
@@ -4788,9 +4875,9 @@ export class DisconnectIntegrationService {
       payload: {
         provider: connection.provider,
       },
-    });
+    })
 
-    return ok(persistenceResult.value);
+    return ok(persistenceResult.value)
   }
 }
 ```

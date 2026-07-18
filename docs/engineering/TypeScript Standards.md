@@ -227,19 +227,19 @@ Root `package.json`:
 Use:
 
 ```ts
-import { createHash } from 'node:crypto';
-import { z } from 'zod';
+import { createHash } from 'node:crypto'
+import { z } from 'zod'
 
 export function createFingerprint(value: string): string {
-  return createHash('sha256').update(value).digest('hex');
+  return createHash('sha256').update(value).digest('hex')
 }
 ```
 
 Avoid:
 
 ```ts
-const crypto = require('crypto');
-module.exports = {};
+const crypto = require('crypto')
+module.exports = {}
 ```
 
 CommonJS is permitted only when required by:
@@ -292,16 +292,16 @@ Use the `node:` prefix for Node.js built-ins.
 Good:
 
 ```ts
-import { randomUUID } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { randomUUID } from 'node:crypto'
+import { readFile } from 'node:fs/promises'
+import { join } from 'node:path'
 ```
 
 Avoid:
 
 ```ts
-import { randomUUID } from 'crypto';
-import fs from 'fs';
+import { randomUUID } from 'crypto'
+import fs from 'fs'
 ```
 
 The prefix makes runtime dependencies explicit.
@@ -437,22 +437,22 @@ create a narrow adapter
 Indexed access produces a possibly undefined value.
 
 ```ts
-const firstPermission = permissions[0];
+const firstPermission = permissions[0]
 ```
 
 The type is:
 
 ```ts
-string | undefined;
+string | undefined
 ```
 
 Handle it explicitly.
 
 ```ts
-const firstPermission = permissions[0];
+const firstPermission = permissions[0]
 
 if (!firstPermission) {
-  return err(createPermissionListEmptyError());
+  return err(createPermissionListEmptyError())
 }
 ```
 
@@ -473,7 +473,7 @@ Example:
 
 ```ts
 interface UpdateProfileInput {
-  readonly displayName?: string;
+  readonly displayName?: string
 }
 ```
 
@@ -488,7 +488,7 @@ but should not automatically imply:
 
 ```ts
 {
-  displayName: undefined;
+  displayName: undefined
 }
 ```
 
@@ -502,7 +502,7 @@ Overridden methods require the `override` keyword.
 
 ```ts
 export class DiscordProviderError extends Error {
-  public override readonly name = 'DiscordProviderError';
+  public override readonly name = 'DiscordProviderError'
 }
 ```
 
@@ -518,9 +518,9 @@ Correct:
 
 ```ts
 try {
-  return await provider.execute(input);
+  return await provider.execute(input)
 } catch (error: unknown) {
-  return err(mapProviderError(error));
+  return err(mapProviderError(error))
 }
 ```
 
@@ -532,7 +532,7 @@ try {
 } catch (error) {
   return err({
     message: error.message,
-  });
+  })
 }
 ```
 
@@ -545,8 +545,8 @@ Not every thrown value is an `Error`.
 Use explicit type imports.
 
 ```ts
-import type { ModuleManifest } from '@aerealith/contracts';
-import { ModuleRegistry } from './module-registry.js';
+import type { ModuleManifest } from '@aerealith/contracts'
+import { ModuleRegistry } from './module-registry.js'
 ```
 
 This makes runtime imports visible and prevents compiler rewriting from hiding module-system problems.
@@ -826,9 +826,9 @@ Workspace imports should use stable package aliases.
 Examples:
 
 ```ts
-import type { WorkflowDefinition } from '@aerealith/contracts/workflows';
-import { createError } from '@aerealith/core/errors';
-import { createLogger } from '@aerealith/observability';
+import type { WorkflowDefinition } from '@aerealith/contracts/workflows'
+import { createError } from '@aerealith/core/errors'
+import { createLogger } from '@aerealith/observability'
 ```
 
 Avoid aliases that expose internal file structure.
@@ -836,13 +836,13 @@ Avoid aliases that expose internal file structure.
 Bad:
 
 ```ts
-import { mapRow } from '@aerealith/db/src/internal/mappers/map-row';
+import { mapRow } from '@aerealith/db/src/internal/mappers/map-row'
 ```
 
 Good:
 
 ```ts
-import { WorkflowRepository } from '@aerealith/db/workflows';
+import { WorkflowRepository } from '@aerealith/db/workflows'
 ```
 
 ---
@@ -852,7 +852,7 @@ import { WorkflowRepository } from '@aerealith/db/workflows';
 Use relative imports within the same feature or project when the path remains understandable.
 
 ```ts
-import { createWorkflowFingerprint } from './create-workflow-fingerprint.js';
+import { createWorkflowFingerprint } from './create-workflow-fingerprint.js'
 ```
 
 Use workspace package imports across project boundaries.
@@ -880,7 +880,7 @@ NodeNext projects should follow the emitted JavaScript extension rules.
 Source:
 
 ```ts
-import { createError } from './create-error.js';
+import { createError } from './create-error.js'
 ```
 
 even when the source file is:
@@ -942,13 +942,13 @@ framework configuration
 Use explicit type-only exports.
 
 ```ts
-export type { WorkflowDefinition, WorkflowRun, WorkflowRunStatus };
+export type { WorkflowDefinition, WorkflowRun, WorkflowRunStatus }
 ```
 
 Runtime values should use ordinary exports.
 
 ```ts
-export { WorkflowStatus, createWorkflowId };
+export { WorkflowStatus, createWorkflowId }
 ```
 
 ---
@@ -960,14 +960,16 @@ External input begins as `unknown`.
 Examples:
 
 ```ts
-function parseWebhookPayload(payload: unknown): Result<WebhookEvent, AerealithError> {
-  const parsed = WebhookEventSchema.safeParse(payload);
+function parseWebhookPayload(
+  payload: unknown,
+): Result<WebhookEvent, AerealithError> {
+  const parsed = WebhookEventSchema.safeParse(payload)
 
   if (!parsed.success) {
-    return err(createWebhookPayloadInvalidError(parsed.error));
+    return err(createWebhookPayloadInvalidError(parsed.error))
   }
 
-  return ok(parsed.data);
+  return ok(parsed.data)
 }
 ```
 
@@ -993,10 +995,18 @@ A schema should be the authority for runtime shape.
 export const IntegrationConnectionResponseSchema = z.object({
   id: z.string().min(1),
   provider: z.string().min(1),
-  status: z.enum(['connected', 'active', 'degraded', 'disconnected', 'revoked']),
-});
+  status: z.enum([
+    'connected',
+    'active',
+    'degraded',
+    'disconnected',
+    'revoked',
+  ]),
+})
 
-export type IntegrationConnectionResponse = z.infer<typeof IntegrationConnectionResponseSchema>;
+export type IntegrationConnectionResponse = z.infer<
+  typeof IntegrationConnectionResponseSchema
+>
 ```
 
 Avoid manually maintaining a schema and interface that can drift.
@@ -1010,10 +1020,10 @@ When transformations occur, distinguish input and output types.
 ```ts
 export const PaginationSchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(50),
-});
+})
 
-export type PaginationInput = z.input<typeof PaginationSchema>;
-export type Pagination = z.output<typeof PaginationSchema>;
+export type PaginationInput = z.input<typeof PaginationSchema>
+export type Pagination = z.output<typeof PaginationSchema>
 ```
 
 This is important when schemas:
@@ -1037,7 +1047,7 @@ export const CreateWorkflowRequestSchema = z
     name: z.string().trim().min(1).max(200),
     description: z.string().trim().max(2_000).optional(),
   })
-  .strict();
+  .strict()
 ```
 
 Unknown fields should be accepted only when compatibility requirements justify them.
@@ -1068,15 +1078,15 @@ Internal trusted objects should not be revalidated repeatedly without purpose.
 Prefer inference for obvious local values.
 
 ```ts
-const maximumAttempts = 5;
-const enabledModuleIds = modules.map((module) => module.id);
+const maximumAttempts = 5
+const enabledModuleIds = modules.map((module) => module.id)
 ```
 
 Use explicit return types for exported functions.
 
 ```ts
 export function createModuleId(value: string): ModuleId {
-  return value as ModuleId;
+  return value as ModuleId
 }
 ```
 
@@ -1089,7 +1099,9 @@ Public methods and interfaces should remain explicit.
 Exported functions should normally declare return types.
 
 ```ts
-export function mapConnectionStatus(value: ProviderConnectionStatus): IntegrationConnectionStatus {
+export function mapConnectionStatus(
+  value: ProviderConnectionStatus,
+): IntegrationConnectionStatus {
   // ...
 }
 ```
@@ -1112,7 +1124,10 @@ Internal one-line callbacks do not require explicit return types.
 Public functions and methods require explicit parameter types.
 
 ```ts
-export async function getWorkflowRun(input: GetWorkflowRunInput, context: RequestContext): Promise<Result<WorkflowRun, AerealithError>> {
+export async function getWorkflowRun(
+  input: GetWorkflowRunInput,
+  context: RequestContext,
+): Promise<Result<WorkflowRun, AerealithError>> {
   // ...
 }
 ```
@@ -1129,9 +1144,11 @@ Use `interface` for object-shaped extensible contracts.
 
 ```ts
 export interface NotificationChannelAdapter {
-  readonly channel: NotificationChannel;
+  readonly channel: NotificationChannel
 
-  deliver(request: NotificationDeliveryRequest): Promise<Result<NotificationDeliveryResult, AerealithError>>;
+  deliver(
+    request: NotificationDeliveryRequest,
+  ): Promise<Result<NotificationDeliveryResult, AerealithError>>
 }
 ```
 
@@ -1146,7 +1163,7 @@ aliases
 ```
 
 ```ts
-export type NotificationChannel = 'in-app' | 'email' | 'discord' | 'push';
+export type NotificationChannel = 'in-app' | 'email' | 'discord' | 'push'
 ```
 
 ---
@@ -1190,15 +1207,15 @@ Type parameters should use descriptive names.
 Preferred:
 
 ```ts
-Result<TValue, TError>;
-Repository<TEntity, TId>;
-EventEnvelope<TPayload>;
+Result<TValue, TError>
+Repository<TEntity, TId>
+EventEnvelope<TPayload>
 ```
 
 Avoid vague generic names when more than one parameter exists:
 
 ```ts
-Manager<T, U, V>;
+Manager<T, U, V>
 ```
 
 ---
@@ -1210,18 +1227,18 @@ Use discriminated unions to represent variant state.
 ```ts
 export type WorkflowStepResult =
   | {
-      readonly status: 'succeeded';
-      readonly output: WorkflowStepOutput;
+      readonly status: 'succeeded'
+      readonly output: WorkflowStepOutput
     }
   | {
-      readonly status: 'failed';
-      readonly error: AerealithError;
+      readonly status: 'failed'
+      readonly error: AerealithError
     }
   | {
-      readonly status: 'waiting-for-approval';
-      readonly approvalId: ApprovalId;
-      readonly expiresAt: string;
-    };
+      readonly status: 'waiting-for-approval'
+      readonly approvalId: ApprovalId
+      readonly expiresAt: string
+    }
 ```
 
 This is preferable to a structure containing many optional fields.
@@ -1230,10 +1247,10 @@ Avoid:
 
 ```ts
 interface WorkflowStepResult {
-  readonly status: string;
-  readonly output?: WorkflowStepOutput;
-  readonly error?: AerealithError;
-  readonly approvalId?: string;
+  readonly status: string
+  readonly output?: WorkflowStepOutput
+  readonly error?: AerealithError
+  readonly approvalId?: string
 }
 ```
 
@@ -1246,7 +1263,16 @@ The invalid states are too easy to construct.
 Model lifecycle states with explicit unions.
 
 ```ts
-export type IntegrationConnectionStatus = 'connecting' | 'pending-authorization' | 'pending-verification' | 'connected' | 'active' | 'degraded' | 'disconnected' | 'revoked' | 'expired';
+export type IntegrationConnectionStatus =
+  | 'connecting'
+  | 'pending-authorization'
+  | 'pending-verification'
+  | 'connected'
+  | 'active'
+  | 'degraded'
+  | 'disconnected'
+  | 'revoked'
+  | 'expired'
 ```
 
 Do not use an unrestricted `string`.
@@ -1258,28 +1284,30 @@ Do not use an unrestricted `string`.
 Switches over discriminated unions must be exhaustive.
 
 ```ts
-export function getConnectionStatusLabel(status: IntegrationConnectionStatus): string {
+export function getConnectionStatusLabel(
+  status: IntegrationConnectionStatus,
+): string {
   switch (status) {
     case 'connecting':
-      return 'Connecting';
+      return 'Connecting'
     case 'pending-authorization':
-      return 'Pending authorization';
+      return 'Pending authorization'
     case 'pending-verification':
-      return 'Pending verification';
+      return 'Pending verification'
     case 'connected':
-      return 'Connected';
+      return 'Connected'
     case 'active':
-      return 'Active';
+      return 'Active'
     case 'degraded':
-      return 'Degraded';
+      return 'Degraded'
     case 'disconnected':
-      return 'Disconnected';
+      return 'Disconnected'
     case 'revoked':
-      return 'Revoked';
+      return 'Revoked'
     case 'expired':
-      return 'Expired';
+      return 'Expired'
     default:
-      return assertNever(status);
+      return assertNever(status)
   }
 }
 ```
@@ -1288,7 +1316,7 @@ Helper:
 
 ```ts
 export function assertNever(value: never): never {
-  throw new Error(`Unexpected value: ${String(value)}`);
+  throw new Error(`Unexpected value: ${String(value)}`)
 }
 ```
 
@@ -1304,9 +1332,9 @@ export const RiskLevel = {
   Medium: 'medium',
   High: 'high',
   Critical: 'critical',
-} as const;
+} as const
 
-export type RiskLevel = (typeof RiskLevel)[keyof typeof RiskLevel];
+export type RiskLevel = (typeof RiskLevel)[keyof typeof RiskLevel]
 ```
 
 Benefits:
@@ -1336,7 +1364,9 @@ database generator
 Map them at the boundary.
 
 ```ts
-export function mapDiscordPermission(permission: Discord.PermissionFlagsBits): AerealithDiscordPermission {
+export function mapDiscordPermission(
+  permission: Discord.PermissionFlagsBits,
+): AerealithDiscordPermission {
   // ...
 }
 ```
@@ -1354,7 +1384,7 @@ export const WorkflowStatusLabels = {
   succeeded: 'Succeeded',
   failed: 'Failed',
   cancelled: 'Cancelled',
-} satisfies Record<WorkflowRunStatus, string>;
+} satisfies Record<WorkflowRunStatus, string>
 ```
 
 This is often preferable to a broad annotation.
@@ -1366,9 +1396,9 @@ This is often preferable to a broad annotation.
 Use `as const` for immutable literal definitions.
 
 ```ts
-export const SupportedProviders = ['discord', 'github', 'google'] as const;
+export const SupportedProviders = ['discord', 'github', 'google'] as const
 
-export type SupportedProvider = (typeof SupportedProviders)[number];
+export type SupportedProvider = (typeof SupportedProviders)[number]
 ```
 
 Do not add `as const` mechanically to large mutable application state.
@@ -1381,10 +1411,10 @@ Public contracts should prefer readonly properties.
 
 ```ts
 export interface WorkflowDefinition {
-  readonly id: WorkflowId;
-  readonly name: string;
-  readonly version: number;
-  readonly steps: readonly WorkflowStepDefinition[];
+  readonly id: WorkflowId
+  readonly name: string
+  readonly version: number
+  readonly steps: readonly WorkflowStepDefinition[]
 }
 ```
 
@@ -1405,11 +1435,11 @@ when consumers should not mutate data.
 Local mutation is acceptable when ownership is clear.
 
 ```ts
-const missingPermissions: DiscordPermission[] = [];
+const missingPermissions: DiscordPermission[] = []
 
 for (const permission of requiredPermissions) {
   if (!grantedPermissions.has(permission)) {
-    missingPermissions.push(permission);
+    missingPermissions.push(permission)
   }
 }
 ```
@@ -1424,8 +1454,8 @@ Use optional properties when the property may be absent.
 
 ```ts
 export interface RequestContext {
-  readonly requestId: RequestId;
-  readonly traceId?: TraceId;
+  readonly requestId: RequestId
+  readonly traceId?: TraceId
 }
 ```
 
@@ -1457,15 +1487,15 @@ Example:
 
 ```ts
 export interface UserRecord {
-  readonly displayName?: string;
-  readonly deletedAt: string | null;
+  readonly displayName?: string
+  readonly deletedAt: string | null
 }
 ```
 
 Avoid:
 
 ```ts
-string | null | undefined;
+;string | null | undefined
 ```
 
 unless all three states are genuinely meaningful.
@@ -1477,13 +1507,13 @@ unless all three states are genuinely meaningful.
 Use `NonNullable<T>` only after a runtime check or established invariant.
 
 ```ts
-const actor = context.actor;
+const actor = context.actor
 
 if (!actor) {
-  return err(createAuthenticationRequiredError());
+  return err(createAuthenticationRequiredError())
 }
 
-type AuthenticatedActor = NonNullable<RequestContext['actor']>;
+type AuthenticatedActor = NonNullable<RequestContext['actor']>
 ```
 
 Do not use utility types to pretend a runtime check occurred.
@@ -1498,16 +1528,16 @@ Bad:
 
 ```ts
 interface Metadata {
-  [key: string]: any;
+  [key: string]: any
 }
 ```
 
 Prefer:
 
 ```ts
-type MetadataValue = string | number | boolean | null | readonly string[];
+type MetadataValue = string | number | boolean | null | readonly string[]
 
-type SafeMetadata = Readonly<Record<string, MetadataValue>>;
+type SafeMetadata = Readonly<Record<string, MetadataValue>>
 ```
 
 For audited or public metadata, prefer a dedicated schema.
@@ -1519,24 +1549,24 @@ For audited or public metadata, prefer a dedicated schema.
 Use branded types for IDs when confusing identifiers would be dangerous.
 
 ```ts
-declare const UserIdBrand: unique symbol;
+declare const UserIdBrand: unique symbol
 
 export type UserId = string & {
-  readonly [UserIdBrand]: true;
-};
+  readonly [UserIdBrand]: true
+}
 ```
 
 Factory:
 
 ```ts
 export function createUserId(value: string): UserId {
-  const parsed = UserIdSchema.safeParse(value);
+  const parsed = UserIdSchema.safeParse(value)
 
   if (!parsed.success) {
-    throw new Error('Invalid user ID');
+    throw new Error('Invalid user ID')
   }
 
-  return parsed.data as UserId;
+  return parsed.data as UserId
 }
 ```
 
@@ -1572,7 +1602,7 @@ trusted generators
 Do not scatter assertions:
 
 ```ts
-const userId = value as UserId;
+const userId = value as UserId
 ```
 
 through application code.
@@ -1584,11 +1614,11 @@ through application code.
 Credentials and sensitive references may use opaque types.
 
 ```ts
-declare const CredentialReferenceBrand: unique symbol;
+declare const CredentialReferenceBrand: unique symbol
 
 export type CredentialReference = string & {
-  readonly [CredentialReferenceBrand]: true;
-};
+  readonly [CredentialReferenceBrand]: true
+}
 ```
 
 Opaque typing does not replace secret handling.
@@ -1603,7 +1633,7 @@ Use type guards when narrowing a runtime value.
 
 ```ts
 export function isError(value: unknown): value is Error {
-  return value instanceof Error;
+  return value instanceof Error
 }
 ```
 
@@ -1625,9 +1655,12 @@ small stable structures
 Assertion functions are allowed for internal invariants.
 
 ```ts
-export function assertDefined<T>(value: T | null | undefined, message: string): asserts value is T {
+export function assertDefined<T>(
+  value: T | null | undefined,
+  message: string,
+): asserts value is T {
   if (value === null || value === undefined) {
-    throw new Error(message);
+    throw new Error(message)
   }
 }
 ```
@@ -1643,9 +1676,9 @@ Type assertions are exceptional.
 Avoid:
 
 ```ts
-payload as WebhookEvent;
-value as unknown as ModuleManifest;
-connection!;
+payload as WebhookEvent
+value as unknown as ModuleManifest
+connection!
 ```
 
 An assertion is acceptable when:
@@ -1666,7 +1699,7 @@ The assertion should remain narrow and documented when non-obvious.
 Double assertions are prohibited in normal code.
 
 ```ts
-value as unknown as TargetType;
+value as unknown as TargetType
 ```
 
 They bypass the type system almost completely.
@@ -1689,16 +1722,16 @@ Avoid the `!` operator.
 Bad:
 
 ```ts
-const connection = connections[0]!;
+const connection = connections[0]!
 ```
 
 Good:
 
 ```ts
-const connection = connections[0];
+const connection = connections[0]
 
 if (!connection) {
-  return err(createConnectionNotFoundError());
+  return err(createConnectionNotFoundError())
 }
 ```
 
@@ -1725,7 +1758,7 @@ An `any` exception requires a comment.
 ```ts
 // The provider callback type is declared as `any` upstream.
 // Validate before returning from this adapter.
-const providerValue: any = callbackPayload;
+const providerValue: any = callbackPayload
 ```
 
 The value must not leave the boundary without validation.
@@ -1747,12 +1780,15 @@ Use generics when they preserve meaningful relationships.
 Good:
 
 ```ts
-export function mapResult<TValue, TMapped>(result: Result<TValue, AerealithError>, mapper: (value: TValue) => TMapped): Result<TMapped, AerealithError> {
+export function mapResult<TValue, TMapped>(
+  result: Result<TValue, AerealithError>,
+  mapper: (value: TValue) => TMapped,
+): Result<TMapped, AerealithError> {
   if (!result.ok) {
-    return result;
+    return result
   }
 
-  return ok(mapper(result.value));
+  return ok(mapper(result.value))
 }
 ```
 
@@ -1767,10 +1803,10 @@ Constrain generic parameters.
 ```ts
 export interface EntityRepository<
   TEntity extends {
-    readonly id: string;
+    readonly id: string
   },
 > {
-  findById(id: TEntity['id']): Promise<TEntity | null>;
+  findById(id: TEntity['id']): Promise<TEntity | null>
 }
 ```
 
@@ -1784,9 +1820,9 @@ Default generic parameters are acceptable when the default is safe and obvious.
 
 ```ts
 export interface EventEnvelope<TPayload = unknown> {
-  readonly eventId: string;
-  readonly eventType: string;
-  readonly payload: TPayload;
+  readonly eventId: string
+  readonly eventType: string
+  readonly payload: TPayload
 }
 ```
 
@@ -1843,7 +1879,7 @@ Avoid using `Partial<T>` for update commands without considering field semantics
 Bad:
 
 ```ts
-type UpdateUserInput = Partial<User>;
+type UpdateUserInput = Partial<User>
 ```
 
 This may expose:
@@ -1859,8 +1895,8 @@ Prefer an explicit update contract.
 
 ```ts
 interface UpdateUserProfileInput {
-  readonly displayName?: string;
-  readonly locale?: string;
+  readonly displayName?: string
+  readonly locale?: string
 }
 ```
 
@@ -1894,7 +1930,7 @@ const response: IntegrationConnectionResponse = {
   provider: connection.provider,
   status: connection.status,
   connectedAt: connection.connectedAt,
-};
+}
 ```
 
 Avoid spreading untrusted or persistence objects.
@@ -1902,7 +1938,7 @@ Avoid spreading untrusted or persistence objects.
 ```ts
 const response = {
   ...row,
-};
+}
 ```
 
 Explicit construction prevents accidental exposure of:
@@ -1921,11 +1957,20 @@ database columns
 Use overloads only when they improve caller type safety.
 
 ```ts
-export function parseIdentifier(type: 'user', value: string): Result<UserId, AerealithError>;
+export function parseIdentifier(
+  type: 'user',
+  value: string,
+): Result<UserId, AerealithError>
 
-export function parseIdentifier(type: 'account', value: string): Result<AccountId, AerealithError>;
+export function parseIdentifier(
+  type: 'account',
+  value: string,
+): Result<AccountId, AerealithError>
 
-export function parseIdentifier(type: 'user' | 'account', value: string): Result<UserId | AccountId, AerealithError> {
+export function parseIdentifier(
+  type: 'user' | 'account',
+  value: string,
+): Result<UserId | AccountId, AerealithError> {
   // ...
 }
 ```
@@ -1939,8 +1984,10 @@ Avoid overloads when a discriminated input object is clearer.
 Rest parameters should use explicit readonly arrays where appropriate.
 
 ```ts
-export function createPermissionSet(...permissions: readonly Permission[]): ReadonlySet<Permission> {
-  return new Set(permissions);
+export function createPermissionSet(
+  ...permissions: readonly Permission[]
+): ReadonlySet<Permission> {
+  return new Set(permissions)
 }
 ```
 
@@ -1981,10 +2028,12 @@ Use explicit visibility for public architecture-level classes.
 
 ```ts
 export class ModuleRegistry {
-  public constructor(private readonly manifests: ReadonlyMap<string, ModuleManifest>) {}
+  public constructor(
+    private readonly manifests: ReadonlyMap<string, ModuleManifest>,
+  ) {}
 
   public find(moduleId: string): ModuleManifest | undefined {
-    return this.manifests.get(moduleId);
+    return this.manifests.get(moduleId)
   }
 }
 ```
@@ -2063,13 +2112,13 @@ Example:
 ```ts
 export type Result<TValue, TError> =
   | {
-      readonly ok: true;
-      readonly value: TValue;
+      readonly ok: true
+      readonly value: TValue
     }
   | {
-      readonly ok: false;
-      readonly error: TError;
-    };
+      readonly ok: false
+      readonly error: TError
+    }
 ```
 
 Helpers:
@@ -2079,14 +2128,14 @@ export function ok<TValue>(value: TValue): Result<TValue, never> {
   return {
     ok: true,
     value,
-  };
+  }
 }
 
 export function err<TError>(error: TError): Result<never, TError> {
   return {
     ok: false,
     error,
-  };
+  }
 }
 ```
 
@@ -2097,13 +2146,13 @@ export function err<TError>(error: TError): Result<never, TError> {
 Use the discriminant.
 
 ```ts
-const result = await repository.findById(id);
+const result = await repository.findById(id)
 
 if (!result.ok) {
-  return result;
+  return result
 }
 
-const entity = result.value;
+const entity = result.value
 ```
 
 Do not access both `value` and `error` through optional fields.
@@ -2116,13 +2165,13 @@ Aerealith errors should use stable codes.
 
 ```ts
 export interface AerealithError {
-  readonly code: string;
-  readonly message: string;
-  readonly category: string;
-  readonly retryable: boolean;
-  readonly requestId?: RequestId;
-  readonly traceId?: TraceId;
-  readonly details?: SafeErrorDetails | null;
+  readonly code: string
+  readonly message: string
+  readonly category: string
+  readonly retryable: boolean
+  readonly requestId?: RequestId
+  readonly traceId?: TraceId
+  readonly details?: SafeErrorDetails | null
 }
 ```
 
@@ -2167,13 +2216,13 @@ When used:
 
 ```ts
 export class ConfigurationError extends Error {
-  public override readonly name = 'ConfigurationError';
+  public override readonly name = 'ConfigurationError'
 
   public constructor(
     message: string,
     public readonly code: string,
   ) {
-    super(message);
+    super(message)
   }
 }
 ```
@@ -2189,7 +2238,7 @@ Internal exceptions may use `cause`.
 ```ts
 throw new ConfigurationError('The database configuration is invalid.', {
   cause: error,
-});
+})
 ```
 
 Public error mapping must not serialize the cause automatically.
@@ -2201,7 +2250,9 @@ Public error mapping must not serialize the cause automatically.
 Async functions return explicit promises.
 
 ```ts
-export async function executeWorkflowAction(input: ExecuteWorkflowActionInput): Promise<Result<WorkflowActionResult, AerealithError>> {
+export async function executeWorkflowAction(
+  input: ExecuteWorkflowActionInput,
+): Promise<Result<WorkflowActionResult, AerealithError>> {
   // ...
 }
 ```
@@ -2225,19 +2276,19 @@ Floating promises are prohibited.
 Bad:
 
 ```ts
-eventPublisher.publish(event);
+eventPublisher.publish(event)
 ```
 
 Good:
 
 ```ts
-await eventPublisher.publish(event);
+await eventPublisher.publish(event)
 ```
 
 Intentionally detached operations require `void` and internal error handling.
 
 ```ts
-void metricsPublisher.record(metric);
+void metricsPublisher.record(metric)
 ```
 
 Detached operations must not be used for required:
@@ -2256,7 +2307,10 @@ security notification
 Use `Promise.all` only for independent work.
 
 ```ts
-const [connectionResult, moduleResult] = await Promise.all([connectionRepository.findById(connectionId), moduleRepository.findInstallation(moduleInstallationId)]);
+const [connectionResult, moduleResult] = await Promise.all([
+  connectionRepository.findById(connectionId),
+  moduleRepository.findInstallation(moduleInstallationId),
+])
 ```
 
 Do not parallelize:
@@ -2277,7 +2331,9 @@ Use `Promise.allSettled` when partial outcomes are meaningful.
 Example:
 
 ```ts
-const results = await Promise.allSettled(notificationChannels.map((channel) => channel.deliver(deliveryRequest)));
+const results = await Promise.allSettled(
+  notificationChannels.map((channel) => channel.deliver(deliveryRequest)),
+)
 ```
 
 The caller must map every fulfilled and rejected result explicitly.
@@ -2292,8 +2348,8 @@ The type should make timeout behavior explicit where practical.
 
 ```ts
 export interface ProviderExecutionContext {
-  readonly timeoutMs: number;
-  readonly signal: AbortSignal;
+  readonly timeoutMs: number
+  readonly signal: AbortSignal
 }
 ```
 
@@ -2310,9 +2366,9 @@ export interface AIModelProvider {
   generate(
     request: AIModelRequest,
     options: {
-      readonly signal: AbortSignal;
+      readonly signal: AbortSignal
     },
-  ): Promise<Result<AIModelResponse, AerealithError>>;
+  ): Promise<Result<AIModelResponse, AerealithError>>
 }
 ```
 
@@ -2326,8 +2382,8 @@ Public TypeScript contracts should use ISO 8601 UTC strings.
 
 ```ts
 export interface AuditRecord {
-  readonly occurredAt: string;
-  readonly recordedAt: string;
+  readonly occurredAt: string
+  readonly recordedAt: string
 }
 ```
 
@@ -2344,17 +2400,17 @@ Avoid passing mutable `Date` objects through public contracts.
 Use numeric values with units in the name.
 
 ```ts
-const timeoutMs = 30_000;
-const retentionDays = 90;
-const approvalExpirationMinutes = 15;
+const timeoutMs = 30_000
+const retentionDays = 90
+const approvalExpirationMinutes = 15
 ```
 
 Avoid ambiguous fields:
 
 ```ts
-timeout;
-duration;
-retention;
+timeout
+duration
+retention
 ```
 
 ---
@@ -2364,8 +2420,8 @@ retention;
 Use numeric separators.
 
 ```ts
-const maximumPayloadBytes = 1_000_000;
-const providerTimeoutMs = 30_000;
+const maximumPayloadBytes = 1_000_000
+const providerTimeoutMs = 30_000
 ```
 
 For money or provider billing:
@@ -2426,9 +2482,11 @@ export const ModuleInstallationResponseSchema = z.object({
   moduleId: z.string().min(1),
   version: z.string().min(1),
   status: z.enum(['enabled', 'active', 'degraded', 'disabled', 'revoked']),
-});
+})
 
-export type ModuleInstallationResponse = z.infer<typeof ModuleInstallationResponseSchema>;
+export type ModuleInstallationResponse = z.infer<
+  typeof ModuleInstallationResponseSchema
+>
 ```
 
 ---
@@ -2443,9 +2501,9 @@ export const EnableModuleRequestSchema = z
     scopeType: z.enum(['account', 'organization', 'community']),
     scopeId: z.string().min(1),
   })
-  .strict();
+  .strict()
 
-export type EnableModuleRequest = z.infer<typeof EnableModuleRequestSchema>;
+export type EnableModuleRequest = z.infer<typeof EnableModuleRequestSchema>
 ```
 
 Server-derived values such as actor and authorization scope should not be accepted from the request body.
@@ -2458,15 +2516,15 @@ Responses should use the shared envelope.
 
 ```ts
 export interface ApiSuccessResponse<TData> {
-  readonly success: true;
-  readonly data: TData;
-  readonly requestId: RequestId;
-  readonly traceId?: TraceId;
+  readonly success: true
+  readonly data: TData
+  readonly requestId: RequestId
+  readonly traceId?: TraceId
 }
 
 export interface ApiErrorResponse {
-  readonly success: false;
-  readonly error: AerealithErrorResponse;
+  readonly success: false
+  readonly error: AerealithErrorResponse
 }
 ```
 
@@ -2506,10 +2564,10 @@ Use an explicit request context.
 
 ```ts
 export interface RequestContext {
-  readonly requestId: RequestId;
-  readonly traceId?: TraceId;
-  readonly actor?: AuthenticatedActor;
-  readonly scope?: AuthorizationScope;
+  readonly requestId: RequestId
+  readonly traceId?: TraceId
+  readonly actor?: AuthenticatedActor
+  readonly scope?: AuthorizationScope
 }
 ```
 
@@ -2522,20 +2580,24 @@ Do not hide identity or scope in ambient global state unless the runtime adapter
 Hono handlers should validate input before application service invocation.
 
 ```ts
-router.post('/api/V1/modules/:moduleId/enable', validateJson(EnableModuleRequestSchema), async (context) => {
-  const body = context.req.valid('json');
-  const requestContext = context.get('requestContext');
+router.post(
+  '/api/V1/modules/:moduleId/enable',
+  validateJson(EnableModuleRequestSchema),
+  async (context) => {
+    const body = context.req.valid('json')
+    const requestContext = context.get('requestContext')
 
-  const result = await enableModuleService.execute(
-    {
-      moduleId: context.req.param('moduleId'),
-      ...body,
-    },
-    requestContext,
-  );
+    const result = await enableModuleService.execute(
+      {
+        moduleId: context.req.param('moduleId'),
+        ...body,
+      },
+      requestContext,
+    )
 
-  return mapResultToResponse(context, result);
-});
+    return mapResultToResponse(context, result)
+  },
+)
 ```
 
 Avoid untyped context storage.
@@ -2553,13 +2615,18 @@ Controllers should call typed application services.
 ```ts
 @Controller('/api/V1/workflows')
 export class WorkflowController {
-  public constructor(private readonly createWorkflowService: CreateWorkflowService) {}
+  public constructor(
+    private readonly createWorkflowService: CreateWorkflowService,
+  ) {}
 
   @Post()
-  public async create(@Body() body: CreateWorkflowRequest, @RequestContext() context: RequestContext): Promise<ApiSuccessResponse<WorkflowResponse>> {
-    const result = await this.createWorkflowService.execute(body, context);
+  public async create(
+    @Body() body: CreateWorkflowRequest,
+    @RequestContext() context: RequestContext,
+  ): Promise<ApiSuccessResponse<WorkflowResponse>> {
+    const result = await this.createWorkflowService.execute(body, context)
 
-    return unwrapApiResult(result);
+    return unwrapApiResult(result)
   }
 }
 ```
@@ -2574,14 +2641,16 @@ React components use explicit props.
 
 ```tsx
 export interface WorkflowStatusBadgeProps {
-  readonly status: WorkflowRunStatus;
-  readonly label?: string;
+  readonly status: WorkflowRunStatus
+  readonly label?: string
 }
 
-export function WorkflowStatusBadge(props: WorkflowStatusBadgeProps): React.ReactElement {
-  const label = props.label ?? getWorkflowStatusLabel(props.status);
+export function WorkflowStatusBadge(
+  props: WorkflowStatusBadgeProps,
+): React.ReactElement {
+  const label = props.label ?? getWorkflowStatusLabel(props.status)
 
-  return <span data-status={props.status}>{label}</span>;
+  return <span data-status={props.status}>{label}</span>
 }
 ```
 
@@ -2597,7 +2666,7 @@ Use `React.ReactNode` for ordinary children.
 
 ```ts
 export interface PanelProps {
-  readonly children: React.ReactNode;
+  readonly children: React.ReactNode
 }
 ```
 
@@ -2611,7 +2680,7 @@ Use React event types.
 
 ```tsx
 function handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
-  event.preventDefault();
+  event.preventDefault()
 }
 ```
 
@@ -2624,19 +2693,19 @@ Avoid `any` for event handlers.
 Use explicit element types.
 
 ```ts
-const inputRef = useRef<HTMLInputElement>(null);
+const inputRef = useRef<HTMLInputElement>(null)
 ```
 
 Handle nullability.
 
 ```ts
-inputRef.current?.focus();
+inputRef.current?.focus()
 ```
 
 Avoid:
 
 ```ts
-inputRef.current!.focus();
+inputRef.current!.focus()
 ```
 
 ---
@@ -2646,13 +2715,14 @@ inputRef.current!.focus();
 Give state an explicit type when inference would be too narrow or ambiguous.
 
 ```ts
-const [status, setStatus] = useState<WorkflowRunStatus>('pending');
+const [status, setStatus] = useState<WorkflowRunStatus>('pending')
 ```
 
 For nullable state:
 
 ```ts
-const [selectedWorkflow, setSelectedWorkflow] = useState<WorkflowSummary | null>(null);
+const [selectedWorkflow, setSelectedWorkflow] =
+  useState<WorkflowSummary | null>(null)
 ```
 
 ---
@@ -2664,16 +2734,16 @@ Use discriminated unions for reducer actions.
 ```ts
 type ApprovalAction =
   | {
-      readonly type: 'approve-started';
+      readonly type: 'approve-started'
     }
   | {
-      readonly type: 'approve-succeeded';
-      readonly approvalId: ApprovalId;
+      readonly type: 'approve-succeeded'
+      readonly approvalId: ApprovalId
     }
   | {
-      readonly type: 'approve-failed';
-      readonly error: AerealithError;
-    };
+      readonly type: 'approve-failed'
+      readonly error: AerealithError
+    }
 ```
 
 Reducers should be exhaustive.
@@ -2688,7 +2758,7 @@ Query keys should remain readonly and structured.
 export const workflowQueryKeys = {
   all: ['workflows'] as const,
   detail: (workflowId: WorkflowId) => ['workflows', workflowId] as const,
-};
+}
 ```
 
 Avoid ad hoc string concatenation.
@@ -2703,8 +2773,8 @@ Do not reuse complete domain entities as editable form state.
 
 ```ts
 export interface WorkflowFormValues {
-  readonly name: string;
-  readonly description: string;
+  readonly name: string
+  readonly description: string
 }
 ```
 
@@ -2723,9 +2793,9 @@ libs/db
 Infer row types near schema definitions.
 
 ```ts
-export type WorkflowRunRow = typeof workflowRuns.$inferSelect;
+export type WorkflowRunRow = typeof workflowRuns.$inferSelect
 
-export type NewWorkflowRunRow = typeof workflowRuns.$inferInsert;
+export type NewWorkflowRunRow = typeof workflowRuns.$inferInsert
 ```
 
 Do not export these types to:
@@ -2755,7 +2825,7 @@ export function mapWorkflowRunRow(row: WorkflowRunRow): WorkflowRun {
     status: mapWorkflowRunStatus(row.status),
     createdAt: row.createdAt.toISOString(),
     completedAt: row.completedAt?.toISOString() ?? null,
-  };
+  }
 }
 ```
 
@@ -2770,10 +2840,10 @@ JSON columns are untrusted when read.
 Validate them with a runtime schema.
 
 ```ts
-const metadataResult = WorkflowRunMetadataSchema.safeParse(row.metadata);
+const metadataResult = WorkflowRunMetadataSchema.safeParse(row.metadata)
 
 if (!metadataResult.success) {
-  return err(createStoredWorkflowMetadataInvalidError());
+  return err(createStoredWorkflowMetadataInvalidError())
 }
 ```
 
@@ -2809,13 +2879,15 @@ AI provider SDK
 Map them before returning.
 
 ```ts
-export function mapDiscordGuild(guild: Discord.Guild): CommunityProviderResource {
+export function mapDiscordGuild(
+  guild: Discord.Guild,
+): CommunityProviderResource {
   return {
     provider: 'discord',
     resourceType: 'server',
     providerResourceId: guild.id,
     displayName: guild.name,
-  };
+  }
 }
 ```
 
@@ -2828,14 +2900,16 @@ Provider exceptions begin as `unknown`.
 ```ts
 export function mapDiscordError(error: unknown): AerealithError {
   if (error instanceof DiscordAPIError) {
-    return mapDiscordApiError(error);
+    return mapDiscordApiError(error)
   }
 
   if (error instanceof Error) {
-    return createUnknownProviderError(error.message);
+    return createUnknownProviderError(error.message)
   }
 
-  return createUnknownProviderError('The Discord provider returned an unknown error.');
+  return createUnknownProviderError(
+    'The Discord provider returned an unknown error.',
+  )
 }
 ```
 
@@ -2849,13 +2923,13 @@ Events use versioned typed payloads.
 
 ```ts
 export interface EventEnvelope<TPayload> {
-  readonly eventId: EventId;
-  readonly eventType: string;
-  readonly eventVersion: number;
-  readonly occurredAt: string;
-  readonly requestId?: RequestId;
-  readonly traceId?: TraceId;
-  readonly payload: TPayload;
+  readonly eventId: EventId
+  readonly eventType: string
+  readonly eventVersion: number
+  readonly occurredAt: string
+  readonly requestId?: RequestId
+  readonly traceId?: TraceId
+  readonly payload: TPayload
 }
 ```
 
@@ -2869,12 +2943,12 @@ A typed registry may map event types to payloads.
 
 ```ts
 export interface AerealithEventMap {
-  'module.enabled': ModuleEnabledEventPayload;
-  'workflow.run.failed': WorkflowRunFailedEventPayload;
-  'integration.disconnected': IntegrationDisconnectedEventPayload;
+  'module.enabled': ModuleEnabledEventPayload
+  'workflow.run.failed': WorkflowRunFailedEventPayload
+  'integration.disconnected': IntegrationDisconnectedEventPayload
 }
 
-export type AerealithEventType = keyof AerealithEventMap;
+export type AerealithEventType = keyof AerealithEventMap
 ```
 
 Typed registries improve producer and consumer consistency.
@@ -2889,9 +2963,9 @@ Do not encode version only in the TypeScript filename.
 
 ```ts
 interface ModuleEnabledEventV1 {
-  readonly eventType: 'module.enabled';
-  readonly eventVersion: 1;
-  readonly payload: ModuleEnabledPayloadV1;
+  readonly eventType: 'module.enabled'
+  readonly eventVersion: 1
+  readonly payload: ModuleEnabledPayloadV1
 }
 ```
 
@@ -2905,9 +2979,9 @@ Persisted workflow definitions should remain data.
 
 ```ts
 export interface WorkflowActionDefinition {
-  readonly actionId: string;
-  readonly actionVersion: number;
-  readonly input: Readonly<Record<string, unknown>>;
+  readonly actionId: string
+  readonly actionVersion: number
+  readonly input: Readonly<Record<string, unknown>>
 }
 ```
 
@@ -2929,11 +3003,11 @@ Module manifests should be immutable typed data.
 
 ```ts
 export interface ModuleManifest {
-  readonly id: ModuleId;
-  readonly version: string;
-  readonly name: string;
-  readonly permissions: readonly Permission[];
-  readonly capabilities: readonly ModuleCapabilityDefinition[];
+  readonly id: ModuleId
+  readonly version: string
+  readonly name: string
+  readonly permissions: readonly Permission[]
+  readonly capabilities: readonly ModuleCapabilityDefinition[]
 }
 ```
 
@@ -2946,10 +3020,10 @@ Module implementations receive declared capabilities through typed interfaces.
 AI output begins as `unknown`.
 
 ```ts
-const parsed = AIActionProposalSchema.safeParse(providerResponse.output);
+const parsed = AIActionProposalSchema.safeParse(providerResponse.output)
 
 if (!parsed.success) {
-  return err(createAIOutputSchemaInvalidError());
+  return err(createAIOutputSchemaInvalidError())
 }
 ```
 
@@ -2974,11 +3048,11 @@ AI capabilities should use stable identifiers and explicit contracts.
 
 ```ts
 export interface AICapabilityDefinition<TInput, TOutput> {
-  readonly id: string;
-  readonly inputSchema: z.ZodType<TInput>;
-  readonly outputSchema: z.ZodType<TOutput>;
-  readonly allowedTools: readonly string[];
-  readonly riskLevel: RiskLevel;
+  readonly id: string
+  readonly inputSchema: z.ZodType<TInput>
+  readonly outputSchema: z.ZodType<TOutput>
+  readonly allowedTools: readonly string[]
+  readonly riskLevel: RiskLevel
 }
 ```
 
@@ -2991,17 +3065,25 @@ Avoid unrestricted generic agent interfaces.
 Environment input begins as:
 
 ```ts
-NodeJS.ProcessEnv;
+NodeJS.ProcessEnv
 ```
 
 Treat values as untrusted strings.
 
 ```ts
 export const ApiEnvironmentSchema = z.object({
-  AEREALITH_ENVIRONMENT: z.enum(['local', 'test', 'preview', 'staging', 'production']),
+  AEREALITH_ENVIRONMENT: z.enum([
+    'local',
+    'test',
+    'preview',
+    'staging',
+    'production',
+  ]),
   AEREALITH_DATABASE_URL: z.string().min(1),
-  AEREALITH_AI_ENABLED: z.enum(['true', 'false']).transform((value) => value === 'true'),
-});
+  AEREALITH_AI_ENABLED: z
+    .enum(['true', 'false'])
+    .transform((value) => value === 'true'),
+})
 ```
 
 Application code receives the validated output.
@@ -3013,7 +3095,7 @@ Application code receives the validated output.
 Only configuration-loading modules may access:
 
 ```ts
-process.env;
+process.env
 ```
 
 Feature code receives typed configuration through dependency injection.
@@ -3028,8 +3110,8 @@ Secret values should use narrow wrappers where useful.
 
 ```ts
 export interface SecretValue {
-  readonly reveal: () => string;
-  readonly redacted: '[REDACTED]';
+  readonly reveal: () => string
+  readonly redacted: '[REDACTED]'
 }
 ```
 
@@ -3051,9 +3133,9 @@ They reduce accidental logging and string interpolation.
 Structured logs should use a safe field model.
 
 ```ts
-export type LogFieldValue = string | number | boolean | null | readonly string[];
+export type LogFieldValue = string | number | boolean | null | readonly string[]
 
-export type LogFields = Readonly<Record<string, LogFieldValue>>;
+export type LogFields = Readonly<Record<string, LogFieldValue>>
 ```
 
 Do not accept arbitrary nested objects in ordinary logging APIs.
@@ -3065,7 +3147,13 @@ Do not accept arbitrary nested objects in ordinary logging APIs.
 OpenTelemetry attributes should use supported primitive values.
 
 ```ts
-export type TelemetryAttributeValue = string | number | boolean | readonly string[] | readonly number[] | readonly boolean[];
+export type TelemetryAttributeValue =
+  | string
+  | number
+  | boolean
+  | readonly string[]
+  | readonly number[]
+  | readonly boolean[]
 ```
 
 Do not use private content or unbounded IDs as metric attributes.
@@ -3094,14 +3182,16 @@ mock functions
 Factories should accept explicit partial overrides.
 
 ```ts
-export function createIntegrationConnection(overrides: Partial<IntegrationConnection> = {}): IntegrationConnection {
+export function createIntegrationConnection(
+  overrides: Partial<IntegrationConnection> = {},
+): IntegrationConnection {
   return {
     id: createIntegrationConnectionId('int_test'),
     provider: 'discord',
     status: 'active',
     connectedAt: '2026-07-13T12:00:00.000Z',
     ...overrides,
-  };
+  }
 }
 ```
 
@@ -3115,7 +3205,9 @@ Prefer typed fakes implementing real interfaces.
 
 ```ts
 export class FakeApprovalService implements ApprovalService {
-  public async verify(input: VerifyApprovalInput): Promise<Result<VerifiedApproval, AerealithError>> {
+  public async verify(
+    input: VerifyApprovalInput,
+  ): Promise<Result<VerifiedApproval, AerealithError>> {
     // ...
   }
 }
@@ -3126,7 +3218,7 @@ Avoid broad cast-heavy mocks.
 ```ts
 const service = {
   verify: vi.fn(),
-} as unknown as ApprovalService;
+} as unknown as ApprovalService
 ```
 
 ---
@@ -3136,7 +3228,7 @@ const service = {
 Use typed mock functions.
 
 ```ts
-const publish = vi.fn<EventPublisher['publish']>();
+const publish = vi.fn<EventPublisher['publish']>()
 ```
 
 Reset mocks between tests.
@@ -3151,7 +3243,7 @@ Inject a clock.
 
 ```ts
 export interface Clock {
-  now(): Date;
+  now(): Date
 }
 ```
 
@@ -3160,7 +3252,7 @@ Production:
 ```ts
 export class SystemClock implements Clock {
   public now(): Date {
-    return new Date();
+    return new Date()
   }
 }
 ```
@@ -3172,7 +3264,7 @@ export class FixedClock implements Clock {
   public constructor(private readonly value: Date) {}
 
   public now(): Date {
-    return new Date(this.value);
+    return new Date(this.value)
   }
 }
 ```
@@ -3185,7 +3277,7 @@ Inject ID generators where deterministic tests or idempotency require control.
 
 ```ts
 export interface IdGenerator<TId> {
-  create(): TId;
+  create(): TId
 }
 ```
 
@@ -3231,7 +3323,7 @@ Example:
 ```ts
 declare module 'hono' {
   interface ContextVariableMap {
-    requestContext: RequestContext;
+    requestContext: RequestContext
   }
 }
 ```
@@ -3267,7 +3359,7 @@ Avoid declarations like:
 ```ts
 declare namespace NodeJS {
   interface ProcessEnv {
-    AEREALITH_DATABASE_URL: string;
+    AEREALITH_DATABASE_URL: string
   }
 }
 ```
@@ -3307,7 +3399,7 @@ large development-only tools
 Example:
 
 ```ts
-const adapterModule = await import('./providers/discord.adapter.js');
+const adapterModule = await import('./providers/discord.adapter.js')
 ```
 
 Dynamic imports must not bypass the module registry or capability allowlist.
@@ -3321,16 +3413,18 @@ Optional providers may be loaded lazily.
 The loader should return an Aerealith-owned interface.
 
 ```ts
-export async function loadProviderAdapter(provider: SupportedProvider): Promise<IntegrationProviderAdapter> {
+export async function loadProviderAdapter(
+  provider: SupportedProvider,
+): Promise<IntegrationProviderAdapter> {
   switch (provider) {
     case 'discord':
-      return createDiscordProviderAdapter(await import('./discord/index.js'));
+      return createDiscordProviderAdapter(await import('./discord/index.js'))
     case 'github':
-      return createGitHubProviderAdapter(await import('./github/index.js'));
+      return createGitHubProviderAdapter(await import('./github/index.js'))
     case 'google':
-      return createGoogleProviderAdapter(await import('./google/index.js'));
+      return createGoogleProviderAdapter(await import('./google/index.js'))
     default:
-      return assertNever(provider);
+      return assertNever(provider)
   }
 }
 ```
@@ -3454,7 +3548,7 @@ Use JSDoc deprecation.
 /**
  * @deprecated Use `IntegrationConnectionStatus` instead.
  */
-export type ProviderConnectionState = IntegrationConnectionStatus;
+export type ProviderConnectionState = IntegrationConnectionStatus
 ```
 
 A deprecated type should include:
@@ -3477,8 +3571,8 @@ Document non-obvious public types.
  * approved by a human approver.
  */
 export type ApprovalFingerprint = string & {
-  readonly __brand: 'ApprovalFingerprint';
-};
+  readonly __brand: 'ApprovalFingerprint'
+}
 ```
 
 Do not document obvious properties with repetitive comments.
@@ -3635,7 +3729,12 @@ Avoid ordinary strings where mixing values could create authorization mistakes.
 Example:
 
 ```ts
-export type Permission = 'module.enable' | 'module.disable' | 'integration.disconnect' | 'workflow.execute' | 'moderation.timeout';
+export type Permission =
+  | 'module.enable'
+  | 'module.disable'
+  | 'integration.disconnect'
+  | 'workflow.execute'
+  | 'moderation.timeout'
 ```
 
 ---
@@ -3650,9 +3749,9 @@ export const Permissions = {
   ModuleDisable: 'module.disable',
   IntegrationDisconnect: 'integration.disconnect',
   WorkflowExecute: 'workflow.execute',
-} as const;
+} as const
 
-export type Permission = (typeof Permissions)[keyof typeof Permissions];
+export type Permission = (typeof Permissions)[keyof typeof Permissions]
 ```
 
 Unknown permissions must fail runtime validation.
@@ -3666,21 +3765,21 @@ Authorization scope should use a discriminated union.
 ```ts
 export type AuthorizationScope =
   | {
-      readonly type: 'user';
-      readonly userId: UserId;
+      readonly type: 'user'
+      readonly userId: UserId
     }
   | {
-      readonly type: 'account';
-      readonly accountId: AccountId;
+      readonly type: 'account'
+      readonly accountId: AccountId
     }
   | {
-      readonly type: 'organization';
-      readonly organizationId: OrganizationId;
+      readonly type: 'organization'
+      readonly organizationId: OrganizationId
     }
   | {
-      readonly type: 'community';
-      readonly communityId: CommunityId;
-    };
+      readonly type: 'community'
+      readonly communityId: CommunityId
+    }
 ```
 
 Avoid generic structures with unrelated optional IDs.
@@ -3692,13 +3791,14 @@ Avoid generic structures with unrelated optional IDs.
 Approval state should remain explicit.
 
 ```ts
-export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'expired' | 'revoked' | 'consumed';
+export type ApprovalStatus =
+  'pending' | 'approved' | 'rejected' | 'expired' | 'revoked' | 'consumed'
 ```
 
 A boolean such as:
 
 ```ts
-approved: boolean;
+approved: boolean
 ```
 
 cannot represent the full lifecycle.
@@ -3711,8 +3811,8 @@ Credentials should never use the same type as public identifiers.
 
 ```ts
 export interface ProviderCredentialReference {
-  readonly connectionId: IntegrationConnectionId;
-  readonly secretReference: SecretReference;
+  readonly connectionId: IntegrationConnectionId
+  readonly secretReference: SecretReference
 }
 ```
 
@@ -3726,12 +3826,12 @@ Use distinct branded types.
 
 ```ts
 export type ActionFingerprint = string & {
-  readonly __brand: 'ActionFingerprint';
-};
+  readonly __brand: 'ActionFingerprint'
+}
 
 export type ContentHash = string & {
-  readonly __brand: 'ContentHash';
-};
+  readonly __brand: 'ContentHash'
+}
 ```
 
 This prevents accidentally using a content hash as an approval fingerprint.
@@ -3765,14 +3865,14 @@ Map them into explicit serializable contracts.
 A shared JSON type may be used.
 
 ```ts
-export type JsonPrimitive = string | number | boolean | null;
+export type JsonPrimitive = string | number | boolean | null
 
 export type JsonValue =
   | JsonPrimitive
   | readonly JsonValue[]
   | {
-      readonly [key: string]: JsonValue;
-    };
+      readonly [key: string]: JsonValue
+    }
 ```
 
 Do not use `JsonValue` as a substitute for a real contract where the structure is known.
@@ -3811,7 +3911,7 @@ export function toErrorResponse(error: AerealithError): ApiErrorResponse {
       traceId: error.traceId,
       details: error.details ?? null,
     },
-  };
+  }
 }
 ```
 
@@ -3822,7 +3922,13 @@ Do not serialize an `Error` object directly.
 ## Configuration Validation Example
 
 ```ts
-const EnvironmentSchema = z.enum(['local', 'test', 'preview', 'staging', 'production']);
+const EnvironmentSchema = z.enum([
+  'local',
+  'test',
+  'preview',
+  'staging',
+  'production',
+])
 
 const ApiConfigSchema = z.object({
   environment: EnvironmentSchema,
@@ -3830,9 +3936,9 @@ const ApiConfigSchema = z.object({
   databaseDialect: z.enum(['postgresql', 'cockroachdb']),
   aiEnabled: z.boolean(),
   logLevel: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']),
-});
+})
 
-export type ApiConfig = z.infer<typeof ApiConfigSchema>;
+export type ApiConfig = z.infer<typeof ApiConfigSchema>
 
 export function loadApiConfig(environment: NodeJS.ProcessEnv): ApiConfig {
   return ApiConfigSchema.parse({
@@ -3841,7 +3947,7 @@ export function loadApiConfig(environment: NodeJS.ProcessEnv): ApiConfig {
     databaseDialect: environment.AEREALITH_DATABASE_DIALECT,
     aiEnabled: environment.AEREALITH_AI_ENABLED === 'true',
     logLevel: environment.AEREALITH_LOG_LEVEL ?? 'info',
-  });
+  })
 }
 ```
 
@@ -3861,14 +3967,19 @@ export class DisableModuleService {
     private readonly clock: Clock,
   ) {}
 
-  public async execute(input: DisableModuleInput, context: RequestContext): Promise<Result<ModuleInstallation, AerealithError>> {
-    const installationResult = await this.moduleRepository.findInstallationById(input.installationId);
+  public async execute(
+    input: DisableModuleInput,
+    context: RequestContext,
+  ): Promise<Result<ModuleInstallation, AerealithError>> {
+    const installationResult = await this.moduleRepository.findInstallationById(
+      input.installationId,
+    )
 
     if (!installationResult.ok) {
-      return installationResult;
+      return installationResult
     }
 
-    const installation = installationResult.value;
+    const installation = installationResult.value
 
     if (!installation) {
       return err(
@@ -3880,17 +3991,17 @@ export class DisableModuleService {
           requestId: context.requestId,
           traceId: context.traceId,
         }),
-      );
+      )
     }
 
     const authorization = await this.authorizationService.authorize({
       actor: context.actor,
       permission: 'module.disable',
       scope: installation.scope,
-    });
+    })
 
     if (!authorization.ok) {
-      return authorization;
+      return authorization
     }
 
     const approval = await this.approvalService.verify({
@@ -3903,22 +4014,23 @@ export class DisableModuleService {
       },
       scope: installation.scope,
       fingerprint: createDisableModuleFingerprint(input),
-    });
+    })
 
     if (!approval.ok) {
-      return approval;
+      return approval
     }
 
     const disabledInstallation: ModuleInstallation = {
       ...installation,
       status: 'disabled',
       disabledAt: this.clock.now().toISOString(),
-    };
+    }
 
-    const persistenceResult = await this.moduleRepository.updateInstallation(disabledInstallation);
+    const persistenceResult =
+      await this.moduleRepository.updateInstallation(disabledInstallation)
 
     if (!persistenceResult.ok) {
-      return persistenceResult;
+      return persistenceResult
     }
 
     const publicationResult = await this.eventPublisher.publish({
@@ -3940,13 +4052,13 @@ export class DisableModuleService {
         moduleId: installation.moduleId,
         moduleVersion: installation.version,
       },
-    });
+    })
 
     if (!publicationResult.ok) {
-      return publicationResult;
+      return publicationResult
     }
 
-    return ok(persistenceResult.value);
+    return ok(persistenceResult.value)
   }
 }
 ```
@@ -4041,7 +4153,7 @@ Example:
 
 ```ts
 // @ts-expect-error Testing rejection of an invalid provider status.
-mapProviderStatus('not-a-real-status');
+mapProviderStatus('not-a-real-status')
 ```
 
 The compiler will fail when the expected error disappears.
@@ -4070,7 +4182,7 @@ Good:
 
 ```ts
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Upstream callback is untyped; validated below.
-const providerPayload: any = callbackValue;
+const providerPayload: any = callbackValue
 ```
 
 Avoid file-wide disabling unless the file is generated or an approved compatibility boundary.
@@ -4109,7 +4221,7 @@ invalid provider capability registration
 Example direction:
 
 ```ts
-expectTypeOf<UserId>().not.toEqualTypeOf<AccountId>();
+expectTypeOf<UserId>().not.toEqualTypeOf<AccountId>()
 ```
 
 Compile-time tests supplement runtime tests.

@@ -331,19 +331,19 @@ Example:
 ```ts
 describe('WorkflowRetryPolicy', () => {
   it('does not retry an authorization failure', () => {
-    const policy = createWorkflowRetryPolicy();
+    const policy = createWorkflowRetryPolicy()
 
     const decision = policy.evaluate({
       attempt: 1,
       errorCode: 'WORKFLOW_PERMISSION_MISSING',
-    });
+    })
 
     expect(decision).toEqual({
       retry: false,
       reason: 'non-retryable-error',
-    });
-  });
-});
+    })
+  })
+})
 ```
 
 ---
@@ -416,11 +416,11 @@ describe('AerealithEventSchema', () => {
       eventVersion: 1,
       occurredAt: '2026-07-13T12:00:00.000Z',
       payload: {},
-    });
+    })
 
-    expect(result.success).toBe(false);
-  });
-});
+    expect(result.success).toBe(false)
+  })
+})
 ```
 
 ---
@@ -478,22 +478,22 @@ describe('AuditRecordRepository', () => {
       createAuditRecord({
         eventId: 'evt_duplicate',
       }),
-    );
+    )
 
     const second = await repository.insert(
       createAuditRecord({
         eventId: 'evt_duplicate',
       }),
-    );
+    )
 
-    expect(first.ok).toBe(true);
-    expect(second.ok).toBe(true);
+    expect(first.ok).toBe(true)
+    expect(second.ok).toBe(true)
 
     if (first.ok && second.ok) {
-      expect(second.value.id).toBe(first.value.id);
+      expect(second.value.id).toBe(first.value.id)
     }
-  });
-});
+  })
+})
 ```
 
 ---
@@ -715,7 +715,7 @@ no secret data
 Example:
 
 ```ts
-expect(response.status).toBe(403);
+expect(response.status).toBe(403)
 
 expect(await response.json()).toMatchObject({
   success: false,
@@ -723,7 +723,7 @@ expect(await response.json()).toMatchObject({
     code: 'MODULE_PERMISSION_MISSING',
     retryable: false,
   },
-});
+})
 ```
 
 ---
@@ -839,13 +839,13 @@ it('rejects approval after the action payload changes', async () => {
       connectionId: 'int_1',
       reason: 'user-requested',
     }),
-  });
+  })
 
   const result = await service.execute({
     connectionId: 'int_1',
     reason: 'security-incident',
     approvalId: approval.id,
-  });
+  })
 
   expect(result).toEqual(
     err(
@@ -853,8 +853,8 @@ it('rejects approval after the action payload changes', async () => {
         code: 'APPROVAL_FINGERPRINT_MISMATCH',
       }),
     ),
-  );
-});
+  )
+})
 ```
 
 ---
@@ -1475,15 +1475,15 @@ Use test IDs only when no stable accessible selector exists.
 Preferred testing style:
 
 ```tsx
-render(<ApprovalCard proposal={proposal} onApprove={handleApprove} />);
+render(<ApprovalCard proposal={proposal} onApprove={handleApprove} />)
 
 await user.click(
   screen.getByRole('button', {
     name: 'Approve action',
   }),
-);
+)
 
-expect(handleApprove).toHaveBeenCalledTimes(1);
+expect(handleApprove).toHaveBeenCalledTimes(1)
 ```
 
 Avoid testing internal component state.
@@ -2003,7 +2003,9 @@ Factories should create valid defaults.
 Example:
 
 ```ts
-export function createWorkflowRun(overrides: Partial<WorkflowRun> = {}): WorkflowRun {
+export function createWorkflowRun(
+  overrides: Partial<WorkflowRun> = {},
+): WorkflowRun {
   return {
     id: 'run_test',
     workflowId: 'wfl_test',
@@ -2011,7 +2013,7 @@ export function createWorkflowRun(overrides: Partial<WorkflowRun> = {}): Workflo
     status: 'pending',
     createdAt: '2026-07-13T12:00:00.000Z',
     ...overrides,
-  };
+  }
 }
 ```
 
@@ -2082,7 +2084,7 @@ Tests should use injected clocks.
 Example:
 
 ```ts
-const clock = new FixedClock('2026-07-13T12:00:00.000Z');
+const clock = new FixedClock('2026-07-13T12:00:00.000Z')
 ```
 
 Avoid:
@@ -2112,7 +2114,7 @@ timeouts
 Tests should inject deterministic ID generators.
 
 ```ts
-const idGenerator = new SequenceIdGenerator(['evt_1', 'aud_1', 'ntf_1']);
+const idGenerator = new SequenceIdGenerator(['evt_1', 'aud_1', 'ntf_1'])
 ```
 
 This produces clearer assertions than random UUID matching.
@@ -2250,7 +2252,7 @@ They should not redefine fundamental behavior independently.
 Recommended baseline:
 
 ```ts
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   test: {
@@ -2270,7 +2272,7 @@ export default defineConfig({
       },
     },
   },
-});
+})
 ```
 
 Exact configuration should be centralized.
@@ -3108,9 +3110,11 @@ Example:
 
 ```ts
 export class FakeNotificationChannelAdapter implements NotificationChannelAdapter {
-  public readonly channel = 'email' as const;
+  public readonly channel = 'email' as const
 
-  public async deliver(request: NotificationDeliveryRequest): Promise<Result<NotificationDeliveryResult, AerealithError>> {
+  public async deliver(
+    request: NotificationDeliveryRequest,
+  ): Promise<Result<NotificationDeliveryResult, AerealithError>> {
     // Deterministic behavior controlled by the test.
   }
 }
@@ -3125,9 +3129,9 @@ Shared test tooling should support named failures.
 Example:
 
 ```ts
-fakeDiscordAdapter.setScenario('role-hierarchy-blocked');
-fakeAiProvider.setScenario('invalid-structured-output');
-fakeEmailAdapter.setScenario('bounce');
+fakeDiscordAdapter.setScenario('role-hierarchy-blocked')
+fakeAiProvider.setScenario('invalid-structured-output')
+fakeEmailAdapter.setScenario('bounce')
 ```
 
 Named scenarios are clearer than scattered boolean flags.

@@ -888,7 +888,7 @@ libs/observability/src/config/
 Avoid scattered code such as:
 
 ```ts
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = process.env.DATABASE_URL
 ```
 
 Instead, use a validated object.
@@ -900,7 +900,7 @@ export const ApiConfigSchema = z.object({
   databaseUrl: z.string().min(1),
   databaseDialect: z.enum(['postgresql', 'cockroachdb']),
   aiEnabled: z.coerce.boolean(),
-});
+})
 ```
 
 Invalid configuration should stop startup with an actionable error.

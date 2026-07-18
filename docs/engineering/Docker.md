@@ -1744,12 +1744,12 @@ The process should force exit only after logging the safe timeout condition.
 Example direction:
 
 ```ts
-const shutdownSignals = ['SIGTERM', 'SIGINT'] as const;
+const shutdownSignals = ['SIGTERM', 'SIGINT'] as const
 
 for (const signal of shutdownSignals) {
   process.once(signal, () => {
-    void runtime.shutdown(signal);
-  });
+    void runtime.shutdown(signal)
+  })
 }
 ```
 

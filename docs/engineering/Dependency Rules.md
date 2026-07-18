@@ -527,7 +527,10 @@ Example:
 
 ```ts
 export interface WorkflowActionExecutor {
-  execute(input: WorkflowActionRequest, context: WorkflowExecutionContext): Promise<Result<WorkflowActionResult, AerealithError>>;
+  execute(
+    input: WorkflowActionRequest,
+    context: WorkflowExecutionContext,
+  ): Promise<Result<WorkflowActionResult, AerealithError>>
 }
 ```
 
@@ -535,7 +538,10 @@ Provider-specific implementation:
 
 ```ts
 export class DiscordWorkflowActionAdapter implements WorkflowActionExecutor {
-  public async execute(input: WorkflowActionRequest, context: WorkflowExecutionContext): Promise<Result<WorkflowActionResult, AerealithError>> {
+  public async execute(
+    input: WorkflowActionRequest,
+    context: WorkflowExecutionContext,
+  ): Promise<Result<WorkflowActionResult, AerealithError>> {
     // Map the provider-neutral request to Discord.
   }
 }
@@ -684,7 +690,12 @@ Example:
 
 ```json
 {
-  "tags": ["type:library", "scope:workflow", "runtime:neutral", "visibility:internal"]
+  "tags": [
+    "type:library",
+    "scope:workflow",
+    "runtime:neutral",
+    "visibility:internal"
+  ]
 }
 ```
 
@@ -1053,7 +1064,7 @@ Database row types remain inside `libs/db`.
 Invalid:
 
 ```ts
-import type { WorkflowRunRow } from '@aerealith/db';
+import type { WorkflowRunRow } from '@aerealith/db'
 ```
 
 inside:
@@ -1070,7 +1081,7 @@ notification
 Correct:
 
 ```ts
-import type { WorkflowRun } from '@aerealith/core/workflows';
+import type { WorkflowRun } from '@aerealith/core/workflows'
 ```
 
 The data layer maps:
@@ -1623,22 +1634,24 @@ optional self-hosting adapter
 Optional provider adapters should use controlled dynamic imports.
 
 ```ts
-export async function loadProviderAdapter(provider: SupportedProvider): Promise<IntegrationProviderAdapter> {
+export async function loadProviderAdapter(
+  provider: SupportedProvider,
+): Promise<IntegrationProviderAdapter> {
   switch (provider) {
     case 'discord': {
-      const module = await import('@aerealith/integration-discord');
+      const module = await import('@aerealith/integration-discord')
 
-      return module.createDiscordIntegrationAdapter();
+      return module.createDiscordIntegrationAdapter()
     }
 
     case 'github': {
-      const module = await import('@aerealith/integration-github');
+      const module = await import('@aerealith/integration-github')
 
-      return module.createGitHubIntegrationAdapter();
+      return module.createGitHubIntegrationAdapter()
     }
 
     default:
-      return assertNever(provider);
+      return assertNever(provider)
   }
 }
 ```
@@ -1670,7 +1683,7 @@ Dynamic imports are not appropriate for hiding invalid dependency cycles.
 Avoid:
 
 ```ts
-const dependency = await import('../invalid-cross-boundary/internal-file.js');
+const dependency = await import('../invalid-cross-boundary/internal-file.js')
 ```
 
 merely to avoid static graph detection.
@@ -1719,15 +1732,15 @@ These actions belong in explicit startup methods.
 Good:
 
 ```ts
-const runtime = createDiscordRuntime(config);
+const runtime = createDiscordRuntime(config)
 
-await runtime.start();
+await runtime.start()
 ```
 
 Bad:
 
 ```ts
-import '@aerealith/integration-discord';
+import '@aerealith/integration-discord'
 // Gateway connects during import.
 ```
 
@@ -1740,13 +1753,13 @@ Cross-project imports must use intentional public entry points.
 Good:
 
 ```ts
-import type { WorkflowDefinition } from '@aerealith/contracts/workflows';
+import type { WorkflowDefinition } from '@aerealith/contracts/workflows'
 ```
 
 Bad:
 
 ```ts
-import type { WorkflowDefinition } from '../../../../../libs/contracts/src/workflows/internal/types';
+import type { WorkflowDefinition } from '../../../../../libs/contracts/src/workflows/internal/types'
 ```
 
 Public entry points define compatibility boundaries.
@@ -1889,7 +1902,7 @@ Type-only imports still count as architecture dependencies.
 Invalid:
 
 ```ts
-import type { DiscordGuild } from 'discord.js';
+import type { DiscordGuild } from 'discord.js'
 ```
 
 inside a runtime-neutral workflow package.
@@ -1918,7 +1931,7 @@ export class ExecuteWorkflowService {
 Avoid hidden dependency acquisition.
 
 ```ts
-const repository = GlobalContainer.resolve('workflowRepository');
+const repository = GlobalContainer.resolve('workflowRepository')
 ```
 
 ---
@@ -3226,7 +3239,12 @@ Example:
 
 ```json
 {
-  "scope:frontend": ["scope:contracts", "scope:ui", "scope:flags", "scope:content"],
+  "scope:frontend": [
+    "scope:contracts",
+    "scope:ui",
+    "scope:flags",
+    "scope:content"
+  ],
   "scope:workflow": ["scope:contracts", "scope:core"],
   "scope:data": ["scope:contracts", "scope:core"]
 }

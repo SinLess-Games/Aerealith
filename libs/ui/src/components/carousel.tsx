@@ -161,7 +161,7 @@ export function Carousel({
       <div
         aria-labelledby={titleId}
         aria-live={autoScroll ? 'off' : 'polite'}
-        className='w-full'
+        className='h-full w-full'
         data-slot='carousel-item'
         role='group'
       >

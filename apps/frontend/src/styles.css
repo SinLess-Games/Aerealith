@@ -1,1 +1,18 @@
-/* You can add global styles to this file, and also import other style files */
+/*
+ * Frontend stylesheet entry.
+ *
+ * Order matters: Tailwind first (utilities the `@aerealith-ai/ui` components
+ * rely on via `cva`), then the Aerealith design system (raw palette, light/dark
+ * themes keyed on `[data-theme]`, fonts, typography, global baseline,
+ * utilities, accessibility).
+ */
+
+@import 'tailwindcss';
+@import '../../../libs/ui/src/styles/index.css';
+
+/*
+ * Generate the utility classes used by the shared UI library. Tailwind v4 only
+ * auto-scans files near this stylesheet, so the library source is added
+ * explicitly — otherwise `@aerealith-ai/ui` components render unstyled.
+ */
+@source '../../../libs/ui/src';

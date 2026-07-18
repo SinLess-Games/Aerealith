@@ -520,7 +520,12 @@ Example `project.json`:
   "name": "lib-core",
   "projectType": "library",
   "sourceRoot": "libs/core/src",
-  "tags": ["type:library", "scope:core", "runtime:neutral", "visibility:internal"],
+  "tags": [
+    "type:library",
+    "scope:core",
+    "runtime:neutral",
+    "visibility:internal"
+  ],
   "targets": {
     "lint": {},
     "typecheck": {},
@@ -1331,13 +1336,13 @@ Private source-path imports are prohibited.
 Bad:
 
 ```ts
-import { mapAuditRow } from '@aerealith/db/src/audit/internal/map-audit-row';
+import { mapAuditRow } from '@aerealith/db/src/audit/internal/map-audit-row'
 ```
 
 Good:
 
 ```ts
-import type { AuditRecordRepository } from '@aerealith/db/audit';
+import type { AuditRecordRepository } from '@aerealith/db/audit'
 ```
 
 Private imports create:
@@ -1357,7 +1362,7 @@ declaration leakage
 Relative imports are preferred inside one project when paths remain clear.
 
 ```ts
-import { createWorkflowFingerprint } from './create-workflow-fingerprint.js';
+import { createWorkflowFingerprint } from './create-workflow-fingerprint.js'
 ```
 
 Cross-project imports must use workspace package names or approved path aliases.
@@ -1365,7 +1370,7 @@ Cross-project imports must use workspace package names or approved path aliases.
 Avoid deep relative paths across project roots.
 
 ```ts
-import { something } from '../../../../libs/core/src/something';
+import { something } from '../../../../libs/core/src/something'
 ```
 
 This bypasses package ownership and Nx boundaries.
@@ -1482,7 +1487,14 @@ Example direction:
 ```json
 {
   "sourceTag": "scope:frontend",
-  "onlyDependOnLibsWithTags": ["scope:contracts", "scope:ui", "scope:flags", "scope:content", "runtime:browser", "runtime:neutral"]
+  "onlyDependOnLibsWithTags": [
+    "scope:contracts",
+    "scope:ui",
+    "scope:flags",
+    "scope:content",
+    "runtime:browser",
+    "runtime:neutral"
+  ]
 }
 ```
 
@@ -2367,7 +2379,9 @@ The workflow project should own:
 
 ```ts
 export interface WorkflowActionExecutor {
-  execute(request: WorkflowActionRequest): Promise<Result<WorkflowActionResult, AerealithError>>;
+  execute(
+    request: WorkflowActionRequest,
+  ): Promise<Result<WorkflowActionResult, AerealithError>>
 }
 ```
 
@@ -2384,7 +2398,7 @@ Global service locators are prohibited.
 Avoid:
 
 ```ts
-const service = container.get('notification-service');
+const service = container.get('notification-service')
 ```
 
 inside arbitrary domain code.
@@ -2468,7 +2482,7 @@ Feature libraries should receive typed configuration.
 They should not access:
 
 ```ts
-process.env;
+process.env
 ```
 
 directly.

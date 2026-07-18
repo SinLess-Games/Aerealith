@@ -1,30 +1,70 @@
-# Service worker pattern
+# Services
 
-Use this directory for Cloudflare Workers that are deployed independently from the frontend.
+Status: Active
+Owner: Platform Engineering
+Last Updated: 2026-07-15
+Document Type: Application Pattern
+Runtime: Hono-based Cloudflare-compatible services and workers
 
-## Recommended structure
+## Purpose
 
-Each service should live in its own folder under this directory, for example:
+Use this directory for independently deployed platform services, workers,
+scheduled jobs, and HTTP entry points.
 
-- apps/services/auth
-- apps/services/email
-- apps/services/payments
+A directory existing under `apps/services/` does not automatically mean a
+production service is implemented.
 
-Each service should include:
+## Generate a Service
 
-- a Wrangler config at apps/services/<service>/wrangler.toml
-- a Worker entrypoint at apps/services/<service>/src/worker.ts
-
-## Quick start
-
-Create a new service from the shared template:
-
-```bash
-pnpm services:new <service-name>
-```
-
-Then customize the generated Worker and bindings, and deploy it with:
+Use the workspace generator:
 
 ```bash
-pnpm exec wrangler deploy --config apps/services/<service-name>/wrangler.toml
+pnpm nx g @aerealith-ai/service-generator:service <service-name>
 ```
+
+Inspect generator options before use:
+
+```bash
+pnpm nx g @aerealith-ai/service-generator:service --help
+```
+
+Do not use the undocumented `pnpm services:new` command.
+
+## Required Service Structure
+
+A generated and accepted service must include:
+
+```text
+apps/services/<service-name>/
+├── src/
+├── project.json
+├── tsconfig.json
+├── wrangler.toml              when Cloudflare-deployed
+├── Dockerfile                 when independently deployable
+└── README.md
+```
+
+## Service Contract
+
+Every service must document:
+
+- Purpose and owner.
+- Runtime and deployment model.
+- Public routes, events, and contracts.
+- Allowed dependencies.
+- Data ownership.
+- Configuration and secrets.
+- Health, readiness, and graceful shutdown.
+- Retry, timeout, idempotency, and failure behavior.
+- Logging, metrics, traces, request IDs, and trace IDs.
+- Development, testing, build, and deployment commands.
+- Rollback behavior.
+
+## Boundaries
+
+- Services compose application behavior.
+- Domain and reusable behavior belong in libraries.
+- Provider SDKs remain inside provider adapters.
+- Services do not import another service's internal source.
+- External input is validated before use.
+- Meaningful actions follow permission, risk, approval, and audit rules.
