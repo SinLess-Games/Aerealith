@@ -123,12 +123,23 @@ jobs:
           if [[ "$from" == "$zero_sha" || -z "$from" ]]; then
             initial_push='true'
             from="$(git rev-list --max-parents=0 "$to" | tail -n 1)"
-          else
-            git cat-file -e "${from}^{commit}"
+          elif ! git cat-file -e "${from}^{commit}" 2>/dev/null; then
+            echo "::notice::The push's previous SHA is unavailable after a history rewrite; validating from the target commit's parent."
+            from="$(git rev-parse "${to}^" 2>/dev/null || printf '%s' "$to")"
+          elif ! git merge-base --is-ancestor "$from" "$to"; then
+            merge_base="$(git merge-base "$from" "$to" || true)"
 
-            if ! git merge-base --is-ancestor "$from" "$to"; then
-              from="$(git merge-base "$from" "$to")"
+            if [[ -n "$merge_base" ]]; then
+              from="$merge_base"
+            else
+              echo '::notice::The push histories have no merge base; validating from the target commit parent.'
+              from="$(git rev-parse "${to}^" 2>/dev/null || printf '%s' "$to")"
             fi
+          fi
+
+          if [[ "$from" == "$to" ]]; then
+            initial_push='true'
+            from="$(git rev-list --max-parents=0 "$to" | tail -n 1)"
           fi
 
           if [[ -z "$from" ]]; then
