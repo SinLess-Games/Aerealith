@@ -3,6 +3,7 @@
 # Dependencies
 node_modules/
 **/node_modules/
+.github/renovate.json5
 
 # Package-manager and workspace caches
 .pnpm-store/
