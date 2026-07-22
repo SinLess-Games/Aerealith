@@ -1,7 +1,7 @@
 {
   "name": "@aerealith-ai/source",
   "version": "0.0.0",
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "private": true,
   "engines": {
     "node": "26.5.0",
@@ -12,6 +12,7 @@
   },
   "scripts": {
     "prepare": "husky",
+    "license:check": "node tools/scripts/check-licenses.mjs",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "lint": "pnpm lint:code && pnpm lint:md",

@@ -133,6 +133,7 @@
     "package.json": "pnpm-lock.yaml, pnpm-workspace.yaml, .node-version, nx.json, project.json",
     ".gitignore": ".dockerignore, .env, .gitattributes, .gitleaksignore, .prettierignore, .snyk",
     "trivy.yaml": ".trivyignore.yaml",
+    "LICENSE": "LICENSE-POLICY.md, CLA.md, COMMERCIAL-LICENSE.md, TRADEMARKS.md, NOTICE",
     "README.md": "notes.md, AGENTS.md, CLAUDE.md, DEVELOPMENT_PLAN.md, SECURITY.md, CONTRIBUTING.md",
     "project.json": "tsconfig.json, tsconfig.app.json, tsconfig.lib.json, tsconfig.spec.json, vite.config.ts, vitest.config.ts",
     "*.ts": "${capture}.d.ts, ${capture}.spec.ts, ${capture}.test.ts",
