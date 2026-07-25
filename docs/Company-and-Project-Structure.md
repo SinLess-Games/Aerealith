@@ -1,7 +1,7 @@
 # Company and Project Structure
 
 Status: Active
-Owner: SinLess Games LLC
+Owner: SinLess Industries LLC
 Last Updated: 2026-07-18
 Document Type: Organization and Naming Standard
 Authority: Canonical company, product, and public-naming relationship

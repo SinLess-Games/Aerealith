@@ -2,7 +2,7 @@
 
 Status: Active
 Owner: SinLess Games LLC
-Last Updated: 2026-07-18
+Last Updated: 2026-07-23
 Document Type: Engineering Reference
 Authority: Canonical for approved technology choices
 
@@ -68,50 +68,50 @@ alone means installed, not implemented.
 
 ## Stack Summary
 
-| Area                  | Technology                 | Status      | Primary Role                          |
-| --------------------- | -------------------------- | ----------- | ------------------------------------- |
-| Runtime               | Node.js                    | Implemented | JavaScript and TypeScript runtime     |
-| Language              | TypeScript                 | Implemented | Primary application language          |
-| Package manager       | pnpm                       | Implemented | Workspace dependency management       |
-| Monorepo              | Nx                         | Implemented | Project graph and task orchestration  |
-| Frontend              | React                      | Implemented | User-interface framework              |
-| Build tooling         | Vite                       | Implemented | Development and production builds     |
-| Routing               | React Router               | Implemented | Client-side routing                   |
-| Styling               | Tailwind CSS               | Implemented | Utility-first styling                 |
-| UI primitives         | Base UI                    | Implemented | Accessible unstyled components        |
-| Server state          | TanStack Query             | Implemented | Fetching, caching, and mutations      |
-| API framework         | Hono                       | Implemented | Lightweight and edge-compatible APIs  |
-| Structured backend    | NestJS                     | Adopted     | Larger modular backend services       |
-| Typed API             | tRPC                       | Installed   | Internal end-to-end typed APIs        |
-| Validation            | Zod                        | Implemented | Runtime schema validation             |
-| GraphQL               | GraphQL Yoga               | Optional    | GraphQL APIs where justified          |
-| ORM                   | Drizzle ORM                | Implemented | Typed SQL and schema management       |
-| Database              | PostgreSQL                 | Implemented | Default relational database           |
-| Distributed SQL       | CockroachDB                | Planned     | Scalable PostgreSQL-compatible option |
-| Email                 | Resend                     | Installed   | Transactional email                   |
-| Media                 | Cloudinary                 | Adopted     | Managed media storage and delivery    |
-| Frontend telemetry    | Grafana Faro               | Installed   | Browser telemetry and monitoring      |
-| Managed observability | Datadog                    | Adopted     | Logs, metrics, traces, and alerts     |
-| Logging               | Pino                       | Installed   | Structured application logs           |
-| Unit testing          | Vitest                     | Implemented | Unit and integration tests            |
-| Browser testing       | Playwright                 | Implemented | End-to-end browser tests              |
-| Accessibility         | axe-core                   | Implemented | Automated accessibility checks        |
-| Visual testing        | Meticulous AI              | Adopted     | Visual regression testing             |
-| Coverage              | Codecov                    | Implemented | Coverage reporting                    |
-| Formatting            | Prettier                   | Implemented | Source formatting                     |
-| Linting               | ESLint                     | Implemented | Static analysis                       |
-| Markdown linting      | markdownlint-cli2          | Implemented | Markdown validation                   |
-| Git hooks             | Husky                      | Implemented | Local workflow enforcement            |
-| Security              | Snyk                       | Adopted     | Dependency and code analysis          |
-| Security              | Semgrep                    | Adopted     | Static security rules                 |
-| Dependencies          | Renovate                   | Adopted     | Scheduled dependency maintenance      |
-| Dependencies          | Dependabot                 | Adopted     | GitHub-native security updates        |
-| Deployment            | Cloudflare                 | Implemented | Edge runtime and hosting              |
-| Containers            | Docker                     | Adopted     | Portable service packaging            |
-| Documentation         | Markdown + Mermaid         | Implemented | Docs as code and diagrams             |
-| Documentation UI      | Fumadocs                   | Installed   | Structured documentation rendering    |
-| Platform integration  | Discord                    | Adopted     | First production integration          |
-| AI                    | Provider-agnostic AI layer | Planned     | Assistant and automation enhancement  |
+| Area                  | Technology                 | Status      | Primary Role                              |
+| --------------------- | -------------------------- | ----------- | ----------------------------------------- |
+| Runtime               | Node.js                    | Implemented | JavaScript and TypeScript runtime         |
+| Language              | TypeScript                 | Implemented | Primary application language              |
+| Package manager       | pnpm                       | Implemented | Workspace dependency management           |
+| Monorepo              | Nx                         | Implemented | Project graph and task orchestration      |
+| Frontend              | React                      | Implemented | User-interface framework                  |
+| Build tooling         | Vite                       | Implemented | Development and production builds         |
+| Routing               | React Router               | Implemented | Client-side routing                       |
+| Styling               | Tailwind CSS               | Implemented | Utility-first styling                     |
+| UI primitives         | Base UI                    | Implemented | Accessible unstyled components            |
+| Server state          | TanStack Query             | Implemented | Fetching, caching, and mutations          |
+| API framework         | Hono                       | Installed   | Planned lightweight, edge-compatible APIs |
+| Structured backend    | NestJS                     | Adopted     | Larger modular backend services           |
+| Typed API             | tRPC                       | Installed   | Internal end-to-end typed APIs            |
+| Validation            | Zod                        | Implemented | Runtime schema validation                 |
+| GraphQL               | GraphQL Yoga               | Optional    | GraphQL APIs where justified              |
+| ORM                   | Drizzle ORM                | Implemented | Typed SQL and schema management           |
+| Database              | PostgreSQL                 | Implemented | Default relational database               |
+| Distributed SQL       | CockroachDB                | Planned     | Scalable PostgreSQL-compatible option     |
+| Email                 | Resend                     | Installed   | Transactional email                       |
+| Media                 | Cloudinary                 | Adopted     | Managed media storage and delivery        |
+| Frontend telemetry    | Grafana Faro               | Installed   | Browser telemetry and monitoring          |
+| Managed observability | Datadog                    | Adopted     | Logs, metrics, traces, and alerts         |
+| Logging               | Pino                       | Installed   | Structured application logs               |
+| Unit testing          | Vitest                     | Implemented | Unit and integration tests                |
+| Browser testing       | Playwright                 | Implemented | End-to-end browser tests                  |
+| Accessibility         | axe-core                   | Implemented | Automated accessibility checks            |
+| Visual testing        | Meticulous AI              | Adopted     | Visual regression testing                 |
+| Coverage              | Codecov                    | Implemented | Coverage reporting                        |
+| Formatting            | Prettier                   | Implemented | Source formatting                         |
+| Linting               | ESLint                     | Implemented | Static analysis                           |
+| Markdown linting      | markdownlint-cli2          | Implemented | Markdown validation                       |
+| Git hooks             | Husky                      | Implemented | Local workflow enforcement                |
+| Security              | Snyk                       | Adopted     | Dependency and code analysis              |
+| Security              | Semgrep                    | Adopted     | Static security rules                     |
+| Dependencies          | Renovate                   | Adopted     | Scheduled dependency maintenance          |
+| Dependencies          | Dependabot                 | Adopted     | GitHub-native security updates            |
+| Deployment            | Cloudflare                 | Implemented | Edge runtime and hosting                  |
+| Containers            | Docker                     | Adopted     | Portable service packaging                |
+| Documentation         | Markdown + Mermaid         | Implemented | Docs as code and diagrams                 |
+| Documentation UI      | Fumadocs                   | Installed   | Structured documentation rendering        |
+| Platform integration  | Discord                    | Adopted     | First production integration              |
+| AI                    | Provider-agnostic AI layer | Planned     | Assistant and automation enhancement      |
 
 ## Runtime and Language
 
@@ -121,6 +121,10 @@ alone means installed, not implemented.
 
 Node.js is the primary runtime for application services, repository tooling,
 scripts, and local development.
+
+> **Configuration conflict:** `package.json` requires Node.js `26.5.0`, while
+> `.node-version` pins `25.9.0`. The repository does not currently provide one
+> consistent runtime pin.
 
 Requirements:
 
@@ -298,10 +302,13 @@ These are supporting packages rather than separate architecture layers.
 
 ### Hono
 
-**Status:** Implemented
+**Status:** Installed
 
 Hono is the default framework for lightweight APIs, middleware, edge services,
 and HTTP entry points.
+
+No current application imports Hono and no API service project exists. This
+section defines the accepted role for future services.
 
 Use Hono when a service benefits from:
 

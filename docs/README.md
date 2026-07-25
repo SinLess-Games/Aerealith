@@ -2,7 +2,7 @@
 
 Status: Active
 Owner: SinLess Games LLC
-Last Updated: 2026-07-18
+Last Updated: 2026-07-23
 Document Type: Documentation Index
 Authority: Canonical navigation and documentation-authority map
 
@@ -35,6 +35,8 @@ Aerealith documentation answers eight questions:
 - [Current Architecture](./architecture/Current%20Architecture.md)
 - [Project Inventory](./reference/Project%20Inventory.md)
 - [Master Index](./MASTER_INDEX.md)
+- [Module Catalog](./modules/README.md)
+- [Documentation Audits](./audits/README.md)
 
 ## Canonical Structure
 
@@ -50,8 +52,10 @@ README.md
 ├── docs/engineering/               Required implementation rules
 ├── docs/decisions/                 Why major choices were made
 ├── docs/operations/                How to run and recover it
+├── docs/modules/                   Product-module specifications
 ├── docs/releases/                  What is being delivered
 ├── docs/reference/                 Exact facts and registries
+├── docs/audits/                    Evidence-based documentation findings
 └── docs/archive/                   Historical material
 
 apps/**/README.md                   Application-specific contract

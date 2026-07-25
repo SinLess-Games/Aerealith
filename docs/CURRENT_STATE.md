@@ -2,7 +2,7 @@
 
 Status: Active
 Owner: SinLess Games LLC
-Last Updated: 2026-07-18
+Last Updated: 2026-07-23
 Document Type: Implementation Summary
 Authority: Current-state navigation; repository evidence remains definitive
 
@@ -30,6 +30,23 @@ The repository currently contains these Nx projects:
 - The `content`, `core`, `db`, `ui`, and `utils` shared libraries.
 - The `service-generator` workspace tool.
 
+The resolved Nx graph also contains the workspace-root
+`@aerealith-ai/source` project. It is an orchestration project, not a deployable
+application.
+
+The frontend Worker currently implements only static-asset delivery through the
+`ASSETS` binding and `GET /__aerealith/health`, which returns
+`{ "status": "ok" }`. The React application contains public marketing routes,
+policy pages, sign-in and sign-up prototypes, and an `/app` dashboard shell.
+The authentication client calls planned `/api/v1/auth/*` endpoints, but no API
+service implements those endpoints and no route guard enforces a session.
+
+The `db` library implements Drizzle table definitions, mappings, queries,
+repositories, transaction helpers, and tests for users, user accounts,
+consents, preferences, profiles, sessions, settings, and waitlist entries. No
+committed migration directory or deployed database configuration proves that
+these schemas are running in an environment.
+
 The repository also contains active continuous integration, security, quality,
 coverage, and repository-automation workflows. Exact projects and targets are
 listed in the [Project Inventory](./reference/Project%20Inventory.md).
@@ -37,8 +54,10 @@ listed in the [Project Inventory](./reference/Project%20Inventory.md).
 ## Current Technology Foundation
 
 The implemented foundation is a TypeScript monorepo using Node.js, pnpm, Nx,
-React, Vite, React Router, Tailwind CSS, Vitest, Playwright, Hono, Drizzle ORM,
-PostgreSQL, and Cloudflare-oriented deployment tooling.
+React, Vite, React Router, Tailwind CSS, Vitest, Playwright, Drizzle ORM,
+PostgreSQL-oriented data access, and Cloudflare deployment tooling. Hono and
+several other target-stack packages are installed but not used by a current
+runtime.
 
 Use the [approved stack](./STACK.md) for technology status and `package.json`
 for exact installed versions. A technology appearing in a vision or target
@@ -55,6 +74,19 @@ Release `0.1` is the current documented foundation milestone. See the
 [0.1 release plan](./releases/0.1/README.md) for its scope and acceptance
 criteria. Release plans describe intended delivery; repository evidence proves
 completion.
+
+Cloudflare configuration declares queue, Key-Value (KV), R2, Flagship, and
+Analytics Engine bindings. The current Worker code consumes only `ASSETS`;
+declared bindings are configuration evidence, not evidence of implemented
+product integrations.
+
+## Known Configuration Conflicts
+
+- `package.json` requires Node.js `26.5.0`, while `.node-version` pins
+  `25.9.0`. Contributors and CI need one authoritative supported version.
+- Implemented database configuration reads `DATABASE_URL`. Documents that use
+  `AEREALITH_DATABASE_URL` describe a target naming convention, not current
+  runtime behavior.
 
 ## Accepted or Planned, Not Current Product Claims
 
@@ -98,3 +130,5 @@ it as direction rather than implemented functionality.
 - [Current Architecture](./architecture/Current%20Architecture.md)
 - [Project Inventory](./reference/Project%20Inventory.md)
 - [Release Index](./releases/README.md)
+- [Module Catalog](./modules/README.md)
+- [Repository Documentation Audit](./audits/Repository-Documentation-Audit.md)

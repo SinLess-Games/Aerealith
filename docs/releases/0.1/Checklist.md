@@ -418,17 +418,17 @@ Documentation must exist and be navigable.
 
 ## Required Documentation Structure
 
-- [ ] `docs/README.md`
-- [ ] `docs/vision/`
-- [ ] `docs/product/`
-- [ ] `docs/releases/`
-- [ ] `docs/architecture/`
-- [ ] `docs/engineering/`
+- [x] `docs/README.md`
+- [x] `docs/vision/`
+- [x] `docs/product/`
+- [x] `docs/releases/`
+- [x] `docs/architecture/`
+- [x] `docs/engineering/`
 - [ ] `docs/services/`
-- [ ] `docs/modules/`
+- [x] `docs/modules/`
 - [ ] `docs/integrations/`
 - [ ] `docs/api/`
-- [ ] `docs/operations/`
+- [x] `docs/operations/`
 - [ ] `docs/rfcs/`
 
 ## Required Vision Docs

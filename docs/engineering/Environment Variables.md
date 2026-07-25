@@ -4,10 +4,10 @@ Status: Draft
 Implementation State: Draft standard; examples may describe target configuration
 Current-State Source: [Current Architecture](../architecture/Current%20Architecture.md)
 Owner: SinLess Games LLC
-Last Updated: 2026-07-18
+Last Updated: 2026-07-23
 Security Classification: Internal Engineering
 Primary Prefix: `AEREALITH_`
-Primary Runtime: Node.js 24.x
+Primary Runtime: Unresolved (`package.json`: 26.5.0; `.node-version`: 25.9.0)
 Configuration Validation: Zod
 Deployment Targets: Cloudflare Workers, Node.js, Docker, Kubernetes, and self-hosted environments
 
@@ -97,6 +97,31 @@ safe across runtime boundaries
 The guiding rule is:
 
 > Environment variables are an external input boundary. They must be centrally loaded, runtime-validated, classified, documented, and converted into typed configuration before application code may use them.
+
+## Verified Current Inventory
+
+This table is authoritative for variables read by current application,
+library, and test code. The remainder of this draft documents a target naming
+and configuration standard; examples there are not evidence that a variable is
+implemented.
+
+| Name                     | Owner                              | Purpose                                                                   | Requirement and default                                                                                                                                             | Sensitive                                                      | Missing behavior                      |
+| ------------------------ | ---------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ------------------------------------- |
+| `DATABASE_URL`           | `libs/db`                          | PostgreSQL connection string for Drizzle tooling and the database client. | Required whenever database configuration or a client is created; no default. Use a local placeholder such as `postgresql://user:password@localhost:5432/aerealith`. | Yes when credentials are embedded.                             | Throws `DATABASE_URL is required.`    |
+| `LIBRETRANSLATE_URL`     | `libs/content` translation scripts | LibreTranslate endpoint.                                                  | Optional; defaults to `http://localhost:5000`.                                                                                                                      | Usually no; treat private endpoints as internal configuration. | Uses the local default.               |
+| `LIBRETRANSLATE_API_KEY` | `libs/content` translation scripts | Optional provider API key.                                                | Optional; no default.                                                                                                                                               | Yes.                                                           | Requests are sent without an API key. |
+| `BASE_URL`               | `apps/frontend-e2e`                | Playwright target origin.                                                 | Optional; defaults to `http://localhost:4200`.                                                                                                                      | No.                                                            | Uses the local default.               |
+
+The frontend contains no current `import.meta.env` reads. Cloudflare resources
+such as `ASSETS`, `EVENTBUS`, `AEREALITH_KV`, `AEREALITH_AI`,
+`FLAGSHIP_FLAGS`, and `AEREALITH_ANALYTICS` are Worker bindings declared in
+`apps/frontend/wrangler.toml`, not process environment variables. The Worker
+implementation currently reads only `ASSETS`.
+
+`AEREALITH_DATABASE_URL` and `VITE_AEREALITH_*` names elsewhere in this draft
+are proposed conventions. They must not be used in run instructions until
+source code implements them or a decision explicitly migrates the current
+names.
 
 An environment variable is not trusted merely because:
 

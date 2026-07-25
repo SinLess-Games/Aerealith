@@ -525,24 +525,24 @@ Create the documentation folder structure.
 
 ### Tasks
 
-- [ ] Create `docs/`.
-- [ ] Create `docs/README.md`.
-- [ ] Create `docs/vision/`.
-- [ ] Create `docs/product/`.
-- [ ] Create `docs/releases/`.
-- [ ] Create `docs/architecture/`.
-- [ ] Create `docs/engineering/`.
+- [x] Create `docs/`.
+- [x] Create `docs/README.md`.
+- [x] Create `docs/vision/`.
+- [x] Create `docs/product/`.
+- [x] Create `docs/releases/`.
+- [x] Create `docs/architecture/`.
+- [x] Create `docs/engineering/`.
 - [ ] Create `docs/services/`.
-- [ ] Create `docs/modules/`.
+- [x] Create `docs/modules/`.
 - [ ] Create `docs/integrations/`.
 - [ ] Create `docs/api/`.
-- [ ] Create `docs/operations/`.
+- [x] Create `docs/operations/`.
 - [ ] Create `docs/rfcs/`.
 
 ### Acceptance Criteria
 
-- [ ] Docs folder exists.
-- [ ] Main docs README exists.
+- [x] Docs folder exists.
+- [x] Main docs README exists.
 - [ ] Documentation areas are clear.
 - [ ] Future docs have obvious homes.
 
