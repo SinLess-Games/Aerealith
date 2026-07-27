@@ -8,6 +8,7 @@ const navigation = [
   { label: 'Home', to: '/', end: true },
   { label: 'About', to: '/about' },
   { label: 'Pricing', to: '/pricing' },
+  { label: 'Docs', to: '/documentation' },
   { label: 'Contact', to: '/contact' },
 ] as const
 

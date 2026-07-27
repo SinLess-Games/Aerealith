@@ -15,38 +15,16 @@
   "categories": ["developer", "productivity", "utilities"],
   "icons": [
     {
-      "src": "/icons/favicon-16x16.png",
-      "sizes": "16x16",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/favicon-32x32.png",
-      "sizes": "32x32",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-512x512.png",
+      "src": "/images/brand/mark-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/maskable-icon-192x192.png",
-      "sizes": "192x192",
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
       "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/icons/maskable-icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any"
     }
   ],
   "shortcuts": [
@@ -54,40 +32,19 @@
       "name": "Documentation",
       "short_name": "Docs",
       "description": "Open the Aerealith documentation.",
-      "url": "/docs",
-      "icons": [
-        {
-          "src": "/icons/shortcut-docs-192x192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
+      "url": "/docs"
     },
     {
       "name": "Developer Blog",
       "short_name": "Dev Blog",
       "description": "Read the latest Aerealith development updates.",
-      "url": "/devblog",
-      "icons": [
-        {
-          "src": "/icons/shortcut-devblog-192x192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
+      "url": "/devblog"
     },
     {
       "name": "Downloads",
       "short_name": "Downloads",
       "description": "Open Aerealith downloads.",
-      "url": "/download",
-      "icons": [
-        {
-          "src": "/icons/shortcut-download-192x192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
+      "url": "/download"
     }
   ],
   "screenshots": [],

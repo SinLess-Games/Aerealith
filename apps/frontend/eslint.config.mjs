@@ -18,7 +18,7 @@ export default [
   ...baseConfig,
 
   {
-    ignores: ['**/*.json', '**/*.jsonc'],
+    ignores: ['**/*.json', '**/*.jsonc', '.source/**'],
   },
 
   ...nx.configs['flat/react-typescript'],

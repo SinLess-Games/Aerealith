@@ -2,6 +2,7 @@
 
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
+import mdx from 'fumadocs-mdx/vite'
 import { defineConfig } from 'vite'
 
 /**
@@ -43,7 +44,20 @@ export default defineConfig(({ mode }) => {
       strictPort: true,
     },
 
-    plugins: [react(), tailwindcss()],
+    /**
+     * Build-time plugins.
+     *
+     * Fumadocs reads:
+     *
+     *   apps/frontend/source.config.ts
+     *
+     * and generates:
+     *
+     *   apps/frontend/.source
+     *
+     * because the Vite project root is `apps/frontend`.
+     */
+    plugins: [mdx(), react(), tailwindcss()],
 
     build: {
       outDir: '../../dist/apps/frontend',
@@ -164,14 +178,14 @@ export default defineConfig(({ mode }) => {
               },
 
               /**
-               * Markdown parsing and rich-text rendering.
+               * Markdown, MDX, Fumadocs, Mermaid, and math rendering.
                */
               {
-                name: 'markdown',
-                test: /node_modules[\\/](?:react-markdown|remark-[^\\/]+|rehype-[^\\/]+|unified|micromark|mdast-[^\\/]+|hast-[^\\/]+)[\\/]/,
+                name: 'documentation',
+                test: /node_modules[\\/](?:fumadocs-(?:core|ui|mdx)|mermaid|katex|react-markdown|(?:remark|rehype|mdast|hast)-[^\\/]+|unified|micromark)[\\/]/,
                 priority: 85,
                 minSize: 0,
-                maxSize: 300_000,
+                maxSize: 400_000,
               },
 
               /**
@@ -208,6 +222,9 @@ export default defineConfig(({ mode }) => {
                 maxSize: 250_000,
               },
 
+              /**
+               * Runtime validation packages.
+               */
               {
                 name: 'validation',
                 test: /node_modules[\\/](?:zod|valibot|yup|joi|ajv)[\\/]/,
@@ -352,7 +369,9 @@ export default defineConfig(({ mode }) => {
       globals: true,
       environment: 'jsdom',
 
-      include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+      include: [
+        '{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+      ],
 
       exclude: [
         '**/node_modules/**',

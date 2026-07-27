@@ -2,6 +2,8 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "../../dist/out-tsc",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "types": [
       "node",
       "@nx/react/typings/cssmodule.d.ts",
@@ -24,5 +26,11 @@
     "vitest.config.mts"
   ],
   "files": ["worker-configuration.d.ts"],
-  "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
+  "include": [
+    "src/**/*.js",
+    "src/**/*.jsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "../../.source/**/*.ts"
+  ]
 }

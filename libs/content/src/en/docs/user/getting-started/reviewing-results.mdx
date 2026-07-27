@@ -1,0 +1,122 @@
+---
+title: Reviewing Results
+description: Verify Aerealith output before relying on it or approving an action.
+order: 30
+audience: user
+keywords:
+  - review
+  - verification
+  - quality
+  - safety
+---
+
+# Reviewing Results
+
+Review is part of the workflow, not an optional final polish. A result can be well-written and still contain incorrect facts, unsafe commands, missing requirements, or actions aimed at the wrong destination.
+
+## Review in the right order
+
+Check substance before style.
+
+1. **Scope:** Did the result address the requested task?
+2. **Accuracy:** Are factual claims supported?
+3. **Completeness:** Are required details present?
+4. **Safety:** Could following the result cause unintended harm?
+5. **Destination:** Will any action affect the correct files, systems, or people?
+6. **Presentation:** Is the result clear and appropriate for its audience?
+
+Polishing an inaccurate result can make it more persuasive without making it more correct.
+
+## Verify factual claims
+
+Check names, dates, quotations, links, calculations, product behavior, version-specific instructions, and cited sources.
+
+Use authoritative sources when accuracy depends on current information. For example:
+
+- official product documentation for configuration
+- source repositories for code behavior
+- primary research for scientific claims
+- current organizational records for owners and deadlines
+
+Treat a confident tone as presentation, not evidence.
+
+## Check for unsupported additions
+
+Compare the result to the supplied source. Watch for:
+
+- invented owners or deadlines
+- assumptions presented as decisions
+- features that were not confirmed to exist
+- citations that do not support the associated claim
+- details copied from examples rather than source material
+- missing uncertainty language
+
+Ask for each unsupported claim to be removed, sourced, or clearly labeled as a suggestion.
+
+## Review generated code and commands
+
+Before running code or commands:
+
+- understand which files or systems will change
+- check paths, environment names, and target accounts
+- inspect dependency and version assumptions
+- look for destructive operations
+- confirm how secrets are read and stored
+- identify a rollback or recovery path
+- run proportionate tests in a safe environment
+
+<Warning title='Destructive operations'>
+  Treat deletion, force updates, irreversible migrations, credential changes,
+  and production deployment commands as high-impact actions. Resolve their exact
+  targets and recovery plan before execution.
+</Warning>
+
+## Review external actions
+
+Messages, calendar events, payments, account changes, deployments, and published content can affect other people immediately.
+
+Before approval, confirm:
+
+- the destination account or environment
+- every recipient
+- the final content
+- the time zone and schedule
+- attached files or links
+- whether the action is reversible
+
+If a retry might create duplicates, check the external system before submitting again.
+
+## Evaluate research and recommendations
+
+For comparative analysis, ask:
+
+- Were meaningful alternatives considered?
+- Are evaluation criteria stated?
+- Are sources current and relevant?
+- Are costs and risks included?
+- Are facts separated from preferences?
+- Does the recommendation follow from the evidence?
+- What evidence would change the conclusion?
+
+Research metadata such as status, confidence, owners, and decision date helps readers understand whether a document is exploratory or authoritative.
+
+## Request corrections
+
+Use a correction that names the problem, source of truth, and required result:
+
+> The summary assigns the deployment task to Morgan, but the source marks it unassigned. Replace the owner with “Unassigned” and check the remaining tasks for the same issue. Do not change their descriptions.
+
+For larger results, review and revise one section at a time.
+
+## Decide whether the result is ready
+
+A result is ready when:
+
+- required facts have been verified
+- uncertainty is visible
+- constraints were followed
+- important omissions are resolved
+- actions target the intended destination
+- a qualified reviewer has approved specialized decisions
+
+Keep the reviewed output and its supporting source together when future readers may need to understand how the result was produced.

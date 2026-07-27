@@ -1,0 +1,18 @@
+---
+title: Security Model
+description: Identify assets, actors, trust boundaries, threats, and controls.
+order: 10
+audience: developer
+---
+
+# Security Model
+
+Security design begins with what must be protected, who can interact with it, and where trust changes.
+
+## Model
+
+Document assets, actors, entry points, trust boundaries, abuse cases, controls, residual risk, and monitoring. Include authenticated users, administrators, services, external providers, and attackers.
+
+Assume browser input, webhooks, stored content, third-party responses, and generated output can be malicious or malformed. Separate public, user-owned, tenant-owned, administrative, and secret data.
+
+Update the model when adding a new data class, integration, privilege, runtime, or externally reachable endpoint.

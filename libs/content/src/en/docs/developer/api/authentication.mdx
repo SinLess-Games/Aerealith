@@ -1,0 +1,18 @@
+---
+title: API Authentication
+description: Authenticate callers and authorize API operations safely.
+order: 20
+audience: developer
+---
+
+# API Authentication
+
+Authentication establishes identity; authorization decides whether that identity may perform a specific action on a resource.
+
+- Validate credentials at the boundary.
+- Authorize the resource and operation.
+- Deny by default when policy is unclear.
+- Never place tokens in URLs or logs.
+- Use short-lived, scoped, rotatable credentials.
+
+Store service secrets in approved runtime bindings. Test missing, malformed, expired, revoked, insufficient, cross-tenant, and ownership cases.

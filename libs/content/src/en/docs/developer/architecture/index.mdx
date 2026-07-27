@@ -1,0 +1,36 @@
+---
+title: Architecture
+description: Understand Aerealith's workspace, runtime, and dependency boundaries.
+order: 20
+audience: developer
+keywords:
+  - nx
+  - architecture
+  - boundaries
+---
+
+# Architecture
+
+Aerealith is an Nx monorepo with deployable applications under `apps/` and reusable capabilities under `libs/`. Project configuration and public entry points should make ownership and dependency direction visible.
+
+## Package direction
+
+Applications compose libraries. Libraries must not import application implementation details.
+
+```mermaid
+graph LR
+  Apps --> Features
+  Features --> UI
+  Features --> Core
+  UI --> Core
+```
+
+## Principles
+
+- Validate data at trust boundaries.
+- Keep browser, worker, and build-time code separated.
+- Hide persistence and vendor details behind adapters.
+- Design observable failures and recoverable operations.
+- Use the Nx project graph to verify implemented dependencies.
+
+Continue with [System Overview](/documentation/developer/architecture/system-overview) and [Data Flow](/documentation/developer/architecture/data-flow).

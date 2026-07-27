@@ -16,3 +16,156 @@
  * explicitly — otherwise `@aerealith-ai/ui` components render unstyled.
  */
 @source '../../../libs/ui/src';
+
+.docs-prose {
+  width: 100%;
+  max-width: 56rem;
+  border: 1px solid var(--ae-border);
+  border-radius: 1.25rem;
+  background: color-mix(in srgb, var(--ae-background) 24%, transparent);
+  box-shadow:
+    0 24px 70px rgb(0 0 0 / 28%),
+    inset 0 1px 0 rgb(255 255 255 / 4%);
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 80%),
+    0 0 12px rgb(0 0 0 / 45%);
+  backdrop-filter: blur(0.1875rem);
+  -webkit-backdrop-filter: blur(0.1875rem);
+}
+
+.docs-prose :where(h1, h2, h3, h4) {
+  scroll-margin-top: 6rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.docs-prose h1 {
+  margin-bottom: 2rem;
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+}
+
+.docs-prose h2 {
+  margin-top: 4rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--ae-border);
+  padding-bottom: 1rem;
+  font-size: 1.75rem;
+}
+
+.docs-prose h3 {
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+}
+
+.docs-prose h4 {
+  margin-top: 2.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.docs-prose :where(p, ul, ol, blockquote, table, pre) {
+  margin-block: 1.25rem;
+}
+
+.docs-prose :where(p, li) {
+  max-width: 70ch;
+}
+
+.docs-prose p {
+  color: var(--ae-foreground);
+  line-height: 1.8;
+}
+
+.docs-prose :where(ul, ol) {
+  max-width: 70ch;
+  padding-left: 1.5rem;
+}
+
+.docs-prose ul {
+  list-style: disc;
+}
+
+.docs-prose ol {
+  list-style: decimal;
+}
+
+.docs-prose a {
+  color: var(--ae-accent);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.docs-prose :not(pre) > code {
+  border: 1px solid var(--ae-border);
+  border-radius: 0.3rem;
+  background: var(--ae-surface);
+  padding: 0.1rem 0.35rem;
+  font-size: 0.9em;
+}
+
+.docs-prose pre {
+  overflow-x: auto;
+  border: 1px solid var(--ae-border);
+  border-radius: 0.75rem;
+  background: var(--ae-surface);
+  padding: 1rem;
+}
+
+.docs-prose blockquote {
+  border-left: 3px solid var(--ae-accent);
+  border-radius: 0 0.75rem 0.75rem 0;
+  background: color-mix(in srgb, var(--ae-surface) 86%, transparent);
+  padding-block: 0.875rem;
+  padding-right: 1rem;
+  padding-left: 1rem;
+  color: var(--ae-foreground-muted);
+}
+
+@media (max-width: 40rem) {
+  .docs-prose {
+    border-radius: 1rem;
+    padding: 1.125rem;
+    font-size: 1rem;
+  }
+}
+
+.docs-prose table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.docs-prose :where(th, td) {
+  border: 1px solid var(--ae-border);
+  padding: 0.65rem;
+  text-align: left;
+}
+
+.docs-steps {
+  counter-reset: docs-step;
+  list-style: none !important;
+  padding-left: 0 !important;
+}
+
+.docs-steps > li {
+  counter-increment: docs-step;
+  border-left: 2px solid var(--ae-border);
+  padding: 0 0 1.5rem 2.5rem;
+}
+
+.docs-steps > li::before {
+  content: counter(docs-step);
+  display: inline-grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-left: -3.45rem;
+  margin-right: 1.5rem;
+  border-radius: 999px;
+  background: var(--ae-accent);
+  color: white;
+  font-weight: 700;
+}

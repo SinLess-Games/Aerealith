@@ -1,0 +1,16 @@
+---
+title: Integrations
+description: Build vendor adapters with explicit contracts and failure behavior.
+order: 40
+audience: developer
+---
+
+# Integrations
+
+Integration code translates between Aerealith-owned contracts and external services.
+
+Each adapter should own credential handling, input and output validation, timeouts, bounded retries, rate limits, pagination, error translation, and observability. Domain code should not depend on vendor response shapes.
+
+Test success, authorization failure, throttling, timeout, malformed responses, duplicate delivery, and partial failure. Document required runtime bindings without publishing secret values.
+
+Service-specific guidance includes [Cloudflare](/documentation/developer/integrations/cloudflare) and [Discord](/documentation/developer/integrations/discord).

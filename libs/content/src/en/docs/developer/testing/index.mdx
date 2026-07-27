@@ -1,0 +1,14 @@
+---
+title: Testing
+description: Verify Aerealith behavior at the narrowest reliable boundary.
+order: 60
+audience: developer
+---
+
+# Testing
+
+Tests should provide confidence proportional to change risk while remaining deterministic and understandable.
+
+Use unit tests for isolated rules, integration tests for boundaries, contract tests for public interfaces, and end-to-end tests for critical user journeys. Security and failure-path tests are required where trust or external effects change.
+
+Run tests through Nx so dependencies, inputs, outputs, and caching remain consistent. See [Testing Strategy](/documentation/developer/testing/testing-strategy) and [Coverage Requirements](/documentation/developer/testing/coverage-requirements).

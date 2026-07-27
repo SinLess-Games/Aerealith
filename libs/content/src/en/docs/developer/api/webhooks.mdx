@@ -1,0 +1,14 @@
+---
+title: Webhooks
+description: Receive and deliver webhook events securely and reliably.
+order: 50
+audience: developer
+---
+
+# Webhooks
+
+Webhook delivery may be delayed, duplicated, or reordered.
+
+Receivers must verify signatures against the raw body, enforce replay limits, validate schemas, deduplicate stable event IDs, and acknowledge promptly. Longer processing should be asynchronous.
+
+Senders should use HTTPS, bounded backoff, delivery identifiers, and documented timeouts. Consumers must implement idempotent handlers and tolerate unknown additive fields. Never assume event order unless the contract guarantees it.

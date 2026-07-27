@@ -25,7 +25,8 @@
       "@aerealith-ai/service-generator": [
         "./tools/generators/service/src/index.ts"
       ],
-      "@aerealith-ai/content": ["./libs/content/src/index.ts"]
+      "@aerealith-ai/content": ["./libs/content/src/index.ts"],
+      "@aerealith-ai/docs-collections/*": ["./.source/*"]
     }
   },
   "exclude": ["node_modules", "tmp"]

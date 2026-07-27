@@ -1,0 +1,40 @@
+---
+title: Getting Started
+description: Set up the Aerealith monorepo and validate a first change.
+order: 10
+audience: developer
+keywords:
+  - local development
+  - pnpm
+  - nx
+---
+
+# Getting Started
+
+Use the runtime and package-manager versions declared by the repository. Install dependencies from the workspace root, then inspect projects through Nx.
+
+```bash
+pnpm exec nx show projects
+pnpm exec nx show project frontend
+```
+
+## Before editing
+
+- Read applicable `AGENTS.md` instructions.
+- Inspect the owning project and dependency direction.
+- Preserve unrelated uncommitted work.
+- Reuse shared libraries instead of duplicating contracts or components.
+- Distinguish generated files from their source configuration.
+
+## Validate a change
+
+Run the narrowest relevant target before expanding validation:
+
+```bash
+pnpm exec nx run <project>:typecheck
+pnpm exec nx run <project>:test
+pnpm exec nx run <project>:lint
+pnpm exec nx run <project>:build
+```
+
+Use `run-many` or `affected` for cross-project changes. Continue with [Development Workflow](/documentation/developer/contributing/development-workflow).

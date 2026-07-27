@@ -1,0 +1,14 @@
+---
+title: Authentication & Authorization
+description: Establish identity and enforce resource-specific access.
+order: 20
+audience: developer
+---
+
+# Authentication & Authorization
+
+Authentication proves identity. Authorization evaluates that identity, the requested action, the resource, tenant, and current policy.
+
+Perform authorization server-side at every protected boundary. UI visibility is not access control. Prevent confused-deputy behavior by preserving the initiating identity and intended resource through service calls.
+
+Sessions and tokens require secure storage, expiry, revocation, and rotation behavior. Test cross-user, cross-tenant, stale-role, removed-membership, and administrator-only cases.

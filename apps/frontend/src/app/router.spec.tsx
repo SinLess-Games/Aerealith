@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router'
+import { render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter, useLocation } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AppProviders } from './providers/app-providers'
@@ -31,6 +31,10 @@ function renderAt(path: string) {
       </AppProviders>
     </MemoryRouter>,
   )
+}
+
+function CurrentPath() {
+  return <output aria-label='current path'>{useLocation().pathname}</output>
 }
 
 describe('AppRoutes', () => {
@@ -91,5 +95,55 @@ describe('AppRoutes', () => {
     renderAt('/')
 
     expect(screen.getByRole('navigation', { name: /primary/i })).toBeTruthy()
+    expect(
+      screen.getByRole('link', { name: 'Docs' }).getAttribute('href'),
+    ).toBe('/documentation')
+  })
+
+  it('renders the documentation landing page', () => {
+    renderAt('/documentation')
+
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'Aerealith Documentation',
+      }),
+    ).toBeTruthy()
+  })
+
+  it.each([
+    ['/documentation/user', 'User Documentation'],
+    ['/documentation/user/credits', 'Credits'],
+    ['/documentation/user/credits/honorable-mentions', 'Honorable Mentions'],
+    ['/documentation/developer', 'Developer Documentation'],
+    ['/documentation/developer/api', 'API'],
+  ])('renders documentation at %s', async (path, heading) => {
+    renderAt(path)
+
+    expect(
+      await screen.findByRole('heading', {
+        level: 1,
+        name: heading,
+      }),
+    ).toBeTruthy()
+  })
+
+  it.each([
+    ['/docs', '/documentation'],
+    ['/docs/users', '/documentation/user'],
+    ['/docs/developers/api', '/documentation/developer/api'],
+  ])('redirects the legacy documentation path %s', async (from, expected) => {
+    render(
+      <MemoryRouter initialEntries={[from]}>
+        <AppProviders>
+          <AppRoutes />
+          <CurrentPath />
+        </AppProviders>
+      </MemoryRouter>,
+    )
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('current path').textContent).toBe(expected),
+    )
   })
 })

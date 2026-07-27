@@ -1,0 +1,1081 @@
+---
+title: API and Backend Framework Analysis
+description: Historical analysis of the API and backend frameworks evaluated for Aerealith and the decision to adopt Hono for Cloudflare-compatible services.
+order: 20
+audience: developer
+status: Adopted
+confidence: High
+researchType: Technical Analysis
+owners:
+  - sinless777
+researchStarted: 2019
+decisionDate: 2024
+updated: 2026-07-25
+related:
+  - /documentation/developer/research-and-development
+  - /documentation/developer/research-and-development/analyses/frontend-framework-analysis
+---
+
+# API and Backend Framework Analysis
+
+## Summary
+
+Research into API and backend frameworks for Aerealith began in **2019** alongside the project's frontend and platform architecture research.
+
+The following frameworks were evaluated through experimentation, prototype implementations, documentation review, and architectural comparison:
+
+- Express
+- Flask
+- Hono
+- NestJS
+- Encore
+- Fastify
+- Django
+
+In **2024**, Aerealith selected **Hono** as its primary API framework for Cloudflare-hosted and edge-compatible services.
+
+Hono was selected because it provided the best overall fit for:
+
+- Cloudflare Workers.
+- Edge-native API execution.
+- TypeScript development.
+- Web Standards APIs.
+- Lightweight service architecture.
+- Fast request routing.
+- Modular middleware.
+- Shared code across supported JavaScript runtimes.
+- Aerealith's separation between frontend, API, and backend services.
+
+The decision does not mean every Aerealith backend process must use Hono. Specialized internal services may use another framework or runtime when their requirements justify it.
+
+## Research Question
+
+Which API and backend framework provides the best foundation for Aerealith's public APIs, internal service endpoints, Cloudflare Workers, and modular platform integrations?
+
+The selected framework needed to support:
+
+- TypeScript.
+- Cloudflare Workers.
+- Edge execution.
+- RESTful APIs.
+- Modular route organization.
+- Authentication middleware.
+- Authorization middleware.
+- Request validation.
+- Error handling.
+- Rate limiting.
+- Webhooks.
+- Streaming responses.
+- AI service integration.
+- Monorepo development.
+- Automated testing.
+- Observability.
+- Long-term maintainability.
+- Separation between API transport and business logic.
+
+## Background
+
+Aerealith's research and concept development began in **2019** under the original **Helix** identity.
+
+The platform was expected to grow beyond a single web application. Its backend architecture needed to support multiple modules, clients, services, and external integrations.
+
+Expected backend responsibilities included:
+
+- User authentication.
+- User authorization.
+- AI request orchestration.
+- Model routing.
+- Tool execution.
+- Memory and context retrieval.
+- Discord integration.
+- Webhooks.
+- Notification delivery.
+- Administrative operations.
+- Audit logging.
+- Data access.
+- Background processing.
+- Public and private APIs.
+- Service-to-service communication.
+
+Because Aerealith was designed as a modular platform, the API layer needed to remain independent from the frontend framework.
+
+The backend framework also needed to work effectively with Cloudflare's infrastructure, particularly Cloudflare Workers.
+
+## Objectives
+
+The backend-framework analysis had the following objectives:
+
+1. Compare established API and web application frameworks.
+2. Determine which framework worked best with Cloudflare Workers.
+3. Support TypeScript throughout the primary application stack.
+4. Minimize unnecessary runtime and framework overhead.
+5. Maintain clear boundaries between transport, domain, and data layers.
+6. Support modular APIs and platform integrations.
+7. Avoid coupling Aerealith to a single hosting provider where practical.
+8. Support local development and automated testing.
+9. Provide a maintainable foundation for production services.
+10. Allow specialized services to use other technologies when justified.
+
+## Scope
+
+The analysis considered the following frameworks:
+
+- Express
+- Flask
+- Hono
+- NestJS
+- Encore
+- Fastify
+- Django
+
+The evaluation focused primarily on:
+
+- HTTP APIs.
+- Cloudflare Workers.
+- Edge services.
+- Application middleware.
+- Backend service organization.
+- Developer experience.
+- TypeScript support.
+- Deployment compatibility.
+
+## Out of Scope
+
+This analysis did not establish the implementation technology for every background or infrastructure service.
+
+The following areas may require separate evaluation:
+
+- Long-running workers.
+- GPU inference services.
+- Python machine-learning services.
+- Queue consumers.
+- Scheduled jobs.
+- Large data-processing workloads.
+- Infrastructure controllers.
+- Native applications.
+- Real-time media processing.
+- Services requiring runtime features unavailable in Cloudflare Workers.
+
+## Evaluation Criteria
+
+Each framework was evaluated against the following criteria:
+
+| Criterion                 | Description                                                                    |
+| ------------------------- | ------------------------------------------------------------------------------ |
+| Cloudflare compatibility  | Ability to run effectively on Cloudflare Workers and related services.         |
+| TypeScript support        | Quality of TypeScript integration and type inference.                          |
+| Runtime portability       | Ability to run across multiple compatible JavaScript runtimes.                 |
+| Performance               | Routing overhead, startup behavior, and request-processing efficiency.         |
+| Middleware                | Support for reusable request and response processing.                          |
+| Validation                | Ability to validate request bodies, parameters, headers, and responses.        |
+| Modularity                | Support for organizing routes and services into maintainable modules.          |
+| Testing                   | Ability to test routes, middleware, and services without excessive setup.      |
+| Developer experience      | Ease of development, debugging, and maintenance.                               |
+| Ecosystem                 | Availability of libraries, integrations, documentation, and community support. |
+| Architectural control     | Freedom to structure the application around Aerealith's requirements.          |
+| Operational complexity    | Difficulty of deploying, monitoring, and maintaining services.                 |
+| Monorepo compatibility    | Suitability for use within Aerealith's shared repository.                      |
+| Long-term maintainability | Expected cost of upgrades, migrations, and framework-specific maintenance.     |
+
+## Technologies Evaluated
+
+## Express
+
+Express was evaluated as one of the most established Node.js web frameworks.
+
+It provides a minimal request-routing and middleware model that has influenced many later JavaScript frameworks.
+
+### Strengths
+
+- Large ecosystem.
+- Extensive community support.
+- Familiar middleware model.
+- Straightforward routing.
+- Flexible application structure.
+- Large number of examples and integrations.
+- Compatible with many Node.js libraries.
+- Suitable for traditional Node.js servers.
+
+### Limitations
+
+- Primarily designed around traditional Node.js server environments.
+- Cloudflare Workers compatibility is not its primary architectural target.
+- Requires additional libraries for validation, typing, security, and application organization.
+- Middleware types can become difficult to maintain across large applications.
+- Minimal framework conventions can produce inconsistent project structures.
+- Some middleware assumes Node.js-specific request, response, stream, or filesystem behavior.
+- TypeScript support is added around an API originally designed for JavaScript.
+
+### Conclusion
+
+Express was useful during early experimentation and provided a clear introduction to middleware-based API design.
+
+It was not selected for Aerealith's primary API layer because the platform required stronger alignment with Cloudflare Workers, Web Standards APIs, and edge-native deployment.
+
+Express remains usable for traditional Node.js services when required, but it is not the default framework for Aerealith.
+
+## Flask
+
+Flask was evaluated as a lightweight Python web framework.
+
+Its minimal architecture made it suitable for prototypes, small APIs, and Python-based services.
+
+### Strengths
+
+- Straightforward API.
+- Fast prototype development.
+- Large Python ecosystem.
+- Easy integration with Python libraries.
+- Flexible application organization.
+- Suitable for machine-learning and data-processing services.
+- Low initial complexity.
+
+### Limitations
+
+- Does not provide TypeScript integration.
+- Requires a separate Python runtime and dependency environment.
+- Does not align directly with the primary TypeScript monorepo.
+- Cloudflare Workers are not its native deployment environment.
+- Validation, dependency injection, and application structure require additional libraries or conventions.
+- Using Flask for the main API would split core platform development between Python and TypeScript.
+- Shared types between the frontend and backend would require additional generation or synchronization.
+
+### Conclusion
+
+Flask was capable of supporting Python-specific APIs and prototypes.
+
+It was not selected as the primary Aerealith API framework because it did not align with the project's TypeScript-first architecture or Cloudflare Workers deployment strategy.
+
+Flask or another Python framework may still be appropriate for specialized AI, data-processing, or machine-learning services.
+
+## Hono
+
+Hono was evaluated as a lightweight web framework designed around Web Standards APIs and modern JavaScript runtimes.
+
+It provided direct support for environments such as Cloudflare Workers while preserving the ability to run in other compatible runtimes.
+
+### Strengths
+
+- Strong Cloudflare Workers compatibility.
+- Designed around Web Standards APIs.
+- First-class TypeScript support.
+- Lightweight routing.
+- Low framework overhead.
+- Fast startup and request handling.
+- Modular middleware.
+- Support for route grouping.
+- Strong type inference.
+- Suitable for edge-native services.
+- Portable across multiple supported runtimes.
+- Straightforward testing.
+- Clear request and response primitives.
+- Good compatibility with schema-validation libraries.
+- Appropriate for REST APIs, webhooks, and service endpoints.
+- Works well within a TypeScript monorepo.
+
+### Limitations
+
+- Provides fewer built-in enterprise application patterns than NestJS or Django.
+- Requires Aerealith to define its own architectural conventions.
+- Developers must explicitly organize domain services, repositories, and infrastructure adapters.
+- Some Node.js-specific packages cannot run directly in Cloudflare Workers.
+- Edge-runtime limitations still apply regardless of framework.
+- Background processing and long-running workloads require separate infrastructure.
+- The team must avoid placing excessive business logic directly inside route handlers.
+
+### Conclusion
+
+Hono provided the strongest alignment with Aerealith's intended deployment architecture.
+
+It combined:
+
+- Cloudflare Workers support.
+- TypeScript.
+- Web Standards APIs.
+- Lightweight execution.
+- Modular routing.
+- Runtime portability.
+- Architectural flexibility.
+
+Hono was therefore selected as the primary API framework for Cloudflare-compatible Aerealith services.
+
+## NestJS
+
+NestJS was evaluated as a structured TypeScript framework for server-side applications.
+
+It provides an opinionated architecture influenced by enterprise application frameworks.
+
+Its primary concepts include:
+
+- Modules.
+- Controllers.
+- Providers.
+- Dependency injection.
+- Guards.
+- Interceptors.
+- Pipes.
+- Decorators.
+- Exception filters.
+
+### Strengths
+
+- Strong TypeScript support.
+- Structured modular architecture.
+- Integrated dependency injection.
+- Clear patterns for controllers and services.
+- Built-in concepts for authorization and validation.
+- Good support for large development teams.
+- Strong testing conventions.
+- Support for multiple HTTP adapters.
+- Suitable for traditional server applications and microservices.
+- Extensive documentation.
+
+### Limitations
+
+- Greater framework complexity.
+- Heavy use of decorators and framework-specific abstractions.
+- More startup and application overhead than a minimal edge framework.
+- Primarily aligned with traditional Node.js server environments.
+- Cloudflare Workers compatibility requires additional compromises or adaptation.
+- Some framework features assume Node.js runtime behavior.
+- Dependency injection and reflection systems can increase bundle complexity.
+- More architecture than many small edge services require.
+
+### Conclusion
+
+NestJS was one of the strongest options for a structured Node.js backend.
+
+It was not selected as the default Cloudflare-facing API framework because Hono offered a lighter and more direct fit for Workers and edge execution.
+
+NestJS may still be appropriate for larger internal services that:
+
+- Run in a full Node.js environment.
+- Require extensive dependency injection.
+- Use long-running processes.
+- Need framework-managed microservice patterns.
+- Do not need to execute on Cloudflare Workers.
+
+## Encore
+
+Encore was evaluated as a backend development platform focused on service development, infrastructure automation, and distributed application tooling.
+
+It offered a more integrated backend-development experience than the lightweight frameworks evaluated.
+
+### Strengths
+
+- Structured service architecture.
+- Integrated development tooling.
+- Infrastructure-aware application model.
+- Support for distributed backend services.
+- Reduced setup for common backend concerns.
+- Built-in local development workflows.
+- Potentially useful for teams wanting an integrated backend platform.
+- Strong emphasis on developer productivity.
+
+### Limitations
+
+- Greater dependence on Encore-specific tooling and conventions.
+- Reduced control over parts of the infrastructure model.
+- More platform coupling than Aerealith required.
+- Cloudflare Workers were not the primary deployment target.
+- Less suitable for Aerealith's desired edge-first API layer.
+- Could overlap with Aerealith's existing infrastructure, deployment, and observability plans.
+- Introduced an additional platform abstraction beyond the selected runtime and framework.
+
+### Conclusion
+
+Encore provided useful integrated backend capabilities, but its platform model did not align as closely with Aerealith's Cloudflare strategy or infrastructure-control requirements.
+
+Aerealith preferred to keep its API framework independent from a larger backend platform.
+
+Encore was therefore not selected.
+
+## Fastify
+
+Fastify was evaluated as a performance-focused Node.js web framework.
+
+It provides a plugin architecture, schema-based validation, serialization, and a more structured alternative to Express.
+
+### Strengths
+
+- Strong request-processing performance.
+- Good TypeScript support.
+- Schema-based validation.
+- Response serialization.
+- Structured plugin system.
+- Clear lifecycle hooks.
+- Good testing utilities.
+- Suitable for production Node.js APIs.
+- More modern application model than Express.
+- Strong support for modular server applications.
+
+### Limitations
+
+- Primarily designed for Node.js servers.
+- Cloudflare Workers are not its primary runtime.
+- Some plugins depend on Node.js-specific APIs.
+- The plugin ecosystem assumes a traditional server lifecycle.
+- More server-oriented than edge-oriented.
+- Deployment to Workers would require adaptation or an alternative execution model.
+
+### Conclusion
+
+Fastify was one of the strongest traditional Node.js API frameworks evaluated.
+
+It offered better structure and performance characteristics than Express for many server applications.
+
+However, Hono provided a more direct fit for Cloudflare Workers and Web Standards APIs.
+
+Fastify may remain suitable for internal Node.js services that do not need edge-runtime compatibility.
+
+## Django
+
+Django was evaluated as a comprehensive Python web framework.
+
+It provides an integrated architecture for database-driven web applications.
+
+Its major capabilities include:
+
+- Object-relational mapping.
+- Authentication.
+- Administrative interfaces.
+- URL routing.
+- Forms.
+- Template rendering.
+- Security middleware.
+- Database migrations.
+- Application modules.
+
+### Strengths
+
+- Mature framework.
+- Large Python ecosystem.
+- Built-in authentication.
+- Integrated administration interface.
+- Powerful ORM.
+- Strong security defaults.
+- Clear project and application structure.
+- Suitable for large database-driven applications.
+- Extensive documentation and community support.
+- Long history of production use.
+
+### Limitations
+
+- Significantly heavier than required for Aerealith's edge API layer.
+- Uses Python rather than the platform's primary TypeScript stack.
+- Includes frontend-rendering and database features that overlap with Aerealith's separate systems.
+- Cloudflare Workers are not its native runtime.
+- Requires traditional Python hosting infrastructure.
+- Sharing types with the TypeScript frontend requires additional tooling.
+- Django's ORM would conflict with Aerealith's selected Drizzle-based data architecture.
+- The framework's integrated architecture would increase coupling between application concerns.
+
+### Conclusion
+
+Django was capable of supporting a large traditional web application, but it did not align with Aerealith's TypeScript-first, Cloudflare-compatible, modular service architecture.
+
+It was not selected for the primary API layer.
+
+Django may still be appropriate for a separate Python application if a future module has requirements that strongly favor its integrated features.
+
+## Comparative Analysis
+
+| Technology | Primary Strength                                                   | Primary Concern                                                 | Decision                |
+| ---------- | ------------------------------------------------------------------ | --------------------------------------------------------------- | ----------------------- |
+| Express    | Large ecosystem and simple middleware model                        | Traditional Node.js focus and limited edge alignment            | Not selected            |
+| Flask      | Lightweight Python API development                                 | Separate runtime and weak alignment with TypeScript and Workers | Not selected            |
+| Hono       | Lightweight, typed, Web Standards-based, and Cloudflare-compatible | Requires explicit application architecture                      | Adopted                 |
+| NestJS     | Structured TypeScript enterprise architecture                      | Greater complexity and weaker Workers alignment                 | Not selected as default |
+| Encore     | Integrated backend and infrastructure workflow                     | Platform coupling and limited Cloudflare alignment              | Not selected            |
+| Fastify    | High-performance Node.js API framework                             | Primarily designed for traditional Node.js servers              | Not selected as default |
+| Django     | Comprehensive Python web framework                                 | Heavy integrated architecture and no native Workers support     | Not selected            |
+
+## Cloudflare Compatibility
+
+Cloudflare compatibility was the most important differentiator in the final decision.
+
+Aerealith intended to use Cloudflare services for:
+
+- Edge request handling.
+- API routing.
+- Authentication enforcement.
+- Request validation.
+- Rate limiting.
+- Caching.
+- Web application delivery.
+- Security filtering.
+- Environment-specific configuration.
+- Globally distributed execution.
+- Service bindings.
+- Scheduled operations.
+- Queue integration.
+- Durable state where appropriate.
+
+Hono's use of Web Standards APIs aligned directly with the Cloudflare Workers runtime.
+
+This allowed route handlers to operate through familiar standards such as:
+
+- `Request`
+- `Response`
+- `Headers`
+- `URL`
+- `URLSearchParams`
+- `fetch`
+
+A simplified request path is:
+
+```text
+Client
+  │
+  ▼
+Cloudflare network
+  │
+  ▼
+Cloudflare Worker
+  │
+  ▼
+Hono router
+  │
+  ├── Security middleware
+  ├── Authentication
+  ├── Authorization
+  ├── Rate limiting
+  ├── Request validation
+  ├── Route handler
+  └── Response formatting
+          │
+          ▼
+Application services
+  │
+  ├── AI orchestration
+  ├── User services
+  ├── Integration modules
+  ├── Notification services
+  ├── Audit services
+  └── Data repositories
+          │
+          ▼
+PostgreSQL or CockroachDB
+```
+
+## Decision
+
+In **2024**, Aerealith selected **Hono** as its primary framework for API endpoints and services intended to run on Cloudflare Workers or compatible edge runtimes.
+
+The adopted primary API stack consists of:
+
+- **Hono** for HTTP routing and middleware.
+- **TypeScript** for application development.
+- **Cloudflare Workers** for edge execution.
+- **Drizzle ORM** for supported relational data access.
+- **PostgreSQL or CockroachDB** for relational storage.
+- Schema-validation libraries for request and response validation.
+- Shared monorepo libraries for contracts, domain logic, configuration, and utilities.
+
+## Decision Rationale
+
+Hono was selected because it:
+
+1. Provides direct compatibility with Cloudflare Workers.
+2. Uses Web Standards APIs instead of depending primarily on Node.js-specific interfaces.
+3. Offers strong TypeScript support.
+4. Keeps framework overhead low.
+5. Supports modular routing and middleware.
+6. Works well for APIs, webhooks, and integration endpoints.
+7. Fits Aerealith's edge-first deployment strategy.
+8. Supports clean separation between routes and business logic.
+9. Can operate across multiple supported runtimes.
+10. Integrates cleanly into a TypeScript monorepo.
+11. Avoids unnecessary coupling to a full-stack frontend framework.
+12. Allows Aerealith to retain control over service architecture.
+
+## Architectural Position
+
+Hono is the API transport framework. It should not become the location of all application logic.
+
+Aerealith's backend should be divided into clear layers.
+
+```text
+API transport
+  │
+  ├── Routes
+  ├── Middleware
+  ├── Request validation
+  └── Response formatting
+          │
+          ▼
+Application layer
+  │
+  ├── Use cases
+  ├── Commands
+  ├── Queries
+  └── Application services
+          │
+          ▼
+Domain layer
+  │
+  ├── Domain models
+  ├── Business rules
+  ├── Policies
+  └── Domain events
+          │
+          ▼
+Infrastructure layer
+  │
+  ├── Database repositories
+  ├── Queue adapters
+  ├── External APIs
+  ├── Storage providers
+  └── Observability integrations
+```
+
+This separation prevents core Aerealith functionality from becoming tightly coupled to Hono or Cloudflare.
+
+## Framework Selection by Workload
+
+Hono is the primary API framework, but it is not required for every workload.
+
+| Workload                             | Preferred Approach                                         |
+| ------------------------------------ | ---------------------------------------------------------- |
+| Cloudflare Worker API                | Hono                                                       |
+| Public edge API                      | Hono                                                       |
+| Webhook receiver                     | Hono                                                       |
+| Authentication gateway               | Hono                                                       |
+| Lightweight internal HTTP service    | Hono or a justified alternative                            |
+| Traditional Node.js service          | Hono, Fastify, or NestJS based on requirements             |
+| Large structured Node.js application | NestJS may be considered                                   |
+| Python AI or data service            | Flask, FastAPI, or another justified Python framework      |
+| Long-running queue consumer          | Runtime-specific worker without unnecessary HTTP framework |
+| Scheduled Cloudflare Worker          | Hono only when HTTP routing is also required               |
+| GPU inference service                | Specialized inference runtime or Python service            |
+| Static frontend                      | Vite and React rather than an API framework                |
+
+## Positive Consequences
+
+Adopting Hono provides the following benefits:
+
+- Strong alignment with Cloudflare Workers.
+- A lightweight API runtime.
+- Shared TypeScript types and utilities.
+- Fast route development.
+- Explicit middleware behavior.
+- Modular API organization.
+- Easier edge deployment.
+- Reduced Node.js-specific coupling.
+- Straightforward testing of request handlers.
+- A clean boundary between frontend and backend services.
+- Support for portable Web Standards-based code.
+- Flexibility to build small independent services.
+
+## Negative Consequences
+
+The decision also creates responsibilities for the Aerealith team:
+
+- Application architecture must be defined and enforced internally.
+- Dependency injection is not provided as a complete built-in system.
+- Developers must avoid placing business logic directly in routes.
+- Validation conventions must be standardized.
+- Error formats must be standardized.
+- Authorization policies must be implemented consistently.
+- OpenAPI generation and maintenance require explicit tooling.
+- Background processing must be handled separately.
+- Some Node.js libraries cannot run in the Workers runtime.
+- Cloudflare resource limits must be considered during design.
+- Integration testing must cover bindings and platform-specific behavior.
+
+## Neutral Consequences
+
+- Hono does not replace application services.
+- Hono does not replace queueing systems.
+- Hono does not replace the database layer.
+- Hono does not define Aerealith's domain architecture.
+- Hono does not make all workloads suitable for edge execution.
+- Cloudflare Workers remain a deployment environment with their own constraints.
+- Other frameworks may still be used for specialized services.
+
+## API Design Principles
+
+Aerealith APIs should follow the principles below.
+
+### Keep Route Handlers Thin
+
+Route handlers should normally perform only transport-level work:
+
+1. Receive the request.
+2. Extract request data.
+3. Validate input.
+4. Authenticate the caller.
+5. Authorize the requested action.
+6. Call an application service.
+7. Format the response.
+
+Complex business rules should not be implemented directly in route handlers.
+
+### Validate All External Input
+
+All external input should be treated as untrusted.
+
+Validation should cover:
+
+- Path parameters.
+- Query parameters.
+- Request headers.
+- Request bodies.
+- Cookies.
+- Webhook signatures.
+- Uploaded files.
+- External API responses.
+- AI-generated tool arguments.
+
+### Enforce Authorization Server-Side
+
+The frontend must never be trusted to enforce permissions.
+
+Authorization must be checked inside the API or application service for every protected operation.
+
+Examples include:
+
+- User data access.
+- Administrative actions.
+- AI tool execution.
+- Discord server management.
+- Billing changes.
+- Configuration updates.
+- Secret access.
+- Audit-log access.
+
+### Standardize Error Responses
+
+APIs should use a consistent error structure.
+
+```json
+{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "The requested resource could not be found.",
+    "requestId": "example-request-id"
+  }
+}
+```
+
+Production errors must not expose:
+
+- Stack traces.
+- Database credentials.
+- API keys.
+- Internal file paths.
+- Private infrastructure details.
+- Raw SQL.
+- Sensitive user information.
+- Unfiltered upstream responses.
+
+### Use Request Identifiers
+
+Every request should have a traceable identifier.
+
+Request identifiers should be included in:
+
+- Application logs.
+- Error responses.
+- Distributed traces.
+- Audit events.
+- Queue messages created by the request.
+- Calls to downstream services.
+
+### Make APIs Observable
+
+API services should expose sufficient telemetry to diagnose failures and performance issues.
+
+Relevant telemetry includes:
+
+- Request count.
+- Error rate.
+- Response latency.
+- Route name.
+- Response status.
+- Worker execution time.
+- Database latency.
+- Queue latency.
+- External service latency.
+- Rate-limit events.
+- Authentication failures.
+- Authorization failures.
+- AI model latency.
+- Token and cost metrics where applicable.
+
+### Design for Retries
+
+Operations should be designed with retry behavior in mind.
+
+Idempotency should be used for actions such as:
+
+- Creating payments.
+- Processing webhooks.
+- Sending notifications.
+- Executing queue jobs.
+- Creating external resources.
+- Applying account changes.
+- Running AI tools with side effects.
+
+### Keep Runtime-Specific Code Isolated
+
+Cloudflare-specific bindings should be accessed through infrastructure adapters when practical.
+
+This reduces coupling and allows:
+
+- Local testing.
+- Alternative deployment environments.
+- Easier migration.
+- Mock implementations.
+- Clearer application boundaries.
+
+## Middleware Strategy
+
+Reusable middleware may be used for:
+
+- Request IDs.
+- Structured logging.
+- Error handling.
+- Authentication.
+- Authorization.
+- Rate limiting.
+- CORS.
+- Security headers.
+- Content-type enforcement.
+- Request-size limits.
+- Schema validation.
+- Webhook verification.
+- Performance timing.
+- Audit context.
+- Feature flags.
+
+Middleware should not hide important business behavior or create implicit permission grants.
+
+## Security Considerations
+
+The selected framework does not automatically make an API secure.
+
+Aerealith API services must implement:
+
+- Strong authentication.
+- Explicit authorization.
+- Least-privilege access.
+- Schema validation.
+- Output filtering.
+- Rate limiting.
+- Abuse detection.
+- Secure secret bindings.
+- Webhook signature validation.
+- Audit logging.
+- Security headers.
+- Controlled cross-origin access.
+- Safe error handling.
+- Dependency scanning.
+- Static analysis.
+- Prompt-injection defenses for AI-connected routes.
+- Tool-permission validation.
+- Protection against confused-deputy attacks.
+
+Authentication middleware should identify the caller.
+
+Authorization policies should determine what that caller is permitted to do.
+
+These responsibilities must remain separate.
+
+## Cloudflare Runtime Constraints
+
+Hono improves compatibility with Cloudflare Workers, but it does not remove Worker limitations.
+
+API design must account for:
+
+- Execution-time limits.
+- Memory limits.
+- Request and response size limits.
+- Restrictions on long-running processes.
+- Limited access to traditional operating-system APIs.
+- Differences from a complete Node.js runtime.
+- Binding configuration.
+- Connection behavior.
+- Regional and consistency considerations.
+- Platform-specific observability behavior.
+
+Workloads that exceed these limits should be moved to an appropriate internal service rather than forced into an edge Worker.
+
+## Data Access
+
+Aerealith's primary relational data stack consists of:
+
+- PostgreSQL or CockroachDB.
+- Drizzle ORM.
+
+Database access should be implemented through repositories or service adapters rather than directly throughout route handlers.
+
+```text
+Hono route
+  │
+  ▼
+Application service
+  │
+  ▼
+Repository interface
+  │
+  ▼
+Drizzle repository implementation
+  │
+  ▼
+PostgreSQL or CockroachDB
+```
+
+This structure allows database behavior to be tested and replaced without modifying every API route.
+
+## Queue Integration
+
+HTTP requests should not remain open for workloads that require lengthy processing.
+
+Appropriate tasks should be sent to a queue, including:
+
+- Large AI jobs.
+- Notification fan-out.
+- Report generation.
+- Media processing.
+- Audit archival.
+- Integration synchronization.
+- Large webhook workflows.
+- Retryable external operations.
+
+Queue technology should be selected separately from the API framework.
+
+Potential queue systems include:
+
+- Cloudflare Queues.
+- RabbitMQ.
+- Redis-based messaging.
+
+The use of Hono does not require a specific queue provider.
+
+## Testing Expectations
+
+Hono-based API services should include:
+
+- Unit tests for domain logic.
+- Unit tests for application services.
+- Route-handler tests.
+- Middleware tests.
+- Validation tests.
+- Authentication tests.
+- Authorization-boundary tests.
+- Integration tests for database repositories.
+- Contract tests for external services.
+- Webhook verification tests.
+- Error-response tests.
+- Rate-limit tests.
+- Cloudflare binding tests.
+- End-to-end tests for critical workflows.
+
+Tests should verify both allowed and denied operations.
+
+## Alternatives Reconsideration
+
+The framework decision may be reconsidered if:
+
+- Cloudflare Workers no longer meet Aerealith's requirements.
+- Hono introduces unacceptable compatibility or maintenance issues.
+- The platform requires capabilities that cannot be implemented reasonably with the selected architecture.
+- Another framework provides significantly better edge-runtime support.
+- The primary runtime changes.
+- Hono's development direction no longer aligns with Aerealith.
+- Production evidence shows unacceptable performance, reliability, or security limitations.
+
+A new framework should not be adopted solely because it is newer or more popular.
+
+Any replacement proposal should include:
+
+- A documented problem with the current framework.
+- A comparison of alternatives.
+- Migration requirements.
+- Security implications.
+- Deployment implications.
+- Performance measurements.
+- Maintenance implications.
+- A rollback strategy.
+
+## Limitations of the Original Research
+
+The research began in **2019**, and the framework ecosystem changed considerably before the decision was finalized in **2024**.
+
+Some frameworks gained new capabilities during that period, while other tools became less appropriate for modern deployment.
+
+The historical analysis records why Hono was selected for Aerealith. It should not be interpreted as a universal claim that Hono is the best backend framework for every project or workload.
+
+Current framework versions should be reevaluated before making a future platform-wide change.
+
+## Conclusion
+
+Aerealith evaluated Express, Flask, Hono, NestJS, Encore, Fastify, and Django as potential API and backend frameworks.
+
+Each option had valid use cases:
+
+- Express provided a familiar Node.js middleware model.
+- Flask supported lightweight Python services.
+- NestJS provided structured enterprise TypeScript architecture.
+- Encore provided integrated backend-development tooling.
+- Fastify provided a high-performance traditional Node.js server framework.
+- Django provided a comprehensive Python web application framework.
+- Hono provided the strongest combination of TypeScript, Web Standards APIs, lightweight execution, and Cloudflare Workers compatibility.
+
+Hono was selected as the primary framework for Aerealith's Cloudflare-compatible API layer.
+
+## Recommendation
+
+Continue using Hono for:
+
+- Cloudflare Worker APIs.
+- Public API gateways.
+- Authentication endpoints.
+- Webhook receivers.
+- Lightweight edge services.
+- Cloudflare-integrated application endpoints.
+
+Use alternative frameworks only when a documented workload requirement justifies the additional technology.
+
+All API implementations should preserve:
+
+- Thin route handlers.
+- Explicit authentication.
+- Server-side authorization.
+- Strict input validation.
+- Consistent errors.
+- Strong observability.
+- Framework-independent business logic.
+- Runtime-specific infrastructure adapters.
+- Clear service boundaries.
+
+## Follow-Up Work
+
+- [ ] Create an ADR for the Hono framework decision.
+- [ ] Document API directory conventions.
+- [ ] Define the standard API error schema.
+- [ ] Define request-validation conventions.
+- [ ] Define authentication middleware.
+- [ ] Define authorization-policy conventions.
+- [ ] Document route naming and versioning.
+- [ ] Document OpenAPI generation.
+- [ ] Document Cloudflare binding access.
+- [ ] Document API testing requirements.
+- [ ] Document rate-limiting behavior.
+- [ ] Document webhook verification.
+- [ ] Document API observability requirements.
+- [ ] Document request-ID propagation.
+- [ ] Document database repository conventions.
+- [ ] Document queue integration patterns.
+- [ ] Define dependency rules between routes, services, domains, and repositories.
+- [ ] Benchmark representative Hono routes under expected production workloads.
+- [ ] Verify Worker compatibility for every production dependency.
+
+## Revision History
+
+| Date       | Author                       | Change                                                                    |
+| ---------- | ---------------------------- | ------------------------------------------------------------------------- |
+| 2019       | Timothy “Andy” Andrew Pierce | Began researching API and backend frameworks for the project.             |
+| 2024       | Timothy “Andy” Andrew Pierce | Selected Hono as the primary Cloudflare-compatible API framework.         |
+| 2026-07-25 | Timothy “Andy” Andrew Pierce | Converted the historical research and decision into formal documentation. |
