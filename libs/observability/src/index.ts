@@ -1,1 +1,1 @@
-export * from './lib/observability';
+export * from './logger';
