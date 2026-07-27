@@ -337,6 +337,12 @@ importers:
         specifier: 4.110.0
         version: 4.110.0(@cloudflare/workers-types@5.20260712.1)
 
+  libs/auth:
+    dependencies:
+      tslib:
+        specifier: ^2.3.0
+        version: 2.8.1
+
   libs/content:
     dependencies:
       '@aerealith-ai/core':
@@ -357,6 +363,12 @@ importers:
       '@aerealith-ai/core':
         specifier: workspace:*
         version: link:../core
+      tslib:
+        specifier: ^2.3.0
+        version: 2.8.1
+
+  libs/observability:
+    dependencies:
       tslib:
         specifier: ^2.3.0
         version: 2.8.1
