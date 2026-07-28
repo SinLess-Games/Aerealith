@@ -1,11 +1,16 @@
-# auth
+# Auth
 
-This library was generated with [Nx](https://nx.dev).
+Runtime-neutral authentication services for Aerealith.
 
-## Building
+The library uses `@aerealith-ai/core` as its source of truth for users,
+sessions, errors, roles, tiers, and lifecycle state. Its repository ports are
+structurally compatible with the user repositories exported by
+`@aerealith-ai/db`; applications provide hashing, token generation, event
+publishing, and database adapters at composition time.
 
-Run `nx build auth` to build the library.
+```ts
+import { PasswordAuthenticationService, SessionService } from '@aerealith-ai/auth';
+```
 
-## Running unit tests
-
-Run `nx test auth` to execute the unit tests via [Vitest](https://vitest.dev/).
+Raw passwords and session tokens are never persisted by this library. The db
+layer receives password hashes and session-token digests only.
