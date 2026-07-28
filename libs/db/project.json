@@ -5,6 +5,54 @@
   "projectType": "library",
   "tags": ["scope:db", "type:lib"],
   "targets": {
+    "generate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "drizzle-kit generate --config libs/db/drizzle.config.ts"
+      }
+    },
+    "migrate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "drizzle-kit migrate --config libs/db/drizzle.config.ts"
+      }
+    },
+    "postgres-migrate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "drizzle-kit migrate --config libs/db/drizzle.config.ts",
+        "env": {
+          "DATABASE_URL": "postgresql://aerealith:aerealith@127.0.0.1:5432/aerealith"
+        }
+      }
+    },
+    "seed-admin": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsx libs/db/scripts/seed-admin.ts"
+      }
+    },
+    "postgres-seed-admin": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsx libs/db/scripts/seed-admin.ts",
+        "env": {
+          "DATABASE_URL": "postgresql://aerealith:aerealith@127.0.0.1:5432/aerealith"
+        }
+      }
+    },
+    "postgres-up": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docker compose --env-file .env -f libs/db/docker-compose.postgres.yml up -d --wait"
+      }
+    },
+    "postgres-down": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docker compose --env-file .env -f libs/db/docker-compose.postgres.yml down"
+      }
+    },
     "build": {
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],

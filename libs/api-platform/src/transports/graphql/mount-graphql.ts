@@ -4,6 +4,7 @@ import type { Hono } from 'hono';
 
 import type { ApiEnv } from '../../app/api-env.type';
 import type { ApiRequestContext } from '../../context/api-request-context.interface';
+import { mergeHonoResponseHeaders } from '../merge-hono-response-headers';
 import type { GraphqlMountOptions } from './graphql-mount-options.interface';
 
 /** Constructs GraphQL Yoga once and mounts its Fetch handler into Hono. */
@@ -34,10 +35,14 @@ export function mountGraphql<
 
   app.all(path, async (honoContext) => {
     try {
-      return await yoga.fetch(honoContext.req.raw, {
+      const response = await yoga.fetch(honoContext.req.raw, {
         apiContext: honoContext.get('apiContext'),
         honoContext,
       });
+      return mergeHonoResponseHeaders(
+        await removeInternalGraphqlDetails(response),
+        honoContext.res.headers,
+      );
     } catch (error) {
       honoContext.get('apiContext').logger.error({
         event: 'api.graphql.request.failed',
@@ -50,6 +55,30 @@ export function mountGraphql<
     }
   });
   return app;
+}
+
+async function removeInternalGraphqlDetails(
+  response: Response,
+): Promise<Response> {
+  if (!response.headers.get('content-type')?.includes('application/json')) {
+    return response;
+  }
+  const body = (await response.json()) as {
+    errors?: Array<{
+      message?: string;
+      extensions?: Record<string, unknown>;
+    }>;
+  };
+  for (const error of body.errors ?? []) {
+    if (error.extensions?.['code'] === 'INTERNAL_SERVER_ERROR') {
+      error.message = 'Unexpected error.';
+      error.extensions = { code: 'INTERNAL_SERVER_ERROR' };
+    }
+  }
+  return Response.json(body, {
+    status: response.status,
+    headers: response.headers,
+  });
 }
 
 function createGraphqlErrorLoggingPlugin(): Plugin {

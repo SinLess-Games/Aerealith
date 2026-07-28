@@ -29,7 +29,8 @@
       "@aerealith-ai/auth": ["./libs/auth/src/index.ts"],
       "@aerealith-ai/observability": ["./libs/observability/src/index.ts"],
       "@aerealith-ai/api": ["./libs/api/src/index.ts"],
-      "@aerealith-ai/api-platform": ["./libs/api-platform/src/index.ts"]
+      "@aerealith-ai/api-platform": ["./libs/api-platform/src/index.ts"],
+      "@aerealith-ai/authorization": ["./libs/authorization/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

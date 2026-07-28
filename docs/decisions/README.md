@@ -50,6 +50,7 @@ Accepted records are not silently rewritten to erase historical reasoning.
 | [DEC-013](./DEC-013-notification-and-ticket-summary-scope.md) | Notification preferences and ticket summaries  | Accepted | 0.8      |
 | [DEC-014](./DEC-014-mvp-persona-priority.md)                  | MVP persona priority                           | Accepted | 0.4      |
 | [DEC-015](./DEC-015-scope-classification-language.md)         | Unambiguous scope classification               | Accepted | 0.4+     |
+| [DEC-016](./DEC-016-centralized-authorization.md)             | Centralized, normalized authorization          | Accepted | All      |
 
 ## Required Record Sections
 
