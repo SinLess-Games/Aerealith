@@ -5,6 +5,16 @@
   "projectType": "library",
   "tags": ["scope:auth", "type:lib"],
   "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "tsc --noEmit -p libs/auth/tsconfig.lib.json",
+          "tsc --noEmit -p libs/auth/tsconfig.spec.json"
+        ],
+        "parallel": false
+      }
+    },
     "build": {
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],

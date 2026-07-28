@@ -5,6 +5,16 @@
   "projectType": "application",
   "tags": ["scope:services", "type:service"],
   "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "tsc --noEmit --rootDir . -p apps/services/auth/tsconfig.app.json",
+          "tsc --noEmit --composite false --rootDir . -p apps/services/auth/tsconfig.spec.json"
+        ],
+        "parallel": false
+      }
+    },
     "build": {
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],

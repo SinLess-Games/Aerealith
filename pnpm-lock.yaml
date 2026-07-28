@@ -337,8 +337,36 @@ importers:
         specifier: 4.110.0
         version: 4.110.0(@cloudflare/workers-types@5.20260712.1)
 
+  libs/api-platform:
+    dependencies:
+      '@aerealith-ai/core':
+        specifier: workspace:*
+        version: link:../core
+      '@trpc/server':
+        specifier: 11.18.0
+        version: 11.18.0(typescript@6.0.3)
+      graphql:
+        specifier: 17.0.2
+        version: 17.0.2
+      graphql-yoga:
+        specifier: 5.21.2
+        version: 5.21.2(graphql@17.0.2)
+      hono:
+        specifier: 4.12.30
+        version: 4.12.30
+      tslib:
+        specifier: ^2.3.0
+        version: 2.8.1
+    devDependencies:
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
+
   libs/auth:
     dependencies:
+      '@aerealith-ai/core':
+        specifier: workspace:*
+        version: link:../core
       tslib:
         specifier: ^2.3.0
         version: 2.8.1

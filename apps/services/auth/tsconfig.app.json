@@ -4,7 +4,10 @@
     "outDir": "../../../dist/out-tsc",
     "rootDir": "./src",
     "declaration": true,
+    "module": "commonjs",
+    "moduleResolution": "bundler",
     "types": ["node"]
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.spec.ts", "src/**/*.test.ts"]
 }

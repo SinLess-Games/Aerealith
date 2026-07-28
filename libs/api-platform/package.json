@@ -1,0 +1,19 @@
+{
+  "name": "@aerealith-ai/api-platform",
+  "version": "0.0.1",
+  "private": true,
+  "type": "commonjs",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "dependencies": {
+    "@aerealith-ai/core": "workspace:*",
+    "@trpc/server": "11.18.0",
+    "graphql": "17.0.2",
+    "graphql-yoga": "5.21.2",
+    "hono": "4.12.30",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "zod": "4.4.3"
+  }
+}

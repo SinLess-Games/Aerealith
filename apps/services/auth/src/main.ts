@@ -1,9 +1,22 @@
-import { Hono } from 'hono'
+import {
+  createApiApp,
+  mountHttpRoutes,
+  type ApiEnv,
+} from '@aerealith-ai/api-platform';
+import { noopLogger } from '@aerealith-ai/core';
 
-const app = new Hono()
+const app = createApiApp<ApiEnv>({
+  serviceName: 'auth',
+  logger: noopLogger,
+});
 
-app.get('/api/v1/services/auth', (c) => {
-  return c.json({ service: 'auth', status: 'ok' })
-})
+mountHttpRoutes(app, {
+  basePath: '/api/v1',
+  register(router) {
+    router.get('/services/auth', (context) =>
+      context.json({ service: 'auth', status: 'ok' }),
+    );
+  },
+});
 
-export default app
+export default app;
