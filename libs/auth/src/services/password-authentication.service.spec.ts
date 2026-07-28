@@ -32,7 +32,9 @@ describe('PasswordAuthenticationService', () => {
   });
 
   it('authenticates normalized email identifiers and returns safe user data', async () => {
-    vi.mocked(users.findEntityByEmail).mockResolvedValue(user());
+    vi.mocked(users.findEntityByEmail).mockResolvedValue(
+      user({ metadata: { displayName: 'Aerealith User', internal: true } }),
+    );
     const service = createService(users, hasher, events);
 
     const result = await service.authenticate({
@@ -49,6 +51,8 @@ describe('PasswordAuthenticationService', () => {
       authenticatedAt,
     });
     expect(result.user).not.toHaveProperty('passwordHash');
+    expect(result.user).toMatchObject({ displayName: 'Aerealith User' });
+    expect(result.user).not.toHaveProperty('metadata');
     expect(events.publish).toHaveBeenCalledWith({
       event: AuthEvent.PasswordAuthenticationSucceeded,
       occurredAt: authenticatedAt,

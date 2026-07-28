@@ -20,7 +20,7 @@
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "dist/apps/services/auth",
-        "main": "apps/services/auth/src/main.ts",
+        "main": "apps/services/auth/src/server.ts",
         "tsConfig": "apps/services/auth/tsconfig.app.json"
       }
     },
@@ -42,6 +42,35 @@
       "defaultConfiguration": "development",
       "options": {
         "buildTarget": "service-auth:build"
+      }
+    },
+    "worker-serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/auth",
+        "command": "wrangler dev"
+      }
+    },
+    "typegen": {
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/worker-configuration.d.ts"],
+      "options": {
+        "cwd": "apps/services/auth",
+        "command": "wrangler types"
+      }
+    },
+    "worker-dry-run": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/auth",
+        "command": "wrangler deploy --dry-run"
+      }
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/auth",
+        "command": "wrangler deploy"
       }
     }
   }

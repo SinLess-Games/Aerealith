@@ -63,6 +63,12 @@ export class SessionService {
     return session;
   }
 
+  async findUserIdByToken(token: string): Promise<string | null> {
+    if (!this.sessions.findUserIdByTokenHash) return null;
+    const tokenHash = await this.tokens.digest(token);
+    return this.sessions.findUserIdByTokenHash(tokenHash);
+  }
+
   listForUser(userId: string): Promise<UserSessionContract[]> {
     return this.sessions.findAllByUserId(userId);
   }

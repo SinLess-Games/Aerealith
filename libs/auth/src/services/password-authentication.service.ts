@@ -113,11 +113,15 @@ export class PasswordAuthenticationService {
 }
 
 function toUserContract(user: UserEntity): UserContract {
+  const displayName = user.metadata['displayName'];
   return {
     id: user.id,
     username: user.username,
     email: user.email,
     emailVerified: user.emailVerified,
+    ...(typeof displayName === 'string' && displayName.trim()
+      ? { displayName: displayName.trim() }
+      : {}),
     status: user.status,
     role: user.role,
     tier: user.tier,

@@ -15,6 +15,7 @@ export interface CreateAuthSessionRecord {
  * Structural port matching `DrizzleUserSessionRepository`.
  */
 export interface SessionRepository {
+  findUserIdByTokenHash?(tokenHash: string): Promise<string | null>;
   findById(id: string): Promise<UserSessionContract | null>;
   findByTokenHash(tokenHash: string): Promise<UserSessionContract | null>;
   findAllByUserId(userId: string): Promise<UserSessionContract[]>;

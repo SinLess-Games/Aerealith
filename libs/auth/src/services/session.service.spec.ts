@@ -18,6 +18,7 @@ describe('SessionService', () => {
 
   beforeEach(() => {
     sessions = {
+      findUserIdByTokenHash: vi.fn().mockResolvedValue('user-1'),
       findById: vi.fn(),
       findByTokenHash: vi.fn(),
       findAllByUserId: vi.fn().mockResolvedValue([]),
@@ -79,6 +80,16 @@ describe('SessionService', () => {
     await expect(
       createService(sessions, tokens, events).findByToken('missing'),
     ).resolves.toBeNull();
+  });
+
+  it('resolves internal session ownership without changing public sessions', async () => {
+    const service = createService(sessions, tokens, events);
+
+    await expect(service.findUserIdByToken('raw-token')).resolves.toBe(
+      'user-1',
+    );
+    expect(tokens.digest).toHaveBeenCalledWith('raw-token');
+    expect(sessions.findUserIdByTokenHash).toHaveBeenCalledWith('token-hash');
   });
 
   it('rejects expired and revoked sessions', async () => {

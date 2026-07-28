@@ -1,0 +1,36 @@
+"$schema" = "../../../node_modules/wrangler/config-schema.json"
+
+name = "aerealith-auth"
+main = "src/worker.ts"
+compatibility_date = "2026-07-28"
+compatibility_flags = ["nodejs_compat"]
+preview_urls = true
+workers_dev = true
+upload_source_maps = true
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = true
+persist = true
+head_sampling_rate = 1
+
+[vars]
+NODE_ENV = "production"
+FRONTEND_URL = "https://aerealith.com"
+
+[[flagship]]
+binding = "FLAGSHIP_FLAGS"
+app_id = "2a1ca9ba-b446-4cb8-b8eb-ab0f3985679f"
+remote = true
+
+# Configure DATABASE_URL, RESEND_API_KEY, and RESEND_FROM_EMAIL with
+# `pnpm wrangler secret put <NAME> --config apps/services/auth/wrangler.toml`.

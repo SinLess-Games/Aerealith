@@ -1,22 +1,6 @@
-import {
-  createApiApp,
-  mountHttpRoutes,
-  type ApiEnv,
-} from '@aerealith-ai/api-platform';
-import { noopLogger } from '@aerealith-ai/core';
+import { createAuthServiceApp } from './create-auth-service-app';
 
-const app = createApiApp<ApiEnv>({
-  serviceName: 'auth',
-  logger: noopLogger,
-});
+const app = createAuthServiceApp();
 
-mountHttpRoutes(app, {
-  basePath: '/api/v1',
-  register(router) {
-    router.get('/services/auth', (context) =>
-      context.json({ service: 'auth', status: 'ok' }),
-    );
-  },
-});
-
+export { createAuthServiceApp };
 export default app;

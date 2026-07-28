@@ -3,6 +3,7 @@ import type { AnyRouter } from '@trpc/server';
 import type { Hono } from 'hono';
 
 import type { ApiEnv } from '../../app/api-env.type';
+import { mergeHonoResponseHeaders } from '../merge-hono-response-headers';
 import type { TrpcMountOptions } from './trpc-mount-options.interface';
 
 /** Mounts tRPC's Fetch adapter into the existing Hono application. */
@@ -32,7 +33,10 @@ export function mountTrpc<TEnv extends ApiEnv, TRouter extends AnyRouter>(
         });
       },
     });
-    return maskInternalTrpcError(response);
+    return mergeHonoResponseHeaders(
+      await maskInternalTrpcError(response),
+      honoContext.res.headers,
+    );
   });
   return app;
 }
