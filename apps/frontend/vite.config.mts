@@ -1,8 +1,8 @@
 /// <reference types='vitest' />
 
-import tailwindcss from '@tailwindcss/vite'
-import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import tailwindcss from '@tailwindcss/vite';
+import react from '@vitejs/plugin-react';
+import { defineConfig, loadEnv } from 'vite';
 
 /**
  * Vite configuration for the Aerealith frontend.
@@ -12,10 +12,14 @@ import { defineConfig } from 'vite'
  * independently cacheable chunks.
  */
 export default defineConfig(({ mode }) => {
-  const isProduction = mode === 'production'
+  const isProduction = mode === 'production';
+  const environment = loadEnv(mode, '../..', '');
+  const authServiceUrl =
+    environment['AUTH_SERVICE_URL'] ?? 'http://localhost:3001';
 
   return {
     root: import.meta.dirname,
+    envDir: '../..',
     cacheDir: '../../node_modules/.vite/apps/frontend',
 
     /**
@@ -32,6 +36,11 @@ export default defineConfig(({ mode }) => {
       host: 'localhost',
       port: 4200,
       strictPort: true,
+      proxy: {
+        '/api': authServiceUrl,
+        '/graphql': authServiceUrl,
+        '/trpc': authServiceUrl,
+      },
     },
 
     /**
@@ -391,5 +400,5 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
-  }
-})
+  };
+});

@@ -1,11 +1,21 @@
+import { FeatureFlag } from '@aerealith-ai/core';
+import {
+  FaDiscord,
+  FaEnvelope,
+  FaGithub,
+  FaPatreon,
+  FaTwitch,
+} from 'react-icons/fa6';
 import {
   useId,
   useState,
   type CSSProperties,
   type FormEvent,
   type ReactNode,
-} from 'react'
-import { Link } from 'react-router'
+} from 'react';
+import { Link } from 'react-router';
+
+import { useFeatureFlag } from '../../features/flags/feature-flags';
 
 const footerSections = [
   {
@@ -60,15 +70,15 @@ const footerSections = [
       },
     ],
   },
-] as const
+] as const;
 
-type FooterSectionData = (typeof footerSections)[number]
-type FooterSectionIcon = FooterSectionData['icon']
-type MessageType = 'idle' | 'success' | 'error'
+type FooterSectionData = (typeof footerSections)[number];
+type FooterSectionIcon = FooterSectionData['icon'];
+type MessageType = 'idle' | 'success' | 'error';
 
 function isValidEmail(value: string) {
-  const atIndex = value.indexOf('@')
-  const dotIndex = value.lastIndexOf('.')
+  const atIndex = value.indexOf('@');
+  const dotIndex = value.lastIndexOf('.');
 
   return (
     atIndex > 0 &&
@@ -76,41 +86,42 @@ function isValidEmail(value: string) {
     dotIndex > atIndex + 1 &&
     dotIndex < value.length - 1 &&
     !/\s/.test(value)
-  )
+  );
 }
 
 export function PublicFooter() {
-  const [email, setEmail] = useState('')
-  const [message, setMessage] = useState('')
-  const [messageType, setMessageType] = useState<MessageType>('idle')
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState<MessageType>('idle');
+  const waitlistEnabled = useFeatureFlag(FeatureFlag.Waitlist);
 
   function subscribe(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+    event.preventDefault();
 
-    const normalizedEmail = email.trim()
+    const normalizedEmail = email.trim();
 
     if (!normalizedEmail || !isValidEmail(normalizedEmail)) {
-      setMessage('Enter a valid email address.')
-      setMessageType('error')
-      return
+      setMessage('Enter a valid email address.');
+      setMessageType('error');
+      return;
     }
 
-    setMessage("You're on the list. Welcome to Aerealith AI.")
-    setMessageType('success')
-    setEmail('')
+    setMessage("You're on the list. Welcome to Aerealith AI.");
+    setMessageType('success');
+    setEmail('');
   }
 
   function handleEmailChange(value: string) {
-    setEmail(value)
+    setEmail(value);
 
     if (messageType !== 'idle') {
-      setMessage('')
-      setMessageType('idle')
+      setMessage('');
+      setMessageType('idle');
     }
   }
 
   return (
-    <footer className='public-footer relative z-10 mt-auto px-3 pb-3 pt-12 sm:px-5 sm:pb-5 sm:pt-16'>
+    <footer className="public-footer relative z-10 mt-auto px-3 pb-3 pt-12 sm:px-5 sm:pb-5 sm:pt-16">
       <style>{`
         :root[data-theme='light'] .public-footer {
           --footer-background: rgba(255, 255, 255, 0.78);
@@ -291,22 +302,22 @@ export function PublicFooter() {
         }
       `}</style>
 
-      <div className='footer-shell relative mx-auto w-full max-w-7xl overflow-hidden rounded-3xl border backdrop-blur-2xl'>
+      <div className="footer-shell relative mx-auto w-full max-w-7xl overflow-hidden rounded-3xl border backdrop-blur-2xl">
         {/* Subtle top highlight. */}
         <div
-          aria-hidden='true'
-          className='pointer-events-none absolute inset-x-12 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/55 to-transparent'
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-12 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/55 to-transparent"
         />
 
         {/* Decorative lower glows. */}
         <div
-          aria-hidden='true'
-          className='pointer-events-none absolute bottom-0 left-0 h-48 w-80 bg-[radial-gradient(circle_at_bottom_left,rgba(37,99,235,0.12),transparent_68%)]'
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-0 left-0 h-48 w-80 bg-[radial-gradient(circle_at_bottom_left,rgba(37,99,235,0.12),transparent_68%)]"
         />
 
         <div
-          aria-hidden='true'
-          className='pointer-events-none absolute right-0 bottom-0 h-48 w-80 bg-[radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.12),transparent_68%)]'
+          aria-hidden="true"
+          className="pointer-events-none absolute right-0 bottom-0 h-48 w-80 bg-[radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.12),transparent_68%)]"
         />
 
         <div
@@ -328,7 +339,7 @@ export function PublicFooter() {
            * columns.
            */}
           <nav
-            aria-label='Footer navigation'
+            aria-label="Footer navigation"
             className={[
               'hidden min-w-0 gap-x-8 gap-y-10 md:grid',
               'md:col-span-2 md:grid-cols-2',
@@ -342,19 +353,21 @@ export function PublicFooter() {
           </nav>
 
           {/* Mobile accordion navigation. */}
-          <div className='footer-divider divide-y border-y md:hidden'>
+          <div className="footer-divider divide-y border-y md:hidden">
             {footerSections.map((section) => (
               <MobileFooterSection key={section.title} {...section} />
             ))}
           </div>
 
-          <Newsletter
-            email={email}
-            message={message}
-            messageType={messageType}
-            onEmailChange={handleEmailChange}
-            onSubmit={subscribe}
-          />
+          {waitlistEnabled ? (
+            <Newsletter
+              email={email}
+              message={message}
+              messageType={messageType}
+              onEmailChange={handleEmailChange}
+              onSubmit={subscribe}
+            />
+          ) : null}
         </div>
 
         <div
@@ -365,25 +378,25 @@ export function PublicFooter() {
             'lg:mx-10',
           ].join(' ')}
         >
-          <span className='footer-muted'>
+          <span className="footer-muted">
             {'\u00A9'} {new Date().getFullYear()} SinLess Games LLC. All rights
             reserved.
           </span>
 
-          <span className='footer-muted'>
+          <span className="footer-muted">
             Aerealith is developed by SinLess Games LLC and operated under
             SinLess Industries.
           </span>
 
-          <div className='flex items-center gap-3'>
-            <span className='footer-muted hidden items-center gap-2 sm:flex'>
+          <div className="flex items-center gap-3">
+            <span className="footer-muted hidden items-center gap-2 sm:flex">
               <GlobeIcon />
               English
             </span>
 
             <button
-              type='button'
-              aria-label='Back to top'
+              type="button"
+              aria-label="Back to top"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               className={[
                 'footer-top-button grid h-11 w-11 place-items-center rounded-xl',
@@ -398,91 +411,99 @@ export function PublicFooter() {
         </div>
       </div>
     </footer>
-  )
+  );
 }
 
 function FooterBrand() {
   return (
-    <section className='min-w-0 md:self-start'>
+    <section className="min-w-0 md:self-start">
       <Link
-        to='/'
-        aria-label='Aerealith AI home'
+        to="/"
+        aria-label="Aerealith AI home"
         className={[
           'group inline-flex max-w-full items-center gap-3 rounded-xl',
           'focus-visible:outline-2 focus-visible:outline-offset-4',
           'focus-visible:outline-[var(--ae-accent)]',
         ].join(' ')}
       >
-        <span className='relative grid h-12 w-12 shrink-0 place-items-center'>
+        <span className="relative grid h-12 w-12 shrink-0 place-items-center">
           <span
-            aria-hidden='true'
-            className='absolute inset-1 rounded-xl bg-gradient-to-br from-fuchsia-500/20 via-violet-500/12 to-cyan-500/20 blur-md'
+            aria-hidden="true"
+            className="absolute inset-1 rounded-xl bg-gradient-to-br from-fuchsia-500/20 via-violet-500/12 to-cyan-500/20 blur-md"
           />
 
           <img
-            src='/images/brand/mark-no-background.png'
-            alt=''
+            src="/images/brand/mark-no-background.png"
+            alt=""
             width={48}
             height={48}
-            className='relative h-12 w-12 object-contain drop-shadow-[0_0_12px_rgba(34,211,238,0.3)] transition group-hover:scale-105'
+            className="relative h-12 w-12 object-contain drop-shadow-[0_0_12px_rgba(34,211,238,0.3)] transition group-hover:scale-105"
           />
         </span>
 
         <span
-          className='footer-heading truncate text-xl leading-7 font-semibold tracking-wide'
+          className="footer-heading truncate text-xl leading-7 font-semibold tracking-wide"
           style={{ fontFamily: 'var(--ae-font-heading)' }}
         >
           Aerealith AI
         </span>
       </Link>
 
-      <p className='footer-muted mt-5 max-w-xs text-sm leading-6'>
+      <p className="footer-muted mt-5 max-w-xs text-sm leading-6">
         Your digital life, intelligently connected.
         <br />
         Secure. Modular. Built for the future.
       </p>
 
-      <div className='mt-6 flex flex-wrap gap-3'>
+      <div className="mt-6 flex flex-wrap gap-3">
         <SocialLink
-          href='https://discord.gg/aerealith'
-          label='Join the Aerealith AI Discord'
-          accent='#5865f2'
+          href="https://discord.gg/aerealith"
+          label="Join the Aerealith AI Discord"
+          accent="#5865f2"
         >
-          <DiscordIcon />
+          <FaDiscord className="h-5 w-5" aria-hidden="true" />
         </SocialLink>
 
         <SocialLink
-          href='https://www.patreon.com/aerealith'
-          label='Support Aerealith AI on Patreon'
-          accent='#ff424d'
+          href="https://www.patreon.com/aerealith"
+          label="Support Aerealith AI on Patreon"
+          accent="#ff424d"
         >
-          <PatreonIcon />
+          <FaPatreon className="h-5 w-5" aria-hidden="true" />
         </SocialLink>
 
         <SocialLink
-          href='mailto:support@aerealith.com'
-          label='Email Aerealith AI'
-          accent='#06b6d4'
+          href="https://www.twitch.tv/Sinless777"
+          label="Sinless777 on Twitch"
+          accent="#9146ff"
         >
-          <MailIcon />
+          <FaTwitch className="h-5 w-5" aria-hidden="true" />
         </SocialLink>
 
         <SocialLink
-          href='https://github.com/SinLess-Games/Aerealith'
-          label='Aerealith AI on GitHub'
-          accent='#a855f7'
+          href="mailto:support@aerealith.com"
+          label="Email Aerealith AI"
+          accent="#06b6d4"
         >
-          <GitHubIcon />
+          <FaEnvelope className="h-5 w-5" aria-hidden="true" />
+        </SocialLink>
+
+        <SocialLink
+          href="https://github.com/Sinless777"
+          label="Sinless777 on GitHub"
+          accent="#a855f7"
+        >
+          <FaGithub className="h-5 w-5" aria-hidden="true" />
         </SocialLink>
       </div>
     </section>
-  )
+  );
 }
 
 function FooterSection({ accent, icon, links, title }: FooterSectionData) {
   return (
     <section
-      className='min-w-0'
+      className="min-w-0"
       style={
         {
           '--section-accent': accent,
@@ -493,37 +514,37 @@ function FooterSection({ accent, icon, links, title }: FooterSectionData) {
        * A div is used instead of h2 because the application's global
        * typography rules style headings at display sizes.
        */}
-      <div className='footer-heading flex min-w-0 items-center gap-2 text-sm leading-5 font-semibold'>
+      <div className="footer-heading flex min-w-0 items-center gap-2 text-sm leading-5 font-semibold">
         <span
-          className='grid h-7 w-7 shrink-0 place-items-center rounded-lg border'
+          className="grid h-7 w-7 shrink-0 place-items-center rounded-lg border"
           style={{
             color: accent,
             borderColor: `color-mix(in srgb, ${accent} 35%, transparent)`,
             background: `color-mix(in srgb, ${accent} 8%, transparent)`,
           }}
-          aria-hidden='true'
+          aria-hidden="true"
         >
           <SectionIcon name={icon} />
         </span>
 
-        <span className='min-w-0 truncate'>{title}</span>
+        <span className="min-w-0 truncate">{title}</span>
       </div>
 
-      <ul className='mt-5 grid min-w-0 gap-3'>
+      <ul className="mt-5 grid min-w-0 gap-3">
         {links.map((link) => (
-          <li key={link.label} className='min-w-0'>
+          <li key={link.label} className="min-w-0">
             <FooterLink {...link} />
           </li>
         ))}
       </ul>
     </section>
-  )
+  );
 }
 
 function MobileFooterSection(section: FooterSectionData) {
   return (
     <details
-      className='footer-mobile-section group border-b last:border-b-0'
+      className="footer-mobile-section group border-b last:border-b-0"
       style={
         {
           '--section-accent': section.accent,
@@ -537,26 +558,26 @@ function MobileFooterSection(section: FooterSectionData) {
           'transition',
         ].join(' ')}
       >
-        <span className='flex min-w-0 items-center gap-3'>
+        <span className="flex min-w-0 items-center gap-3">
           <span
-            className='grid h-8 w-8 shrink-0 place-items-center rounded-lg border'
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border"
             style={{
               color: section.accent,
               borderColor: `color-mix(in srgb, ${section.accent} 35%, transparent)`,
               background: `color-mix(in srgb, ${section.accent} 8%, transparent)`,
             }}
-            aria-hidden='true'
+            aria-hidden="true"
           >
             <SectionIcon name={section.icon} />
           </span>
 
-          <span className='truncate'>{section.title}</span>
+          <span className="truncate">{section.title}</span>
         </span>
 
         <ChevronIcon />
       </summary>
 
-      <ul className='grid gap-1 pb-4 pl-12'>
+      <ul className="grid gap-1 pb-4 pl-12">
         {section.links.map((link) => (
           <li key={link.label}>
             <FooterLink {...link} mobile />
@@ -564,7 +585,7 @@ function MobileFooterSection(section: FooterSectionData) {
         ))}
       </ul>
     </details>
-  )
+  );
 }
 
 function FooterLink({
@@ -573,37 +594,37 @@ function FooterLink({
   mobile = false,
   to,
 }: {
-  href?: string
-  label: string
-  mobile?: boolean
-  to?: string
+  href?: string;
+  label: string;
+  mobile?: boolean;
+  to?: string;
 }) {
   const className = [
     'footer-link inline-flex max-w-full items-center gap-2 text-sm leading-5',
     'transition-colors focus-visible:rounded-sm focus-visible:outline-2',
     'focus-visible:outline-offset-2 focus-visible:outline-[var(--ae-accent)]',
     mobile ? 'py-2.5' : '',
-  ].join(' ')
+  ].join(' ');
 
   if (to) {
     return (
       <Link to={to} className={className}>
         <span>{label}</span>
       </Link>
-    )
+    );
   }
 
   return (
     <a
       href={href}
-      target='_blank'
-      rel='noopener noreferrer'
+      target="_blank"
+      rel="noopener noreferrer"
       className={className}
     >
       <span>{label}</span>
       <ExternalLinkIcon />
     </a>
-  )
+  );
 }
 
 function Newsletter({
@@ -613,14 +634,14 @@ function Newsletter({
   onEmailChange,
   onSubmit,
 }: {
-  email: string
-  message: string
-  messageType: MessageType
-  onEmailChange: (value: string) => void
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void
+  email: string;
+  message: string;
+  messageType: MessageType;
+  onEmailChange: (value: string) => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
-  const emailId = useId()
-  const messageId = useId()
+  const emailId = useId();
+  const messageId = useId();
 
   return (
     <section
@@ -633,39 +654,39 @@ function Newsletter({
        * A div is used instead of h2 to avoid global heading styles making
        * this label oversized.
        */}
-      <div className='footer-heading flex items-center gap-3 text-sm leading-5 font-semibold'>
-        <span className='grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-violet-500/30 bg-violet-500/10 text-violet-500'>
-          <MailIcon />
+      <div className="footer-heading flex items-center gap-3 text-sm leading-5 font-semibold">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-violet-500/30 bg-violet-500/10 text-violet-500">
+          <FaEnvelope className="h-5 w-5" aria-hidden="true" />
         </span>
 
         <span>Stay in the loop</span>
       </div>
 
-      <p className='footer-muted mt-4 text-sm leading-6'>
+      <p className="footer-muted mt-4 text-sm leading-6">
         Get updates on product progress, funding, releases, and early access.
       </p>
 
-      <form className='mt-5' onSubmit={onSubmit} noValidate>
-        <label htmlFor={emailId} className='sr-only'>
+      <form className="mt-5" onSubmit={onSubmit} noValidate>
+        <label htmlFor={emailId} className="sr-only">
           Email address
         </label>
 
-        <div className='footer-input-shell flex min-w-0 rounded-xl border p-1 transition'>
+        <div className="footer-input-shell flex min-w-0 rounded-xl border p-1 transition">
           <input
             id={emailId}
-            type='email'
+            type="email"
             value={email}
             onChange={(event) => onEmailChange(event.target.value)}
-            placeholder='Enter your email'
-            autoComplete='email'
+            placeholder="Enter your email"
+            autoComplete="email"
             aria-describedby={messageId}
             aria-invalid={messageType === 'error'}
-            className='footer-input min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none'
+            className="footer-input min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none"
           />
 
           <button
-            type='submit'
-            aria-label='Join the Aerealith AI mailing list'
+            type="submit"
+            aria-label="Join the Aerealith AI mailing list"
             className={[
               'grid h-10 w-10 shrink-0 place-items-center rounded-lg',
               'bg-gradient-to-br from-fuchsia-600 via-violet-500 to-cyan-500',
@@ -689,13 +710,13 @@ function Newsletter({
                 ? 'text-emerald-500'
                 : 'footer-muted',
           ].join(' ')}
-          aria-live='polite'
+          aria-live="polite"
         >
           {message || 'We respect your privacy. No spam, ever.'}
         </p>
       </form>
     </section>
-  )
+  );
 }
 
 function SocialLink({
@@ -704,12 +725,12 @@ function SocialLink({
   href,
   label,
 }: {
-  accent: string
-  children: ReactNode
-  href: string
-  label: string
+  accent: string;
+  children: ReactNode;
+  href: string;
+  label: string;
 }) {
-  const isExternal = href.startsWith('http')
+  const isExternal = href.startsWith('http');
 
   return (
     <a
@@ -731,42 +752,42 @@ function SocialLink({
     >
       {children}
     </a>
-  )
+  );
 }
 
 function SectionIcon({ name }: { name: FooterSectionIcon }) {
   switch (name) {
     case 'product':
       return (
-        <Icon className='h-4 w-4'>
-          <path d='m12 3 7 4v10l-7 4-7-4V7l7-4Z' />
-          <path d='m5 7 7 4 7-4M12 11v10' />
+        <Icon className="h-4 w-4">
+          <path d="m12 3 7 4v10l-7 4-7-4V7l7-4Z" />
+          <path d="m5 7 7 4 7-4M12 11v10" />
         </Icon>
-      )
+      );
 
     case 'company':
       return (
-        <Icon className='h-4 w-4'>
-          <path d='M4 21V5l8-3 8 3v16' />
-          <path d='M2 21h20M8 8h1M15 8h1M8 12h1M15 12h1M8 16h1M15 16h1' />
+        <Icon className="h-4 w-4">
+          <path d="M4 21V5l8-3 8 3v16" />
+          <path d="M2 21h20M8 8h1M15 8h1M8 12h1M15 12h1M8 16h1M15 16h1" />
         </Icon>
-      )
+      );
 
     case 'resources':
       return (
-        <Icon className='h-4 w-4'>
-          <path d='M6 3h9l3 3v15H6V3Z' />
-          <path d='M14 3v4h4M9 12h6M9 16h6' />
+        <Icon className="h-4 w-4">
+          <path d="M6 3h9l3 3v15H6V3Z" />
+          <path d="M14 3v4h4M9 12h6M9 16h6" />
         </Icon>
-      )
+      );
 
     case 'legal':
       return (
-        <Icon className='h-4 w-4'>
-          <rect x='5' y='10' width='14' height='11' rx='2' />
-          <path d='M8 10V7a4 4 0 0 1 8 0v3M12 14v3' />
+        <Icon className="h-4 w-4">
+          <rect x="5" y="10" width="14" height="11" rx="2" />
+          <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" />
         </Icon>
-      )
+      );
   }
 }
 
@@ -774,105 +795,66 @@ function Icon({
   children,
   className = 'h-5 w-5',
 }: {
-  children: ReactNode
-  className?: string
+  children: ReactNode;
+  className?: string;
 }) {
   return (
     <svg
-      aria-hidden='true'
-      viewBox='0 0 24 24'
+      aria-hidden="true"
+      viewBox="0 0 24 24"
       className={className}
-      fill='none'
-      stroke='currentColor'
-      strokeWidth='1.8'
-      strokeLinecap='round'
-      strokeLinejoin='round'
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
       {children}
     </svg>
-  )
-}
-
-function MailIcon() {
-  return (
-    <Icon>
-      <rect x='3' y='5' width='18' height='14' rx='2' />
-      <path d='m4 7 8 6 8-6' />
-    </Icon>
-  )
-}
-
-function DiscordIcon() {
-  return (
-    <Icon>
-      <path d='M8.2 7.2A10 10 0 0 1 12 6.5a10 10 0 0 1 3.8.7' />
-      <path d='M7.3 5.3 5.4 7a14.3 14.3 0 0 0-2 8.2 9.7 9.7 0 0 0 4.8 2.4l1.2-1.7' />
-      <path d='M16.7 5.3 18.6 7a14.3 14.3 0 0 1 2 8.2 9.7 9.7 0 0 1-4.8 2.4l-1.2-1.7' />
-      <circle cx='9' cy='13' r='1' fill='currentColor' stroke='none' />
-      <circle cx='15' cy='13' r='1' fill='currentColor' stroke='none' />
-    </Icon>
-  )
-}
-
-function PatreonIcon() {
-  return (
-    <Icon>
-      <circle cx='15.5' cy='8.5' r='5.5' />
-      <path d='M4 3v18' />
-    </Icon>
-  )
-}
-
-function GitHubIcon() {
-  return (
-    <Icon>
-      <path d='M15 22v-4a4.8 4.8 0 0 0-1-3.5c3.3-.4 6.8-1.6 6.8-7.4A5.8 5.8 0 0 0 19.3 3 5.4 5.4 0 0 0 19.1 0S17.9-.4 15 1.6a13.4 13.4 0 0 0-6 0C6.1-.4 4.9 0 4.9 0a5.4 5.4 0 0 0-.2 3A5.8 5.8 0 0 0 3.2 7.1c0 5.8 3.5 7 6.8 7.4A4.8 4.8 0 0 0 9 18v4' />
-      <path d='M9 19c-3 .9-3-1.5-4.2-2' />
-    </Icon>
-  )
+  );
 }
 
 function ArrowRightIcon() {
   return (
     <Icon>
-      <path d='M5 12h14m-5-5 5 5-5 5' />
+      <path d="M5 12h14m-5-5 5 5-5 5" />
     </Icon>
-  )
+  );
 }
 
 function ArrowUpIcon() {
   return (
     <Icon>
-      <path d='M12 19V5m-5 5 5-5 5 5' />
+      <path d="M12 19V5m-5 5 5-5 5 5" />
     </Icon>
-  )
+  );
 }
 
 function ChevronIcon() {
   return (
-    <span className='shrink-0 transition-transform duration-200 group-open:rotate-180'>
+    <span className="shrink-0 transition-transform duration-200 group-open:rotate-180">
       <Icon>
-        <path d='m7 10 5 5 5-5' />
+        <path d="m7 10 5 5 5-5" />
       </Icon>
     </span>
-  )
+  );
 }
 
 function GlobeIcon() {
   return (
-    <Icon className='h-4 w-4'>
-      <circle cx='12' cy='12' r='9' />
-      <path d='M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18' />
+    <Icon className="h-4 w-4">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
     </Icon>
-  )
+  );
 }
 
 function ExternalLinkIcon() {
   return (
-    <Icon className='h-3.5 w-3.5 shrink-0 opacity-45'>
-      <path d='M15 3h6v6' />
-      <path d='m10 14 11-11' />
-      <path d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6' />
+    <Icon className="h-3.5 w-3.5 shrink-0 opacity-45">
+      <path d="M15 3h6v6" />
+      <path d="m10 14 11-11" />
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
     </Icon>
-  )
+  );
 }

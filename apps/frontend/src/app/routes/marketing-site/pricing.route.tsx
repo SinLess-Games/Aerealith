@@ -1,8 +1,11 @@
 // apps/frontend/src/app/routes/marketing-site/pricing.route.tsx
 
-import { useState, type CSSProperties, type ReactNode } from 'react'
+import { FeatureFlag } from '@aerealith-ai/core';
+import { useState, type CSSProperties, type ReactNode } from 'react';
 
-type BillingCycle = 'monthly' | 'yearly'
+import { useFeatureFlag } from '../../../features/flags/feature-flags';
+
+type BillingCycle = 'monthly' | 'yearly';
 
 type PlanId =
   | 'free'
@@ -11,27 +14,27 @@ type PlanId =
   | 'premium'
   | 'premium-plus'
   | 'pro'
-  | 'pro-plus'
+  | 'pro-plus';
 
 interface PricingPlan {
-  id: PlanId
-  name: string
-  monthlyPrice: number
-  description: string
-  buttonLabel: string
-  accent: string
+  id: PlanId;
+  name: string;
+  monthlyPrice: number;
+  description: string;
+  buttonLabel: string;
+  accent: string;
 }
 
 interface Capability {
-  name: string
-  description?: string
-  values: Record<PlanId, ReactNode>
+  name: string;
+  description?: string;
+  values: Record<PlanId, ReactNode>;
 }
 
 interface ValueProposition {
-  title: string
-  description: string
-  accent: string
+  title: string;
+  description: string;
+  accent: string;
   icon:
     | 'shield'
     | 'cube'
@@ -40,7 +43,7 @@ interface ValueProposition {
     | 'lock'
     | 'users'
     | 'globe'
-    | 'rocket'
+    | 'rocket';
 }
 
 const plans: PricingPlan[] = [
@@ -103,22 +106,22 @@ const plans: PricingPlan[] = [
     buttonLabel: 'Start Pro+',
     accent: '#00b8ff',
   },
-]
+];
 
 function CheckMark() {
   return (
-    <span className='pricing-check' aria-label='Included'>
+    <span className="pricing-check" aria-label="Included">
       ✓
     </span>
-  )
+  );
 }
 
 function NotIncluded() {
   return (
-    <span className='pricing-not-included' aria-label='Not included'>
+    <span className="pricing-not-included" aria-label="Not included">
       —
     </span>
-  )
+  );
 }
 
 const capabilities: Capability[] = [
@@ -388,7 +391,7 @@ const capabilities: Capability[] = [
       'pro-plus': 'Advanced policies',
     },
   },
-]
+];
 
 const valuePropositions: ValueProposition[] = [
   {
@@ -441,7 +444,7 @@ const valuePropositions: ValueProposition[] = [
     accent: '#e879f9',
     icon: 'rocket',
   },
-]
+];
 
 function PlanIcon({ id }: { id: PlanId }) {
   const commonProps = {
@@ -453,69 +456,69 @@ function PlanIcon({ id }: { id: PlanId }) {
     strokeLinejoin: 'round' as const,
     strokeWidth: 1.7,
     viewBox: '0 0 24 24',
-  }
+  };
 
   switch (id) {
     case 'free':
       return (
         <svg {...commonProps}>
-          <path d='M14.5 5.5C17.7 3.6 20 4 21 4c0 1-.4 3.3-2.4 6.5l-4.1 4.1-5.1-5.1 5.1-4Z' />
-          <path d='m9.5 9.5-3.7.5-2.3 2.3 5.2 1.1' />
-          <path d='m14.5 14.5-.5 3.7-2.3 2.3-1.1-5.2' />
-          <circle cx='16.5' cy='8.5' r='1.5' />
-          <path d='M5 19c1.8-.1 3.2-1.5 3.3-3.3C6.5 15.8 5.1 17.2 5 19Z' />
+          <path d="M14.5 5.5C17.7 3.6 20 4 21 4c0 1-.4 3.3-2.4 6.5l-4.1 4.1-5.1-5.1 5.1-4Z" />
+          <path d="m9.5 9.5-3.7.5-2.3 2.3 5.2 1.1" />
+          <path d="m14.5 14.5-.5 3.7-2.3 2.3-1.1-5.2" />
+          <circle cx="16.5" cy="8.5" r="1.5" />
+          <path d="M5 19c1.8-.1 3.2-1.5 3.3-3.3C6.5 15.8 5.1 17.2 5 19Z" />
         </svg>
-      )
+      );
 
     case 'basic':
       return (
         <svg {...commonProps}>
-          <path d='m12 2.8 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.4l6.2-.9L12 2.8Z' />
+          <path d="m12 2.8 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.4l6.2-.9L12 2.8Z" />
         </svg>
-      )
+      );
 
     case 'basic-plus':
       return (
         <svg {...commonProps}>
-          <path d='M13.2 2 5 13h6l-.8 9L19 10h-6l.2-8Z' />
+          <path d="M13.2 2 5 13h6l-.8 9L19 10h-6l.2-8Z" />
         </svg>
-      )
+      );
 
     case 'premium':
       return (
         <svg {...commonProps}>
-          <path d='m3 8 4 4 5-8 5 8 4-4-2 11H5L3 8Z' />
-          <path d='M5 19h14' />
+          <path d="m3 8 4 4 5-8 5 8 4-4-2 11H5L3 8Z" />
+          <path d="M5 19h14" />
         </svg>
-      )
+      );
 
     case 'premium-plus':
       return (
         <svg {...commonProps}>
-          <path d='m12 2 8 5-8 15L4 7l8-5Z' />
-          <path d='M4 7h16' />
-          <path d='m8 7 4 15 4-15' />
-          <path d='m8 7 4-5 4 5' />
+          <path d="m12 2 8 5-8 15L4 7l8-5Z" />
+          <path d="M4 7h16" />
+          <path d="m8 7 4 15 4-15" />
+          <path d="m8 7 4-5 4 5" />
         </svg>
-      )
+      );
 
     case 'pro':
       return (
         <svg {...commonProps}>
-          <rect x='3' y='7' width='18' height='13' rx='2' />
-          <path d='M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2' />
-          <path d='M3 12h18' />
-          <path d='M10 12v2h4v-2' />
+          <rect x="3" y="7" width="18" height="13" rx="2" />
+          <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+          <path d="M3 12h18" />
+          <path d="M10 12v2h4v-2" />
         </svg>
-      )
+      );
 
     case 'pro-plus':
       return (
         <svg {...commonProps}>
-          <path d='M3 17 9 11l4 4 8-9' />
-          <path d='M15 6h6v6' />
+          <path d="M3 17 9 11l4 4 8-9" />
+          <path d="M15 6h6v6" />
         </svg>
-      )
+      );
   }
 }
 
@@ -529,104 +532,105 @@ function ValueIcon({ name }: { name: ValueProposition['icon'] }) {
     strokeLinejoin: 'round' as const,
     strokeWidth: 1.6,
     viewBox: '0 0 24 24',
-  }
+  };
 
   switch (name) {
     case 'shield':
       return (
         <svg {...commonProps}>
-          <path d='M12 3 4.5 6v5.2c0 4.6 3.1 8.1 7.5 9.8 4.4-1.7 7.5-5.2 7.5-9.8V6L12 3Z' />
-          <path d='m8.5 12 2.2 2.2 4.8-5' />
+          <path d="M12 3 4.5 6v5.2c0 4.6 3.1 8.1 7.5 9.8 4.4-1.7 7.5-5.2 7.5-9.8V6L12 3Z" />
+          <path d="m8.5 12 2.2 2.2 4.8-5" />
         </svg>
-      )
+      );
 
     case 'cube':
       return (
         <svg {...commonProps}>
-          <path d='m12 2 8 4.5v11L12 22l-8-4.5v-11L12 2Z' />
-          <path d='m4 6.5 8 4.5 8-4.5' />
-          <path d='M12 11v11' />
-          <path d='M8 15H6' />
-          <path d='M18 15h-2' />
+          <path d="m12 2 8 4.5v11L12 22l-8-4.5v-11L12 2Z" />
+          <path d="m4 6.5 8 4.5 8-4.5" />
+          <path d="M12 11v11" />
+          <path d="M8 15H6" />
+          <path d="M18 15h-2" />
         </svg>
-      )
+      );
 
     case 'brain':
       return (
         <svg {...commonProps}>
-          <path d='M9.5 4.5A3.5 3.5 0 0 0 6 8v.4A3.5 3.5 0 0 0 4.5 15a3.5 3.5 0 0 0 5 3.2' />
-          <path d='M14.5 4.5A3.5 3.5 0 0 1 18 8v.4a3.5 3.5 0 0 1 1.5 6.6 3.5 3.5 0 0 1-5 3.2' />
-          <path d='M9.5 4.5v15' />
-          <path d='M14.5 4.5v15' />
+          <path d="M9.5 4.5A3.5 3.5 0 0 0 6 8v.4A3.5 3.5 0 0 0 4.5 15a3.5 3.5 0 0 0 5 3.2" />
+          <path d="M14.5 4.5A3.5 3.5 0 0 1 18 8v.4a3.5 3.5 0 0 1 1.5 6.6 3.5 3.5 0 0 1-5 3.2" />
+          <path d="M9.5 4.5v15" />
+          <path d="M14.5 4.5v15" />
         </svg>
-      )
+      );
 
     case 'chart':
       return (
         <svg {...commonProps}>
-          <path d='M4 20V12' />
-          <path d='M10 20V8' />
-          <path d='M16 20V4' />
-          <path d='M3 8 9 4l5 3 7-5' />
+          <path d="M4 20V12" />
+          <path d="M10 20V8" />
+          <path d="M16 20V4" />
+          <path d="M3 8 9 4l5 3 7-5" />
         </svg>
-      )
+      );
 
     case 'lock':
       return (
         <svg {...commonProps}>
-          <rect x='4' y='10' width='16' height='11' rx='2' />
-          <path d='M8 10V7a4 4 0 0 1 8 0v3' />
-          <path d='M12 14v3' />
+          <rect x="4" y="10" width="16" height="11" rx="2" />
+          <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+          <path d="M12 14v3" />
         </svg>
-      )
+      );
 
     case 'users':
       return (
         <svg {...commonProps}>
-          <circle cx='9' cy='8' r='3' />
-          <circle cx='17' cy='9' r='2.5' />
-          <path d='M3 20a6 6 0 0 1 12 0' />
-          <path d='M14 15a5 5 0 0 1 7 4.5' />
+          <circle cx="9" cy="8" r="3" />
+          <circle cx="17" cy="9" r="2.5" />
+          <path d="M3 20a6 6 0 0 1 12 0" />
+          <path d="M14 15a5 5 0 0 1 7 4.5" />
         </svg>
-      )
+      );
 
     case 'globe':
       return (
         <svg {...commonProps}>
-          <circle cx='12' cy='12' r='9' />
-          <path d='M3 12h18' />
-          <path d='M12 3a14 14 0 0 1 0 18' />
-          <path d='M12 3a14 14 0 0 0 0 18' />
+          <circle cx="12" cy="12" r="9" />
+          <path d="M3 12h18" />
+          <path d="M12 3a14 14 0 0 1 0 18" />
+          <path d="M12 3a14 14 0 0 0 0 18" />
         </svg>
-      )
+      );
 
     case 'rocket':
       return (
         <svg {...commonProps}>
-          <path d='M14.5 5.5C17.7 3.6 20 4 21 4c0 1-.4 3.3-2.4 6.5l-4.1 4.1-5.1-5.1 5.1-4Z' />
-          <path d='m9.5 9.5-3.7.5-2.3 2.3 5.2 1.1' />
-          <path d='m14.5 14.5-.5 3.7-2.3 2.3-1.1-5.2' />
-          <circle cx='16.5' cy='8.5' r='1.5' />
+          <path d="M14.5 5.5C17.7 3.6 20 4 21 4c0 1-.4 3.3-2.4 6.5l-4.1 4.1-5.1-5.1 5.1-4Z" />
+          <path d="m9.5 9.5-3.7.5-2.3 2.3 5.2 1.1" />
+          <path d="m14.5 14.5-.5 3.7-2.3 2.3-1.1-5.2" />
+          <circle cx="16.5" cy="8.5" r="1.5" />
         </svg>
-      )
+      );
   }
 }
 
 function getPlanPrice(plan: PricingPlan, billingCycle: BillingCycle): number {
   if (billingCycle === 'yearly') {
-    return Math.round(plan.monthlyPrice * 12 * 0.8)
+    return Math.round(plan.monthlyPrice * 12 * 0.8);
   }
 
-  return plan.monthlyPrice
+  return plan.monthlyPrice;
 }
 
 export function PricingRoute() {
-  const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly')
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
+  const billingEnabled = useFeatureFlag(FeatureFlag.Billing);
 
-  const isYearly = billingCycle === 'yearly'
+  const isYearly = billingCycle === 'yearly';
 
   return (
-    <main className='pricing-route relative isolate min-w-0 flex-1 overflow-hidden bg-transparent'>
+    <main className="pricing-route relative isolate min-w-0 flex-1 overflow-hidden bg-transparent">
       <style>{`
         :root[data-theme='light'] .pricing-route {
           --pricing-heading: #0f172a;
@@ -940,117 +944,119 @@ export function PricingRoute() {
       `}</style>
 
       <div
-        aria-hidden='true'
-        className='pointer-events-none absolute inset-x-0 top-0 -z-10 h-[680px] bg-[radial-gradient(circle_at_20%_12%,rgba(124,58,237,0.13),transparent_34%),radial-gradient(circle_at_82%_18%,rgba(6,182,212,0.11),transparent_32%)]'
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[680px] bg-[radial-gradient(circle_at_20%_12%,rgba(124,58,237,0.13),transparent_34%),radial-gradient(circle_at_82%_18%,rgba(6,182,212,0.11),transparent_32%)]"
       />
 
-      <section className='mx-auto w-full min-w-0 max-w-[1920px] px-4 py-10 sm:px-6 lg:px-8'>
-        <header className='mx-auto mb-8 max-w-3xl text-center'>
-          <p className='mb-4 text-xs font-semibold tracking-[0.24em] text-cyan-500 uppercase'>
+      <section className="mx-auto w-full min-w-0 max-w-[1920px] px-4 py-10 sm:px-6 lg:px-8">
+        <header className="mx-auto mb-8 max-w-3xl text-center">
+          <p className="mb-4 text-xs font-semibold tracking-[0.24em] text-cyan-500 uppercase">
             Pricing &amp; Plans
           </p>
 
-          <h1 className='text-4xl font-bold tracking-[-0.04em] sm:text-5xl lg:text-6xl'>
+          <h1 className="text-4xl font-bold tracking-[-0.04em] sm:text-5xl lg:text-6xl">
             One platform.
-            <span className='block bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-500 bg-clip-text text-transparent'>
+            <span className="block bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-500 bg-clip-text text-transparent">
               A plan for every workflow.
             </span>
           </h1>
 
-          <p className='pricing-text mx-auto mt-5 max-w-2xl text-base leading-7 sm:text-lg'>
+          <p className="pricing-text mx-auto mt-5 max-w-2xl text-base leading-7 sm:text-lg">
             Review the proposed Aerealith plan structure. These illustrative
             concepts are shown for planning and feedback while the product
             remains in active development.
           </p>
 
-          <p className='pricing-muted mt-3 text-sm'>
+          <p className="pricing-muted mt-3 text-sm">
             Subscriptions, listed features, and deployment options are not yet
             available for purchase. Plan names, prices, limits, and contents are
             illustrative, may change, and all purchase buttons remain disabled.
           </p>
         </header>
 
-        <div className='mb-8 flex justify-center'>
-          <div
-            className='billing-toggle inline-flex rounded-2xl border p-1.5 backdrop-blur-md'
-            role='group'
-            aria-label='Billing cycle'
-          >
-            <button
-              type='button'
-              aria-pressed={billingCycle === 'monthly'}
-              onClick={() => setBillingCycle('monthly')}
-              className={[
-                'billing-option min-w-28 rounded-xl px-5 py-2.5 text-sm font-semibold transition',
-                billingCycle === 'monthly'
-                  ? 'billing-option-active'
-                  : 'hover:text-current',
-              ].join(' ')}
+        {billingEnabled ? (
+          <div className="mb-8 flex justify-center">
+            <div
+              className="billing-toggle inline-flex rounded-2xl border p-1.5 backdrop-blur-md"
+              role="group"
+              aria-label="Billing cycle"
             >
-              Monthly
-            </button>
+              <button
+                type="button"
+                aria-pressed={billingCycle === 'monthly'}
+                onClick={() => setBillingCycle('monthly')}
+                className={[
+                  'billing-option min-w-28 rounded-xl px-5 py-2.5 text-sm font-semibold transition',
+                  billingCycle === 'monthly'
+                    ? 'billing-option-active'
+                    : 'hover:text-current',
+                ].join(' ')}
+              >
+                Monthly
+              </button>
 
-            <button
-              type='button'
-              aria-pressed={billingCycle === 'yearly'}
-              onClick={() => setBillingCycle('yearly')}
-              className={[
-                'billing-option min-w-28 rounded-xl px-5 py-2.5 text-sm font-semibold transition',
-                billingCycle === 'yearly'
-                  ? 'billing-option-active'
-                  : 'hover:text-current',
-              ].join(' ')}
-            >
-              Yearly
-              <span className='ml-2 rounded-md bg-emerald-500/15 px-2 py-0.5 text-[0.65rem] font-bold text-emerald-400'>
-                20% off
-              </span>
-            </button>
+              <button
+                type="button"
+                aria-pressed={billingCycle === 'yearly'}
+                onClick={() => setBillingCycle('yearly')}
+                className={[
+                  'billing-option min-w-28 rounded-xl px-5 py-2.5 text-sm font-semibold transition',
+                  billingCycle === 'yearly'
+                    ? 'billing-option-active'
+                    : 'hover:text-current',
+                ].join(' ')}
+              >
+                Yearly
+                <span className="ml-2 rounded-md bg-emerald-500/15 px-2 py-0.5 text-[0.65rem] font-bold text-emerald-400">
+                  20% off
+                </span>
+              </button>
+            </div>
           </div>
-        </div>
+        ) : null}
 
-        <div className='plans-grid'>
+        <div className="plans-grid">
           {plans.map((plan) => {
-            const displayedPrice = getPlanPrice(plan, billingCycle)
+            const displayedPrice = getPlanPrice(plan, billingCycle);
 
             return (
               <article
                 key={plan.id}
-                className='plan-card flex min-h-[325px] min-w-0 flex-col rounded-2xl border p-4 text-center backdrop-blur-md transition duration-300 hover:-translate-y-1 sm:p-5'
+                className="plan-card flex min-h-[325px] min-w-0 flex-col rounded-2xl border p-4 text-center backdrop-blur-md transition duration-300 hover:-translate-y-1 sm:p-5"
                 style={
                   {
                     '--plan-accent': plan.accent,
                   } as CSSProperties
                 }
               >
-                <h2 className='plan-name min-h-6 text-sm leading-6 font-bold tracking-wide uppercase'>
+                <h2 className="plan-name min-h-6 text-sm leading-6 font-bold tracking-wide uppercase">
                   {plan.name}
                 </h2>
 
-                <div className='plan-icon mx-auto mt-3'>
+                <div className="plan-icon mx-auto mt-3">
                   <PlanIcon id={plan.id} />
                 </div>
 
-                <div className='mt-3'>
-                  <p className='text-3xl leading-none font-semibold'>
+                <div className="mt-3">
+                  <p className="text-3xl leading-none font-semibold">
                     ${displayedPrice}
                   </p>
 
-                  <p className='pricing-muted mt-1 text-xs'>
+                  <p className="pricing-muted mt-1 text-xs">
                     {isYearly ? '/year' : '/month'}
                   </p>
 
                   {isYearly && plan.monthlyPrice > 0 ? (
-                    <div className='mt-2 space-y-1 text-[0.7rem]'>
-                      <p className='pricing-muted'>
-                        <span className='mr-2 line-through'>
+                    <div className="mt-2 space-y-1 text-[0.7rem]">
+                      <p className="pricing-muted">
+                        <span className="mr-2 line-through">
                           ${plan.monthlyPrice * 12}
                         </span>
-                        <span className='font-semibold text-emerald-400'>
+                        <span className="font-semibold text-emerald-400">
                           Save ${plan.monthlyPrice * 12 - displayedPrice}
                         </span>
                       </p>
-                      <p className='pricing-muted'>
+                      <p className="pricing-muted">
                         ${Math.round(plan.monthlyPrice * 0.8)}/month billed
                         annually
                       </p>
@@ -1058,46 +1064,48 @@ export function PricingRoute() {
                   ) : null}
 
                   {isYearly && plan.monthlyPrice === 0 ? (
-                    <p className='pricing-muted mt-1 text-[0.7rem]'>
+                    <p className="pricing-muted mt-1 text-[0.7rem]">
                       Free forever
                     </p>
                   ) : null}
                 </div>
 
-                <p className='pricing-text mt-4 flex-1 text-xs leading-5'>
+                <p className="pricing-text mt-4 flex-1 text-xs leading-5">
                   {plan.description}
                 </p>
 
-                <button
-                  type='button'
-                  disabled
-                  aria-disabled='true'
-                  title='Purchases are coming soon'
-                  className='purchase-button mt-5 min-h-10 w-full rounded-lg border px-3 py-2 text-sm font-semibold'
-                >
-                  {plan.buttonLabel}
-                </button>
+                {billingEnabled ? (
+                  <button
+                    type="button"
+                    disabled
+                    aria-disabled="true"
+                    title="Purchases are coming soon"
+                    className="purchase-button mt-5 min-h-10 w-full rounded-lg border px-3 py-2 text-sm font-semibold"
+                  >
+                    {plan.buttonLabel}
+                  </button>
+                ) : null}
               </article>
-            )
+            );
           })}
         </div>
 
-        <div className='pricing-table-shell mt-6 overflow-hidden rounded-2xl border backdrop-blur-md'>
+        <div className="pricing-table-shell mt-6 overflow-hidden rounded-2xl border backdrop-blur-md">
           <div
-            className='pricing-table-scroller'
-            role='region'
-            aria-label='Scrollable pricing comparison'
+            className="pricing-table-scroller"
+            role="region"
+            aria-label="Scrollable pricing comparison"
           >
-            <table className='pricing-table w-full min-w-[1660px] border-collapse text-left text-xs'>
-              <caption className='sr-only'>
+            <table className="pricing-table w-full min-w-[1660px] border-collapse text-left text-xs">
+              <caption className="sr-only">
                 Comparison of all Aerealith subscription plans and capabilities
               </caption>
 
               <thead>
                 <tr>
                   <th
-                    scope='col'
-                    className='capability-heading sticky left-0 z-30 w-[285px] min-w-[285px] border-r border-b px-5 py-4 text-xs font-bold tracking-[0.16em] text-violet-500 uppercase'
+                    scope="col"
+                    className="capability-heading sticky left-0 z-30 w-[285px] min-w-[285px] border-r border-b px-5 py-4 text-xs font-bold tracking-[0.16em] text-violet-500 uppercase"
                   >
                     What you get
                   </th>
@@ -1105,8 +1113,8 @@ export function PricingRoute() {
                   {plans.map((plan) => (
                     <th
                       key={plan.id}
-                      scope='col'
-                      className='plan-column-heading min-w-[195px] border-r border-b px-4 py-4 text-center text-sm font-bold uppercase'
+                      scope="col"
+                      className="plan-column-heading min-w-[195px] border-r border-b px-4 py-4 text-center text-sm font-bold uppercase"
                       style={
                         {
                           '--column-accent': plan.accent,
@@ -1123,13 +1131,13 @@ export function PricingRoute() {
                 {capabilities.map((capability) => (
                   <tr key={capability.name}>
                     <th
-                      scope='row'
-                      className='capability-heading sticky left-0 z-20 border-r border-b px-5 py-3 font-medium'
+                      scope="row"
+                      className="capability-heading sticky left-0 z-20 border-r border-b px-5 py-3 font-medium"
                     >
                       <span>{capability.name}</span>
 
                       {capability.description ? (
-                        <span className='pricing-muted ml-1 text-[0.67rem] font-normal'>
+                        <span className="pricing-muted ml-1 text-[0.67rem] font-normal">
                           ({capability.description})
                         </span>
                       ) : null}
@@ -1138,7 +1146,7 @@ export function PricingRoute() {
                     {plans.map((plan) => (
                       <td
                         key={plan.id}
-                        className='plan-column-cell border-r border-b px-3 py-3 text-center align-middle leading-5'
+                        className="plan-column-cell border-r border-b px-3 py-3 text-center align-middle leading-5"
                         style={
                           {
                             '--column-accent': plan.accent,
@@ -1155,34 +1163,34 @@ export function PricingRoute() {
           </div>
         </div>
 
-        <div className='mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {valuePropositions
             .filter((_, index) => [0, 2, 4, 7].includes(index))
             .map((item) => (
               <article
                 key={item.title}
-                className='value-card flex min-h-56 min-w-0 flex-col items-center rounded-lg border p-6 text-center transition duration-300 hover:-translate-y-1'
+                className="value-card flex min-h-56 min-w-0 flex-col items-center rounded-lg border p-6 text-center transition duration-300 hover:-translate-y-1"
                 style={
                   {
                     '--value-accent': item.accent,
                   } as CSSProperties
                 }
               >
-                <div className='mb-4'>
+                <div className="mb-4">
                   <ValueIcon name={item.icon} />
                 </div>
 
-                <h2 className='value-card-heading max-w-full text-base leading-6 font-bold uppercase'>
+                <h2 className="value-card-heading max-w-full text-base leading-6 font-bold uppercase">
                   {item.title}
                 </h2>
 
-                <p className='value-card-copy mt-4 text-xs leading-5'>
+                <p className="value-card-copy mt-4 text-xs leading-5">
                   {item.description}
                 </p>
               </article>
             ))}
         </div>
-        <footer className='pricing-muted mt-9 text-center text-sm leading-7'>
+        <footer className="pricing-muted mt-9 text-center text-sm leading-7">
           <p>
             Proposed plans are expected to evolve as Aerealith is implemented
             and validated with users.
@@ -1196,7 +1204,7 @@ export function PricingRoute() {
         </footer>
       </section>
     </main>
-  )
+  );
 }
 
-export default PricingRoute
+export default PricingRoute;

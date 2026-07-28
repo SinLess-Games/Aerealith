@@ -1,6 +1,9 @@
 // apps/frontend/src/app/routes/dashboard.route.tsx
 
-import { useSession } from '../../../features/auth/use-session'
+import { FeatureFlag } from '@aerealith-ai/core';
+
+import { useSession } from '../../../features/auth/use-session';
+import { useFeatureFlag } from '../../../features/flags/feature-flags';
 
 // The six questions the dashboard must answer, from docs Dashboard.md. Real
 // data lands as the platform surfaces (integrations, modules, audit) are built;
@@ -30,42 +33,53 @@ const PANELS = [
     title: 'What you can disable',
     body: 'Anything you enable can be paused, disabled, or revoked here.',
   },
-] as const
+] as const;
 
 /** Authenticated dashboard home. */
 export function DashboardRoute() {
-  const { user } = useSession()
+  const { user } = useSession();
+  const onboardingEnabled = useFeatureFlag(FeatureFlag.Onboarding);
 
   return (
     <section>
       <h1
-        className='text-2xl font-bold'
+        className="text-2xl font-bold"
         style={{ fontFamily: 'var(--ae-font-heading)' }}
       >
         Welcome{user ? `, ${user.username}` : ''}
       </h1>
-      <p className='mt-2 text-sm text-[var(--ae-foreground-muted)]'>
+      <p className="mt-2 text-sm text-[var(--ae-foreground-muted)]">
         Your command center. Everything here is trust-first: understandable,
         auditable, and revocable.
       </p>
 
-      <div className='mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+      {onboardingEnabled ? (
+        <aside className="mt-6 rounded-xl border border-violet-500/25 bg-violet-500/10 p-5">
+          <h2 className="font-semibold">Start with your account</h2>
+          <p className="mt-1 text-sm text-[var(--ae-foreground-muted)]">
+            Review your profile and security settings, then connect the services
+            you want Aerealith to coordinate.
+          </p>
+        </aside>
+      ) : null}
+
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {PANELS.map((panel) => (
           <article
             key={panel.title}
-            className='rounded-xl border border-[var(--ae-border)] bg-[var(--ae-surface)] p-5'
+            className="rounded-xl border border-[var(--ae-border)] bg-[var(--ae-surface)] p-5"
           >
-            <h2 className='text-sm font-semibold text-[var(--ae-foreground)]'>
+            <h2 className="text-sm font-semibold text-[var(--ae-foreground)]">
               {panel.title}
             </h2>
-            <p className='mt-2 text-sm text-[var(--ae-foreground-muted)]'>
+            <p className="mt-2 text-sm text-[var(--ae-foreground-muted)]">
               {panel.body}
             </p>
           </article>
         ))}
       </div>
     </section>
-  )
+  );
 }
 
-export default DashboardRoute
+export default DashboardRoute;
