@@ -1,10 +1,16 @@
 // apps/frontend/src/app/routes/sign-up.route.tsx
 
 import { Button, Input, Label } from '@aerealith-ai/ui';
-import { useState, type FormEvent } from 'react';
+import type { TurnstileInstance } from '@marsidev/react-turnstile';
+import { useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
 
+import { analyticsEvents } from '../../../analytics/analytics-events';
 import { useSignUp } from '../../../features/auth/use-session';
+import {
+  AerealithTurnstile,
+  isTurnstileEnabled,
+} from '../../../security/turnstile';
 import { AuthCard } from './auth-card';
 
 /** Sign-up page: registers against `POST /api/V1/auth/sign-up`. */
@@ -13,21 +19,41 @@ export function SignUpRoute() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileError, setTurnstileError] = useState('');
+  const turnstile = useRef<TurnstileInstance>(null);
+  const turnstileEnabled = isTurnstileEnabled();
   const navigate = useNavigate();
   const { mutate, isPending, isError, error } = useSignUp();
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (turnstileEnabled && !turnstileToken) {
+      setTurnstileError('Complete the bot-protection check to continue.');
+      return;
+    }
+    analyticsEvents.registrationStarted();
     mutate(
       {
         username,
         email,
         password,
+        ...(turnstileToken ? { turnstileToken } : {}),
         ...(displayName.trim() ? { displayName: displayName.trim() } : {}),
       },
       {
-        onSuccess: () =>
-          navigate(`/verify-email?email=${encodeURIComponent(email)}`),
+        onSuccess: (user) => {
+          analyticsEvents.registrationCompleted();
+          navigate(
+            user.emailVerified
+              ? '/dashboard'
+              : `/verify-email?email=${encodeURIComponent(email)}`,
+          );
+        },
+        onError: () => {
+          setTurnstileToken(null);
+          turnstile.current?.reset();
+        },
       },
     );
   }
@@ -101,7 +127,34 @@ export function SignUpRoute() {
           </p>
         ) : null}
 
-        <Button type="submit" fullWidth disabled={isPending}>
+        {turnstileEnabled ? (
+          <div className="space-y-2">
+            <AerealithTurnstile
+              ref={turnstile}
+              action="registration"
+              onToken={(token) => {
+                setTurnstileToken(token);
+                if (token) setTurnstileError('');
+              }}
+              onError={() =>
+                setTurnstileError(
+                  'Bot protection could not load. Please try again.',
+                )
+              }
+            />
+            {turnstileError ? (
+              <p role="alert" className="text-sm">
+                {turnstileError}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
+        <Button
+          type="submit"
+          fullWidth
+          disabled={isPending || (turnstileEnabled && !turnstileToken)}
+        >
           {isPending ? 'Creating account…' : 'Create account'}
         </Button>
       </form>

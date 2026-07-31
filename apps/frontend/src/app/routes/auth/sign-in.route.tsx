@@ -1,12 +1,11 @@
 // apps/frontend/src/app/routes/sign-in.route.tsx
 
-import { FeatureFlag } from '@aerealith-ai/core';
 import { Button, Input, Label } from '@aerealith-ai/ui';
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
 
+import { analyticsEvents } from '../../../analytics/analytics-events';
 import { useLogin } from '../../../features/auth/use-session';
-import { useFeatureFlag } from '../../../features/flags/feature-flags';
 import { AuthCard } from './auth-card';
 
 /** Sign-in page: authenticates against `POST /api/V1/auth/login`. */
@@ -15,13 +14,18 @@ export function SignInRoute() {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const { mutate, isPending, isError, error } = useLogin();
-  const registrationEnabled = useFeatureFlag(FeatureFlag.Registration);
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    analyticsEvents.loginStarted();
     mutate(
       { usernameOrEmail, password },
-      { onSuccess: () => navigate('/app') },
+      {
+        onSuccess: () => {
+          analyticsEvents.loginCompleted();
+          navigate('/app');
+        },
+      },
     );
   }
 
@@ -30,11 +34,15 @@ export function SignInRoute() {
       title="Welcome back"
       subtitle="Sign in to your Aerealith account."
       footer={
-        registrationEnabled ? (
-          <>
-            New here? <Link to="/sign-up">Create an account</Link>
-          </>
-        ) : undefined
+        <>
+          New here?{' '}
+          <Link
+            className="font-semibold text-[var(--ae-accent)] underline underline-offset-4"
+            to="/sign-up"
+          >
+            Create an account
+          </Link>
+        </>
       }
     >
       <form onSubmit={onSubmit} className="space-y-4" noValidate>

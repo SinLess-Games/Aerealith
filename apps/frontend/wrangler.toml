@@ -47,6 +47,10 @@ head_sampling_rate = 1
 binding = "EVENTBUS"
 queue = "events"
 
+[[queues.producers]]
+binding = "NOTIFICATION_QUEUE"
+queue = "594594d2e54647d2b56fb778e128aa43"
+
 [[kv_namespaces]]
 binding = "AEREALITH_KV"
 id = "9873b606bf1346aca48de61c9bb96968"
@@ -72,3 +76,16 @@ dataset = "Aerealith"
 # ---------------------------------------------------------------
 [cache]
 enabled = true
+
+
+# ---------------------------------------------------------------
+# Workers
+# ---------------------------------------------------------------
+
+# Authentication Worker
+binding = "AUTH_WORKER"
+service = "aerealith-auth"
+
+# Api Worker
+binding = "API_WORKER"
+service = "arealith-api"

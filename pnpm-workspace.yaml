@@ -6,8 +6,8 @@ resolvePeersFromWorkspaceRoot: true
 dedupePeerDependents: true
 dedupeDirectDeps: true
 allowBuilds:
-  "@parcel/watcher": true
-  "@swc/core": true
+  '@parcel/watcher': true
+  '@swc/core': true
   esbuild: true
   msw: true
   nx: true
@@ -15,7 +15,16 @@ allowBuilds:
   unrs-resolver: true
   workerd: true
 overrides:
-  "@opentelemetry/core": 2.9.0
-  "@esbuild-kit/core-utils>esbuild": 0.28.1
+  '@opentelemetry/core': 2.9.0
+  '@esbuild-kit/core-utils>esbuild': 0.28.1
   axios: 1.18.1
   brace-expansion: 5.0.7
+minimumReleaseAgeExclude:
+  - '@cloudflare/workerd-darwin-64@1.20260730.1'
+  - '@cloudflare/workerd-darwin-arm64@1.20260730.1'
+  - '@cloudflare/workerd-linux-64@1.20260730.1'
+  - '@cloudflare/workerd-linux-arm64@1.20260730.1'
+  - '@cloudflare/workerd-windows-64@1.20260730.1'
+  - miniflare@4.20260730.0
+  - workerd@1.20260730.1
+  - wrangler@4.116.0

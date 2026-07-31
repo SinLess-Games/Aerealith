@@ -1,0 +1,47 @@
+{
+	"servers": {
+		"microsoft/playwright-mcp": {
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"@playwright/mcp@latest"
+			]
+		},
+		"com.figma.mcp/mcp": {
+			"type": "http",
+			"url": "https://mcp.figma.com/mcp"
+		},
+		"com.stripe/mcp": {
+			"type": "http",
+			"url": "https://mcp.stripe.com"
+		},
+		"io.github.github/github-mcp-server": {
+			"type": "http",
+			"url": "https://api.githubcopilot.com/mcp/"
+		},
+		"dev.lovable/mcp": {
+			"type": "http",
+			"url": "https://mcp.lovable.dev"
+		},
+		"cloudflare": {
+			"type": "http",
+			"url": "https://mcp.cloudflare.com/mcp"
+		},
+		"cloudflare-docs": {
+			"type": "http",
+			"url": "https://docs.mcp.cloudflare.com/mcp"
+		},
+		"cloudflare-bindings": {
+			"type": "http",
+			"url": "https://bindings.mcp.cloudflare.com/mcp"
+		},
+		"cloudflare-builds": {
+			"type": "http",
+			"url": "https://builds.mcp.cloudflare.com/mcp"
+		},
+		"cloudflare-observability": {
+			"type": "http",
+			"url": "https://observability.mcp.cloudflare.com/mcp"
+		}
+	}
+}

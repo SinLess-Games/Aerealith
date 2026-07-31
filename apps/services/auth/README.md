@@ -8,19 +8,17 @@ The authentication service exposes the same application operations over:
 
 ## Local development
 
-Copy `.env.example` to `.env`, replace the Resend placeholder, and make sure
-the configured PostgreSQL database is available. The repository includes a
-local PostgreSQL service and Drizzle migrations:
+Frontend development uses the deployed `aerealith-auth-preview` Worker. Its
+`DATABASE_URL` binding resolves to the Cloudflare Secrets Store
+`PREVIEW_POSTGRES_URL`; the credential is never copied into the repository or
+a local process.
 
 ```bash
-pnpm nx run db:postgres-up
-pnpm nx run db:postgres-migrate
-pnpm nx serve service-auth
+pnpm nx run service-auth:deploy-preview
+pnpm dev
 ```
 
-The service listens on `AUTH_SERVICE_PORT` (`3001` by default). The frontend
-development server proxies `/api`, `/graphql`, and `/trpc` to
-`AUTH_SERVICE_URL`.
+Vite proxies `/api`, `/graphql`, and `/trpc` to the preview Worker.
 
 ## Email verification
 
@@ -46,8 +44,8 @@ pnpm nx run db:seed-admin
 The migration reads `ADMIN_USERNAME`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD`.
 It is idempotent, refuses ambiguous username/email collisions, and never
 replaces the password of an existing account. If `ADMIN_PASSWORD` is absent
-for a new account, it prints a generated password once. For local PostgreSQL,
-use `pnpm nx run db:postgres-seed-admin`.
+for a new account, it prints a generated password once. Run the seed through an
+authorized environment with `DATABASE_URL` injected.
 
 ## Cloudflare Worker
 
@@ -56,13 +54,11 @@ The Worker uses `wrangler.toml` and the shared Cloudflare Flagship app.
 signup, `maintenance-mode` returns a temporary outage response, and
 `observability` enables structured request telemetry.
 
-Configure production secrets before deployment:
+The Wrangler environments bind account-level Cloudflare secrets:
 
-```bash
-pnpm wrangler secret put DATABASE_URL --config apps/services/auth/wrangler.toml
-pnpm wrangler secret put RESEND_API_KEY --config apps/services/auth/wrangler.toml
-pnpm wrangler secret put RESEND_FROM_EMAIL --config apps/services/auth/wrangler.toml
-```
+- Production: `PRODUCTION_POSTGRES_URL` maps to `DATABASE_URL`
+- Preview: `PREVIEW_POSTGRES_URL` maps to `DATABASE_URL`
+- Both environments: `RESEND_API_KEY` maps to `RESEND_API_KEY`
 
 Useful Nx targets:
 
@@ -70,5 +66,6 @@ Useful Nx targets:
 pnpm nx run service-auth:typegen
 pnpm nx run service-auth:worker-dry-run
 pnpm nx run service-auth:worker-serve
+pnpm nx run service-auth:deploy-preview
 pnpm nx run service-auth:deploy
 ```

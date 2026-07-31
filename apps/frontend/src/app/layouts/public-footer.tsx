@@ -15,6 +15,7 @@ import {
 } from 'react';
 import { Link } from 'react-router';
 
+import { useConsent } from '../../consent/consent-context';
 import { useFeatureFlag } from '../../features/flags/feature-flags';
 
 const footerSections = [
@@ -94,6 +95,7 @@ export function PublicFooter() {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<MessageType>('idle');
   const waitlistEnabled = useFeatureFlag(FeatureFlag.Waitlist);
+  const consent = useConsent();
 
   function subscribe(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -389,6 +391,13 @@ export function PublicFooter() {
           </span>
 
           <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="footer-link text-xs"
+              onClick={consent.openSettings}
+            >
+              Privacy settings
+            </button>
             <span className="footer-muted hidden items-center gap-2 sm:flex">
               <GlobeIcon />
               English

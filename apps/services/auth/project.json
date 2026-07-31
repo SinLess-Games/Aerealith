@@ -45,10 +45,19 @@
       }
     },
     "worker-serve": {
+      "continuous": true,
       "executor": "nx:run-commands",
       "options": {
         "cwd": "apps/services/auth",
         "command": "wrangler dev"
+      }
+    },
+    "dev": {
+      "continuous": true,
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/auth",
+        "command": "wrangler dev --env preview --port 8787 --var LOCAL_REGISTRATION_ENABLED:true"
       }
     },
     "typegen": {
@@ -71,6 +80,13 @@
       "options": {
         "cwd": "apps/services/auth",
         "command": "wrangler deploy"
+      }
+    },
+    "deploy-preview": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/auth",
+        "command": "wrangler deploy --env preview"
       }
     }
   }

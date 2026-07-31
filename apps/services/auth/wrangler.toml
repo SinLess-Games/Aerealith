@@ -32,5 +32,35 @@ binding = "FLAGSHIP_FLAGS"
 app_id = "2a1ca9ba-b446-4cb8-b8eb-ab0f3985679f"
 remote = true
 
-# Configure DATABASE_URL, RESEND_API_KEY, and RESEND_FROM_EMAIL with
-# `pnpm wrangler secret put <NAME> --config apps/services/auth/wrangler.toml`.
+[[secrets_store_secrets]]
+binding = "DATABASE_URL"
+store_id = "ab6f1fdec6a246578177e0577e94f40b"
+secret_name = "PRODUCTION_POSTGRES_URL"
+
+[[secrets_store_secrets]]
+binding = "RESEND_API_KEY"
+store_id = "ab6f1fdec6a246578177e0577e94f40b"
+secret_name = "RESEND_API_KEY"
+[env.preview]
+name = "aerealith-auth-preview"
+workers_dev = true
+preview_urls = true
+
+[env.preview.vars]
+NODE_ENV = "development"
+FRONTEND_URL = "http://localhost:4200"
+
+[[env.preview.flagship]]
+binding = "FLAGSHIP_FLAGS"
+app_id = "2a1ca9ba-b446-4cb8-b8eb-ab0f3985679f"
+remote = true
+
+[[env.preview.secrets_store_secrets]]
+binding = "DATABASE_URL"
+store_id = "ab6f1fdec6a246578177e0577e94f40b"
+secret_name = "PREVIEW_POSTGRES_URL"
+
+[[env.preview.secrets_store_secrets]]
+binding = "RESEND_API_KEY"
+store_id = "ab6f1fdec6a246578177e0577e94f40b"
+secret_name = "RESEND_API_KEY"
