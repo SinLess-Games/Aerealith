@@ -1,4 +1,4 @@
-import type { AboutSection } from '../../types'
+import type { AboutSection } from '../../types';
 
 /**
  * Primary About page image.
@@ -12,12 +12,12 @@ import type { AboutSection } from '../../types'
  * @readonly
  * @decorator image
  */
-export const AboutImage = '/images/pages/about/about-us.png' as const
+export const AboutImage = '/images/pages/about/about-us.png' as const;
 
 export const AboutDescription =
-  'Aerealith is a modular, trust-first platform for connecting applications, communities, information, and workflows. Aerealith AI is the assistant within the platform, helping users understand context, review recommendations, and perform approved actions. The project is in active development and is designed around user control, scoped integrations, transparent automation, and future deployment flexibility.'
+  'Aerealith is a modular, trust-first platform for connecting applications, communities, information, and workflows. Aerealith AI is the assistant within the platform, helping users understand context, review recommendations, and perform approved actions. The project is in active development and is designed around user control, scoped integrations, transparent automation, and future deployment flexibility.';
 
-export const AboutHeader = 'About Aerealith'
+export const AboutHeader = 'About Aerealith';
 
 /** Content model for the public About landing page. */
 export const aboutPageContent = {
@@ -95,85 +95,7 @@ export const aboutPageContent = {
     primaryLabel: 'Join the Waitlist',
     primaryHref: '/#waitlist',
   },
-} as const
-
-/** Content model for the public About landing page. */
-export const aboutPageContent = {
-  eyebrow: 'About Helix AI',
-  heading: 'Intelligent by Design.',
-  highlightedHeading: 'Built for Control.',
-  description:
-    'Helix AI is an adaptive digital companion and secure command center that unifies your apps, data, and communities. From automations to dashboards and developer tools, everything is designed to reduce friction and keep you in control.',
-  brandImage: {
-    src: '/images/brand/mark-no-background.png',
-    alt: 'Aerealith AI mark',
-  },
-  highlights: ['Trust First', 'You Stay in Control', 'Modular & Flexible'],
-  features: [
-    {
-      title: 'Unified Command Center',
-      description:
-        'Bring your apps, data, automations, and workflows together in one intelligent and organized platform.',
-      accent: '#a855f7',
-    },
-    {
-      title: 'Trust First, Always',
-      description:
-        'Built with user control, permissioned memory, transparent automations, and strong privacy boundaries.',
-      accent: '#249cff',
-    },
-    {
-      title: 'Modular by Design',
-      description:
-        'Enable only what you need. Every module is independent, powerful, and designed to scale with you.',
-      accent: '#18d9f4',
-    },
-    {
-      title: 'Smart Automations',
-      description:
-        'Create powerful automations with human approval at every meaningful step. You stay in control.',
-      accent: '#ff9e42',
-    },
-    {
-      title: 'Scoped Integrations',
-      description:
-        'Connect the tools and services you trust. Integrations are scoped, secure, and easy to manage.',
-      accent: '#18d9d2',
-    },
-    {
-      title: 'Responsible AI',
-      description:
-        'AI features designed with intention and aligned with user values and real-world practicality.',
-      accent: '#a958ff',
-    },
-    {
-      title: 'Discord, Supercharged',
-      description:
-        'A deeper Discord management experience built for busy communities, teams, and moderators.',
-      accent: '#7e63ff',
-    },
-    {
-      title: 'Insight That Matters',
-      description:
-        'Dashboards and analytics that turn complex information into clarity and actionable insight.',
-      accent: '#219cff',
-    },
-    {
-      title: 'Built for the Long Haul',
-      description:
-        'Designed for personal use today and enterprise-ready environments tomorrow.',
-      accent: '#bd55ff',
-    },
-  ],
-  cta: {
-    heading: 'Helix AI grows with you.',
-    description: 'One platform. Infinite possibilities.',
-    secondaryLabel: 'Explore Features',
-    secondaryHref: '/pricing',
-    primaryLabel: 'Get Started for Free',
-    primaryHref: '/sign-up',
-  },
-} as const
+} as const;
 
 export const aboutContent = [
   {
@@ -257,11 +179,11 @@ export const aboutContent = [
       'More team details, contributor information, project history, technical documentation, and public roadmap updates will be published as the platform and supporting documentation mature.',
     ],
   },
-] as const satisfies readonly AboutSection[]
+] as const satisfies readonly AboutSection[];
 
 /**
  * Backward-compatible PascalCase export.
  *
  * Prefer `aboutContent` for new imports.
  */
-export const AboutContent = aboutContent
+export const AboutContent = aboutContent;

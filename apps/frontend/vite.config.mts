@@ -2,6 +2,7 @@
 
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
+import mdx from 'fumadocs-mdx/vite';
 import { defineConfig, loadEnv } from 'vite';
 
 /**
@@ -37,9 +38,6 @@ export default defineConfig(({ mode }) => {
       __AEREALITH_APP_VERSION__: JSON.stringify(
         environment['VITE_APP_VERSION'] ?? 'development',
       ),
-    },
-
-    define: {
       __AEREALITH_ENV__: JSON.stringify({
         ...browserEnvironment,
         MODE: mode,
@@ -77,7 +75,12 @@ export default defineConfig(({ mode }) => {
       strictPort: true,
     },
 
-    plugins: [react(), tailwindcss()],
+    /**
+     * Generate the browser-safe documentation collection from
+     * `apps/frontend/source.config.ts` alongside the standard frontend
+     * plugins.
+     */
+    plugins: [mdx(), react(), tailwindcss()],
 
     build: {
       outDir: '../../dist/apps/frontend',
@@ -198,14 +201,14 @@ export default defineConfig(({ mode }) => {
               },
 
               /**
-               * Markdown parsing and rich-text rendering.
+               * Markdown, MDX, Fumadocs, Mermaid, and math rendering.
                */
               {
-                name: 'markdown',
-                test: /node_modules[\\/](?:react-markdown|remark-[^\\/]+|rehype-[^\\/]+|unified|micromark|mdast-[^\\/]+|hast-[^\\/]+)[\\/]/,
+                name: 'documentation',
+                test: /node_modules[\\/](?:fumadocs-(?:core|ui|mdx)|mermaid|katex|react-markdown|(?:remark|rehype|mdast|hast)-[^\\/]+|unified|micromark)[\\/]/,
                 priority: 85,
                 minSize: 0,
-                maxSize: 300_000,
+                maxSize: 400_000,
               },
 
               /**
