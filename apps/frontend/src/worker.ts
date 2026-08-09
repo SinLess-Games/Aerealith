@@ -17,13 +17,21 @@ export interface FrontendWorkerEnvironment {
   ASSETS: {
     fetch(request: Request): Promise<Response>;
   };
+  API_WORKER?: WorkerFetcher;
+  AUTH_WORKER?: WorkerFetcher;
+  API_SERVICE_URL?: string;
   AUTH_SERVICE_URL?: string;
   FLAGSHIP_FLAGS?: BooleanFeatureFlagProvider;
 }
 
+interface WorkerFetcher {
+  fetch(request: Request): Promise<Response>;
+}
+
 const HealthPath = '/__aerealith/health';
 const FlagsPath = '/api/V1/flags';
-const AuthServicePaths = ['/api/', '/graphql', '/trpc'];
+const AuthServicePaths = ['/api/V1/', '/graphql', '/trpc'];
+const ApiServicePaths = ['/api/v1/'];
 
 export default {
   async fetch(
@@ -122,29 +130,55 @@ export default {
         );
       }
 
-      if (!environment.AUTH_SERVICE_URL) {
-        return Response.json(
-          {
-            ok: false,
-            error: {
-              code: 'AUTH_SERVICE_UNAVAILABLE',
-              message: 'The authentication service is not configured.',
-            },
-          },
-          { status: 503 },
-        );
-      }
-
-      const target = new URL(
-        url.pathname + url.search,
+      return proxyService(
+        request,
+        url,
+        environment.AUTH_WORKER,
         environment.AUTH_SERVICE_URL,
+        'AUTH_SERVICE_UNAVAILABLE',
+        'authentication',
       );
-      return fetch(new Request(target, request));
+    }
+
+    if (ApiServicePaths.some((path) => url.pathname.startsWith(path))) {
+      return proxyService(
+        request,
+        url,
+        environment.API_WORKER,
+        environment.API_SERVICE_URL,
+        'API_SERVICE_UNAVAILABLE',
+        'API',
+      );
     }
 
     return environment.ASSETS.fetch(request);
   },
 };
+
+function proxyService(
+  request: Request,
+  url: URL,
+  binding: WorkerFetcher | undefined,
+  serviceUrl: string | undefined,
+  errorCode: string,
+  serviceName: string,
+): Promise<Response> | Response {
+  if (binding) return binding.fetch(request);
+  if (serviceUrl) {
+    const target = new URL(url.pathname + url.search, serviceUrl);
+    return fetch(new Request(target, request));
+  }
+  return Response.json(
+    {
+      ok: false,
+      error: {
+        code: errorCode,
+        message: `The ${serviceName} service is not configured.`,
+      },
+    },
+    { status: 503 },
+  );
+}
 
 const maintenancePage = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">

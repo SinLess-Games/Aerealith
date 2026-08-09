@@ -1,3 +1,4 @@
+import { UserRole } from '@aerealith-ai/core';
 import { describe, expect, it } from 'vitest';
 
 import { InMemoryAuthApplication } from './in-memory-auth-application';
@@ -16,6 +17,7 @@ describe('InMemoryAuthApplication', () => {
       username: 'local_user',
       email: 'local@example.com',
       emailVerified: true,
+      role: UserRole.User,
       displayName: 'Local User',
     });
     await expect(application.currentUser(result.sessionToken)).resolves.toEqual(
@@ -40,5 +42,60 @@ describe('InMemoryAuthApplication', () => {
     await expect(
       application.currentUser(result.sessionToken),
     ).resolves.toBeNull();
+  });
+
+  it('reads and updates local account details', async () => {
+    const application = new InMemoryAuthApplication();
+    const { user } = await application.signUp({
+      username: 'local_user',
+      email: 'local@example.com',
+      password: 'development-password',
+    });
+
+    await expect(application.accountDetails(user.id)).resolves.toMatchObject({
+      user,
+      avatarUrl: null,
+      timezone: null,
+      locale: null,
+    });
+
+    await expect(
+      application.updateAccount(user.id, {
+        username: 'updated_user',
+        email: 'updated@example.com',
+        timezone: 'America/Denver',
+        locale: 'en-US',
+      }),
+    ).resolves.toMatchObject({
+      user: {
+        id: user.id,
+        username: 'updated_user',
+        email: 'updated@example.com',
+      },
+      timezone: 'America/Denver',
+      locale: 'en-US',
+    });
+  });
+
+  it('provides admin-safe local entity records without session tokens', async () => {
+    const application = new InMemoryAuthApplication();
+    await application.signUp({
+      username: 'local_user',
+      email: 'local@example.com',
+      password: 'development-password',
+    });
+
+    const overview = await application.adminOverview();
+    const users = await application.listAdminEntities('users', 'local', 1, 25);
+    const sessions = await application.listAdminEntities('sessions', '', 1, 25);
+
+    expect(overview).toMatchObject({
+      totalUsers: 1,
+      verifiedUsers: 1,
+      activeSessions: 1,
+    });
+    expect(users.records).toHaveLength(1);
+    expect(sessions.records).toHaveLength(1);
+    expect(sessions.records[0]).not.toHaveProperty('token');
   });
 });

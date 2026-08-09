@@ -83,9 +83,11 @@ enabled = true
 # ---------------------------------------------------------------
 
 # Authentication Worker
+[[services]]
 binding = "AUTH_WORKER"
 service = "aerealith-auth"
 
 # Api Worker
+[[services]]
 binding = "API_WORKER"
-service = "arealith-api"
+service = "aerealith-api"

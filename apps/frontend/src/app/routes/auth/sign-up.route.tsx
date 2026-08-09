@@ -46,7 +46,7 @@ export function SignUpRoute() {
           analyticsEvents.registrationCompleted();
           navigate(
             user.emailVerified
-              ? '/dashboard'
+              ? '/app'
               : `/verify-email?email=${encodeURIComponent(email)}`,
           );
         },

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router';
+import { MemoryRouter, useLocation } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { SignUpRoute } from './sign-up.route';
@@ -14,9 +14,14 @@ function renderSignUp() {
     <QueryClientProvider client={client}>
       <MemoryRouter>
         <SignUpRoute />
+        <LocationProbe />
       </MemoryRouter>
     </QueryClientProvider>,
   );
+}
+
+function LocationProbe() {
+  return <output data-testid="location">{useLocation().pathname}</output>;
 }
 
 afterEach(() => vi.unstubAllGlobals());
@@ -26,7 +31,10 @@ describe('SignUpRoute', () => {
     const fetchMock = vi.fn().mockResolvedValue({
       status: 201,
       json: () =>
-        Promise.resolve({ ok: true, data: { id: 'u1', username: 'ada' } }),
+        Promise.resolve({
+          ok: true,
+          data: { id: 'u1', username: 'ada', emailVerified: true },
+        }),
     });
     vi.stubGlobal('fetch', fetchMock);
 
@@ -57,5 +65,8 @@ describe('SignUpRoute', () => {
       email: 'ada@example.com',
       displayName: 'Ada Lovelace',
     });
+    await waitFor(() =>
+      expect(screen.getByTestId('location').textContent).toBe('/app'),
+    );
   });
 });

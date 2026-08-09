@@ -64,6 +64,40 @@ describe('frontend worker', () => {
     );
   });
 
+  it('prefers the auth Worker binding when one is configured', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const boundResponse = Response.json({ ok: true });
+    const authWorker = { fetch: vi.fn().mockResolvedValue(boundResponse) };
+    const request = new Request('https://aerealith.com/api/V1/auth/me');
+
+    const response = await worker.fetch(request, {
+      ...createEnvironment(new Response('asset')),
+      AUTH_WORKER: authWorker,
+      AUTH_SERVICE_URL: 'https://fallback.invalid',
+    });
+
+    expect(response).toBe(boundResponse);
+    expect(authWorker.fetch).toHaveBeenCalledWith(request);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('routes the lowercase general API surface to its Worker binding', async () => {
+    const boundResponse = Response.json({ service: 'api', status: 'ok' });
+    const apiWorker = { fetch: vi.fn().mockResolvedValue(boundResponse) };
+    const request = new Request(
+      'https://aerealith.com/api/v1/services/api/health',
+    );
+
+    const response = await worker.fetch(request, {
+      ...createEnvironment(new Response('asset')),
+      API_WORKER: apiWorker,
+    });
+
+    expect(response).toBe(boundResponse);
+    expect(apiWorker.fetch).toHaveBeenCalledWith(request);
+  });
+
   it('returns all evaluated Flagship values from the edge endpoint', async () => {
     const getBooleanValue = vi.fn(async (key: string, fallback: boolean) =>
       key === 'registration' ? true : fallback,

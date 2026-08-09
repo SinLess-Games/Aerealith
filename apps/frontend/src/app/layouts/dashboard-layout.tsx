@@ -46,6 +46,7 @@ export function DashboardLayout() {
 
   return (
     <div
+      data-theme="dark"
       className="relative z-0 min-h-screen text-slate-50"
       style={{ background: '#050a10' }}
     >

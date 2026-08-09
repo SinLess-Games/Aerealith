@@ -1,11 +1,13 @@
 import {
   FeatureFlag,
   FeatureFlagDefaults,
+  resolveFeatureFlags,
   type BooleanFeatureFlagProvider,
 } from '@aerealith-ai/core';
 
 import { createAuthServiceApp } from './create-auth-service-app';
 import { InMemoryAuthApplication } from './auth/in-memory-auth-application';
+import { LocalAuthorizationService } from './auth/local-authorization.service';
 import {
   verifyRegistrationTurnstile,
   type TurnstileEnvironment,
@@ -21,9 +23,11 @@ export interface AuthWorkerEnvironment extends TurnstileEnvironment {
 const app = createAuthServiceApp({ environment: 'production' });
 const localApp = createAuthServiceApp({
   application: new InMemoryAuthApplication(),
+  authorization: new LocalAuthorizationService(),
   environment: 'development',
 });
 const HealthPaths = new Set(['/health', '/api/V1/services/auth']);
+const FlagsPath = '/api/V1/flags';
 const SignUpPath = '/api/V1/auth/sign-up';
 
 export default {
@@ -40,6 +44,18 @@ export default {
       path: url.pathname,
       country: request.headers.get('cf-ipcountry') ?? 'unknown',
     };
+    if (url.pathname === FlagsPath) {
+      const flags = await resolveFeatureFlags(
+        environment.FLAGSHIP_FLAGS,
+        context,
+      );
+      if (environment.LOCAL_REGISTRATION_ENABLED === 'true') {
+        flags[FeatureFlag.Registration] = true;
+      }
+      return Response.json(flags, {
+        headers: { 'cache-control': 'private, no-store' },
+      });
+    }
     const maintenanceMode = await evaluate(
       environment,
       FeatureFlag.MaintenanceMode,

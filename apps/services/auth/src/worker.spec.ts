@@ -65,6 +65,24 @@ describe('auth Cloudflare Worker', () => {
     });
   });
 
+  it('serves feature flags to the proxied frontend', async () => {
+    const workerEnvironment = environment({ dashboard: false });
+    workerEnvironment.LOCAL_REGISTRATION_ENABLED = 'true';
+
+    const response = await worker.fetch(
+      new Request('https://auth.aerealith.com/api/V1/flags'),
+      workerEnvironment,
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('cache-control')).toContain('no-store');
+    await expect(response.json()).resolves.toMatchObject({
+      authentication: true,
+      dashboard: false,
+      registration: true,
+    });
+  });
+
   it('blocks signup when registration is off', async () => {
     const response = await worker.fetch(
       new Request('https://auth.aerealith.com/api/V1/auth/sign-up', {
