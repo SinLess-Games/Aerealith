@@ -35,6 +35,11 @@ describe('PublicFooter', () => {
     ).toHaveLength(2);
     expect(
       screen
+        .getAllByRole('link', { name: 'Documentation' })
+        .every((link) => link.getAttribute('href') === '/documentation'),
+    ).toBe(true);
+    expect(
+      screen
         .getByRole('link', { name: /sinless777 on twitch/i })
         .getAttribute('href'),
     ).toBe('https://www.twitch.tv/Sinless777');
@@ -72,6 +77,18 @@ describe('PublicFooter', () => {
     fireEvent.click(screen.getByRole('button', { name: /back to top/i }));
 
     expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
+    vi.unstubAllGlobals();
+  });
+
+  it('avoids smooth scrolling when reduced motion is requested', () => {
+    const scrollTo = vi.fn();
+    vi.stubGlobal('scrollTo', scrollTo);
+    vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: true }));
+    renderFooter();
+
+    fireEvent.click(screen.getByRole('button', { name: /back to top/i }));
+
+    expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'auto' });
     vi.unstubAllGlobals();
   });
 });

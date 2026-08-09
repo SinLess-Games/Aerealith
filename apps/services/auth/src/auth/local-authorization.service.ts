@@ -27,7 +27,11 @@ export class LocalAuthorizationService extends AuthorizationService {
     const principal = input.principal;
     const allowed =
       principal?.type === 'user' &&
-      input.permission === 'account.read' &&
+      (input.permission === 'account.read' ||
+        input.permission === 'account.update' ||
+        input.permission === 'sessions.read' ||
+        input.permission === 'sessions.revoke' ||
+        input.permission === 'sessions.revoke_all') &&
       input.scope.type === 'resource' &&
       input.scope.id === principal.id;
 

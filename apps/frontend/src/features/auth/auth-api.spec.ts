@@ -3,10 +3,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  completePasswordReset,
   fetchCurrentUser,
+  fetchSessions,
   login,
   logout,
+  requestPasswordReset,
   resendVerification,
+  revokeOtherSessions,
+  revokeSession,
   signUp,
   verifyEmail,
 } from './auth-api';
@@ -76,6 +81,50 @@ describe('auth-api', () => {
       2,
       '/api/V1/auth/resend-verification',
       expect.objectContaining({ method: 'POST' }),
+    );
+  });
+
+  it('uses the password reset request and completion contracts', async () => {
+    await requestPasswordReset({ email: 'ada@example.com' });
+    await completePasswordReset({
+      token: 'single-use-token',
+      newPassword: 'AsecurePassword1',
+    });
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      '/api/V1/auth/password-reset/request',
+      expect.objectContaining({ method: 'POST' }),
+    );
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body as string)).toEqual({
+      email: 'ada@example.com',
+    });
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      '/api/V1/auth/password-reset/complete',
+      expect.objectContaining({ method: 'POST' }),
+    );
+  });
+
+  it('lists and revokes sessions through the authenticated session routes', async () => {
+    await fetchSessions();
+    await revokeSession('session id');
+    await revokeOtherSessions();
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      '/api/V1/auth/sessions',
+      expect.objectContaining({ credentials: 'include' }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      '/api/V1/auth/sessions/session%20id',
+      expect.objectContaining({ method: 'DELETE' }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      3,
+      '/api/V1/auth/sessions',
+      expect.objectContaining({ method: 'DELETE' }),
     );
   });
 });

@@ -12,6 +12,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  AuthApplicationError,
   type AuthApplication,
   type AuthResult,
   type AdminEntityPage,
@@ -57,6 +58,11 @@ class FakeAuthApplication implements AuthApplication {
   readonly resendVerification = vi.fn(async (email: string) => {
     void email;
   });
+  readonly requestPasswordReset = vi.fn(async () => undefined);
+  readonly completePasswordReset = vi.fn(async () => undefined);
+  readonly listSessions = vi.fn(async () => []);
+  readonly revokeSession = vi.fn(async () => true);
+  readonly revokeOtherSessions = vi.fn(async () => 0);
   readonly adminOverview = vi.fn(async () => ({
     totalUsers: 42,
     verifiedUsers: 36,
@@ -105,14 +111,16 @@ describe('auth service', () => {
     });
   });
 
-  it('preserves its service status endpoint', async () => {
-    const response = await app.request('/api/v1/services/auth');
+  it('serves its status endpoint only at the canonical API version casing', async () => {
+    const response = await app.request('/api/V1/services/auth');
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({
       service: 'auth',
       status: 'ok',
     });
     expect(response.headers.get('x-request-id')).toBeTruthy();
+
+    expect((await app.request('/api/v1/services/auth')).status).toBe(404);
   });
 
   it('registers a user over HTTP and issues the session cookie', async () => {
@@ -122,7 +130,7 @@ describe('auth service', () => {
       body: JSON.stringify({
         username: 'ada',
         email: 'ada@example.com',
-        password: 'correct-horse-battery-staple',
+        password: 'SecurePassword1',
       }),
     });
 
@@ -162,7 +170,7 @@ describe('auth service', () => {
       method: 'PATCH',
       headers,
       body: JSON.stringify({
-        username: 'ada-lovelace',
+        username: 'ada_lovelace',
         email: 'ada@example.com',
         timezone: 'UTC',
         locale: 'en-GB',
@@ -172,7 +180,7 @@ describe('auth service', () => {
     expect(application.updateAccount).toHaveBeenCalledWith(
       user.id,
       expect.objectContaining({
-        username: 'ada-lovelace',
+        username: 'ada_lovelace',
         timezone: 'UTC',
         locale: 'en-GB',
       }),
@@ -189,13 +197,51 @@ describe('auth service', () => {
     expect(application.login).not.toHaveBeenCalled();
   });
 
-  it('serves the same login operation through tRPC', async () => {
+  it('clears the browser session after an authenticated email change', async () => {
+    const response = await app.request('/api/V1/account', {
+      method: 'PATCH',
+      headers: {
+        cookie: 'aerealith_session=session-token',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: 'ada',
+        email: 'new-address@example.com',
+      }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('set-cookie')).toContain('aerealith_session=');
+  });
+
+  it('passes legacy-shaped credentials to authentication and preserves generic failures', async () => {
+    application.login.mockRejectedValueOnce(
+      new AuthApplicationError(
+        'INVALID_CREDENTIALS',
+        'The supplied credentials are invalid.',
+        401,
+      ),
+    );
+    const response = await app.request('/api/V1/auth/login', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ usernameOrEmail: 'ada', password: 'legacy08' }),
+    });
+
+    expect(response.status).toBe(401);
+    expect(application.login).toHaveBeenCalledWith({
+      usernameOrEmail: 'ada',
+      password: 'legacy08',
+    });
+  });
+
+  it('keeps alternate login transport validation equivalent to HTTP', async () => {
     const response = await app.request('/trpc/auth.login', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         usernameOrEmail: 'ada',
-        password: 'correct-horse-battery-staple',
+        password: 'SecurePassword1',
       }),
     });
 
@@ -204,6 +250,110 @@ describe('auth service', () => {
       'aerealith_session=login-token',
     );
     expect(application.login).toHaveBeenCalledOnce();
+  });
+
+  it('does not expose signup through tRPC or GraphQL, where Worker signup controls cannot be bypassed', async () => {
+    const trpcResponse = await app.request('/trpc/auth.signUp', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        username: 'ada',
+        email: 'ada@example.com',
+        password: 'SecurePassword1',
+      }),
+    });
+    expect(trpcResponse.status).toBe(404);
+
+    const graphqlResponse = await app.request('/graphql', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        query:
+          'mutation { signUp(input: { username: "ada", email: "ada@example.com", password: "SecurePassword1" }) { id } }',
+      }),
+    });
+    const graphqlBody = (await graphqlResponse.json()) as {
+      errors?: Array<{ message?: string }>;
+    };
+    expect(graphqlBody.errors?.[0]?.message).toContain('Cannot query field');
+    expect(application.signUp).not.toHaveBeenCalled();
+  });
+
+  it('rejects unsafe cross-origin writes before invoking application behavior', async () => {
+    const response = await app.request('/api/V1/auth/logout', {
+      method: 'POST',
+      headers: {
+        cookie: 'aerealith_session=session-token',
+        origin: 'https://attacker.example',
+      },
+    });
+
+    expect(response.status).toBe(403);
+    expect(application.logout).not.toHaveBeenCalled();
+  });
+
+  it('allows same-origin unsafe writes', async () => {
+    const response = await app.request('http://localhost/api/V1/auth/logout', {
+      method: 'POST',
+      headers: {
+        cookie: 'aerealith_session=session-token',
+        origin: 'http://localhost',
+      },
+    });
+
+    expect(response.status).toBe(200);
+    expect(application.logout).toHaveBeenCalledWith('session-token');
+  });
+
+  it('allows explicitly configured trusted browser origins', async () => {
+    const allowedApp = createAuthServiceApp({
+      application,
+      authorization: createAuthorizationService(),
+      logger: new TestLogger(),
+      environment: 'test',
+      enableGraphiql: false,
+      allowedOrigins: ['https://console.aerealith.example'],
+    });
+    const response = await allowedApp.request('/api/V1/auth/logout', {
+      method: 'POST',
+      headers: {
+        cookie: 'aerealith_session=session-token',
+        origin: 'https://console.aerealith.example',
+      },
+    });
+
+    expect(response.status).toBe(200);
+  });
+
+  it('validates GraphQL mutation inputs with the same Zod schemas', async () => {
+    const response = await app.request('/graphql', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        query:
+          'mutation { login(input: { usernameOrEmail: "ada", password: "" }) { id } }',
+      }),
+    });
+
+    const body = (await response.json()) as {
+      errors?: Array<{ message?: string }>;
+    };
+    expect(body.errors).toHaveLength(1);
+    expect(application.login).not.toHaveBeenCalled();
+  });
+
+  it('rejects unknown and malformed admin changes', async () => {
+    const response = await app.request('/api/V1/admin/entities/users/user-1', {
+      method: 'PATCH',
+      headers: {
+        cookie: 'aerealith_session=session-token',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ role: 'not-a-role', arbitrary: true }),
+    });
+
+    expect(response.status).toBe(422);
+    expect(application.updateAdminEntity).not.toHaveBeenCalled();
   });
 
   it('serves the current user through GraphQL', async () => {
@@ -309,12 +459,34 @@ function createAuthorizationService(): AuthorizationService {
     createdAt: date,
     updatedAt: date,
   });
+  repository.permissions.set('account.update', {
+    id: 'permission-account-update',
+    key: 'account.update',
+    resource: 'account',
+    action: 'update',
+    displayName: 'Update account',
+    system: true,
+    enabled: true,
+    createdAt: date,
+    updatedAt: date,
+  });
   repository.permissions.set('users.read', {
     id: 'permission-users-read',
     key: 'users.read',
     resource: 'users',
     action: 'read',
     displayName: 'Read users',
+    system: true,
+    enabled: true,
+    createdAt: date,
+    updatedAt: date,
+  });
+  repository.permissions.set('users.update', {
+    id: 'permission-users-update',
+    key: 'users.update',
+    resource: 'users',
+    action: 'update',
+    displayName: 'Update users',
     system: true,
     enabled: true,
     createdAt: date,
@@ -350,7 +522,9 @@ function createAuthorizationService(): AuthorizationService {
     permissionsByRole: {
       'role-user': [
         repository.permissions.get('account.read')!,
+        repository.permissions.get('account.update')!,
         repository.permissions.get('users.read')!,
+        repository.permissions.get('users.update')!,
       ],
     },
     parentRoleIdsByRole: {},

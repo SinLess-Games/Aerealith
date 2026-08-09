@@ -1,0 +1,16 @@
+---
+title: Feature Flags
+description: Use the implemented frontend flag boundary without making a flag substitute for authorization or deployment evidence.
+order: 13
+audience: developer
+keywords:
+  - feature flags
+  - Flagship
+  - rollout
+---
+
+# Feature Flags
+
+The frontend resolves boolean flags through `FLAGSHIP_FLAGS` when configured, with core defaults otherwise. Current flags gate routes and behaviors including authentication, registration, dashboard, pricing, maintenance mode, and observability. Inspect `libs/core` flag definitions and frontend tests before changing a flag.
+
+A feature flag controls exposure; it does not implement the underlying service, authorize an operation, or make a planned capability available. Keep server-side authorization independent of client-visible flags. Validate both enabled and disabled behavior through Nx targets.

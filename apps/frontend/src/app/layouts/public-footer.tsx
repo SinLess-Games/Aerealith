@@ -46,6 +46,7 @@ const footerSections = [
     icon: 'resources',
     accent: '#06b6d4',
     links: [
+      { label: 'Documentation', to: '/documentation' },
       {
         label: 'Issues',
         href: 'https://github.com/SinLess-Games/Aerealith/issues',
@@ -126,33 +127,33 @@ export function PublicFooter() {
     <footer className="public-footer relative z-10 mt-auto px-3 pb-3 pt-12 sm:px-5 sm:pb-5 sm:pt-16">
       <style>{`
         :root[data-theme='light'] .public-footer {
-          --footer-background: rgba(255, 255, 255, 0.78);
-          --footer-surface: rgba(248, 250, 252, 0.7);
-          --footer-surface-hover: rgba(255, 255, 255, 0.94);
-          --footer-border: rgba(71, 85, 105, 0.18);
-          --footer-border-strong: rgba(59, 130, 246, 0.34);
-          --footer-heading: #0f172a;
-          --footer-text: #334155;
-          --footer-muted: #64748b;
-          --footer-subtle: #94a3b8;
-          --footer-shadow: rgba(15, 23, 42, 0.16);
-          --footer-input: rgba(255, 255, 255, 0.78);
+          --footer-background: var(--ae-glass-background-strong);
+          --footer-surface: var(--ae-surface-muted);
+          --footer-surface-hover: var(--ae-surface-raised);
+          --footer-border: var(--ae-border);
+          --footer-border-strong: var(--ae-border-strong);
+          --footer-heading: var(--ae-foreground);
+          --footer-text: var(--ae-foreground);
+          --footer-muted: var(--ae-foreground-muted);
+          --footer-subtle: var(--ae-foreground-subtle);
+          --footer-shadow: var(--ae-shadow-sm);
+          --footer-input: var(--ae-input-background);
           --footer-glow-blue: rgba(59, 130, 246, 0.1);
           --footer-glow-purple: rgba(168, 85, 247, 0.09);
         }
 
         :root[data-theme='dark'] .public-footer {
-          --footer-background: rgba(2, 6, 23, 0.8);
-          --footer-surface: rgba(15, 23, 42, 0.58);
-          --footer-surface-hover: rgba(30, 41, 59, 0.78);
-          --footer-border: rgba(148, 163, 184, 0.17);
-          --footer-border-strong: rgba(34, 211, 238, 0.32);
-          --footer-heading: #f8fafc;
-          --footer-text: #cbd5e1;
-          --footer-muted: #94a3b8;
-          --footer-subtle: #64748b;
-          --footer-shadow: rgba(0, 0, 0, 0.4);
-          --footer-input: rgba(2, 6, 23, 0.64);
+          --footer-background: var(--ae-glass-background-strong);
+          --footer-surface: var(--ae-surface-muted);
+          --footer-surface-hover: var(--ae-surface-raised);
+          --footer-border: var(--ae-border);
+          --footer-border-strong: var(--ae-border-strong);
+          --footer-heading: var(--ae-foreground);
+          --footer-text: var(--ae-foreground);
+          --footer-muted: var(--ae-foreground-muted);
+          --footer-subtle: var(--ae-foreground-subtle);
+          --footer-shadow: var(--ae-shadow-glass);
+          --footer-input: var(--ae-input-background);
           --footer-glow-blue: rgba(37, 99, 235, 0.12);
           --footer-glow-purple: rgba(126, 34, 206, 0.11);
         }
@@ -406,7 +407,16 @@ export function PublicFooter() {
             <button
               type="button"
               aria-label="Back to top"
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              onClick={() =>
+                window.scrollTo({
+                  top: 0,
+                  behavior: window.matchMedia?.(
+                    '(prefers-reduced-motion: reduce)',
+                  ).matches
+                    ? 'auto'
+                    : 'smooth',
+                })
+              }
               className={[
                 'footer-top-button grid h-11 w-11 place-items-center rounded-xl',
                 'border transition duration-200 hover:-translate-y-1',

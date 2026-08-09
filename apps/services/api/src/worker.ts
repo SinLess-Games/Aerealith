@@ -10,7 +10,7 @@ app.get('/health', (c) => {
   return c.json({ status: 'ok' });
 });
 
-app.get('/api/v1/services/:serviceName/health', (c) => {
+app.get('/api/V1/services/:serviceName/health', (c) => {
   const serviceName = c.req.param('serviceName');
 
   return c.json({

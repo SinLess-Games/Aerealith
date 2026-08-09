@@ -630,7 +630,7 @@ export function PricingRoute() {
   const isYearly = billingCycle === 'yearly';
 
   return (
-    <main className="pricing-route relative isolate min-w-0 flex-1 overflow-hidden bg-transparent">
+    <div className="pricing-route relative isolate min-w-0 flex-1 overflow-hidden bg-transparent">
       <style>{`
         :root[data-theme='light'] .pricing-route {
           --pricing-heading: #0f172a;
@@ -1203,7 +1203,7 @@ export function PricingRoute() {
           </p>
         </footer>
       </section>
-    </main>
+    </div>
   );
 }
 

@@ -5,6 +5,7 @@ import { Navigate, Route, Routes } from 'react-router';
 import { useSession } from '../features/auth/use-session';
 import { useFeatureFlag } from '../features/flags/feature-flags';
 import { DashboardLayout } from './layouts/dashboard-layout';
+import { DocsLayout } from './layouts/docs-layout';
 import { PublicLayout } from './layouts/public-layout';
 import { ErrorRoute, GlobalErrorBoundary } from './routes/[error].route';
 import { AccountRoute } from './routes/auth/account.route';
@@ -14,7 +15,16 @@ import { DashboardRoute } from './routes/auth/dashboard.route';
 import { EntityViewerRoute } from './routes/auth/entity-viewer.route';
 import { SignInRoute } from './routes/auth/sign-in.route';
 import { SignUpRoute } from './routes/auth/sign-up.route';
+import { ForgotPasswordRoute } from './routes/auth/forgot-password.route';
+import { ResetPasswordRoute } from './routes/auth/reset-password.route';
+import { SecurityRoute } from './routes/auth/security.route';
 import { VerifyEmailRoute } from './routes/auth/verify-email.route';
+import {
+  DeveloperDocsRoute,
+  DocsIndexRoute,
+  UserDocsRoute,
+} from './routes/docs-sites';
+import { DocsNotFound } from './features/docs';
 import { AboutRoute } from './routes/marketing-site/about.route';
 import { ContactRoute } from './routes/marketing-site/contact.route';
 import { HomeRoute } from './routes/marketing-site/home.route';
@@ -29,6 +39,12 @@ export function AppRoutes() {
   return (
     <GlobalErrorBoundary>
       <Routes>
+        <Route path="documentation" element={<DocsLayout />}>
+          <Route index element={<DocsIndexRoute />} />
+          <Route path="user/*" element={<UserDocsRoute />} />
+          <Route path="developer/*" element={<DeveloperDocsRoute />} />
+          <Route path="*" element={<DocsNotFound />} />
+        </Route>
         <Route element={<PublicLayout />}>
           <Route index element={<HomeRoute />} />
           <Route path="about" element={<AboutRoute />} />
@@ -67,6 +83,8 @@ export function AppRoutes() {
             }
           />
           <Route path="signup" element={<Navigate to="/sign-up" replace />} />
+          <Route path="forgot-password" element={<ForgotPasswordRoute />} />
+          <Route path="reset-password" element={<ResetPasswordRoute />} />
           <Route path="verify-email" element={<VerifyEmailRoute />} />
           <Route path="*" element={<ErrorRoute error={{ status: 404 }} />} />
         </Route>
@@ -80,6 +98,7 @@ export function AppRoutes() {
         >
           <Route index element={<DashboardRoute />} />
           <Route path="account" element={<AccountRoute />} />
+          <Route path="security" element={<SecurityRoute />} />
           <Route
             path="admin"
             element={

@@ -104,6 +104,25 @@ describe('AppRoutes', () => {
     ).toBeTruthy();
   });
 
+  it('renders the password recovery route', () => {
+    renderAt('/forgot-password');
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: /reset your password/i }),
+    ).toBeTruthy();
+  });
+
+  it('explains a password reset link without its token', () => {
+    renderAt('/reset-password');
+
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: /reset link unavailable/i,
+      }),
+    ).toBeTruthy();
+  });
+
   it('supports the common signup URL alias', async () => {
     renderAt('/signup');
 
@@ -116,5 +135,57 @@ describe('AppRoutes', () => {
     renderAt('/');
 
     expect(screen.getByRole('navigation', { name: /primary/i })).toBeTruthy();
+  });
+
+  it('renders the documentation home in the documentation shell', () => {
+    renderAt('/documentation');
+
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'Aerealith Documentation',
+      }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('link', { name: 'Aerealith documentation home' }),
+    ).toBeTruthy();
+  });
+
+  it('renders user documentation at its audience route', async () => {
+    renderAt('/documentation/user');
+
+    expect(
+      await screen.findByRole('heading', {
+        level: 1,
+        name: 'User Documentation',
+      }),
+    ).toBeTruthy();
+  });
+
+  it('renders developer documentation at its audience route', async () => {
+    renderAt('/documentation/developer');
+
+    expect(
+      await screen.findByRole('heading', {
+        level: 1,
+        name: 'Developer Documentation',
+      }),
+    ).toBeTruthy();
+  });
+
+  it('keeps unknown documentation paths within the documentation experience', () => {
+    renderAt('/documentation/unknown-section');
+
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'Documentation page not found',
+      }),
+    ).toBeTruthy();
+    expect(
+      screen
+        .getByRole('link', { name: 'Documentation home' })
+        .getAttribute('href'),
+    ).toBe('/documentation');
   });
 });

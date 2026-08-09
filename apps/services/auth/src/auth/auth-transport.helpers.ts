@@ -7,7 +7,7 @@ import { HttpStatus, type ApiSuccessResponse } from '@aerealith-ai/core';
 import { TRPCError } from '@trpc/server';
 import type { Context } from 'hono';
 import { GraphQLError } from 'graphql';
-import type { ZodType } from 'zod';
+import { ZodError, type ZodType } from 'zod';
 
 import { AuthApplicationError } from './auth-application.service';
 import type { AuthApiEnv } from './auth-api-context';
@@ -60,6 +60,19 @@ export function success<T>(
 }
 
 export function normalizeAuthError(error: unknown): ApiError {
+  if (error instanceof ZodError) {
+    return new ApiError('The request payload is invalid.', {
+      code: ApiErrorCode.ValidationFailed,
+      status: HttpStatus.UnprocessableEntity,
+      metadata: {
+        issues: error.issues.map(({ code, message, path }) => ({
+          code,
+          message,
+          path,
+        })),
+      },
+    });
+  }
   if (error instanceof AuthApplicationError) {
     return new ApiError(error.message, {
       code: error.code,

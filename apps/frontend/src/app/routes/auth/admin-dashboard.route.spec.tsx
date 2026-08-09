@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { AdminDashboardRoute } from './admin-dashboard.route';
 
 describe('AdminDashboardRoute', () => {
-  it('renders live administrative metrics and system status', async () => {
+  it('renders query-backed administrative metrics without fabricated telemetry', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
@@ -41,7 +41,9 @@ describe('AdminDashboardRoute', () => {
     expect(screen.getByText('42')).toBeTruthy();
     expect(screen.getByText('Active sessions')).toBeTruthy();
     expect(screen.getByText('12')).toBeTruthy();
-    expect(screen.getByText('Authorization')).toBeTruthy();
-    expect(screen.getByText('Enforced')).toBeTruthy();
+    expect(
+      screen.getByText(/durable audit activity is not available/i),
+    ).toBeTruthy();
+    expect(screen.queryByText('Recent activity')).toBeNull();
   });
 });

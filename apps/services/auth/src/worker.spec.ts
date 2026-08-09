@@ -20,7 +20,10 @@ function environment(
     RESEND_API_KEY: {
       get: vi.fn(async () => 're_account_secret'),
     },
-  };
+    AUTH_SENSITIVE_RATE_LIMIT: {
+      limit: vi.fn(async () => ({ success: true })),
+    },
+  } as unknown as AuthWorkerEnvironment;
 }
 
 describe('auth Cloudflare Worker', () => {

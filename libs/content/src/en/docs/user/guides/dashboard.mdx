@@ -1,0 +1,24 @@
+---
+title: Dashboard
+description: Understand the authenticated overview screen in a configured Aerealith deployment.
+order: 10
+audience: user
+keywords:
+  - dashboard
+  - overview
+  - workspace
+---
+
+# Dashboard
+
+The authenticated application route is `/app`. Its current overview screen displays account-oriented information and links to the account page. It is protected in the frontend by a session check and can be disabled by the dashboard feature flag.
+
+<Warning>
+  Dashboard access requires a configured deployment and authenticated session.
+  Frontend routing improves navigation, while the service remains responsible
+  for authentication and authorization.
+</Warning>
+
+The navigation offers **Overview**, **Account**, **Security & Sessions**, and a link to the documentation. Administrative views appear only for a `super_admin` role returned by the service, while every administrative API operation still performs its own permission check. Search, command-palette, and notification workflows are not exposed in the current shell.
+
+For account fields, use [Profile & Account](/documentation/user/guides/profile-and-account).

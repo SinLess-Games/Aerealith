@@ -1,55 +1,95 @@
 .account {
-  color: #f8fafc;
+  color: var(--ae-foreground);
 }
+
 .panel {
-  border: 1px solid rgb(148 163 184 / 17%);
+  border: 1px solid var(--ae-border);
   border-radius: 0.8rem;
-  background: linear-gradient(145deg, #0b131b, #070d13);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 2%);
+  background: var(--ae-glass-panel);
+  box-shadow: var(--ae-shadow-sm);
 }
+
 .icon {
   display: flex;
   width: 2.8rem;
   height: 2.8rem;
   align-items: center;
   justify-content: center;
+  border: 1px solid var(--ae-accent);
   border-radius: 0.55rem;
-  border: 1px solid rgb(80 250 104 / 12%);
-  background: rgb(80 250 104 / 9%);
-  color: #50fa68;
+  background: var(--ae-accent-subtle);
+  color: var(--ae-accent);
   font-size: 1.35rem;
 }
+
 .outlineButton {
   display: inline-flex;
+  min-height: 2.75rem;
   align-items: center;
+  justify-content: center;
   gap: 0.65rem;
   margin-left: auto;
-  border: 1px solid rgb(148 163 184 / 20%);
+  border: 1px solid var(--ae-control-border);
   border-radius: 0.55rem;
+  background: transparent;
   padding: 0.65rem 1rem;
-  color: #e2e8f0;
+  color: var(--ae-foreground);
   font-size: 0.875rem;
+  font-weight: 600;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
 }
-.outlineButton:hover {
-  border-color: rgb(80 250 104 / 40%);
+
+.outlineButton:hover:not(:disabled) {
+  border-color: var(--ae-accent);
+  background: var(--ae-surface-muted);
 }
+
+.outlineButton:focus-visible,
+.control:focus-visible,
+.saveButton:focus-visible,
+.iconButton:focus-visible {
+  outline: 2px solid var(--ae-focus-ring);
+  outline-offset: 2px;
+}
+
+.outlineButton:disabled,
+.saveButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .editor {
   padding: 1.6rem;
 }
+
 .control {
   display: block;
   width: 100%;
-  border: 1px solid rgb(148 163 184 / 20%);
+  border: 1px solid var(--ae-input-border);
   border-radius: 0.55rem;
-  background: #070d13;
+  background: var(--ae-input-background);
   padding: 0.75rem 1rem;
-  color: #f1f5f9;
+  color: var(--ae-foreground);
   outline: none;
 }
-.control:focus {
-  border-color: rgb(80 250 104 / 50%);
-  box-shadow: 0 0 0 3px rgb(80 250 104 / 7%);
+
+.control:hover:not(:disabled) {
+  border-color: var(--ae-input-border-hover);
+  background: var(--ae-input-background-hover);
 }
+
+.control:focus-visible {
+  border-color: var(--ae-input-border-focus);
+}
+
+.control:disabled {
+  cursor: not-allowed;
+  background: var(--ae-input-background-disabled);
+  color: var(--ae-foreground-disabled);
+}
+
 .avatar {
   position: relative;
   display: flex;
@@ -58,18 +98,20 @@
   align-items: center;
   justify-content: center;
   overflow: visible;
-  border: 1px solid rgb(80 250 104 / 25%);
+  border: 1px solid var(--ae-accent);
   border-radius: 50%;
-  background: rgb(80 250 104 / 8%);
-  color: #50fa68;
+  background: var(--ae-accent-subtle);
+  color: var(--ae-accent);
   font-size: 2rem;
 }
+
 .avatar img {
   width: 100%;
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
 }
+
 .avatar span {
   position: absolute;
   right: -0.2rem;
@@ -79,23 +121,59 @@
   height: 1.8rem;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgb(148 163 184 / 30%);
+  border: 1px solid var(--ae-border-strong);
   border-radius: 50%;
-  background: #0b131b;
+  background: var(--ae-surface-raised);
   font-size: 0.85rem;
 }
+
 .saveButton {
   display: flex;
+  min-height: 2.75rem;
   align-items: center;
   justify-content: center;
   gap: 0.6rem;
   border-radius: 0.55rem;
-  background: linear-gradient(90deg, #47df39, #62ef44);
+  background: var(--ae-primary);
   padding: 0.75rem 1rem;
-  color: #031007;
+  color: var(--ae-primary-foreground);
   font-size: 0.875rem;
   font-weight: 700;
+  transition: background-color 150ms ease;
 }
-.saveButton:disabled {
-  opacity: 0.55;
+
+.saveButton:hover:not(:disabled) {
+  background: var(--ae-primary-hover);
+}
+
+.iconButton {
+  display: inline-flex;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.55rem;
+  color: var(--ae-foreground-muted);
+}
+
+.iconButton:hover {
+  background: var(--ae-surface-muted);
+  color: var(--ae-foreground);
+}
+
+@media (max-width: 639px) {
+  .outlineButton {
+    margin-left: 0;
+  }
+
+  .editor {
+    padding: 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .outlineButton,
+  .saveButton {
+    transition: none;
+  }
 }

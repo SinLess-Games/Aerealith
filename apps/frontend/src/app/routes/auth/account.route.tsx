@@ -11,6 +11,7 @@ import {
   FiUser,
   FiX,
 } from 'react-icons/fi';
+import { Link } from 'react-router';
 
 import {
   SESSION_QUERY_KEY,
@@ -52,12 +53,14 @@ export function AccountRoute() {
     locale: 'en-US',
   });
   const [avatarError, setAvatarError] = useState<string>();
+  const [statusMessage, setStatusMessage] = useState('');
 
   const save = useMutation({
     mutationFn: () => updateAccount(draft),
     onSuccess: async (updated) => {
       queryClient.setQueryData(SESSION_QUERY_KEY, updated.user);
       queryClient.setQueryData(['account'], updated);
+      setStatusMessage('Your profile changes have been saved.');
       setEditing(false);
       await queryClient.invalidateQueries({ queryKey: ['account'] });
     },
@@ -73,6 +76,7 @@ export function AccountRoute() {
       locale: details?.locale ?? 'en-US',
     });
     setAvatarError(undefined);
+    setStatusMessage('');
     setEditing(true);
   };
 
@@ -102,14 +106,49 @@ export function AccountRoute() {
 
   return (
     <section className={styles.account}>
-      <div className="text-sm text-slate-400">
-        Home <span className="px-2 text-slate-600">›</span>
-        <span className="text-[#50fa68]">Account</span>
+      <div className="text-sm text-[var(--ae-foreground-muted)]">
+        Home <span className="px-2 text-[var(--ae-foreground-subtle)]">›</span>
+        <span className="text-[var(--ae-primary)]">Account</span>
       </div>
       <h1 className="mt-4 text-4xl font-bold tracking-tight">Account</h1>
-      <p className="mt-1 text-sm text-slate-400">
+      <p className="mt-1 text-sm text-[var(--ae-foreground-muted)]">
         Manage your profile, security settings, and session preferences.
       </p>
+      {statusMessage ? (
+        <p
+          role="status"
+          className="mt-4 rounded-lg border border-[var(--ae-success-border)] bg-[var(--ae-success-subtle)] p-3 text-sm text-[var(--ae-success-foreground)]"
+        >
+          {statusMessage}
+        </p>
+      ) : null}
+
+      {account.isLoading ? (
+        <p
+          className="mt-4 text-sm text-[var(--ae-foreground-muted)]"
+          role="status"
+        >
+          Loading account preferences…
+        </p>
+      ) : null}
+      {account.isError ? (
+        <div
+          className="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-[var(--ae-danger-border)] bg-[var(--ae-danger-subtle)] p-4 text-sm text-[var(--ae-danger-foreground)]"
+          role="alert"
+        >
+          <span>
+            We couldn’t load your account preferences. Your profile information
+            is still available.
+          </span>
+          <button
+            type="button"
+            className={styles.outlineButton}
+            onClick={() => account.refetch()}
+          >
+            Try again
+          </button>
+        </div>
+      ) : null}
 
       <div className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1fr)_470px]">
         <div className="space-y-5">
@@ -124,7 +163,7 @@ export function AccountRoute() {
                 onClick={openEditor}
                 className={styles.outlineButton}
               >
-                <FiEdit2 className="text-[#50fa68]" /> Edit
+                <FiEdit2 className="text-[var(--ae-accent)]" /> Edit
               </button>
             </div>
             <dl className="mt-4">
@@ -156,13 +195,13 @@ export function AccountRoute() {
             </div>
             <div>
               <h2 className="text-xl font-semibold">Session</h2>
-              <p className="mt-1 text-sm text-slate-400">
+              <p className="mt-1 text-sm text-[var(--ae-foreground-muted)]">
                 Signing out revokes this session immediately on the server.
               </p>
             </div>
             <button
               type="button"
-              className={`${styles.outlineButton} ml-auto text-[#50fa68]`}
+              className={`${styles.outlineButton} ml-auto`}
               disabled={logout.isPending}
               onClick={() => logout.mutate()}
             >
@@ -178,18 +217,16 @@ export function AccountRoute() {
             </div>
             <div>
               <h2 className="text-xl font-semibold">Security</h2>
-              <p className="mt-1 text-sm text-slate-400">
+              <p className="mt-1 text-sm text-[var(--ae-foreground-muted)]">
                 Password and two-factor authentication controls are protected.
               </p>
             </div>
-            <button
-              type="button"
-              disabled
-              title="Security management is coming next"
-              className={`${styles.outlineButton} ml-auto text-[#50fa68]`}
+            <Link
+              to="/app/security"
+              className={`${styles.outlineButton} ml-auto`}
             >
               Manage security
-            </button>
+            </Link>
           </section>
         </div>
 
@@ -198,20 +235,24 @@ export function AccountRoute() {
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="text-2xl font-semibold">Edit profile</h2>
-                <p className="mt-2 text-sm text-slate-400">
+                <p className="mt-2 text-sm text-[var(--ae-foreground-muted)]">
                   Update your account information.
                 </p>
               </div>
               <button
+                type="button"
                 aria-label="Close profile editor"
                 onClick={() => setEditing(false)}
+                className={styles.iconButton}
               >
                 <FiX className="text-xl" />
               </button>
             </div>
 
             <div className="mt-7">
-              <p className="text-sm text-slate-400">Avatar</p>
+              <p className="text-sm text-[var(--ae-foreground-muted)]">
+                Avatar
+              </p>
               <div className="mt-3 flex items-center gap-4">
                 <div className={styles.avatar}>
                   {draft.avatarUrl ? (
@@ -232,10 +273,15 @@ export function AccountRoute() {
                     onChange={onAvatar}
                   />
                 </label>
-                <small className="text-slate-500">Max 2MB</small>
+                <small className="text-[var(--ae-foreground-subtle)]">
+                  Max 2MB
+                </small>
               </div>
               {avatarError ? (
-                <p role="alert" className="mt-2 text-xs text-red-300">
+                <p
+                  role="alert"
+                  className="mt-2 text-xs text-[var(--ae-danger-foreground)]"
+                >
                   {avatarError}
                 </p>
               ) : null}
@@ -259,11 +305,11 @@ export function AccountRoute() {
                 value={draft.email}
                 onChange={(email) => setDraft({ ...draft, email })}
               />
-              <label className="block text-sm text-slate-400">
+              <label className="block text-sm text-[var(--ae-foreground-muted)]">
                 Role
                 <input
                   disabled
-                  className={`${styles.control} mt-2 text-[#50fa68]`}
+                  className={`${styles.control} mt-2`}
                   value={roleLabel}
                 />
               </label>
@@ -286,12 +332,15 @@ export function AccountRoute() {
                 options={['en-US', 'en-GB', 'es-US', 'fr-FR', 'de-DE']}
               />
               {save.isError ? (
-                <p role="alert" className="text-sm text-red-300">
+                <p
+                  role="alert"
+                  className="text-sm text-[var(--ae-danger-foreground)]"
+                >
                   Profile changes could not be saved. Check that the username
                   and email are unique.
                 </p>
               ) : null}
-              <div className="flex gap-3 border-t border-white/10 pt-5">
+              <div className="flex flex-col gap-3 border-t border-[var(--ae-divider)] pt-5 sm:flex-row">
                 <button
                   type="button"
                   onClick={() => setEditing(false)}
@@ -322,8 +371,10 @@ export function AccountRoute() {
             <h2 className="mt-5 text-xl font-semibold">
               {currentUser?.username}
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Profile ready to manage
+            <p className="mt-1 text-sm text-[var(--ae-foreground-subtle)]">
+              {account.isLoading
+                ? 'Loading your preferences…'
+                : 'Profile ready to manage'}
             </p>
             <button
               onClick={openEditor}
@@ -350,13 +401,13 @@ function Field({
   verified?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 border-b border-white/10 py-3.5 last:border-0">
-      <dt className="text-sm text-slate-400">{label}</dt>
+    <div className="flex flex-col gap-1 border-b border-[var(--ae-divider)] py-3.5 last:border-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+      <dt className="text-sm text-[var(--ae-foreground-muted)]">{label}</dt>
       <dd
         className={
           badge
-            ? 'rounded-full border border-[#50fa68]/20 bg-[#50fa68]/5 px-3 py-1 text-sm text-[#50fa68]'
-            : 'text-sm text-slate-100'
+            ? 'inline-flex w-fit items-center rounded-full border border-[var(--ae-accent)] bg-[var(--ae-accent-subtle)] px-3 py-1 text-sm text-[var(--ae-accent)]'
+            : 'text-sm text-[var(--ae-foreground)]'
         }
       >
         {verified ? <FiCheckCircle className="mr-2 inline" /> : null}
@@ -378,10 +429,11 @@ function Input({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="block text-sm text-slate-400">
+    <label className="block text-sm text-[var(--ae-foreground-muted)]">
       {label}
       <input
         required
+        autoComplete={type === 'email' ? 'email' : 'username'}
         type={type}
         className={`${styles.control} mt-2`}
         value={value}
@@ -403,9 +455,10 @@ function Select({
   options: string[];
 }) {
   return (
-    <label className="block text-sm text-slate-400">
+    <label className="block text-sm text-[var(--ae-foreground-muted)]">
       {label}
       <select
+        aria-label={label}
         className={`${styles.control} mt-2`}
         value={value}
         onChange={(event) => onChange(event.target.value)}

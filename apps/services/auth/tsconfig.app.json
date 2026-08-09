@@ -8,6 +8,6 @@
     "moduleResolution": "bundler",
     "types": ["node"]
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "worker-configuration.d.ts"],
   "exclude": ["src/**/*.spec.ts", "src/**/*.test.ts"]
 }

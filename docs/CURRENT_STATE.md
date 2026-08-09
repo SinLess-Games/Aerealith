@@ -2,7 +2,7 @@
 
 Status: Active
 Owner: SinLess Games LLC
-Last Updated: 2026-07-23
+Last Updated: 2026-08-08
 Document Type: Implementation Summary
 Authority: Current-state navigation; repository evidence remains definitive
 
@@ -27,25 +27,33 @@ The repository currently contains these Nx projects:
 - The `frontend` React and Vite application, including public and application
   surfaces with Cloudflare-oriented deployment configuration.
 - The `frontend-e2e` Playwright test application.
-- The `content`, `core`, `db`, `ui`, and `utils` shared libraries.
+- The `service-api` and `service-auth` Hono and Cloudflare Worker services.
+- The `api-platform`, `auth`, `authorization`, `content`, `core`, `db`,
+  `observability`, `ui`, and `utils` shared libraries.
 - The `service-generator` workspace tool.
 
 The resolved Nx graph also contains the workspace-root
 `@aerealith-ai/source` project. It is an orchestration project, not a deployable
 application.
 
-The frontend Worker currently implements only static-asset delivery through the
-`ASSETS` binding and `GET /__aerealith/health`, which returns
-`{ "status": "ok" }`. The React application contains public marketing routes,
-policy pages, sign-in and sign-up prototypes, and an `/app` dashboard shell.
-The authentication client calls planned `/api/v1/auth/*` endpoints, but no API
-service implements those endpoints and no route guard enforces a session.
+The frontend Worker serves static assets, health and feature-flag responses,
+and proxies the canonical `/api/V1/` service surface. The React application
+contains public marketing routes, policy pages, a documentation site under
+`/documentation`, account access and recovery, and a session-protected `/app`
+shell with account, security, session-management, and permission-gated
+administration views.
 
-The `db` library implements Drizzle table definitions, mappings, queries,
-repositories, transaction helpers, and tests for users, user accounts,
-consents, preferences, profiles, sessions, settings, and waitlist entries. No
-committed migration directory or deployed database configuration proves that
-these schemas are running in an environment.
+`service-auth` implements opaque HttpOnly cookie sessions, registration,
+sign-in and sign-out, email verification, password recovery, account updates,
+session listing and revocation, centralized authorization checks, trusted-origin
+protection, Worker rate limits, and sanitized security-event logging.
+`service-api` provides the general API and operational service surface.
+
+The `db` library implements Drizzle tables, mappings, queries, repositories,
+transactions, tests, and committed migrations for users, profiles,
+preferences, sessions, verification, password-reset tokens, and normalized
+authorization. Repository migrations are generated and inspected but are not
+automatically applied to a deployed database.
 
 The repository also contains active continuous integration, security, quality,
 coverage, and repository-automation workflows. Exact projects and targets are
@@ -55,9 +63,7 @@ listed in the [Project Inventory](./reference/Project%20Inventory.md).
 
 The implemented foundation is a TypeScript monorepo using Node.js, pnpm, Nx,
 React, Vite, React Router, Tailwind CSS, Vitest, Playwright, Drizzle ORM,
-PostgreSQL-oriented data access, and Cloudflare deployment tooling. Hono and
-several other target-stack packages are installed but not used by a current
-runtime.
+PostgreSQL-oriented data access, Hono, and Cloudflare deployment tooling.
 
 Use the [approved stack](./STACK.md) for technology status and `package.json`
 for exact installed versions. A technology appearing in a vision or target
@@ -75,18 +81,20 @@ Release `0.1` is the current documented foundation milestone. See the
 criteria. Release plans describe intended delivery; repository evidence proves
 completion.
 
-Cloudflare configuration declares queue, Key-Value (KV), R2, Flagship, and
-Analytics Engine bindings. The current Worker code consumes only `ASSETS`;
-declared bindings are configuration evidence, not evidence of implemented
-product integrations.
+Cloudflare configuration declares queue, Key-Value (KV), R2, Flagship,
+Analytics Engine, service, secret-store, and rate-limit bindings. Current
+Workers consume assets, feature flags, service bindings, auth secrets, and the
+auth rate limiter. Queue-backed product workflows remain planned.
 
 ## Known Configuration Conflicts
 
-- `package.json` requires Node.js `26.5.0`, while `.node-version` pins
-  `25.9.0`. Contributors and CI need one authoritative supported version.
 - Implemented database configuration reads `DATABASE_URL`. Documents that use
   `AEREALITH_DATABASE_URL` describe a target naming convention, not current
   runtime behavior.
+- The auth Worker currently uses a direct PostgreSQL URL; Hyperdrive is not yet
+  provisioned for the production edge path.
+- Security events use a typed, sanitized structured-log adapter, but a durable
+  audit sink is not yet wired.
 
 ## Accepted or Planned, Not Current Product Claims
 
@@ -94,7 +102,8 @@ The following are product direction unless and until repository evidence and a
 release record show otherwise:
 
 - Production Discord community management and bot capabilities.
-- Full authentication, account, organization, and permission workflows.
+- MFA, passkeys, OAuth, API keys, periodic session rotation, and full
+  organization/account approval workflows.
 - General-purpose workflow automation and marketplace capabilities.
 - Production Aerealith AI chat, memory, tool use, and autonomous actions.
 - Hosted commercial service availability.

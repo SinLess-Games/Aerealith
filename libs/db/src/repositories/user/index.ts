@@ -8,3 +8,4 @@ export * from './drizzle-user-session.repository';
 export * from './drizzle-user-settings.repository';
 export * from './drizzle-user.repository';
 export * from './drizzle-email-verification.repository';
+export * from './drizzle-password-reset-token.repository';

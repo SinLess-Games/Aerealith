@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -67,17 +68,48 @@ export function ConsentProvider({ children }: { children: ReactNode }) {
   const [preferences, setPreferences] = useState(initial.preferences);
   const [hasDecision, setHasDecision] = useState(initial.hasDecision);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsTriggerRef = useRef<HTMLElement | null>(null);
 
-  const persist = useCallback((next: ConsentPreferences) => {
-    setPreferences(next);
-    setHasDecision(true);
-    setSettingsOpen(false);
-    try {
-      window.localStorage.setItem(storageKey, JSON.stringify(next));
-    } catch {
-      // Consent remains active for this page even when storage is unavailable.
+  const restoreSettingsTrigger = useCallback(() => {
+    const trigger = settingsTriggerRef.current;
+    settingsTriggerRef.current = null;
+
+    if (!trigger) return;
+
+    if (typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(() => trigger.focus());
+    } else {
+      trigger.focus();
     }
   }, []);
+
+  const closeSettings = useCallback(() => {
+    setSettingsOpen(false);
+    restoreSettingsTrigger();
+  }, [restoreSettingsTrigger]);
+
+  const openSettings = useCallback(() => {
+    settingsTriggerRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    setSettingsOpen(true);
+  }, []);
+
+  const persist = useCallback(
+    (next: ConsentPreferences) => {
+      setPreferences(next);
+      setHasDecision(true);
+      setSettingsOpen(false);
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify(next));
+      } catch {
+        // Consent remains active for this page even when storage is unavailable.
+      }
+      restoreSettingsTrigger();
+    },
+    [restoreSettingsTrigger],
+  );
 
   const value = useMemo<ConsentContextValue>(
     () => ({
@@ -93,10 +125,17 @@ export function ConsentProvider({ children }: { children: ReactNode }) {
         }),
       rejectOptional: () => persist(defaultPreferences),
       save: (next) => persist({ necessary: true, ...next }),
-      openSettings: () => setSettingsOpen(true),
-      closeSettings: () => setSettingsOpen(false),
+      openSettings,
+      closeSettings,
     }),
-    [hasDecision, persist, preferences, settingsOpen],
+    [
+      closeSettings,
+      hasDecision,
+      openSettings,
+      persist,
+      preferences,
+      settingsOpen,
+    ],
   );
 
   return (

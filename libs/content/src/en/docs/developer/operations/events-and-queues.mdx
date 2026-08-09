@@ -1,0 +1,16 @@
+---
+title: Events & Queues
+description: Treat declared Cloudflare resources and event architecture as future implementation work unless consumers prove otherwise.
+order: 12
+audience: developer
+keywords:
+  - events
+  - queues
+  - audit
+---
+
+# Events & Queues
+
+Cloudflare bindings for a queue and other platform resources may be declared in frontend configuration, but the current frontend Worker consumes only the assets binding and optional feature flags. No committed event producer, consumer, or queue workflow establishes an implemented event system.
+
+Use [Audit Architecture](https://github.com/SinLess-Games/Aerealith/blob/main/docs/architecture/Audit%20Architecture.md), [Observability Architecture](https://github.com/SinLess-Games/Aerealith/blob/main/docs/architecture/Observability%20Architecture.md), and the event-envelope RFC when implementing this boundary. Define an event contract, identity/idempotency behavior, producer ownership, consumer retry/dead-letter behavior, and audit implications before adding a queue.

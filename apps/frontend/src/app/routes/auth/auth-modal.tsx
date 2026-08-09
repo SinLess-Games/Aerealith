@@ -14,7 +14,7 @@ export function AuthModal({
 
   return (
     <Dialog open onOpenChange={(open) => !open && close()}>
-      <DialogOverlay className="z-[70] bg-[rgba(2,6,23,0.78)] backdrop-blur-sm" />
+      <DialogOverlay className="z-[70] bg-[color-mix(in_srgb,var(--ae-background)_78%,transparent)] backdrop-blur-sm motion-reduce:backdrop-blur-none" />
       <DialogContent
         aria-label={ariaLabel}
         className={[
@@ -22,7 +22,7 @@ export function AuthModal({
           'w-[min(34rem,calc(100%-2rem))] rounded-2xl border',
           'border-[color-mix(in_srgb,var(--ae-accent)_24%,var(--ae-border))]',
           'bg-[color-mix(in_srgb,var(--ae-background)_94%,transparent)] p-0',
-          'shadow-[0_28px_100px_rgba(0,0,0,0.5)] backdrop-blur-2xl',
+          'shadow-[var(--ae-shadow-lg)] backdrop-blur-2xl motion-reduce:backdrop-blur-none',
         ].join(' ')}
       >
         <button

@@ -13,6 +13,7 @@ import {
   LogoutRequestSchema,
   LogoutResponseSchema,
   PasswordSchema,
+  PasswordCredentialSchema,
   PublicAuthUserResponseSchema,
   PublicAuthUserSchema,
   RefreshRequestSchema,
@@ -67,16 +68,29 @@ describe('authentication field schemas', () => {
     expect(result.success).toBe(false);
   });
 
-  it('accepts a password with at least eight characters', () => {
-    const result = PasswordSchema.safeParse('password123');
+  it('accepts a password that satisfies the shared password policy', () => {
+    const result = PasswordSchema.safeParse('SecurePassword1');
 
     expect(result.success).toBe(true);
   });
 
-  it('rejects a password shorter than eight characters', () => {
+  it('rejects a password shorter than twelve characters or missing policy requirements', () => {
     const result = PasswordSchema.safeParse('short');
 
     expect(result.success).toBe(false);
+    expect(PasswordSchema.safeParse('alllowercase12').success).toBe(false);
+    expect(PasswordSchema.safeParse('ALLUPPERCASE12').success).toBe(false);
+    expect(PasswordSchema.safeParse('NoNumbersHere').success).toBe(false);
+  });
+
+  it('allows a bounded legacy credential through login validation', () => {
+    expect(PasswordCredentialSchema.safeParse('legacy08').success).toBe(true);
+    expect(
+      LoginRequestSchema.safeParse({
+        usernameOrEmail: 'andy',
+        password: 'legacy08',
+      }).success,
+    ).toBe(true);
   });
 
   it('rejects an empty token', () => {
@@ -245,7 +259,7 @@ describe('authentication request schemas', () => {
     const result = SignUpRequestSchema.safeParse({
       username: '  Andy_Pierce  ',
       email: '  Andy@Example.COM  ',
-      password: 'password123',
+      password: 'SecurePassword1',
       displayName: '  Andy Pierce  ',
     });
 
@@ -255,7 +269,7 @@ describe('authentication request schemas', () => {
       expect(result.data).toEqual({
         username: 'andy_pierce',
         email: 'andy@example.com',
-        password: 'password123',
+        password: 'SecurePassword1',
         displayName: 'Andy Pierce',
       });
     }

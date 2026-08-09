@@ -1,27 +1,43 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from '@playwright/test';
 
-test.use({ viewport: { width: 390, height: 844 } })
+test.use({ viewport: { width: 390, height: 844 } });
+
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem(
+      'aerealith-consent-v1',
+      JSON.stringify({
+        necessary: true,
+        analytics: false,
+        advertising: false,
+        sessionReplay: false,
+      }),
+    );
+  });
+});
 
 test('uses the mobile navigation at a phone viewport', async ({ page }) => {
-  await page.goto('/')
-  const menuButton = page.getByRole('button', { name: /open navigation menu/i })
-  await expect(menuButton).toBeVisible()
-  await menuButton.click()
+  await page.goto('/');
+  const menuButton = page.getByRole('button', {
+    name: /open navigation menu/i,
+  });
+  await expect(menuButton).toBeVisible();
+  await menuButton.click();
 
   const mobileNavigation = page.getByRole('navigation', {
     name: 'Mobile primary navigation',
-  })
-  await expect(mobileNavigation).toBeVisible()
-  await mobileNavigation.getByRole('link', { name: 'Pricing' }).click()
-  await expect(page).toHaveURL(/\/pricing$/)
-  await expect(mobileNavigation).toBeHidden()
-})
+  });
+  await expect(mobileNavigation).toBeVisible();
+  await mobileNavigation.getByRole('link', { name: 'Pricing' }).click();
+  await expect(page).toHaveURL(/\/pricing$/);
+  await expect(mobileNavigation).toBeHidden();
+});
 
 test('closes the mobile menu with Escape', async ({ page }) => {
-  await page.goto('/')
-  await page.getByRole('button', { name: /open navigation menu/i }).click()
-  await page.keyboard.press('Escape')
+  await page.goto('/');
+  await page.getByRole('button', { name: /open navigation menu/i }).click();
+  await page.keyboard.press('Escape');
   await expect(
     page.getByRole('navigation', { name: 'Mobile primary navigation' }),
-  ).toBeHidden()
-})
+  ).toBeHidden();
+});

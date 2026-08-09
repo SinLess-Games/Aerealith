@@ -1,0 +1,19 @@
+---
+title: Database & Contracts
+description: Use Drizzle persistence behind mappings and stable domain/API contracts.
+order: 16
+audience: developer
+keywords:
+  - database
+  - drizzle
+  - contracts
+  - repositories
+---
+
+# Database & Contracts
+
+`libs/db` contains PostgreSQL-oriented Drizzle schemas, migrations, mappers, queries, repositories, and tests for user-related data, authorization, sessions, email-verification tokens, and password-reset tokens. The auth service uses these contracts through persistence boundaries. No production migration is applied by this repository, and Hyperdrive is not provisioned; deployments use direct PostgreSQL transport.
+
+Keep database rows and ORM types behind persistence mappings. Domain and API contracts must not expose them directly. The current and target boundaries are documented in [Data Architecture](https://github.com/SinLess-Games/Aerealith/blob/main/docs/architecture/Data%20Architecture.md), [Current Architecture](https://github.com/SinLess-Games/Aerealith/blob/main/docs/architecture/Current%20Architecture.md), and [DEC-006](https://github.com/SinLess-Games/Aerealith/blob/main/docs/decisions/DEC-006-domain-persistence-mapping.md).
+
+When changing persisted data, update the schema, migration, mapping, repository behavior, and focused tests together. Treat CockroachDB compatibility as a future validation goal, not an assumption.

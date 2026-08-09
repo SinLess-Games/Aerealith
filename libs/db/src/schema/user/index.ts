@@ -3,6 +3,7 @@
 export * from './user-account.table';
 export * from './user-consent.table';
 export * from './user-email-verification-token.table';
+export * from './user-password-reset-token.table';
 export * from './user-preferences.table';
 export * from './user-profile.table';
 export * from './user-session.table';

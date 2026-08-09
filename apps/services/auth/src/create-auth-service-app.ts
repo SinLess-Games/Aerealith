@@ -22,6 +22,7 @@ import { createAuthTrpcRouter } from './auth/auth-trpc.router';
 import { LazyAuthApplication } from './auth/lazy-auth-application';
 import { LazyAuthorizationService } from './auth/lazy-authorization.service';
 import { ObservableAuthApplication } from './auth/observable-auth-application';
+import { requireTrustedOrigin } from './auth/origin-protection.middleware';
 
 export interface CreateAuthServiceAppOptions {
   readonly application?: AuthApplication;
@@ -32,6 +33,8 @@ export interface CreateAuthServiceAppOptions {
   readonly operationObserver?: OperationObserver;
   readonly requestObserver?: ApiRequestObserver;
   readonly readinessCheck?: () => Promise<void>;
+  /** Explicit cross-origin browser origins, if the service is not proxied. */
+  readonly allowedOrigins?: readonly string[];
 }
 
 export function createAuthServiceApp(
@@ -60,23 +63,17 @@ export function createAuthServiceApp(
     createContext(base): AuthApiContext {
       return { ...base, auth: application, authorization };
     },
+    middleware: [
+      {
+        handler: requireTrustedOrigin(options.allowedOrigins),
+      },
+    ],
   });
 
   mountHttpRoutes(app, {
     basePath: ApiRoute,
     register(router) {
       registerAuthHttpRoutes(router, application);
-      router.get('/services/auth', (context) =>
-        context.json({ service: 'auth', status: 'ok' }),
-      );
-    },
-  });
-
-  // Preserve the original lowercase scaffold route while clients migrate to
-  // the shared core route constants.
-  mountHttpRoutes(app, {
-    basePath: '/api/v1',
-    register(router) {
       router.get('/services/auth', (context) =>
         context.json({ service: 'auth', status: 'ok' }),
       );

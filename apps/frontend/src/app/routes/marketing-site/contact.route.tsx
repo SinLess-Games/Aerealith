@@ -1,5 +1,10 @@
 import { ContactDescription, contactOptions } from '@aerealith-ai/content';
-import type { CSSProperties, FormEvent, ReactNode } from 'react';
+import {
+  useState,
+  type CSSProperties,
+  type FormEvent,
+  type ReactNode,
+} from 'react';
 import { Link } from 'react-router';
 
 import { analyticsEvents } from '../../../analytics/analytics-events';
@@ -107,7 +112,12 @@ const channelMeta = [
   { icon: 'github' as const, accent: '#60a5fa' },
 ];
 
+type ContactStatus = 'idle' | 'copied' | 'copy-error' | 'opened-email';
+
+const supportEmail = 'support@aerealith.com';
+
 export function ContactRoute() {
+  const [contactStatus, setContactStatus] = useState<ContactStatus>('idle');
   const channels = [
     contactOptions[0],
     contactOptions[2],
@@ -127,11 +137,25 @@ export function ContactRoute() {
       '',
       String(data.get('message') ?? ''),
     ].join('\n');
-    window.location.href = `mailto:support@aerealith.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    setContactStatus('opened-email');
+    window.location.href = `mailto:${supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
+
+  async function copySupportEmail() {
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error('Clipboard access is unavailable.');
+      }
+
+      await navigator.clipboard.writeText(supportEmail);
+      setContactStatus('copied');
+    } catch {
+      setContactStatus('copy-error');
+    }
   }
 
   return (
-    <main className="contact-route relative isolate flex-1 overflow-hidden bg-transparent">
+    <div className="contact-route relative isolate flex-1 overflow-hidden bg-transparent">
       <style>{`
       :root[data-theme='light'] .contact-route{--ch:#0f172a;--ct:#334155;--cm:#64748b;--cp:rgba(255,255,255,.72);--cf:rgba(248,250,252,.76);--cb:rgba(71,85,105,.23);--cs:rgba(15,23,42,.14)}
       :root[data-theme='dark'] .contact-route{--ch:#f8fafc;--ct:#cbd5e1;--cm:#94a3b8;--cp:rgba(3,7,24,.66);--cf:rgba(4,9,29,.72);--cb:rgba(148,163,184,.25);--cs:rgba(0,0,0,.38)}
@@ -140,6 +164,7 @@ export function ContactRoute() {
       .contact-field{color:var(--ch);border-color:var(--cb);background:var(--cf)}.contact-field::placeholder{color:var(--cm)}.contact-field:focus{border-color:#22d3ee;box-shadow:0 0 0 3px rgba(34,211,238,.12),0 0 24px rgba(34,211,238,.1);outline:none}
       .contact-channel{--ca:#22d3ee;border-color:color-mix(in srgb,var(--ca) 32%,var(--cb))}.contact-channel:hover,.contact-channel:focus-within{border-color:color-mix(in srgb,var(--ca) 68%,transparent);transform:translateY(-3px);box-shadow:0 18px 46px var(--cs),0 0 28px color-mix(in srgb,var(--ca) 16%,transparent)}
       .channel-icon{color:var(--ca);border-color:color-mix(in srgb,var(--ca) 48%,transparent);background:color-mix(in srgb,var(--ca) 13%,transparent);box-shadow:0 0 20px color-mix(in srgb,var(--ca) 20%,transparent)}
+      .contact-fallback{border-color:var(--cb);background:color-mix(in srgb,var(--ae-surface) 74%,transparent)}.contact-fallback-link{color:var(--ae-link)}.contact-fallback-link:hover{color:var(--ae-link-hover)}.contact-status-success{color:var(--ae-success)}.contact-status-error{color:var(--ae-danger)}
     `}</style>
       <div
         aria-hidden="true"
@@ -259,6 +284,44 @@ export function ContactRoute() {
             >
               Send Message <Icon name="arrow" />
             </button>
+
+            <div className="contact-fallback mt-4 rounded-xl border p-4 text-sm">
+              <p className="contact-muted leading-6">
+                If your email app does not open, contact us directly at{' '}
+                <a
+                  className="contact-fallback-link font-semibold underline underline-offset-4"
+                  href={`mailto:${supportEmail}`}
+                >
+                  {supportEmail}
+                </a>
+                .
+              </p>
+              <button
+                type="button"
+                className="contact-fallback-link mt-3 inline-flex min-h-10 items-center gap-2 rounded-lg border border-[var(--ae-border)] px-3 font-semibold transition hover:bg-[var(--ae-surface)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ae-focus-ring)]"
+                onClick={() => void copySupportEmail()}
+              >
+                Copy support email
+              </button>
+              <p
+                aria-live="polite"
+                className={`mt-3 min-h-5 text-xs ${
+                  contactStatus === 'copy-error'
+                    ? 'contact-status-error'
+                    : contactStatus === 'idle'
+                      ? 'contact-muted'
+                      : 'contact-status-success'
+                }`}
+              >
+                {contactStatus === 'opened-email'
+                  ? 'Your email app should open with your message ready to send.'
+                  : contactStatus === 'copied'
+                    ? 'Support email copied to your clipboard.'
+                    : contactStatus === 'copy-error'
+                      ? 'We could not copy the address. Select the email link above to copy it manually.'
+                      : 'You can use this fallback at any time.'}
+              </p>
+            </div>
           </form>
         </div>
 
@@ -363,7 +426,7 @@ export function ContactRoute() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }
 

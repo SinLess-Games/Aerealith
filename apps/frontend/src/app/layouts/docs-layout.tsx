@@ -1,14 +1,21 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import {
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from 'react';
 
-import { ThemeToggle, cn } from '@aerealith-ai/ui'
-import { NavLink, Outlet, useLocation } from 'react-router'
+import { ThemeToggle, cn } from '@aerealith-ai/ui';
+import { FiMoon, FiSun } from 'react-icons/fi';
+import { NavLink, Outlet, useLocation } from 'react-router';
 
 import {
   getAudienceFromDocsUrl,
   getDocsTree,
   type DocsAudience,
-} from '../../lib/docs-source'
-import { DocsSidebar } from '../features/docs/components/docs-sidebar'
+} from '../../lib/docs-source';
+import { DocsSidebar } from '../features/docs/components/docs-sidebar';
 
 /**
  * Main documentation application shell.
@@ -18,25 +25,34 @@ import { DocsSidebar } from '../features/docs/components/docs-sidebar'
  * routes render their content through the nested React Router outlet.
  */
 export function DocsLayout() {
-  const location = useLocation()
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const location = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const sidebarTriggerRef = useRef<HTMLButtonElement>(null);
 
-  const audience = getAudienceFromDocsUrl(location.pathname)
+  const audience = getAudienceFromDocsUrl(location.pathname);
 
   const tree = useMemo(
     () => (audience ? getDocsTree(audience) : undefined),
     [audience],
-  )
+  );
 
-  const hasSidebar = audience !== undefined && tree !== undefined
+  const hasSidebar = audience !== undefined && tree !== undefined;
+
+  const closeSidebarAfterEscape = () => {
+    setIsSidebarOpen(false);
+
+    window.requestAnimationFrame(() => {
+      sidebarTriggerRef.current?.focus();
+    });
+  };
 
   return (
     <div
-      className='min-h-screen text-[var(--ae-foreground)]'
-      data-slot='docs-layout'
+      className="min-h-screen text-[var(--ae-foreground)]"
+      data-slot="docs-layout"
     >
       <a
-        href='#docs-main-content'
+        href={`${location.pathname}${location.search}#docs-main-content`}
         className={cn(
           'fixed top-3 left-3 z-[100] -translate-y-20 rounded-lg px-4 py-2',
           'bg-[var(--ae-background)] text-sm font-semibold',
@@ -53,6 +69,7 @@ export function DocsLayout() {
         audience={audience}
         isSidebarOpen={isSidebarOpen}
         onOpenSidebar={() => setIsSidebarOpen(true)}
+        sidebarTriggerRef={sidebarTriggerRef}
         showSidebarButton={hasSidebar}
       />
 
@@ -69,12 +86,13 @@ export function DocsLayout() {
             audience={audience}
             mobileOpen={isSidebarOpen}
             onMobileClose={() => setIsSidebarOpen(false)}
+            onMobileEscape={closeSidebarAfterEscape}
             tree={tree}
           />
         ) : null}
 
         <main
-          id='docs-main-content'
+          id="docs-main-content"
           className={cn(
             'min-w-0 pt-6 outline-none sm:pt-8',
             hasSidebar ? 'lg:pt-8' : 'mx-auto w-full',
@@ -85,24 +103,26 @@ export function DocsLayout() {
         </main>
       </div>
     </div>
-  )
+  );
 }
 
 interface DocsHeaderProps {
-  audience?: DocsAudience
-  isSidebarOpen: boolean
-  onOpenSidebar: () => void
-  showSidebarButton: boolean
+  audience?: DocsAudience;
+  isSidebarOpen: boolean;
+  onOpenSidebar: () => void;
+  sidebarTriggerRef: RefObject<HTMLButtonElement | null>;
+  showSidebarButton: boolean;
 }
 
 function DocsHeader({
   audience,
   isSidebarOpen,
   onOpenSidebar,
+  sidebarTriggerRef,
   showSidebarButton,
 }: Readonly<DocsHeaderProps>) {
   return (
-    <header className='sticky top-0 z-50 px-3 pt-3 sm:px-5 sm:pt-4'>
+    <header className="sticky top-0 z-50 px-3 pt-3 sm:px-5 sm:pt-4">
       <div
         className={cn(
           'relative mx-auto flex min-h-16 w-full max-w-[96rem]',
@@ -114,7 +134,7 @@ function DocsHeader({
         )}
       >
         <div
-          aria-hidden='true'
+          aria-hidden="true"
           className={cn(
             'pointer-events-none absolute inset-0',
             'bg-[radial-gradient(circle_at_8%_0%,color-mix(in_srgb,var(--ae-accent)_10%,transparent),transparent_34%),radial-gradient(circle_at_92%_100%,color-mix(in_srgb,var(--ae-secondary)_8%,transparent),transparent_38%)]',
@@ -123,9 +143,10 @@ function DocsHeader({
 
         {showSidebarButton ? (
           <button
-            type='button'
-            aria-label='Open documentation navigation'
-            aria-controls='docs-mobile-sidebar'
+            type="button"
+            ref={sidebarTriggerRef}
+            aria-label="Open documentation navigation"
+            aria-controls="docs-mobile-sidebar"
             aria-expanded={isSidebarOpen}
             className={cn(
               'relative grid size-11 shrink-0 place-items-center rounded-xl',
@@ -145,13 +166,13 @@ function DocsHeader({
 
         <DocsBrand />
 
-        <div className='relative ml-auto hidden items-center gap-2 md:flex'>
+        <div className="relative ml-auto hidden items-center gap-2 md:flex">
           <DocsAudienceSwitcher />
         </div>
 
-        <div className='relative ml-auto flex items-center gap-2 md:ml-0'>
+        <div className="relative ml-auto flex items-center gap-2 md:ml-0">
           <NavLink
-            to='/'
+            to="/"
             className={cn(
               'hidden min-h-10 items-center rounded-lg border px-3 text-sm font-medium',
               'border-[color-mix(in_srgb,var(--ae-border)_75%,transparent)]',
@@ -166,37 +187,41 @@ function DocsHeader({
             Main site
           </NavLink>
 
-          <ThemeToggle />
+          <ThemeToggle
+            darkIcon={<FiSun aria-hidden="true" />}
+            iconOnly
+            lightIcon={<FiMoon aria-hidden="true" />}
+          />
         </div>
 
         {audience ? (
-          <span className='sr-only'>
+          <span className="sr-only">
             Current section: {getAudienceLabel(audience)}
           </span>
         ) : null}
       </div>
 
-      <div className='mx-auto mt-2 w-full max-w-[96rem] md:hidden'>
+      <div className="mx-auto mt-2 w-full max-w-[96rem] md:hidden">
         <DocsAudienceSwitcher />
       </div>
     </header>
-  )
+  );
 }
 
 function DocsBrand() {
   return (
     <NavLink
-      to='/documentation'
-      aria-label='Aerealith documentation home'
+      to="/documentation"
+      aria-label="Aerealith documentation home"
       className={cn(
         'relative flex min-w-0 items-center gap-3 rounded-xl',
         'focus-visible:outline-2 focus-visible:outline-offset-4',
         'focus-visible:outline-[var(--ae-accent)]',
       )}
     >
-      <span className='relative grid size-11 shrink-0 place-items-center'>
+      <span className="relative grid size-11 shrink-0 place-items-center">
         <span
-          aria-hidden='true'
+          aria-hidden="true"
           className={cn(
             'absolute inset-1 rounded-xl blur-md',
             'bg-gradient-to-br from-fuchsia-500/18',
@@ -205,8 +230,8 @@ function DocsBrand() {
         />
 
         <img
-          src='/images/brand/mark-no-background.png'
-          alt=''
+          src="/images/brand/mark-no-background.png"
+          alt=""
           width={44}
           height={44}
           className={cn(
@@ -216,7 +241,7 @@ function DocsBrand() {
         />
       </span>
 
-      <span className='min-w-0'>
+      <span className="min-w-0">
         <span
           className={cn(
             'block truncate text-base font-semibold tracking-wide',
@@ -227,18 +252,18 @@ function DocsBrand() {
           Aerealith
         </span>
 
-        <span className='block truncate text-xs text-[var(--ae-foreground-muted)]'>
+        <span className="block truncate text-xs text-[var(--ae-foreground-muted)]">
           Documentation
         </span>
       </span>
     </NavLink>
-  )
+  );
 }
 
 function DocsAudienceSwitcher() {
   return (
     <nav
-      aria-label='Documentation audience'
+      aria-label="Documentation audience"
       className={cn(
         'relative grid grid-cols-2 gap-1 rounded-xl border p-1',
         'border-[var(--ae-border)]',
@@ -246,15 +271,15 @@ function DocsAudienceSwitcher() {
         'backdrop-blur-xl',
       )}
     >
-      <AudienceLink audience='user'>User docs</AudienceLink>
-      <AudienceLink audience='developer'>Developer docs</AudienceLink>
+      <AudienceLink audience="user">User docs</AudienceLink>
+      <AudienceLink audience="developer">Developer docs</AudienceLink>
     </nav>
-  )
+  );
 }
 
 interface AudienceLinkProps {
-  audience: DocsAudience
-  children: ReactNode
+  audience: DocsAudience;
+  children: ReactNode;
 }
 
 function AudienceLink({ audience, children }: Readonly<AudienceLinkProps>) {
@@ -286,26 +311,26 @@ function AudienceLink({ audience, children }: Readonly<AudienceLinkProps>) {
     >
       {children}
     </NavLink>
-  )
+  );
 }
 
 function getAudienceLabel(audience: DocsAudience): string {
   return audience === 'developer'
     ? 'Developer documentation'
-    : 'User documentation'
+    : 'User documentation';
 }
 
 function MenuIcon() {
   return (
-    <svg aria-hidden='true' className='size-5' fill='none' viewBox='0 0 24 24'>
+    <svg aria-hidden="true" className="size-5" fill="none" viewBox="0 0 24 24">
       <path
-        d='M4 7h16M4 12h16M4 17h16'
-        stroke='currentColor'
-        strokeLinecap='round'
-        strokeWidth='1.75'
+        d="M4 7h16M4 12h16M4 17h16"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.75"
       />
     </svg>
-  )
+  );
 }
 
-export default DocsLayout
+export default DocsLayout;

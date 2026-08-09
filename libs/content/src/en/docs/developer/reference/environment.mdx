@@ -1,0 +1,18 @@
+---
+title: Environment Configuration
+description: Locate verified environment inputs and avoid treating target naming conventions as current runtime requirements.
+order: 11
+audience: developer
+keywords:
+  - environment
+  - configuration
+  - secrets
+---
+
+# Environment Configuration
+
+Use only variables that current code reads. The verified inventory and secret-handling rules live in [Environment Variables](https://github.com/SinLess-Games/Aerealith/blob/main/docs/engineering/Environment%20Variables.md) and [Secrets](https://github.com/SinLess-Games/Aerealith/blob/main/docs/engineering/Secrets.md).
+
+Current evidence includes `DATABASE_URL` for database configuration and optional `LIBRETRANSLATE_URL` and `LIBRETRANSLATE_API_KEY` for content translation scripts. `BASE_URL` configures the frontend end-to-end target. The frontend Worker has declared bindings, but its current code consumes `ASSETS` and optionally feature-flag configuration; a declared binding is not proof of a running service.
+
+Never commit secrets or pass them in URLs, logs, fixtures, or documentation examples. Validate configuration at the runtime boundary and describe missing-value behavior.

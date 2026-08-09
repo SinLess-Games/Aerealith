@@ -44,37 +44,52 @@ describe('InMemoryAuthApplication', () => {
     ).resolves.toBeNull();
   });
 
-  it('reads and updates local account details', async () => {
+  it('clears verification and revokes existing sessions when a local email changes', async () => {
     const application = new InMemoryAuthApplication();
-    const { user } = await application.signUp({
+    const created = await application.signUp({
       username: 'local_user',
       email: 'local@example.com',
       password: 'development-password',
     });
 
-    await expect(application.accountDetails(user.id)).resolves.toMatchObject({
-      user,
+    await expect(
+      application.accountDetails(created.user.id),
+    ).resolves.toMatchObject({
+      user: created.user,
       avatarUrl: null,
       timezone: null,
       locale: null,
     });
 
-    await expect(
-      application.updateAccount(user.id, {
-        username: 'updated_user',
-        email: 'updated@example.com',
-        timezone: 'America/Denver',
-        locale: 'en-US',
-      }),
-    ).resolves.toMatchObject({
+    const updated = await application.updateAccount(created.user.id, {
+      username: 'updated_user',
+      email: 'updated@example.com',
+      timezone: 'America/Denver',
+      locale: 'en-US',
+    });
+    expect(updated).toMatchObject({
       user: {
-        id: user.id,
+        id: created.user.id,
         username: 'updated_user',
         email: 'updated@example.com',
+        emailVerified: false,
       },
       timezone: 'America/Denver',
       locale: 'en-US',
     });
+    await expect(
+      application.currentUser(created.sessionToken),
+    ).resolves.toBeNull();
+    await expect(
+      application.currentUser(
+        (
+          await application.login({
+            usernameOrEmail: 'updated@example.com',
+            password: 'development-password',
+          })
+        ).sessionToken,
+      ),
+    ).resolves.toMatchObject({ id: created.user.id });
   });
 
   it('provides admin-safe local entity records without session tokens', async () => {

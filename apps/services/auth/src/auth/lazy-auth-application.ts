@@ -9,13 +9,24 @@ import {
 } from './auth-application.service';
 import {
   ConsoleEmailVerificationSender,
+  ConsolePasswordResetSender,
   ResendEmailVerificationSender,
+  ResendPasswordResetSender,
 } from './resend-email-verification.sender';
+import { StructuredAuthEventPublisher } from './structured-auth-event.publisher';
 
 /** Delays PostgreSQL pool creation until the first database-backed request. */
 export class LazyAuthApplication implements AuthApplication {
   private application?: AuthApplication;
   private database?: DatabaseClientConnection;
+
+  constructor(
+    private readonly bindings: {
+      databaseUrl?: string;
+      resendApiKey?: string;
+      frontendUrl?: string;
+    } = {},
+  ) {}
 
   signUp(...args: Parameters<AuthApplication['signUp']>) {
     return this.getApplication().signUp(...args);
@@ -41,6 +52,27 @@ export class LazyAuthApplication implements AuthApplication {
     ...args: Parameters<AuthApplication['resendVerification']>
   ) {
     return this.getApplication().resendVerification(...args);
+  }
+  requestPasswordReset(
+    ...args: Parameters<AuthApplication['requestPasswordReset']>
+  ) {
+    return this.getApplication().requestPasswordReset(...args);
+  }
+  completePasswordReset(
+    ...args: Parameters<AuthApplication['completePasswordReset']>
+  ) {
+    return this.getApplication().completePasswordReset(...args);
+  }
+  listSessions(...args: Parameters<AuthApplication['listSessions']>) {
+    return this.getApplication().listSessions(...args);
+  }
+  revokeSession(...args: Parameters<AuthApplication['revokeSession']>) {
+    return this.getApplication().revokeSession(...args);
+  }
+  revokeOtherSessions(
+    ...args: Parameters<AuthApplication['revokeOtherSessions']>
+  ) {
+    return this.getApplication().revokeOtherSessions(...args);
   }
 
   adminOverview(...args: Parameters<AuthApplication['adminOverview']>) {
@@ -76,24 +108,36 @@ export class LazyAuthApplication implements AuthApplication {
   }
 
   private getApplication(): AuthApplication {
-    const apiKey = process.env['RESEND_API_KEY']?.trim();
+    const apiKey = this.bindings.resendApiKey?.trim();
     const sender =
       apiKey && !apiKey.startsWith('re_replace_')
         ? new ResendEmailVerificationSender(
             apiKey,
-            process.env['RESEND_FROM_EMAIL'] ??
-              'Aerealith <onboarding@resend.dev>',
+            'Aerealith <onboarding@resend.dev>',
           )
         : new ConsoleEmailVerificationSender();
+    const passwordResetSender =
+      apiKey && !apiKey.startsWith('re_replace_')
+        ? new ResendPasswordResetSender(
+            apiKey,
+            'Aerealith <onboarding@resend.dev>',
+          )
+        : new ConsolePasswordResetSender();
     this.application ??= new AuthApplicationService(this.getDatabase().client, {
       emailSender: sender,
-      frontendUrl: process.env['FRONTEND_URL'] ?? 'http://localhost:4200',
+      passwordResetSender,
+      events: new StructuredAuthEventPublisher(),
+      frontendUrl: this.bindings.frontendUrl ?? 'http://localhost:4200',
     });
     return this.application;
   }
 
   private getDatabase(): DatabaseClientConnection {
-    this.database ??= createDatabaseConnection();
+    this.database ??= createDatabaseConnection(
+      this.bindings.databaseUrl
+        ? { DATABASE_URL: this.bindings.databaseUrl }
+        : process.env,
+    );
     return this.database;
   }
 }

@@ -1,5 +1,6 @@
 export const SYSTEM_PERMISSION_KEYS = [
   'account.read',
+  'account.update',
   'authorization.permissions.read',
   'authorization.permissions.manage',
   'authorization.roles.read',

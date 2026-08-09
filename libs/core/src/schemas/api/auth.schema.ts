@@ -16,7 +16,23 @@ export const UsernameSchema = z
 
 export const EmailSchema = z.string().trim().toLowerCase().pipe(z.email());
 
-export const PasswordSchema = z.string().min(8).max(128);
+/**
+ * Public password policy. Keep this aligned with `PasswordPolicy` so a
+ * password accepted at the API boundary cannot fail later in the use case.
+ */
+export const PasswordSchema = z
+  .string()
+  .min(12)
+  .max(128)
+  .regex(/[a-z]/u, 'Password must include a lowercase letter.')
+  .regex(/[A-Z]/u, 'Password must include an uppercase letter.')
+  .regex(/\d/u, 'Password must include a number.');
+
+/**
+ * A credential submitted to an existing account. Authentication must not
+ * reveal whether a stored password predates the current creation policy.
+ */
+export const PasswordCredentialSchema = z.string().min(1).max(128);
 
 export const TokenSchema = z.string().min(1);
 
@@ -76,7 +92,7 @@ export const SignUpRequestSchema = z.object({
  */
 export const LoginRequestSchema = z.object({
   usernameOrEmail: z.string().trim().min(1),
-  password: PasswordSchema,
+  password: PasswordCredentialSchema,
 });
 
 /**
@@ -105,6 +121,12 @@ export const VerifyEmailRequestSchema = z.object({
  */
 export const ResendVerificationRequestSchema = z.object({
   email: EmailSchema,
+});
+
+export const PasswordResetRequestSchema = z.object({ email: EmailSchema });
+export const PasswordResetCompleteSchema = z.object({
+  token: TokenSchema,
+  newPassword: PasswordSchema,
 });
 
 /**

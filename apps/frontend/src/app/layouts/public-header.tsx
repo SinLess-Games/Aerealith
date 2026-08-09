@@ -10,6 +10,7 @@ import { useFeatureFlag } from '../../features/flags/feature-flags';
 const navigation = [
   { label: 'Home', to: '/', end: true },
   { label: 'About', to: '/about' },
+  { label: 'Documentation', to: '/documentation' },
   { label: 'Pricing', to: '/pricing' },
   { label: 'Contact', to: '/contact' },
 ] as const;
@@ -22,7 +23,7 @@ const desktopLinkClass = ({ isActive }: { isActive: boolean }) =>
     'after:transition-transform after:duration-200',
     isActive
       ? [
-          'text-[var(--ae-accent)]',
+          'text-[var(--ae-foreground)]',
           'after:scale-x-100',
           'after:bg-[var(--ae-accent)]',
           'after:shadow-[0_0_10px_var(--ae-accent)]',
@@ -43,7 +44,7 @@ const mobileLinkClass = ({ isActive }: { isActive: boolean }) =>
     isActive
       ? [
           'bg-[color-mix(in_srgb,var(--ae-accent)_12%,transparent)]',
-          'text-[var(--ae-accent)]',
+          'text-[var(--ae-foreground)]',
           'shadow-[inset_0_0_20px_color-mix(in_srgb,var(--ae-accent)_7%,transparent)]',
         ].join(' ')
       : [
@@ -56,18 +57,24 @@ const mobileLinkClass = ({ isActive }: { isActive: boolean }) =>
 export function PublicHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const headerRef = useRef<HTMLDivElement>(null);
+  const menuTriggerRef = useRef<HTMLButtonElement>(null);
   const pricingEnabled = useFeatureFlag(FeatureFlag.Pricing);
   const waitlistEnabled = useFeatureFlag(FeatureFlag.Waitlist);
   const visibleNavigation = navigation.filter(
     (item) => item.to !== '/pricing' || pricingEnabled,
   );
 
+  const closeMenuAndRestoreFocus = () => {
+    setIsMenuOpen(false);
+    window.requestAnimationFrame(() => menuTriggerRef.current?.focus());
+  };
+
   useEffect(() => {
     if (!isMenuOpen) return;
 
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setIsMenuOpen(false);
+        closeMenuAndRestoreFocus();
       }
     };
 
@@ -188,6 +195,7 @@ export function PublicHeader() {
 
           <button
             type="button"
+            ref={menuTriggerRef}
             aria-label={
               isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'
             }
@@ -235,7 +243,7 @@ export function PublicHeader() {
               <button
                 type="button"
                 aria-label="Close navigation menu"
-                onClick={() => setIsMenuOpen(false)}
+                onClick={closeMenuAndRestoreFocus}
                 className="grid h-9 w-9 place-items-center rounded-lg text-[var(--ae-foreground-muted)] transition hover:bg-[var(--ae-surface)] hover:text-[var(--ae-foreground)]"
               >
                 <CloseIcon />
@@ -390,6 +398,7 @@ function NavIcon({ label }: { label: string }) {
     >
       {label === 'Home' ? <HomeIcon /> : null}
       {label === 'About' ? <AboutIcon /> : null}
+      {label === 'Documentation' ? <DocumentationIcon /> : null}
       {label === 'Pricing' ? <PricingIcon /> : null}
       {label === 'Contact' ? <MailIcon /> : null}
       {label === 'GitHub' ? <GitHubIcon /> : null}
@@ -478,6 +487,15 @@ function PricingIcon() {
     <Icon className="h-4 w-4">
       <path d="M20 13 11 22l-9-9V4h9l9 9Z" />
       <circle cx="7" cy="9" r="1" />
+    </Icon>
+  );
+}
+
+function DocumentationIcon() {
+  return (
+    <Icon className="h-4 w-4">
+      <path d="M6 3.5h8l4 4v13H6v-17Z" />
+      <path d="M14 3.5v4h4M9 12h6M9 16h5" />
     </Icon>
   );
 }

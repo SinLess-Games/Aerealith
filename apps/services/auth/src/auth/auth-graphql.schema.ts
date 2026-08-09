@@ -1,4 +1,9 @@
-import type { LoginRequest, SignUpRequest } from '@aerealith-ai/core';
+import {
+  LoginRequestSchema,
+  ResendVerificationRequestSchema,
+  VerifyEmailRequestSchema,
+  type LoginRequest,
+} from '@aerealith-ai/core';
 import { createSchema } from 'graphql-yoga';
 import { requireAuthorization } from '@aerealith-ai/api-platform';
 
@@ -25,13 +30,6 @@ export function createAuthGraphqlSchema(application: AuthApplication) {
         updatedAt: String!
       }
 
-      input SignUpInput {
-        username: String!
-        email: String!
-        password: String!
-        displayName: String
-      }
-
       input LoginInput {
         usernameOrEmail: String!
         password: String!
@@ -42,7 +40,6 @@ export function createAuthGraphqlSchema(application: AuthApplication) {
       }
 
       type Mutation {
-        signUp(input: SignUpInput!): AuthUser!
         login(input: LoginInput!): AuthUser!
         logout: Boolean!
         verifyEmail(token: String!): AuthUser!
@@ -66,25 +63,10 @@ export function createAuthGraphqlSchema(application: AuthApplication) {
         },
       },
       Mutation: {
-        signUp: async (
-          _root,
-          arguments_: { input: SignUpRequest },
-          context,
-        ) => {
-          try {
-            const result = await application.signUp({
-              ...arguments_.input,
-              displayName: arguments_.input.displayName ?? undefined,
-            });
-            writeSessionCookie(context.honoContext, result.sessionToken);
-            return result.user;
-          } catch (error) {
-            throw toGraphqlError(error);
-          }
-        },
         login: async (_root, arguments_: { input: LoginRequest }, context) => {
           try {
-            const result = await application.login(arguments_.input);
+            const input = LoginRequestSchema.parse(arguments_.input);
+            const result = await application.login(input);
             writeSessionCookie(context.honoContext, result.sessionToken);
             return result.user;
           } catch (error) {
@@ -98,14 +80,18 @@ export function createAuthGraphqlSchema(application: AuthApplication) {
         },
         verifyEmail: async (_root, arguments_: { token: string }) => {
           try {
-            return await application.verifyEmail(arguments_.token);
+            return await application.verifyEmail(
+              VerifyEmailRequestSchema.parse(arguments_).token,
+            );
           } catch (error) {
             throw toGraphqlError(error);
           }
         },
         resendVerification: async (_root, arguments_: { email: string }) => {
           try {
-            await application.resendVerification(arguments_.email);
+            await application.resendVerification(
+              ResendVerificationRequestSchema.parse(arguments_).email,
+            );
             return true;
           } catch (error) {
             throw toGraphqlError(error);

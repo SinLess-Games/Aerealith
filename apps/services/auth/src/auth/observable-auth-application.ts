@@ -48,6 +48,37 @@ export class ObservableAuthApplication implements AuthApplication {
       this.application.resendVerification(...args),
     );
   }
+  requestPasswordReset(
+    ...args: Parameters<AuthApplication['requestPasswordReset']>
+  ) {
+    return this.observe('requestPasswordReset', () =>
+      this.application.requestPasswordReset(...args),
+    );
+  }
+  completePasswordReset(
+    ...args: Parameters<AuthApplication['completePasswordReset']>
+  ) {
+    return this.observe('completePasswordReset', () =>
+      this.application.completePasswordReset(...args),
+    );
+  }
+  listSessions(...args: Parameters<AuthApplication['listSessions']>) {
+    return this.observe('listSessions', () =>
+      this.application.listSessions(...args),
+    );
+  }
+  revokeSession(...args: Parameters<AuthApplication['revokeSession']>) {
+    return this.observe('revokeSession', () =>
+      this.application.revokeSession(...args),
+    );
+  }
+  revokeOtherSessions(
+    ...args: Parameters<AuthApplication['revokeOtherSessions']>
+  ) {
+    return this.observe('revokeOtherSessions', () =>
+      this.application.revokeOtherSessions(...args),
+    );
+  }
 
   adminOverview(...args: Parameters<AuthApplication['adminOverview']>) {
     return this.observe('adminOverview', () =>

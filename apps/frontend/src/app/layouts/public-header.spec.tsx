@@ -1,7 +1,13 @@
 // @vitest-environment jsdom
 import { ThemeProvider } from '@aerealith-ai/ui';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -54,6 +60,9 @@ describe('PublicHeader', () => {
       screen.getByRole('navigation', { name: 'Primary navigation' }),
     ).toBeTruthy();
     expect(
+      screen.getByRole('link', { name: 'Documentation' }).getAttribute('href'),
+    ).toBe('/documentation');
+    expect(
       screen.getByRole('link', { name: 'GitHub' }).getAttribute('href'),
     ).toBe('https://github.com/Sinless777');
   });
@@ -66,14 +75,32 @@ describe('PublicHeader', () => {
     });
     fireEvent.click(trigger);
 
+    const navigation = screen.getByRole('navigation', {
+      name: /mobile primary/i,
+    });
+    expect(navigation).toBeTruthy();
     expect(
-      screen.getByRole('navigation', { name: /mobile primary/i }),
-    ).toBeTruthy();
+      within(navigation)
+        .getByRole('link', { name: 'Documentation' })
+        .getAttribute('href'),
+    ).toBe('/documentation');
 
     fireEvent.keyDown(window, { key: 'Escape' });
 
     expect(
       screen.queryByRole('navigation', { name: /mobile primary/i }),
     ).toBeNull();
+  });
+
+  it('returns focus to the menu trigger after Escape closes mobile navigation', async () => {
+    renderHeader();
+
+    const trigger = screen.getByRole('button', {
+      name: /open navigation/i,
+    });
+    fireEvent.click(trigger);
+    fireEvent.keyDown(window, { key: 'Escape' });
+
+    await waitFor(() => expect(document.activeElement).toBe(trigger));
   });
 });

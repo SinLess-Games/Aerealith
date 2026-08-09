@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import {
   createContext,
@@ -9,39 +9,41 @@ import {
   useState,
   type ButtonHTMLAttributes,
   type ReactNode,
-} from 'react'
+} from 'react';
 
-export type Theme = 'light' | 'dark'
-export type ThemeMode = Theme | 'system'
+import { cn } from '../lib/cn';
+
+export type Theme = 'light' | 'dark';
+export type ThemeMode = Theme | 'system';
 
 interface ThemeContextValue {
   /**
    * The currently applied light or dark theme.
    */
-  theme: Theme
+  theme: Theme;
 
   /**
    * The selected theme preference.
    */
-  mode: ThemeMode
+  mode: ThemeMode;
 
   /**
    * Updates the selected theme preference.
    */
-  setTheme: (theme: ThemeMode) => void
+  setTheme: (theme: ThemeMode) => void;
 
   /**
    * Switches between the explicit light and dark themes.
    */
-  toggleTheme: () => void
+  toggleTheme: () => void;
 }
 
-const ThemeContext = createContext<ThemeContextValue | null>(null)
+const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-const DEFAULT_STORAGE_KEY = 'aerealith-theme'
+const DEFAULT_STORAGE_KEY = 'aerealith-theme';
 
 function isThemeMode(value: string | null): value is ThemeMode {
-  return value === 'light' || value === 'dark' || value === 'system'
+  return value === 'light' || value === 'dark' || value === 'system';
 }
 
 function getSystemTheme(): Theme {
@@ -49,12 +51,12 @@ function getSystemTheme(): Theme {
     typeof window === 'undefined' ||
     typeof window.matchMedia !== 'function'
   ) {
-    return 'light'
+    return 'light';
   }
 
   return window.matchMedia('(prefers-color-scheme: dark)').matches
     ? 'dark'
-    : 'light'
+    : 'light';
 }
 
 function getInitialThemeMode(
@@ -63,43 +65,43 @@ function getInitialThemeMode(
   storageKey: string,
 ): ThemeMode {
   if (typeof window === 'undefined' || !persist) {
-    return defaultTheme
+    return defaultTheme;
   }
 
-  let storedTheme: string | null = null
+  let storedTheme: string | null = null;
 
   try {
-    storedTheme = window.localStorage?.getItem(storageKey) ?? null
+    storedTheme = window.localStorage?.getItem(storageKey) ?? null;
   } catch {
     // Storage can be unavailable in privacy-restricted browsers and test DOMs.
   }
 
-  return isThemeMode(storedTheme) ? storedTheme : defaultTheme
+  return isThemeMode(storedTheme) ? storedTheme : defaultTheme;
 }
 
 export interface ThemeProviderProps {
-  children: ReactNode
+  children: ReactNode;
 
   /**
    * Theme mode used when no persisted preference exists.
    *
    * @default 'system'
    */
-  defaultTheme?: ThemeMode
+  defaultTheme?: ThemeMode;
 
   /**
    * Whether the selected mode should be saved to localStorage.
    *
    * @default true
    */
-  persist?: boolean
+  persist?: boolean;
 
   /**
    * localStorage key used for the selected theme mode.
    *
    * @default 'aerealith-theme'
    */
-  storageKey?: string
+  storageKey?: string;
 }
 
 export function ThemeProvider({
@@ -110,70 +112,75 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
   const [mode, setMode] = useState<ThemeMode>(() =>
     getInitialThemeMode(defaultTheme, persist, storageKey),
-  )
+  );
 
-  const [systemTheme, setSystemTheme] = useState<Theme>(getSystemTheme)
+  const [systemTheme, setSystemTheme] = useState<Theme>(getSystemTheme);
 
-  const theme: Theme = mode === 'system' ? systemTheme : mode
+  const theme: Theme = mode === 'system' ? systemTheme : mode;
 
   /**
    * Subscribe to changes in the operating-system color preference.
    */
   useEffect(() => {
     if (mode !== 'system' || typeof window.matchMedia !== 'function') {
-      return
+      return;
     }
 
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
     function handleSystemThemeChange(event: MediaQueryListEvent) {
-      setSystemTheme(event.matches ? 'dark' : 'light')
+      setSystemTheme(event.matches ? 'dark' : 'light');
     }
 
-    mediaQuery.addEventListener('change', handleSystemThemeChange)
+    mediaQuery.addEventListener('change', handleSystemThemeChange);
 
     return () => {
-      mediaQuery.removeEventListener('change', handleSystemThemeChange)
-    }
-  }, [mode])
+      mediaQuery.removeEventListener('change', handleSystemThemeChange);
+    };
+  }, [mode]);
 
   /**
    * Synchronize the resolved theme with the document root.
    */
   useEffect(() => {
-    const root = document.documentElement
+    const root = document.documentElement;
+    const themeColor = theme === 'dark' ? '#050a1e' : '#f8f8ff';
 
-    root.dataset.theme = theme
-    root.style.colorScheme = theme
-  }, [theme])
+    root.dataset.theme = theme;
+    root.style.colorScheme = theme;
+
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', themeColor);
+  }, [theme]);
 
   /**
    * Synchronize the selected theme mode with localStorage.
    */
   useEffect(() => {
     if (!persist) {
-      return
+      return;
     }
 
     try {
-      window.localStorage?.setItem(storageKey, mode)
+      window.localStorage?.setItem(storageKey, mode);
     } catch {
       // Persisting the preference is optional; the in-memory theme still works.
     }
-  }, [mode, persist, storageKey])
+  }, [mode, persist, storageKey]);
 
   const setTheme = useCallback((nextMode: ThemeMode) => {
-    setMode(nextMode)
-  }, [])
+    setMode(nextMode);
+  }, []);
 
   const toggleTheme = useCallback(() => {
     setMode((currentMode) => {
       const currentTheme =
-        currentMode === 'system' ? getSystemTheme() : currentMode
+        currentMode === 'system' ? getSystemTheme() : currentMode;
 
-      return currentTheme === 'dark' ? 'light' : 'dark'
-    })
-  }, [])
+      return currentTheme === 'dark' ? 'light' : 'dark';
+    });
+  }, []);
 
   const value = useMemo<ThemeContextValue>(
     () => ({
@@ -183,9 +190,11 @@ export function ThemeProvider({
       toggleTheme,
     }),
     [mode, setTheme, theme, toggleTheme],
-  )
+  );
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  return (
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  );
 }
 
 export interface ThemeToggleProps extends Omit<
@@ -197,14 +206,14 @@ export interface ThemeToggleProps extends Omit<
    *
    * @default 'Switch to dark theme'
    */
-  lightLabel?: string
+  lightLabel?: string;
 
   /**
    * Text displayed when the current theme is dark.
    *
    * @default 'Switch to light theme'
    */
-  darkLabel?: string
+  darkLabel?: string;
 
   /**
    * Whether the visible button text should be hidden.
@@ -213,27 +222,28 @@ export interface ThemeToggleProps extends Omit<
    *
    * @default false
    */
-  iconOnly?: boolean
+  iconOnly?: boolean;
 
   /**
    * Optional icon rendered for the light theme.
    *
    * This should normally represent switching to dark mode.
    */
-  lightIcon?: ReactNode
+  lightIcon?: ReactNode;
 
   /**
    * Optional icon rendered for the dark theme.
    *
    * This should normally represent switching to light mode.
    */
-  darkIcon?: ReactNode
+  darkIcon?: ReactNode;
 }
 
 /**
  * Accessible button that toggles between light and dark themes.
  */
 export function ThemeToggle({
+  className,
   lightLabel = 'Switch to dark theme',
   darkLabel = 'Switch to light theme',
   iconOnly = false,
@@ -243,21 +253,21 @@ export function ThemeToggle({
   onClick,
   ...props
 }: ThemeToggleProps) {
-  const { theme, toggleTheme } = useTheme()
+  const { theme, toggleTheme } = useTheme();
 
-  const isDark = theme === 'dark'
-  const label = isDark ? darkLabel : lightLabel
-  const icon = isDark ? darkIcon : lightIcon
+  const isDark = theme === 'dark';
+  const label = isDark ? darkLabel : lightLabel;
+  const icon = isDark ? darkIcon : lightIcon;
 
   const handleClick: ButtonHTMLAttributes<HTMLButtonElement>['onClick'] = (
     event,
   ) => {
-    onClick?.(event)
+    onClick?.(event);
 
     if (!event.defaultPrevented) {
-      toggleTheme()
+      toggleTheme();
     }
-  }
+  };
 
   return (
     <button
@@ -265,7 +275,14 @@ export function ThemeToggle({
       type={type}
       aria-label={label}
       aria-pressed={isDark}
-      data-theme-toggle=''
+      className={cn(
+        'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--ae-control-border)] bg-[var(--ae-control)] px-3 text-sm font-semibold text-[var(--ae-control-foreground)] outline-none transition-colors',
+        'hover:bg-[var(--ae-control-hover)] active:bg-[var(--ae-control-active)]',
+        'focus-visible:ring-2 focus-visible:ring-[var(--ae-focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ae-background)]',
+        iconOnly && 'w-11 px-0',
+        className,
+      )}
+      data-theme-toggle=""
       data-theme={theme}
       onClick={handleClick}
     >
@@ -273,15 +290,15 @@ export function ThemeToggle({
 
       {!iconOnly && <span>{label}</span>}
     </button>
-  )
+  );
 }
 
 export function useTheme(): ThemeContextValue {
-  const context = useContext(ThemeContext)
+  const context = useContext(ThemeContext);
 
   if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider')
+    throw new Error('useTheme must be used within a ThemeProvider');
   }
 
-  return context
+  return context;
 }

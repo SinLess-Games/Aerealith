@@ -19,10 +19,10 @@ export function HomeRoute() {
     <div className="home-route relative isolate flex-1 overflow-hidden bg-transparent">
       <style>{`
         :root[data-theme='light'] .home-route {
-          --home-heading: #0f172a;
-          --home-body: #334155;
-          --home-muted: #64748b;
-          --home-subtle: #94a3b8;
+          --home-heading: var(--ae-foreground);
+          --home-body: var(--ae-foreground);
+          --home-muted: var(--ae-foreground-muted);
+          --home-subtle: var(--ae-foreground-subtle);
 
           --home-panel: rgba(255, 255, 255, 0.12);
           --home-panel-hover: rgba(255, 255, 255, 0.22);
@@ -34,8 +34,8 @@ export function HomeRoute() {
           --home-field: rgba(255, 255, 255, 0.34);
           --home-field-hover: rgba(255, 255, 255, 0.48);
 
-          --home-border: rgba(71, 85, 105, 0.22);
-          --home-border-strong: rgba(71, 85, 105, 0.34);
+          --home-border: var(--ae-border);
+          --home-border-strong: var(--ae-border-strong);
 
           --home-shadow: rgba(15, 23, 42, 0.14);
           --home-inset: rgba(255, 255, 255, 0.7);
@@ -47,15 +47,15 @@ export function HomeRoute() {
           --home-blue-glow: rgba(14, 165, 233, 0.1);
           --home-purple-glow: rgba(168, 85, 247, 0.1);
 
-          --home-select-option: #ffffff;
-          --home-select-text: #0f172a;
+          --home-select-option: var(--ae-surface-raised);
+          --home-select-text: var(--ae-foreground);
         }
 
         :root[data-theme='dark'] .home-route {
-          --home-heading: #f8fafc;
-          --home-body: #cbd5e1;
-          --home-muted: #94a3b8;
-          --home-subtle: #64748b;
+          --home-heading: var(--ae-foreground);
+          --home-body: var(--ae-foreground);
+          --home-muted: var(--ae-foreground-muted);
+          --home-subtle: var(--ae-foreground-subtle);
 
           --home-panel: rgba(2, 6, 23, 0.12);
           --home-panel-hover: rgba(2, 6, 23, 0.24);
@@ -67,8 +67,8 @@ export function HomeRoute() {
           --home-field: rgba(2, 6, 23, 0.28);
           --home-field-hover: rgba(2, 6, 23, 0.42);
 
-          --home-border: rgba(148, 163, 184, 0.18);
-          --home-border-strong: rgba(196, 181, 253, 0.3);
+          --home-border: var(--ae-border);
+          --home-border-strong: var(--ae-border-strong);
 
           --home-shadow: rgba(0, 0, 0, 0.34);
           --home-inset: rgba(255, 255, 255, 0.04);
@@ -80,8 +80,8 @@ export function HomeRoute() {
           --home-blue-glow: rgba(37, 99, 235, 0.12);
           --home-purple-glow: rgba(126, 34, 206, 0.1);
 
-          --home-select-option: #020617;
-          --home-select-text: #e2e8f0;
+          --home-select-option: var(--ae-surface-raised);
+          --home-select-text: var(--ae-foreground);
         }
 
         .home-route {
@@ -281,6 +281,53 @@ export function HomeRoute() {
           );
         }
 
+        .home-route .home-hero-mark-stage {
+          perspective: 900px;
+        }
+
+        .home-route .home-hero-mark {
+          transform-origin: 50% 62%;
+          transform-style: preserve-3d;
+          backface-visibility: hidden;
+          will-change: transform;
+          animation: home-hero-mark-float-twist 6s ease-in-out infinite;
+        }
+
+        .home-route .home-platform-ring-flow {
+          stroke-dashoffset: 0;
+          will-change: stroke-dashoffset;
+          animation: home-platform-ring-rotate 3.4s linear infinite;
+        }
+
+        @keyframes home-hero-mark-float-twist {
+          0%,
+          100% {
+            transform: translate3d(-0.25rem, 0.15rem, 0) rotateY(-11deg)
+              rotateZ(-0.6deg);
+          }
+
+          25% {
+            transform: translate3d(0, -0.7rem, 1rem) rotateY(0deg)
+              rotateZ(0.35deg);
+          }
+
+          50% {
+            transform: translate3d(0.25rem, -0.15rem, 0) rotateY(11deg)
+              rotateZ(0.6deg);
+          }
+
+          75% {
+            transform: translate3d(0, -0.95rem, 1rem) rotateY(0deg)
+              rotateZ(-0.35deg);
+          }
+        }
+
+        @keyframes home-platform-ring-rotate {
+          to {
+            stroke-dashoffset: -100;
+          }
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .home-route *,
           .home-route *::before,
@@ -304,7 +351,7 @@ export function HomeRoute() {
         className="home-decorative-layer pointer-events-none absolute inset-0 -z-10 opacity-70"
       />
 
-      <main className="mx-auto w-full max-w-[1440px] space-y-4 px-5 pt-10 pb-10 sm:px-8 lg:px-12">
+      <div className="mx-auto w-full max-w-[1440px] space-y-4 px-5 pt-10 pb-10 sm:px-8 lg:px-12">
         {/* =========================================================
             Hero
             ========================================================= */}
@@ -409,7 +456,7 @@ export function HomeRoute() {
               Holographic hero mark
               ======================================================= */}
 
-          <div className="relative mx-auto grid min-h-[420px] w-full max-w-xl place-items-center">
+          <div className="home-hero-mark-stage relative mx-auto grid min-h-[420px] w-full max-w-xl place-items-center">
             <div
               aria-hidden="true"
               className="absolute h-80 w-80 rounded-full border border-violet-400/20 bg-violet-600/5 shadow-[0_0_100px_rgba(79,55,255,.3)] backdrop-blur-sm"
@@ -428,7 +475,44 @@ export function HomeRoute() {
             <div
               aria-hidden="true"
               className="absolute bottom-8 h-24 w-4/5 rounded-[100%] border border-cyan-400/50 bg-violet-600/10 shadow-[0_0_45px_#4424e8,inset_0_0_24px_#1677ff]"
-            />
+            >
+              <svg
+                aria-hidden="true"
+                className="absolute inset-0 h-full w-full overflow-visible"
+                focusable="false"
+                preserveAspectRatio="none"
+                viewBox="0 0 100 100"
+              >
+                <defs>
+                  <linearGradient
+                    id="home-platform-ring-gradient"
+                    x1="0"
+                    x2="1"
+                    y1="0"
+                    y2="1"
+                  >
+                    <stop offset="0" stopColor="#22d3ee" />
+                    <stop offset="0.48" stopColor="#c026d3" />
+                    <stop offset="1" stopColor="#60a5fa" />
+                  </linearGradient>
+                </defs>
+
+                <ellipse
+                  className="home-platform-ring-flow"
+                  cx="50"
+                  cy="50"
+                  fill="none"
+                  pathLength="100"
+                  rx="49.5"
+                  ry="48"
+                  stroke="url(#home-platform-ring-gradient)"
+                  strokeDasharray="24 9 5 11 17 34"
+                  strokeLinecap="round"
+                  strokeWidth="3"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </svg>
+            </div>
 
             <div
               aria-hidden="true"
@@ -445,7 +529,7 @@ export function HomeRoute() {
               alt={content.hero.image.alt}
               width={320}
               height={320}
-              className="relative z-10 h-64 w-64 object-contain drop-shadow-[0_0_18px_rgba(236,72,153,.65)] drop-shadow-[0_0_28px_rgba(74,165,255,.8)] sm:h-72 sm:w-72"
+              className="home-hero-mark relative z-10 h-64 w-64 object-contain drop-shadow-[0_0_18px_rgba(236,72,153,.65)] drop-shadow-[0_0_28px_rgba(74,165,255,.8)] sm:h-72 sm:w-72"
             />
           </div>
         </section>
@@ -733,7 +817,7 @@ export function HomeRoute() {
             <OutlineLink {...content.finalCta.secondaryAction} />
           </div>
         </section>
-      </main>
+      </div>
     </div>
   );
 }

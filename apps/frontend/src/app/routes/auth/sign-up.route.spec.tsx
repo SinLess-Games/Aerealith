@@ -49,7 +49,7 @@ describe('SignUpRoute', () => {
       target: { value: 'ada@example.com' },
     });
     fireEvent.change(screen.getByLabelText(/password/i), {
-      target: { value: 'password123' },
+      target: { value: 'Password1234' },
     });
     fireEvent.click(screen.getByRole('button', { name: /create account/i }));
 
@@ -68,5 +68,41 @@ describe('SignUpRoute', () => {
     await waitFor(() =>
       expect(screen.getByTestId('location').textContent).toBe('/app'),
     );
+  });
+
+  it('does not submit a password that fails the shared policy', () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderSignUp();
+    fireEvent.change(screen.getByLabelText(/password/i), {
+      target: { value: 'password123' },
+    });
+
+    expect(screen.getAllByText(/at least 12 characters/i)).toHaveLength(2);
+    fireEvent.click(screen.getByRole('button', { name: /create account/i }));
+    expect(
+      screen.getByLabelText(/password/i).getAttribute('aria-invalid'),
+    ).toBe('true');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('associates invalid account identity fields with client-side errors', () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    renderSignUp();
+    fireEvent.change(screen.getByLabelText(/password/i), {
+      target: { value: 'Password1234' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /create account/i }));
+
+    expect(
+      screen.getByText(/lowercase letters, numbers, or underscores/i),
+    ).toBeTruthy();
+    expect(screen.getByText(/enter a valid email address/i)).toBeTruthy();
+    expect(
+      screen.getByLabelText(/^username$/i).getAttribute('aria-invalid'),
+    ).toBe('true');
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

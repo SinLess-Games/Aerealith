@@ -58,7 +58,7 @@ damage immutable WebSocket upgrade responses.
 
 ```ts
 mountHttpRoutes(app, {
-  basePath: '/api/v1',
+  basePath: '/api/V1',
   register(router) {
     router.get('/account', (context) => {
       const api = context.get('apiContext');
@@ -148,7 +148,7 @@ Modules may expose any transport subset:
 registerApiModules(app, [
   {
     name: 'auth',
-    httpBasePath: '/api/v1',
+    httpBasePath: '/api/V1',
     registerHttp: registerAuthHttpRoutes,
     trpc: {
       path: '/trpc',

@@ -6,6 +6,11 @@ import { useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
 
 import { analyticsEvents } from '../../../analytics/analytics-events';
+import { validateSignUpFields } from '../../../features/auth/auth-form-validation';
+import {
+  meetsPasswordPolicy,
+  passwordPolicyHint,
+} from '../../../features/auth/password-policy';
 import { useSignUp } from '../../../features/auth/use-session';
 import {
   AerealithTurnstile,
@@ -19,15 +24,22 @@ export function SignUpRoute() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileError, setTurnstileError] = useState('');
   const turnstile = useRef<TurnstileInstance>(null);
   const turnstileEnabled = isTurnstileEnabled();
   const navigate = useNavigate();
   const { mutate, isPending, isError, error } = useSignUp();
+  const passwordIsValid = meetsPasswordPolicy(password);
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const nextFieldErrors = validateSignUpFields({ username, email, password });
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors(nextFieldErrors);
+      return;
+    }
     if (turnstileEnabled && !turnstileToken) {
       setTurnstileError('Complete the bot-protection check to continue.');
       return;
@@ -89,9 +101,26 @@ export function SignUpRoute() {
             required
             minLength={3}
             maxLength={32}
+            aria-invalid={Boolean(fieldErrors.username)}
+            aria-describedby={
+              fieldErrors.username ? 'sign-up-username-error' : undefined
+            }
             value={username}
-            onChange={(event) => setUsername(event.target.value)}
+            onChange={(event) => {
+              setUsername(event.target.value);
+              if (fieldErrors.username)
+                setFieldErrors(({ username: _username, ...rest }) => rest);
+            }}
           />
+          {fieldErrors.username ? (
+            <p
+              id="sign-up-username-error"
+              role="alert"
+              className="text-sm text-[var(--ae-danger-foreground)]"
+            >
+              {fieldErrors.username}
+            </p>
+          ) : null}
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="email">Email</Label>
@@ -101,9 +130,26 @@ export function SignUpRoute() {
             type="email"
             autoComplete="email"
             required
+            aria-invalid={Boolean(fieldErrors.email)}
+            aria-describedby={
+              fieldErrors.email ? 'sign-up-email-error' : undefined
+            }
             value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              if (fieldErrors.email)
+                setFieldErrors(({ email: _email, ...rest }) => rest);
+            }}
           />
+          {fieldErrors.email ? (
+            <p
+              id="sign-up-email-error"
+              role="alert"
+              className="text-sm text-[var(--ae-danger-foreground)]"
+            >
+              {fieldErrors.email}
+            </p>
+          ) : null}
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="password">Password</Label>
@@ -113,16 +159,43 @@ export function SignUpRoute() {
             type="password"
             autoComplete="new-password"
             required
-            minLength={8}
+            minLength={12}
             maxLength={128}
+            aria-describedby={
+              fieldErrors.password
+                ? 'sign-up-password-error sign-up-password-policy'
+                : 'sign-up-password-policy'
+            }
+            aria-invalid={
+              Boolean(fieldErrors.password) ||
+              (Boolean(password) && !passwordIsValid)
+            }
             value={password}
-            onChange={(event) => setPassword(event.target.value)}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              if (fieldErrors.password)
+                setFieldErrors(({ password: _password, ...rest }) => rest);
+            }}
           />
-          <p className="text-xs">At least 8 characters.</p>
+          <p id="sign-up-password-policy" className="text-xs">
+            {passwordPolicyHint}
+          </p>
+          {fieldErrors.password || (password && !passwordIsValid) ? (
+            <p
+              id="sign-up-password-error"
+              role="alert"
+              className="text-sm text-[var(--ae-danger-foreground)]"
+            >
+              {fieldErrors.password || passwordPolicyHint}
+            </p>
+          ) : null}
         </div>
 
         {isError ? (
-          <p role="alert" className="text-sm">
+          <p
+            role="alert"
+            className="rounded-lg border border-[var(--ae-danger-border)] bg-[var(--ae-danger-subtle)] p-3 text-sm text-[var(--ae-danger-foreground)]"
+          >
             {error.message}
           </p>
         ) : null}

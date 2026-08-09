@@ -55,7 +55,7 @@ export function DashboardRoute() {
 
   return (
     <section className={styles.overview}>
-      <div className="text-xs font-semibold uppercase tracking-[0.22em] text-[#50fa68]">
+      <div className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--ae-primary)]">
         Command center
       </div>
       <h1 className="mt-3 text-4xl font-bold tracking-[-0.035em] sm:text-5xl">
@@ -64,7 +64,7 @@ export function DashboardRoute() {
           👋
         </span>
       </h1>
-      <p className="mt-2 text-sm text-slate-400 sm:text-base">
+      <p className="mt-2 max-w-2xl text-sm text-[var(--ae-foreground-muted)] sm:text-base">
         Your command center. Everything here is trust-first, understandable,
         auditable, and revocable.
       </p>
@@ -78,17 +78,20 @@ export function DashboardRoute() {
             <h2 className="text-xl font-semibold sm:text-2xl">
               Start with your account
             </h2>
-            <p className="mt-1 text-sm leading-relaxed text-slate-400">
+            <p className="mt-1 text-sm leading-relaxed text-[var(--ae-foreground-muted)]">
               Review your profile and security settings, then connect the
               services you want.
             </p>
           </div>
           <Link
             to="/app/account"
-            className="ml-auto inline-flex shrink-0 items-center gap-5 rounded-lg border border-violet-400/30 bg-violet-500/10 px-5 py-3 text-sm font-semibold text-slate-100 no-underline transition hover:border-violet-300/60 hover:text-white"
+            className="ml-auto inline-flex min-h-11 shrink-0 items-center gap-3 rounded-lg border border-[var(--ae-secondary)] bg-[var(--ae-secondary-subtle)] px-5 py-3 text-sm font-semibold text-[var(--ae-foreground)] no-underline transition-colors hover:bg-[var(--ae-surface-raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ae-focus-ring)]"
           >
             Go to account
-            <FiArrowRight aria-hidden="true" className="text-violet-300" />
+            <FiArrowRight
+              aria-hidden="true"
+              className="text-[var(--ae-secondary)]"
+            />
           </Link>
         </aside>
       ) : null}
@@ -103,49 +106,40 @@ export function DashboardRoute() {
               <h2 className="text-xl font-semibold leading-tight sm:text-2xl">
                 {title}
               </h2>
-              <p className="mt-3 max-w-xs text-sm leading-relaxed text-slate-400 sm:text-base">
+              <p className="mt-3 max-w-xs text-sm leading-relaxed text-[var(--ae-foreground-muted)] sm:text-base">
                 {body}
               </p>
             </div>
-            <FiArrowRight
-              aria-hidden="true"
-              className="absolute bottom-6 right-6 text-2xl text-[#70f24d]"
-            />
           </article>
         ))}
       </div>
 
-      <section className={`${styles.statusBar} mt-6`}>
+      <section
+        className={`${styles.statusBar} mt-6`}
+        aria-labelledby="security-cta-title"
+      >
         <div className="flex min-w-[190px] items-center gap-4">
           <div className={styles.cardIcon}>
             <FiShield aria-hidden="true" />
           </div>
           <div>
-            <h2 className="font-semibold">Platform status</h2>
-            <p className="mt-1 text-xs text-slate-400">
-              Authenticated surface online
+            <h2 id="security-cta-title" className="font-semibold">
+              Keep your account secure
+            </h2>
+            <p className="mt-1 text-xs text-[var(--ae-foreground-muted)]">
+              Review active sessions and revoke access you no longer recognize.
             </p>
           </div>
         </div>
-        {['Auth service', 'PostgreSQL', 'API gateway', 'Webhooks'].map(
-          (service) => (
-            <div key={service} className={styles.serviceStatus}>
-              <span className="h-2 w-2 rounded-full bg-[#70f24d] shadow-[0_0_8px_#70f24d]" />
-              <div>
-                <p className="text-sm text-slate-300">{service}</p>
-                <p className="mt-1 text-xs text-slate-500">
-                  {service === 'Auth service' ? 'Operational' : 'Configured'}
-                </p>
-              </div>
-            </div>
-          ),
-        )}
         <Link
-          to={user?.role === 'super_admin' ? '/app/admin' : '/app/account'}
-          className="ml-auto inline-flex shrink-0 items-center gap-4 rounded-lg border border-white/10 px-5 py-3 text-sm text-slate-200 no-underline hover:border-[#50fa68]/40"
+          to="/app/security"
+          className="ml-auto inline-flex min-h-11 shrink-0 items-center gap-3 rounded-lg border border-[var(--ae-border)] px-5 py-3 text-sm text-[var(--ae-foreground)] no-underline transition-colors hover:border-[var(--ae-accent)] hover:bg-[var(--ae-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ae-focus-ring)]"
         >
-          View system health
-          <FiArrowRight className="text-[#70f24d]" />
+          Review security &amp; sessions
+          <FiArrowRight
+            aria-hidden="true"
+            className="text-[var(--ae-accent)]"
+          />
         </Link>
       </section>
     </section>

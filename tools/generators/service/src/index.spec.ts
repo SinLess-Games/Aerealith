@@ -97,7 +97,7 @@ describe('serviceGenerator', () => {
 
     expect(
       tree.read('apps/services/billing-api/src/main.ts', 'utf-8'),
-    ).toContain("app.get('/api/v1/services/billing-api'");
+    ).toContain("app.get('/api/V1/services/billing-api'");
     expect(tree.read('apps/frontend/src/app/app.tsx', 'utf-8')).toContain(
       '<BillingApiPage />',
     );
@@ -170,7 +170,7 @@ describe('serviceGenerator', () => {
     expect(
       countOccurrences(
         appRoutes,
-        '      <Route path="/api/v1/services/billing-api" element={<BillingApiPage />} />',
+        '      <Route path="/api/V1/services/billing-api" element={<BillingApiPage />} />',
       ),
     ).toBe(1);
   });

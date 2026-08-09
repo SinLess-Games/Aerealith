@@ -1,33 +1,34 @@
-import { forwardRef, useId, type ComponentPropsWithoutRef } from 'react'
-import { cn } from '../../lib/cn'
+import { forwardRef, useId, type ComponentPropsWithoutRef } from 'react';
+import { cn } from '../../lib/cn';
 export interface CheckboxProps extends Omit<
   ComponentPropsWithoutRef<'input'>,
   'type'
 > {
-  label?: string
+  label?: string;
 }
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
   function Checkbox({ className, label, id, ...props }, ref) {
-    const generatedId = useId()
-    const resolvedId = id ?? generatedId
+    const generatedId = useId();
+    const resolvedId = id ?? generatedId;
     return (
       <span
-        className='inline-flex items-center gap-2'
-        data-slot='checkbox-root'
+        className="inline-flex items-center gap-2"
+        data-slot="checkbox-root"
       >
         <input
           {...props}
           className={cn(
-            'size-4 rounded border-[var(--ae-input)] accent-[var(--ae-primary)]',
+            'size-4 rounded border-[var(--ae-input-border)] bg-[var(--ae-input-background)] accent-[var(--ae-primary)] outline-none',
+            'focus-visible:ring-2 focus-visible:ring-[var(--ae-focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ae-background)]',
             className,
           )}
-          data-slot='checkbox'
+          data-slot="checkbox"
           id={resolvedId}
           ref={ref}
-          type='checkbox'
+          type="checkbox"
         />
         {label && <label htmlFor={resolvedId}>{label}</label>}
       </span>
-    )
+    );
   },
-)
+);

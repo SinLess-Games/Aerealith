@@ -18,9 +18,11 @@ import {
   type AdminEntityType,
   type AuthApplication,
   type AuthResult,
+  type AuthSessionSummary,
 } from './auth-application.service';
 import { CryptoPasswordHasher } from './crypto-password-hasher';
 import { CryptoTokenGenerator } from './crypto-token-generator';
+import { PasswordPolicy } from '@aerealith-ai/auth';
 
 type StoredUser = {
   user: AuthUser;
@@ -51,8 +53,13 @@ type StoredSession = {
 export class InMemoryAuthApplication implements AuthApplication {
   private readonly users = new Map<string, StoredUser>();
   private readonly sessions = new Map<string, StoredSession>();
+  private readonly passwordResetTokens = new Map<
+    string,
+    { userId: string; expiresAt: Date; consumed: boolean }
+  >();
   private readonly passwords = new CryptoPasswordHasher();
   private readonly tokens = new CryptoTokenGenerator();
+  private readonly passwordPolicy = new PasswordPolicy();
 
   constructor(private readonly now: () => Date = () => new Date()) {}
 
@@ -138,6 +145,95 @@ export class InMemoryAuthApplication implements AuthApplication {
     return Promise.resolve();
   }
 
+  async requestPasswordReset(email: string): Promise<void> {
+    const user = [...this.users.values()].find(
+      (item) => item.user.email === email.trim().toLowerCase(),
+    );
+    if (!user) return;
+    for (const record of this.passwordResetTokens.values())
+      if (record.userId === user.user.id) record.consumed = true;
+    const token = (await this.tokens.generate(32)).token;
+    this.passwordResetTokens.set(await this.tokens.digest(token), {
+      userId: user.user.id,
+      expiresAt: new Date(this.now().getTime() + 3600000),
+      consumed: false,
+    });
+  }
+
+  async completePasswordReset(
+    token: string,
+    newPassword: string,
+  ): Promise<void> {
+    this.passwordPolicy.validate(newPassword);
+    const record = this.passwordResetTokens.get(
+      await this.tokens.digest(token),
+    );
+    if (!record || record.consumed || record.expiresAt <= this.now())
+      throw new AuthApplicationError(
+        'INVALID_RESET_TOKEN',
+        'This password reset link is invalid or has expired.',
+        400,
+      );
+    record.consumed = true;
+    const user = this.requireUser(record.userId);
+    user.passwordHash = await this.passwords.hash(newPassword);
+    for (const session of this.sessions.values())
+      if (session.userId === record.userId)
+        session.revokedAt = this.now().toISOString();
+  }
+
+  async listSessions(token: string): Promise<AuthSessionSummary[]> {
+    const current = this.sessions.get(token);
+    if (!current || current.revokedAt) return [];
+    return [...this.sessions.entries()]
+      .filter(
+        ([, value]) => value.userId === current.userId && !value.revokedAt,
+      )
+      .map(([raw, value]) => ({
+        id: value.id,
+        current: raw === token,
+        deviceName: value.deviceName,
+        userAgent: value.userAgent,
+        ipAddress: value.ipAddress,
+        location: null,
+        createdAt: value.createdAt,
+        lastActiveAt: value.lastSeenAt,
+        expiresAt: value.expiresAt,
+      }));
+  }
+
+  async revokeSession(token: string, sessionId: string): Promise<boolean> {
+    const current = this.sessions.get(token);
+    const target = [...this.sessions.values()].find(
+      (item) => item.id === sessionId,
+    );
+    if (
+      !current ||
+      !target ||
+      target.userId !== current.userId ||
+      target.revokedAt
+    )
+      return false;
+    target.revokedAt = this.now().toISOString();
+    return true;
+  }
+
+  async revokeOtherSessions(token: string): Promise<number> {
+    const current = this.sessions.get(token);
+    if (!current) return 0;
+    let count = 0;
+    for (const [raw, session] of this.sessions)
+      if (
+        raw !== token &&
+        session.userId === current.userId &&
+        !session.revokedAt
+      ) {
+        session.revokedAt = this.now().toISOString();
+        count++;
+      }
+    return count;
+  }
+
   adminOverview(): Promise<AdminDashboardOverview> {
     const now = this.now();
     const sevenDaysAgo = now.getTime() - 7 * 24 * 60 * 60 * 1000;
@@ -173,17 +269,28 @@ export class InMemoryAuthApplication implements AuthApplication {
     const stored = this.requireUser(userId);
     const username = input.username.trim().toLowerCase();
     const email = input.email.trim().toLowerCase();
+    const emailChanged = email !== stored.user.email;
     this.assertUniqueIdentity(username, email, userId);
 
     stored.user = {
       ...stored.user,
       username,
       email,
+      ...(emailChanged ? { emailVerified: false } : {}),
       updatedAt: this.now().toISOString(),
     };
     stored.avatarUrl = input.avatarUrl ?? null;
     stored.timezone = input.timezone ?? null;
     stored.locale = input.locale ?? null;
+
+    if (emailChanged) {
+      for (const session of this.sessions.values()) {
+        if (session.userId === userId && !session.revokedAt) {
+          session.revokedAt = this.now().toISOString();
+          session.updatedAt = session.revokedAt;
+        }
+      }
+    }
 
     return Promise.resolve(this.toAccountDetails(stored));
   }
@@ -234,6 +341,21 @@ export class InMemoryAuthApplication implements AuthApplication {
   ): Promise<AdminEntityRecord> {
     if (entity === 'users') {
       const stored = this.requireUser(id, 'Entity not found.');
+      const emailChanged =
+        typeof changes['email'] === 'string' &&
+        changes['email'].trim().toLowerCase() !== stored.user.email;
+      if (
+        stored.user.role === UserRole.SuperAdmin &&
+        changes['role'] !== undefined &&
+        changes['role'] !== UserRole.SuperAdmin &&
+        this.superAdminCount() <= 1
+      ) {
+        throw new AuthApplicationError(
+          'LAST_SUPER_ADMIN_FORBIDDEN',
+          'The last super administrator cannot be demoted.',
+          409,
+        );
+      }
       const username =
         typeof changes['username'] === 'string'
           ? changes['username'].trim().toLowerCase()
@@ -247,6 +369,7 @@ export class InMemoryAuthApplication implements AuthApplication {
         ...stored.user,
         username,
         email,
+        ...(emailChanged ? { emailVerified: false } : {}),
         ...(typeof changes['emailVerified'] === 'boolean'
           ? { emailVerified: changes['emailVerified'] }
           : {}),
@@ -256,6 +379,12 @@ export class InMemoryAuthApplication implements AuthApplication {
           : {}),
         updatedAt: this.now().toISOString(),
       };
+      if (emailChanged) {
+        for (const session of this.sessions.values()) {
+          if (session.userId === id)
+            session.revokedAt = this.now().toISOString();
+        }
+      }
       return Promise.resolve(this.userRecord(stored.user));
     }
 
@@ -287,6 +416,17 @@ export class InMemoryAuthApplication implements AuthApplication {
         throw new AuthApplicationError(
           'SELF_DELETE_FORBIDDEN',
           'You cannot delete your own administrator account.',
+          409,
+        );
+      }
+      const target = this.requireUser(id, 'Entity not found.');
+      if (
+        target.user.role === UserRole.SuperAdmin &&
+        this.superAdminCount() <= 1
+      ) {
+        throw new AuthApplicationError(
+          'LAST_SUPER_ADMIN_FORBIDDEN',
+          'The last super administrator cannot be deleted.',
           409,
         );
       }
@@ -324,6 +464,12 @@ export class InMemoryAuthApplication implements AuthApplication {
       updatedAt: timestamp,
     });
     return { user, sessionToken: token };
+  }
+
+  private superAdminCount(): number {
+    return [...this.users.values()].filter(
+      ({ user }) => user.role === UserRole.SuperAdmin,
+    ).length;
   }
 
   private assertUniqueIdentity(

@@ -30,8 +30,16 @@ interface WorkerFetcher {
 
 const HealthPath = '/__aerealith/health';
 const FlagsPath = '/api/V1/flags';
-const AuthServicePaths = ['/api/V1/', '/graphql', '/trpc'];
-const ApiServicePaths = ['/api/v1/'];
+const LegacyApiPath = '/api/v1';
+const AuthApiRoots = [
+  '/api/V1/auth',
+  '/api/V1/users',
+  '/api/V1/account',
+  '/api/V1/admin',
+  '/api/V1/services/auth',
+];
+const AuthTransportRoots = ['/graphql', '/trpc'];
+const ApiServicePath = '/api/V1/';
 
 export default {
   async fetch(
@@ -50,6 +58,22 @@ export default {
             'cache-control': 'no-store',
           },
         },
+      );
+    }
+
+    if (
+      url.pathname === LegacyApiPath ||
+      url.pathname.startsWith(`${LegacyApiPath}/`)
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error: {
+            code: 'NOT_FOUND',
+            message: 'The requested API route was not found.',
+          },
+        },
+        { status: 404 },
       );
     }
 
@@ -101,7 +125,7 @@ export default {
       });
     }
 
-    if (AuthServicePaths.some((path) => url.pathname.startsWith(path))) {
+    if (isAuthServicePath(url.pathname)) {
       const protectedFlag =
         url.pathname === '/api/V1/auth/sign-up'
           ? FeatureFlag.Registration
@@ -140,7 +164,7 @@ export default {
       );
     }
 
-    if (ApiServicePaths.some((path) => url.pathname.startsWith(path))) {
+    if (url.pathname.startsWith(ApiServicePath)) {
       return proxyService(
         request,
         url,
@@ -154,6 +178,12 @@ export default {
     return environment.ASSETS.fetch(request);
   },
 };
+
+function isAuthServicePath(pathname: string): boolean {
+  return [...AuthApiRoots, ...AuthTransportRoots].some(
+    (root) => pathname === root || pathname.startsWith(`${root}/`),
+  );
+}
 
 function proxyService(
   request: Request,

@@ -344,23 +344,23 @@ Aerealith APIs should be versioned from the beginning.
 Recommended public API path pattern:
 
 ```text
-/api/v1
+/api/V1
 ```
 
 Service-specific routing may follow the platform convention:
 
 ```text
-/api/v1/services/<service-name>
+/api/V1/services/<service-name>
 ```
 
 Examples:
 
 ```text
-/api/v1/services/discord
-/api/v1/services/modules
-/api/v1/services/workflows
-/api/v1/services/integrations
-/api/v1/services/audit
+/api/V1/services/discord
+/api/V1/services/modules
+/api/V1/services/workflows
+/api/V1/services/integrations
+/api/V1/services/audit
 ```
 
 ---

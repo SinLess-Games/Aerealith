@@ -1,7 +1,6 @@
 import {
   LoginRequestSchema,
   ResendVerificationRequestSchema,
-  SignUpRequestSchema,
   VerifyEmailRequestSchema,
 } from '@aerealith-ai/core';
 import { initTRPC, TRPCError } from '@trpc/server';
@@ -21,20 +20,6 @@ const trpc = initTRPC.context<AuthTransportContext>().create();
 export function createAuthTrpcRouter(application: AuthApplication) {
   return trpc.router({
     auth: trpc.router({
-      signUp: trpc.procedure
-        .input(SignUpRequestSchema)
-        .mutation(async ({ ctx, input }) => {
-          try {
-            const result = await application.signUp({
-              ...input,
-              displayName: input.displayName ?? undefined,
-            });
-            writeSessionCookie(ctx.honoContext, result.sessionToken);
-            return result.user;
-          } catch (error) {
-            throw toTrpcError(error);
-          }
-        }),
       login: trpc.procedure
         .input(LoginRequestSchema)
         .mutation(async ({ ctx, input }) => {

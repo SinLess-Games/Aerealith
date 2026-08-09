@@ -17,6 +17,32 @@ export type LoginInput = {
   password: string;
 };
 
+export type PasswordResetRequestInput = {
+  email: string;
+};
+
+export type PasswordResetCompleteInput = {
+  token: string;
+  newPassword: string;
+};
+
+/** A session summary deliberately excludes session credentials and token data. */
+export type AuthSessionSummary = {
+  id: string;
+  current: boolean;
+  deviceName: string | null;
+  userAgent?: string | null;
+  ipAddress?: string | null;
+  location?: string | null;
+  createdAt?: string;
+  lastActiveAt?: string;
+  expiresAt?: string;
+};
+
+export type AuthSessionsResponse = {
+  sessions: AuthSessionSummary[];
+};
+
 /** Registers a new account and starts a session. */
 export function signUp(input: SignUpInput): Promise<AuthUser> {
   return apiFetch<AuthUser>(`${AuthRoute}/sign-up`, {
@@ -57,5 +83,45 @@ export function resendVerification(email: string): Promise<null> {
   return apiFetch<null>(`${AuthRoute}/resend-verification`, {
     method: 'POST',
     body: JSON.stringify({ email }),
+  });
+}
+
+/** Always resolves to the same generic response to protect account privacy. */
+export function requestPasswordReset(
+  input: PasswordResetRequestInput,
+): Promise<null> {
+  return apiFetch<null>(`${AuthRoute}/password-reset/request`, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+/** Completes a password reset using a single-use recovery token. */
+export function completePasswordReset(
+  input: PasswordResetCompleteInput,
+): Promise<null> {
+  return apiFetch<null>(`${AuthRoute}/password-reset/complete`, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export function fetchSessions(): Promise<AuthSessionsResponse> {
+  return apiFetch<AuthSessionsResponse>(`${AuthRoute}/sessions`);
+}
+
+export function revokeSession(sessionId: string): Promise<null> {
+  return apiFetch<null>(
+    `${AuthRoute}/sessions/${encodeURIComponent(sessionId)}`,
+    {
+      method: 'DELETE',
+    },
+  );
+}
+
+/** Revokes every active session except the session making this request. */
+export function revokeOtherSessions(): Promise<null> {
+  return apiFetch<null>(`${AuthRoute}/sessions`, {
+    method: 'DELETE',
   });
 }

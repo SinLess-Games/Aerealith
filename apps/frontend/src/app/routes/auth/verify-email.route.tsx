@@ -18,6 +18,7 @@ export function VerifyEmailRoute() {
     token ? 'verifying' : 'ready',
   );
   const [message, setMessage] = useState('');
+  const [isResending, setIsResending] = useState(false);
   const attemptedToken = useRef<string | null>(null);
 
   useEffect(() => {
@@ -34,6 +35,7 @@ export function VerifyEmailRoute() {
   async function onResend(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage('');
+    setIsResending(true);
     try {
       await resendVerification(email);
       setMessage(
@@ -43,6 +45,8 @@ export function VerifyEmailRoute() {
       setMessage(
         error instanceof Error ? error.message : 'Unable to resend the email.',
       );
+    } finally {
+      setIsResending(false);
     }
   }
 
@@ -52,7 +56,10 @@ export function VerifyEmailRoute() {
         title="Verifying your email"
         subtitle="Securing your Aerealith identity…"
       >
-        <p role="status" className="text-sm">
+        <p
+          role="status"
+          className="rounded-lg border border-[var(--ae-info-border)] bg-[var(--ae-info-subtle)] p-3 text-sm text-[var(--ae-info-foreground)]"
+        >
           Please keep this page open for a moment.
         </p>
       </AuthCard>
@@ -95,12 +102,19 @@ export function VerifyEmailRoute() {
           />
         </div>
         {message ? (
-          <p role="status" className="text-sm">
+          <p
+            role={message.startsWith('If that address') ? 'status' : 'alert'}
+            className={`rounded-lg border p-3 text-sm ${
+              message.startsWith('If that address')
+                ? 'border-[var(--ae-info-border)] bg-[var(--ae-info-subtle)] text-[var(--ae-info-foreground)]'
+                : 'border-[var(--ae-danger-border)] bg-[var(--ae-danger-subtle)] text-[var(--ae-danger-foreground)]'
+            }`}
+          >
             {message}
           </p>
         ) : null}
-        <Button type="submit" fullWidth>
-          Send a new verification link
+        <Button type="submit" fullWidth disabled={isResending}>
+          {isResending ? 'Sending a new link…' : 'Send a new verification link'}
         </Button>
       </form>
     </AuthCard>

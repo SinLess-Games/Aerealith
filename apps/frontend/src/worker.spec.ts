@@ -82,11 +82,11 @@ describe('frontend worker', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('routes the lowercase general API surface to its Worker binding', async () => {
+  it('routes the canonical general API surface to its Worker binding', async () => {
     const boundResponse = Response.json({ service: 'api', status: 'ok' });
     const apiWorker = { fetch: vi.fn().mockResolvedValue(boundResponse) };
     const request = new Request(
-      'https://aerealith.com/api/v1/services/api/health',
+      'https://aerealith.com/api/V1/services/api/health',
     );
 
     const response = await worker.fetch(request, {
@@ -96,6 +96,18 @@ describe('frontend worker', () => {
 
     expect(response).toBe(boundResponse);
     expect(apiWorker.fetch).toHaveBeenCalledWith(request);
+  });
+
+  it('does not retain a lowercase API compatibility route', async () => {
+    const environment = createEnvironment(new Response('asset'));
+    const request = new Request(
+      'https://aerealith.com/api/v1/services/api/health',
+    );
+
+    const response = await worker.fetch(request, environment);
+
+    expect(response.status).toBe(404);
+    expect(environment.ASSETS.fetch).not.toHaveBeenCalled();
   });
 
   it('returns all evaluated Flagship values from the edge endpoint', async () => {

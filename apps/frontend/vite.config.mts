@@ -23,6 +23,11 @@ export default defineConfig(({ mode }) => {
     (isProduction
       ? 'https://aerealith-auth-preview.sinless-deploy.workers.dev'
       : 'http://localhost:8787');
+  const apiServiceUrl =
+    environment['API_SERVICE_URL'] ??
+    (isProduction
+      ? 'https://aerealith-api-preview.sinless-deploy.workers.dev'
+      : 'http://localhost:8788');
 
   return {
     root: import.meta.dirname,
@@ -60,7 +65,10 @@ export default defineConfig(({ mode }) => {
       port: 4200,
       strictPort: true,
       proxy: {
-        '/api': authServiceUrl,
+        '^/api/V1/(?:auth|users|account|admin)(?:/|$)': authServiceUrl,
+        '^/api/V1/services/auth(?:/|$)': authServiceUrl,
+        '^/api/V1/flags$': authServiceUrl,
+        '/api/V1': apiServiceUrl,
         '/graphql': authServiceUrl,
         '/trpc': authServiceUrl,
       },

@@ -2,25 +2,23 @@ import {
   FeatureFlag,
   FeatureFlagDefaults,
   resolveFeatureFlags,
-  type BooleanFeatureFlagProvider,
 } from '@aerealith-ai/core';
 
 import { createAuthServiceApp } from './create-auth-service-app';
 import { InMemoryAuthApplication } from './auth/in-memory-auth-application';
+import { LazyAuthApplication } from './auth/lazy-auth-application';
 import { LocalAuthorizationService } from './auth/local-authorization.service';
+import { CloudflareRequestRateLimiter } from './auth/request-rate-limiter';
 import {
   verifyRegistrationTurnstile,
   type TurnstileEnvironment,
 } from './turnstile-verify';
 
-export interface AuthWorkerEnvironment extends TurnstileEnvironment {
-  DATABASE_URL: SecretsStoreSecretBinding;
-  FLAGSHIP_FLAGS?: BooleanFeatureFlagProvider;
-  LOCAL_REGISTRATION_ENABLED?: string;
-  RESEND_API_KEY: SecretsStoreSecretBinding;
-}
+export type AuthWorkerEnvironment = Cloudflare.Env &
+  TurnstileEnvironment & {
+    LOCAL_REGISTRATION_ENABLED?: string;
+  };
 
-const app = createAuthServiceApp({ environment: 'production' });
 const localApp = createAuthServiceApp({
   application: new InMemoryAuthApplication(),
   authorization: new LocalAuthorizationService(),
@@ -55,6 +53,18 @@ export default {
       return Response.json(flags, {
         headers: { 'cache-control': 'private, no-store' },
       });
+    }
+    if (request.method === 'POST' && SensitivePaths.has(url.pathname)) {
+      const allowed = await new CloudflareRequestRateLimiter(
+        environment.AUTH_SENSITIVE_RATE_LIMIT,
+      ).allow(request, url.pathname);
+      if (!allowed) {
+        return unavailable(
+          'RATE_LIMITED',
+          'Too many requests. Please try again later.',
+          429,
+        );
+      }
     }
     const maintenanceMode = await evaluate(
       environment,
@@ -132,10 +142,6 @@ export default {
   },
 };
 
-interface SecretsStoreSecretBinding {
-  get(): Promise<string>;
-}
-
 async function fetchAuthApplication(
   request: Request,
   environment: AuthWorkerEnvironment,
@@ -163,32 +169,20 @@ async function fetchAuthApplication(
     );
   }
 
-  return withProcessEnvironment(
-    {
-      DATABASE_URL: databaseUrl,
-      RESEND_API_KEY: resendApiKey,
-    },
-    () => app.fetch(request),
-  );
-}
-
-async function withProcessEnvironment<T>(
-  values: Readonly<Record<string, string>>,
-  action: () => T | Promise<T>,
-): Promise<T> {
-  const previous = Object.fromEntries(
-    Object.keys(values).map((key) => [key, process.env[key]]),
-  );
-
-  Object.assign(process.env, values);
-
+  const application = new LazyAuthApplication({
+    databaseUrl,
+    resendApiKey,
+    frontendUrl: environment.FRONTEND_URL,
+  });
+  const app = createAuthServiceApp({
+    application,
+    environment: environment.NODE_ENV,
+    allowedOrigins: [environment.FRONTEND_URL],
+  });
   try {
-    return await action();
+    return await app.fetch(request);
   } finally {
-    for (const [key, value] of Object.entries(previous)) {
-      if (value === undefined) delete process.env[key];
-      else process.env[key] = value;
-    }
+    await application.close();
   }
 }
 function evaluate(
@@ -202,9 +196,20 @@ function evaluate(
     : Promise.resolve(fallback);
 }
 
-function unavailable(code: string, message: string): Response {
+function unavailable(code: string, message: string, status = 503): Response {
   return Response.json(
     { ok: false, error: { code, message } },
-    { status: 503, headers: { 'retry-after': '300' } },
+    { status, headers: { 'retry-after': status === 429 ? '60' : '300' } },
   );
 }
+
+const SensitivePaths = new Set([
+  '/api/V1/auth/login',
+  '/api/V1/auth/sign-up',
+  '/api/V1/auth/resend-verification',
+  '/api/V1/auth/password-reset/request',
+  '/api/V1/auth/password-reset/complete',
+  '/graphql',
+  '/trpc/auth.login',
+  '/trpc/auth.resendVerification',
+]);

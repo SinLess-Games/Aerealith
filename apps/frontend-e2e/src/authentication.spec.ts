@@ -75,7 +75,7 @@ test('submits a new account registration', async ({ page }) => {
   await page
     .getByRole('textbox', { name: 'Email', exact: true })
     .fill('grace@example.com');
-  await page.getByLabel('Password').fill('a-secure-password');
+  await page.getByLabel('Password').fill('A-secure-password1');
   await page.getByRole('button', { name: 'Create account' }).click();
   await expect(page).toHaveURL(/\/app$/);
 });

@@ -22,6 +22,48 @@ function renderSignIn() {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('SignInRoute', () => {
+  it('validates required credentials before requesting sign-in', () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    renderSignIn();
+
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+
+    expect(screen.getByText(/enter your username or email/i)).toBeTruthy();
+    expect(screen.getByText(/enter your password/i)).toBeTruthy();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('shows a pending state while a sign-in request is in progress', () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockReturnValue(new Promise(() => undefined)),
+    );
+    renderSignIn();
+    fireEvent.change(screen.getByLabelText(/username or email/i), {
+      target: { value: 'ada' },
+    });
+    fireEvent.change(screen.getByLabelText(/password/i), {
+      target: { value: 'password123' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+
+    expect(screen.getByRole('button', { name: /signing in/i })).toHaveProperty(
+      'disabled',
+      true,
+    );
+  });
+
+  it('provides a keyboard-accessible password recovery link', () => {
+    renderSignIn();
+
+    expect(
+      screen
+        .getByRole('link', { name: /forgot password/i })
+        .getAttribute('href'),
+    ).toBe('/forgot-password');
+  });
+
   it('submits credentials to the login endpoint', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       status: 200,

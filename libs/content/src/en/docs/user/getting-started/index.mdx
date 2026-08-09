@@ -1,6 +1,6 @@
 ---
 title: Getting Started
-description: Sign in, learn the workspace, and complete your first Aerealith task safely.
+description: Understand Aerealith's current availability and use its account screens and documentation safely.
 order: 10
 audience: user
 keywords:
@@ -12,7 +12,7 @@ keywords:
 
 # Getting Started
 
-This guide takes you from opening Aerealith to completing a first useful task. Because the platform is under active development, your available tools may differ from the examples below.
+This guide takes you from opening Aerealith to the currently available frontend surfaces. Aerealith is in active foundation development: the repository includes sign-up, sign-in, email-verification, dashboard, and account-screen interfaces, but a configured authentication service is required for those flows to work in a deployment. General-purpose assistant, workflow, module, and integration operation is not yet a demonstrated product capability.
 
 ## Before you begin
 
@@ -25,12 +25,12 @@ You need:
 
 Keep passwords, API keys, recovery codes, private keys, and other secrets outside prompts and uploaded documents unless the feature explicitly provides an approved secure input.
 
-## Sign in
+## Start with the account screens
 
 1. Open the Aerealith application.
-2. Select **Sign in**.
-3. Complete the authentication prompts for your account.
-4. Confirm that the account or workspace shown after sign-in is the one you intend to use.
+2. Use [Create an Account](/documentation/user/guides/account/create-an-account) or [Sign In](/documentation/user/guides/account/signing-in) if these routes are enabled in your deployment.
+3. Complete [Email Verification](/documentation/user/guides/account/email-verification) when prompted.
+4. Confirm that the account shown after sign-in is the one you intend to use.
 
 <SecurityNote>
   Never share credentials, session links, one-time codes, or account-recovery
@@ -38,9 +38,9 @@ Keep passwords, API keys, recovery codes, private keys, and other secrets outsid
   prompt or ordinary message.
 </SecurityNote>
 
-## Learn the workspace
+## Learn the current workspace
 
-Depending on the enabled modules, a workspace may include:
+The current authenticated shell exposes an overview and account screen. It does not prove that the following planned product areas are available. They may appear in future enabled deployments:
 
 - a conversation or task area
 - project context and uploaded material
@@ -50,9 +50,9 @@ Depending on the enabled modules, a workspace may include:
 
 Read the visible labels and permission prompts before enabling an integration or approving an action. An integration can only work with the access granted to it.
 
-## Complete your first task
+## Use planned capabilities carefully
 
-Start with a small, verifiable request.
+The following advice applies if an enabled deployment provides an assistant or connected workflow. It is not evidence that the repository currently provides one. Start with a small, verifiable request.
 
 1. State the outcome you want.
 2. Include only the context needed to complete it.
@@ -93,10 +93,11 @@ Do not repeatedly submit an action if it could create duplicate messages, events
 
 ## Next steps
 
-- Complete [Your First Workflow](/documentation/user/getting-started/first-workflow).
+- Read [Create an Account](/documentation/user/guides/account/create-an-account), [Signing In](/documentation/user/guides/account/signing-in), and [Email Verification](/documentation/user/guides/account/email-verification).
+- Review [Dashboard](/documentation/user/guides/dashboard), [Profile & Account](/documentation/user/guides/profile-and-account), and [Security & Sessions](/documentation/user/guides/security-and-sessions).
 - Learn how to write [Effective Requests](/documentation/user/getting-started/writing-effective-requests).
 - Use [Reviewing Results](/documentation/user/getting-started/reviewing-results) before approving important output.
 - Keep the [Troubleshooting Guide](/documentation/user/getting-started/troubleshooting) available when a workflow fails.
-- Learn how Aerealith records investigations in [Research & Development](/documentation/user/research-&-development).
+- Learn how Aerealith records investigations in [Research & Development](/documentation/user/research-and-development).
 - Review the project's [Credits](/documentation/user/credits).
 - Use the [Developer Documentation](/documentation/developer) for architecture, APIs, and repository contribution workflows.

@@ -1,15 +1,13 @@
 import { ThemeToggle } from '@aerealith-ai/ui';
 import {
-  FiBell,
+  FiActivity,
+  FiBookOpen,
+  FiDatabase,
   FiGrid,
   FiLogOut,
-  FiDatabase,
-  FiSearch,
-  FiUsers,
-  FiKey,
-  FiClock,
-  FiActivity,
+  FiMoon,
   FiShield,
+  FiSun,
   FiUser,
 } from 'react-icons/fi';
 import { NavLink, Navigate, Outlet } from 'react-router';
@@ -18,10 +16,11 @@ import { useLogout, useSession } from '../../features/auth/use-session';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
-    'relative flex items-center gap-4 rounded-lg border px-4 py-3 text-sm font-semibold transition-all',
+    'relative flex min-h-11 items-center gap-3 rounded-lg border px-3 py-2.5 text-sm font-semibold transition-colors',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ae-focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ae-background)]',
     isActive
-      ? 'border-[#42f563]/35 bg-[#42f563]/10 text-[#61ff78] shadow-[inset_3px_0_0_#50fa68,0_0_28px_rgba(66,245,99,0.05)]'
-      : 'border-transparent text-slate-400 hover:border-white/10 hover:bg-white/[0.025] hover:text-slate-100',
+      ? 'border-[var(--ae-primary)] bg-[var(--ae-primary-subtle)] text-[var(--ae-foreground)] shadow-[inset_3px_0_0_var(--ae-primary)]'
+      : 'border-transparent text-[var(--ae-foreground-muted)] hover:border-[var(--ae-border)] hover:bg-[var(--ae-surface-muted)] hover:text-[var(--ae-foreground)]',
   ].join(' ');
 
 export function DashboardLayout() {
@@ -32,8 +31,9 @@ export function DashboardLayout() {
   if (isLoading) {
     return (
       <div
-        className="flex min-h-screen items-center justify-center bg-[#050a10] text-slate-400"
+        className="flex min-h-screen items-center justify-center bg-[var(--ae-background)] text-[var(--ae-foreground-muted)]"
         aria-busy="true"
+        aria-live="polite"
       >
         Loading your workspace…
       </div>
@@ -45,27 +45,19 @@ export function DashboardLayout() {
   }
 
   return (
-    <div
-      data-theme="dark"
-      className="relative z-0 min-h-screen text-slate-50"
-      style={{ background: '#050a10' }}
-    >
-      <aside
-        className="border-b border-white/10 md:fixed md:inset-y-0 md:left-0 md:z-50 md:w-[280px] md:border-b-0 md:border-r"
-        style={{ background: '#04090e' }}
-      >
-        <div className="flex h-full flex-col p-4 md:p-6">
-          <NavLink to="/app" className="flex items-center gap-3 px-2 py-2">
+    <div className="relative z-0 min-h-screen bg-[var(--ae-background)] text-[var(--ae-foreground)]">
+      <aside className="border-b border-[var(--ae-border)] bg-[var(--ae-background-elevated)] md:fixed md:inset-y-0 md:left-0 md:z-50 md:w-[280px] md:border-b-0 md:border-r">
+        <div className="flex h-full flex-col p-3 sm:p-4 md:p-6">
+          <NavLink
+            to="/app"
+            className="flex items-center gap-3 rounded-lg px-2 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ae-focus-ring)]"
+          >
             <img
               src="/images/brand/mark-no-background.png"
               alt=""
               width={44}
               height={44}
               className="h-11 w-11 object-contain"
-              style={{
-                filter:
-                  'brightness(0) saturate(100%) invert(82%) sepia(86%) saturate(1735%) hue-rotate(63deg) brightness(101%) contrast(103%)',
-              }}
             />
             <span
               className="text-xl font-bold tracking-wide"
@@ -74,14 +66,14 @@ export function DashboardLayout() {
               Aerealith
             </span>
             {isSuperAdmin ? (
-              <span className="ml-auto rounded-full border border-[#42f563]/35 bg-[#42f563]/5 px-2.5 py-1 text-[11px] font-semibold text-[#50fa68]">
+              <span className="ml-auto rounded-full border border-[var(--ae-primary)] bg-[var(--ae-primary-subtle)] px-2.5 py-1 text-[11px] font-semibold text-[var(--ae-primary)]">
                 Super Admin
               </span>
             ) : null}
           </NavLink>
 
           <nav
-            className="mt-5 grid gap-1 rounded-xl border border-white/10 p-2 md:mt-8 md:block md:space-y-2 md:p-3"
+            className="mt-4 flex gap-1 overflow-x-auto rounded-xl border border-[var(--ae-border)] p-2 md:mt-8 md:block md:space-y-2 md:overflow-visible md:p-3"
             aria-label="Dashboard"
           >
             <NavLink to="/app" end className={navLinkClass}>
@@ -92,14 +84,18 @@ export function DashboardLayout() {
               <FiUser aria-hidden="true" className="text-xl" />
               Account
             </NavLink>
+            <NavLink to="/app/security" className={navLinkClass}>
+              <FiShield aria-hidden="true" className="text-xl" />
+              Security &amp; sessions
+            </NavLink>
             {isSuperAdmin ? (
               <>
-                <div className="mt-2 rounded-lg border border-white/10 p-1.5">
+                <div className="shrink-0 rounded-lg border border-[var(--ae-border)] p-1.5 md:mt-2">
                   <NavLink to="/app/admin" end className={navLinkClass}>
                     <FiShield aria-hidden="true" className="text-xl" />
                     Admin
                   </NavLink>
-                  <div className="ml-4 mt-1 border-l border-white/10 pl-2">
+                  <div className="ml-4 mt-1 hidden border-l border-[var(--ae-divider)] pl-2 md:block">
                     <NavLink to="/app/admin" end className={navLinkClass}>
                       <FiActivity aria-hidden="true" />
                       Dashboard
@@ -108,81 +104,45 @@ export function DashboardLayout() {
                       <FiDatabase aria-hidden="true" />
                       Entity Viewer
                     </NavLink>
-                    <div className="space-y-1 px-3 py-2 text-xs text-slate-500">
-                      <p className="text-[#50fa68]">● &nbsp; Entities</p>
-                      <p>⌕ &nbsp; Database Search</p>
-                      <p>⌘ &nbsp; Query Builder</p>
-                      <p>☆ &nbsp; Saved Views</p>
-                    </div>
                   </div>
-                </div>
-                <div className="mt-2 space-y-1">
-                  <span className={navLinkClass({ isActive: false })}>
-                    <FiUsers />
-                    Users
-                  </span>
-                  <span className={navLinkClass({ isActive: false })}>
-                    <FiKey />
-                    Roles &amp; Permissions
-                  </span>
-                  <span className={navLinkClass({ isActive: false })}>
-                    <FiClock />
-                    Sessions
-                  </span>
                 </div>
               </>
             ) : null}
           </nav>
 
-          <div className="mt-auto hidden rounded-xl border border-white/10 bg-gradient-to-br from-[#0a1715] to-[#050b10] p-5 md:block">
+          <div className="mt-auto hidden rounded-xl border border-[var(--ae-border)] bg-[var(--ae-surface-muted)] p-5 md:block">
             <FiShield
               aria-hidden="true"
-              className="text-3xl text-[#50fa68] drop-shadow-[0_0_12px_rgba(80,250,104,0.5)]"
+              className="text-3xl text-[var(--ae-accent)]"
             />
             <p className="mt-4 font-semibold">You’re protected</p>
-            <p className="mt-2 text-sm leading-relaxed text-slate-400">
+            <p className="mt-2 text-sm leading-relaxed text-[var(--ae-foreground-muted)]">
               Critical administration routes are permission checked.
             </p>
-            <div className="mx-auto mt-5 flex h-20 w-20 items-center justify-center rounded-full border border-[#42f563]/20 bg-[#42f563]/5 shadow-[0_0_35px_rgba(66,245,99,0.12)]">
-              <FiShield
-                aria-hidden="true"
-                className="text-3xl text-[#50fa68]"
-              />
-            </div>
           </div>
         </div>
       </aside>
 
       <div className="md:pl-[280px]">
-        <header
-          className="sticky top-0 z-40 border-b border-white/10 backdrop-blur-xl"
-          style={{ background: 'rgb(5 10 16 / 94%)' }}
-        >
-          <div className="flex min-h-16 items-center gap-4 px-4 sm:px-8">
-            <div className="relative hidden w-full max-w-[680px] md:block">
-              <FiSearch className="absolute left-4 top-3.5 text-slate-500" />
-              <input
-                aria-label="Search administration"
-                placeholder="Search anything..."
-                className="w-full rounded-lg border border-white/10 bg-[#060c12] py-2.5 pl-11 pr-20 text-sm outline-none focus:border-[#50fa68]/40"
-              />
-              <kbd className="absolute right-3 top-2 rounded border border-white/10 px-2 py-1 text-xs text-slate-500">
-                Ctrl K
-              </kbd>
-            </div>
+        <header className="sticky top-0 z-40 border-b border-[var(--ae-border)] bg-[var(--ae-glass-background-strong)] backdrop-blur-xl">
+          <div className="flex min-h-16 items-center gap-3 px-4 sm:px-8">
+            <NavLink
+              to="/documentation"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-[var(--ae-foreground-muted)] transition-colors hover:bg-[var(--ae-surface-muted)] hover:text-[var(--ae-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ae-focus-ring)]"
+            >
+              <FiBookOpen aria-hidden="true" />
+              Documentation
+            </NavLink>
             <div className="ml-auto flex items-center gap-2">
-              <ThemeToggle />
-              <span className="mx-2 hidden h-8 w-px bg-white/10 sm:block" />
-              <button
-                type="button"
-                aria-label="Notifications"
-                className="relative rounded-lg p-2.5 text-slate-400 transition hover:bg-white/5 hover:text-slate-100"
-              >
-                <FiBell aria-hidden="true" className="text-xl" />
-                <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#50fa68] shadow-[0_0_8px_#50fa68]" />
-              </button>
+              <ThemeToggle
+                className="rounded-lg"
+                darkIcon={<FiSun aria-hidden="true" />}
+                iconOnly
+                lightIcon={<FiMoon aria-hidden="true" />}
+              />
+              <span className="mx-2 hidden h-8 w-px bg-[var(--ae-divider)] sm:block" />
               <div className="ml-1 hidden items-center gap-3 sm:flex">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[#42f563]/25 bg-[#42f563]/5 text-[#50fa68]">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--ae-accent)] bg-[var(--ae-accent-subtle)] text-[var(--ae-accent)]">
                   <FiUser aria-hidden="true" />
                 </div>
                 <span className="text-sm font-semibold">
@@ -193,7 +153,7 @@ export function DashboardLayout() {
                 type="button"
                 aria-label="Sign out"
                 title="Sign out"
-                className="ml-1 rounded-lg p-2.5 text-slate-400 transition hover:bg-red-500/10 hover:text-red-300 disabled:opacity-50"
+                className="ml-1 rounded-lg p-2.5 text-[var(--ae-foreground-muted)] transition-colors hover:bg-[var(--ae-danger-subtle)] hover:text-[var(--ae-danger)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ae-focus-ring)] disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={logout.isPending}
                 onClick={() => logout.mutate()}
               >
@@ -203,7 +163,7 @@ export function DashboardLayout() {
           </div>
         </header>
 
-        <main className="mx-auto min-h-[calc(100vh-4rem)] w-full max-w-[1500px] px-4 py-8 sm:px-8 md:px-9">
+        <main className="mx-auto min-h-[calc(100vh-4rem)] w-full max-w-[1500px] px-4 py-6 sm:px-8 sm:py-8 md:px-9">
           <Outlet />
         </main>
       </div>

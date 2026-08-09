@@ -228,39 +228,39 @@
         system
     -->
     <script>
-      ;(() => {
-        const storageKey = 'aerealith-theme'
-        const fallbackTheme = 'dark'
+      (() => {
+        const storageKey = 'aerealith-theme';
+        const fallbackTheme = 'dark';
 
         try {
-          const storedMode = window.localStorage.getItem(storageKey)
+          const storedMode = window.localStorage.getItem(storageKey);
 
           const prefersDark =
-            window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? true
+            window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? true;
 
-          const systemTheme = prefersDark ? 'dark' : 'light'
+          const systemTheme = prefersDark ? 'dark' : 'light';
 
           const resolvedTheme =
             storedMode === 'light' || storedMode === 'dark'
               ? storedMode
-              : systemTheme
+              : systemTheme;
 
-          const root = document.documentElement
-          const themeColor = resolvedTheme === 'dark' ? '#050a1e' : '#f8fafc'
+          const root = document.documentElement;
+          const themeColor = resolvedTheme === 'dark' ? '#050a1e' : '#f8f8ff';
 
-          root.dataset.theme = resolvedTheme
-          root.style.colorScheme = resolvedTheme
+          root.dataset.theme = resolvedTheme;
+          root.style.colorScheme = resolvedTheme;
 
           document
             .querySelector('meta[name="theme-color"]')
-            ?.setAttribute('content', themeColor)
+            ?.setAttribute('content', themeColor);
         } catch {
-          const root = document.documentElement
+          const root = document.documentElement;
 
-          root.dataset.theme = fallbackTheme
-          root.style.colorScheme = fallbackTheme
+          root.dataset.theme = fallbackTheme;
+          root.style.colorScheme = fallbackTheme;
         }
-      })()
+      })();
     </script>
 
     <!-- =========================================================
@@ -286,13 +286,13 @@
       src="https://www.googletagmanager.com/gtag/js?id=G-45DK3RKSC4"
     ></script>
     <script>
-      window.dataLayer = window.dataLayer || []
+      window.dataLayer = window.dataLayer || [];
       function gtag() {
-        dataLayer.push(arguments)
+        dataLayer.push(arguments);
       }
-      gtag('js', new Date())
+      gtag('js', new Date());
 
-      gtag('config', 'G-45DK3RKSC4')
+      gtag('config', 'G-45DK3RKSC4');
     </script>
   </head>
 

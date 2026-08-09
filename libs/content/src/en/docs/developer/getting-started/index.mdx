@@ -11,7 +11,7 @@ keywords:
 
 # Getting Started
 
-Use the runtime and package-manager versions declared by the repository. Install dependencies from the workspace root, then inspect projects through Nx.
+Use the runtime and package-manager versions declared by the repository. `package.json` and `.node-version` currently disagree, so do not state a single supported Node version without resolving that repository conflict. Install dependencies from the workspace root, then inspect projects through Nx.
 
 ```bash
 pnpm exec nx show projects
@@ -38,3 +38,5 @@ pnpm exec nx run <project>:build
 ```
 
 Use `run-many` or `affected` for cross-project changes. Continue with [Development Workflow](/documentation/developer/contributing/development-workflow).
+
+For exact setup and configuration evidence, continue with [Local Development](/documentation/developer/getting-started/local-development) and [Environment](/documentation/developer/reference/environment).

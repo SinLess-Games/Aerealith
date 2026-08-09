@@ -38,7 +38,7 @@ export default async function serviceGenerator(
   const className = toPascalCase(schema.name);
   const projectName = `service-${serviceName}`;
   const projectRoot = `apps/services/${serviceName}`;
-  const routePrefix = `/api/v1/services/${serviceName}`;
+  const routePrefix = `/api/V1/services/${serviceName}`;
 
   const filesDir = path.join(__dirname, '..', 'templates');
   generateFiles(tree, filesDir, projectRoot, {
