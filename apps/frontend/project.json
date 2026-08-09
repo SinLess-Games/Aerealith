@@ -16,6 +16,12 @@
     },
     "dev": {
       "continuous": true,
+      "dependsOn": [
+        {
+          "projects": ["service-auth", "service-api"],
+          "target": "dev"
+        }
+      ],
       "executor": "nx:run-commands",
       "options": {
         "cwd": "apps/frontend",

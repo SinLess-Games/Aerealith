@@ -47,7 +47,7 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "apps/services/api",
-        "command": "wrangler dev --port 8788"
+        "command": "wrangler dev --port 8788 --inspector-port 9230"
       }
     },
     "typegen": {

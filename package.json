@@ -12,7 +12,7 @@
   },
   "scripts": {
     "prepare": "husky",
-    "dev": "nx run-many -t dev -p frontend service-auth service-api --parallel=3",
+    "dev": "nx run frontend:dev",
     "dev:frontend": "nx run frontend:dev",
     "dev:frontend:client": "nx run frontend:dev-client",
     "license:check": "node tools/scripts/check-licenses.mjs",
