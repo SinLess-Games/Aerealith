@@ -1561,6 +1561,27 @@ packages:
     resolution: {integrity: sha512-QxULHAm7cNu72w97JUNCBFODFaXpbDg+dP8b/oWFAZ2MTRppA3U00Y2L1HqaS4J6yBqxwa/Y3nMBaxVKbB/NsA==}
     engines: {node: '>=20.19.0'}
 
+  '@datadog/browser-core@7.6.1':
+    resolution: {integrity: sha512-xfExkTuolUYO/OXOVX+8NY3qi0BQAD9D+FWG85VzkI+921HBpVuo79YRnKtIJlTIplSyJaBKF48voX6he9kpXw==}
+
+  '@datadog/browser-rum-core@7.6.1':
+    resolution: {integrity: sha512-Dlk8ZRPZ/yjFKUq/swbWPHFg21YYzMPQEwNgdX9fmwWb4Z/Tpd8Tfjehe3Z7cy4SYYHwV8NuwjvseTaYHM4w7g==}
+
+  '@datadog/browser-rum@7.6.1':
+    resolution: {integrity: sha512-nNaAlRqW5estVXfayl+WSWyTGtue5l0VPyEJGHWsok2zd9BwlGZ62i1XgON9Mi/cP5U9IlUeRKfOkhq5DWcfNg==}
+    peerDependencies:
+      '@datadog/browser-logs': 7.6.1
+    peerDependenciesMeta:
+      '@datadog/browser-logs':
+        optional: true
+
+  '@datadog/js-core@0.0.7':
+    resolution: {integrity: sha512-zthB0nZQ+spdeueG7doqdIxY1BVeOvCPqBDJjm2hyZNuci/wErLzfg/OW/3SvzPGeg8QJryMWIGgPyyw8owqkw==}
+
+  '@datadog/pprof@5.14.4':
+    resolution: {integrity: sha512-egEZDD9v98RBI8ijbHyaWQeY8rW0WEu004As5D7SUkdqSMORhrnh7ZdsM46PUzQgAc85IaEZoukWS9UhMvWn9w==}
+    engines: {node: '>=16'}
+
   '@drizzle-team/brocli@0.10.2':
     resolution: {integrity: sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w==}
 

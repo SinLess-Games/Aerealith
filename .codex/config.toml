@@ -1,0 +1,238 @@
+# ==============================================================================
+# Aerealith AI — Project Codex Configuration
+# ==============================================================================
+#
+# Project-specific Codex configuration for the Aerealith monorepo.
+#
+# Agent implementations live under:
+#
+#   .codex/agents/
+#
+# Paths in `config_file` are relative to this file.
+# ==============================================================================
+
+
+# ==============================================================================
+# Features
+# ==============================================================================
+
+[features]
+
+# Multi-agent collaboration is currently stable and enabled by default in Codex,
+# but keep this explicit because Aerealith intentionally relies on subagents.
+multi_agent = true
+
+
+# ==============================================================================
+# Multi-Agent Configuration
+# ==============================================================================
+
+[agents]
+
+# Explicitly enable subagent orchestration.
+enabled = true
+
+# Allow enough parallelism for:
+#
+#   - CI monitoring
+#   - frontend/UI work
+#   - backend work
+#   - testing
+#   - built-in explorer/reviewer-style workers
+#
+# Avoid going excessively high because write-heavy parallel agents can conflict.
+max_concurrent_threads_per_session = 8
+
+# Fallback model for subagents that do not declare their own model.
+#
+# ui-ux.toml, backend.toml, tester.toml, etc. may override this individually.
+default_subagent_model = "gpt-5.6-terra"
+
+# Balanced fallback reasoning level.
+#
+# Specialized agents can override this:
+#
+#   ui-ux   -> high
+#   backend -> high
+#   tester  -> high
+#
+default_subagent_reasoning_effort = "medium"
+
+# Preserve model-visible context when an agent is interrupted.
+interrupt_message = true
+
+
+# ==============================================================================
+# CI Monitor Agent
+# ==============================================================================
+
+[agents.ci-monitor-subagent]
+
+description = """
+CI monitoring specialist used by /monitor-ci and CI-related workflows.
+
+Use this agent to inspect CI status, retrieve workflow/check failures, gather
+failure details, report failing jobs, and interact with the existing
+self-healing CI workflow.
+
+This agent is intentionally narrow. Prefer it for CI status and CI-specific
+diagnostics rather than general implementation work.
+"""
+
+config_file = "agents/ci-monitor-subagent.toml"
+
+
+# ==============================================================================
+# UI / UX Agent
+# ==============================================================================
+
+[agents.ui-ux]
+
+description = """
+Aerealith frontend UI/UX implementation specialist.
+
+Use this agent for work involving apps/frontend and libs/ui, including:
+
+- page design and implementation
+- frontend layouts
+- responsive design
+- design-system components
+- Tailwind styling
+- Aerealith theme tokens
+- accessibility
+- forms and interaction design
+- dashboards
+- admin interfaces
+- marketing pages
+- documentation UI
+- visual regressions
+- frontend usability
+- component refactoring
+- frontend visual polish
+
+Prefer this agent whenever the task is primarily user-interface or
+user-experience work.
+
+It understands Aerealith's semantic --ae-* design tokens, libs/ui primitives,
+React, Vite, Tailwind CSS, Base UI, accessibility requirements, and frontend
+architecture.
+"""
+
+config_file = "agents/ui-ux.toml"
+
+
+# ==============================================================================
+# Backend Agent
+# ==============================================================================
+
+[agents.backend]
+
+description = """
+Aerealith backend implementation and backend-architecture specialist.
+
+Use this agent for backend work involving:
+
+- REST /api/V1 APIs
+- Hono
+- tRPC
+- GraphQL
+- application services
+- domain logic
+- authentication
+- authorization
+- permissions
+- sessions
+- API keys
+- OAuth
+- webhooks
+- integrations
+- queues
+- workers
+- retries
+- idempotency
+- rate limiting
+- observability
+- audit behavior
+- repository interfaces
+- Drizzle persistence
+- PostgreSQL
+- CockroachDB
+- transactions
+- backend performance
+- backend security
+
+Prefer this agent whenever the task primarily changes backend behavior,
+service architecture, persistence behavior, or API behavior.
+
+This agent should preserve Aerealith's domain / persistence / API-contract
+boundaries and avoid premature microservices.
+"""
+
+config_file = "agents/backend.toml"
+
+
+# ==============================================================================
+# Tester Agent
+# ==============================================================================
+
+[agents.tester]
+
+description = """
+Aerealith testing and quality-engineering specialist.
+
+Use this agent to:
+
+- design tests
+- write tests
+- repair broken tests
+- reproduce regressions
+- investigate test failures
+- investigate CI test failures
+- improve meaningful coverage
+- verify frontend components
+- test backend services
+- test APIs
+- test authentication and authorization
+- test database repositories
+- test migrations
+- test queue consumers
+- test idempotency
+- test retry behavior
+- test concurrency-sensitive code
+- run Vitest
+- run React Testing Library tests
+- run Playwright
+- run accessibility checks
+- analyze coverage
+
+Prefer this agent after meaningful implementation work and whenever a task
+specifically involves verification, regression prevention, test coverage,
+flakiness, or quality gates.
+
+The tester must not weaken legitimate assertions, skip failing tests, or alter
+expected behavior merely to make CI green.
+"""
+
+config_file = "agents/tester.toml"
+
+
+# ==============================================================================
+# Nx MCP
+# ==============================================================================
+
+[mcp_servers.nx-mcp]
+
+# Use the repository-pinned Nx installation through pnpm rather than allowing
+# npx to resolve tooling independently.
+command = "pnpm"
+args = ["exec", "nx", "mcp"]
+
+# Explicitly enable the server.
+enabled = true
+
+# Nx may need more than the default MCP startup allowance on a large monorepo.
+startup_timeout_sec = 30
+
+# Allow longer Nx graph/project analysis operations without making the timeout
+# effectively unlimited.
+tool_timeout_sec = 120
