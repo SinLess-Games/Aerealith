@@ -4,6 +4,7 @@ import { AccessibilityProvider, ThemeProvider } from '@aerealith-ai/ui';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
 
+import { ConsentProvider } from '../../consent/consent-context';
 import { FeatureFlagsProvider } from '../../features/flags/feature-flags';
 
 /**
@@ -22,11 +23,13 @@ export function AppProviders({ children }: { children: ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <FeatureFlagsProvider>
-        <ThemeProvider>
-          <AccessibilityProvider>{children}</AccessibilityProvider>
-        </ThemeProvider>
-      </FeatureFlagsProvider>
+      <ConsentProvider>
+        <FeatureFlagsProvider>
+          <ThemeProvider>
+            <AccessibilityProvider>{children}</AccessibilityProvider>
+          </ThemeProvider>
+        </FeatureFlagsProvider>
+      </ConsentProvider>
     </QueryClientProvider>
   );
 }

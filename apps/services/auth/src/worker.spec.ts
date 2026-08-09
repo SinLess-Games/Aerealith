@@ -7,12 +7,18 @@ function environment(
   overrides: Partial<Record<keyof typeof FeatureFlagDefaults, boolean>> = {},
 ): AuthWorkerEnvironment {
   return {
+    DATABASE_URL: {
+      get: vi.fn(async () => 'postgres://account-secret'),
+    },
     FLAGSHIP_FLAGS: {
       getBooleanValue: vi.fn(async (key: string, fallback: boolean) =>
         key in overrides
           ? (overrides as Record<string, boolean>)[key]
           : fallback,
       ),
+    },
+    RESEND_API_KEY: {
+      get: vi.fn(async () => 're_account_secret'),
     },
   };
 }
@@ -29,6 +35,25 @@ describe('auth Cloudflare Worker', () => {
     await expect(response.json()).resolves.toMatchObject({ status: 'ok' });
   });
 
+  it('returns a sanitized error when account secrets are unavailable', async () => {
+    const workerEnvironment = environment();
+    workerEnvironment.DATABASE_URL.get = vi.fn(async () => {
+      throw new Error('secret value must not leak');
+    });
+
+    const response = await worker.fetch(
+      new Request('https://auth.aerealith.com/health'),
+      workerEnvironment,
+    );
+
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toEqual({
+      error: {
+        code: 'SERVICE_CONFIGURATION_UNAVAILABLE',
+        message: 'The authentication service is temporarily unavailable.',
+      },
+    });
+  });
   it('uses authentication as a service-wide kill switch', async () => {
     const response = await worker.fetch(
       new Request('https://auth.aerealith.com/api/V1/auth/login'),

@@ -30,6 +30,11 @@
             "output": "."
           },
           {
+            "input": "./tools/generators/service/templates",
+            "glob": "**/*",
+            "output": "./templates"
+          },
+          {
             "input": "./tools/generators/service",
             "glob": "executors.json",
             "output": "."

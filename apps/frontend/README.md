@@ -45,11 +45,22 @@ The frontend must not:
 ## Development
 
 ```bash
-pnpm nx dev frontend
+pnpm dev
 pnpm nx lint frontend
 pnpm nx typecheck frontend
 pnpm nx test frontend
 pnpm nx build frontend
+```
+
+`pnpm dev` (and the equivalent `pnpm nx dev frontend`) starts Vite and proxies
+authentication requests to the deployed `aerealith-auth-preview` Worker. That
+Worker uses the Cloudflare Secrets Store `PREVIEW_POSTGRES_URL` binding, so
+local development does not require Docker or a local PostgreSQL instance.
+
+Deploy preview auth changes with:
+
+```bash
+pnpm nx run service-auth:deploy-preview
 ```
 
 Use `pnpm nx show project frontend` to inspect inferred targets before assuming

@@ -1,0 +1,76 @@
+{
+  "name": "service-api",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/services/api/src",
+  "projectType": "application",
+  "tags": ["scope:services", "type:service"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/services/api",
+        "main": "apps/services/api/src/main.ts",
+        "tsConfig": "apps/services/api/tsconfig.app.json"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["apps/services/api/**/*.{ts,tsx,js,jsx}"]
+      }
+    },
+    "test": {
+      "executor": "@nx/vitest:test",
+      "options": {
+        "passWithNoTests": true,
+        "configFile": "apps/services/api/vitest.config.mts"
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "service-api:build"
+      }
+    },
+    "worker-serve": {
+      "continuous": true,
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/api",
+        "command": "wrangler dev"
+      }
+    },
+    "dev": {
+      "continuous": true,
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/api",
+        "command": "wrangler dev --port 8788"
+      }
+    },
+    "typegen": {
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/worker-configuration.d.ts"],
+      "options": {
+        "cwd": "apps/services/api",
+        "command": "wrangler types"
+      }
+    },
+    "worker-dry-run": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/api",
+        "command": "wrangler deploy --dry-run"
+      }
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/api",
+        "command": "wrangler deploy"
+      }
+    }
+  }
+}

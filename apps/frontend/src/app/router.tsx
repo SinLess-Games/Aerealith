@@ -2,13 +2,14 @@ import { FeatureFlag, type FeatureFlagKey } from '@aerealith-ai/core';
 import type { ReactNode } from 'react';
 import { Navigate, Route, Routes } from 'react-router';
 
-import { useFeatureFlag } from '../features/flags/feature-flags';
 import { useSession } from '../features/auth/use-session';
+import { useFeatureFlag } from '../features/flags/feature-flags';
 import { DashboardLayout } from './layouts/dashboard-layout';
 import { PublicLayout } from './layouts/public-layout';
 import { ErrorRoute, GlobalErrorBoundary } from './routes/[error].route';
 import { AccountRoute } from './routes/auth/account.route';
 import { AdminDashboardRoute } from './routes/auth/admin-dashboard.route';
+import { AuthModal } from './routes/auth/auth-modal';
 import { DashboardRoute } from './routes/auth/dashboard.route';
 import { EntityViewerRoute } from './routes/auth/entity-viewer.route';
 import { SignInRoute } from './routes/auth/sign-in.route';
@@ -45,18 +46,27 @@ export function AppRoutes() {
             path="sign-in"
             element={
               <FlaggedRoute flag={FeatureFlag.Authentication}>
-                <SignInRoute />
+                <>
+                  <HomeRoute />
+                  <AuthModal ariaLabel="Sign in">
+                    <SignInRoute />
+                  </AuthModal>
+                </>
               </FlaggedRoute>
             }
           />
           <Route
             path="sign-up"
             element={
-              <FlaggedRoute flag={FeatureFlag.Registration}>
-                <SignUpRoute />
-              </FlaggedRoute>
+              <>
+                <HomeRoute />
+                <AuthModal ariaLabel="Create an account">
+                  <SignUpRoute />
+                </AuthModal>
+              </>
             }
           />
+          <Route path="signup" element={<Navigate to="/sign-up" replace />} />
           <Route path="verify-email" element={<VerifyEmailRoute />} />
           <Route path="*" element={<ErrorRoute error={{ status: 404 }} />} />
         </Route>

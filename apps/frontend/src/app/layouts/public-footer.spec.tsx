@@ -4,15 +4,20 @@ import { MemoryRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 import { FeatureFlag } from '@aerealith-ai/core';
 
+import { ConsentProvider } from '../../consent/consent-context';
 import { StaticFeatureFlagsProvider } from '../../features/flags/feature-flags';
 import { PublicFooter } from './public-footer';
 
 function renderFooter(waitlist = false) {
   return render(
     <MemoryRouter>
-      <StaticFeatureFlagsProvider values={{ [FeatureFlag.Waitlist]: waitlist }}>
-        <PublicFooter />
-      </StaticFeatureFlagsProvider>
+      <ConsentProvider>
+        <StaticFeatureFlagsProvider
+          values={{ [FeatureFlag.Waitlist]: waitlist }}
+        >
+          <PublicFooter />
+        </StaticFeatureFlagsProvider>
+      </ConsentProvider>
     </MemoryRouter>,
   );
 }

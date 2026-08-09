@@ -1513,3 +1513,5 @@ The Aerealith engineering documentation set should provide one clear, navigable,
 The standard is:
 
 > Every Aerealith contributor must be able to determine which engineering rules apply to a change, where the authoritative rule is documented, how the rule is validated, who owns it, and how it relates to the platform architecture. Engineering standards must remain linked, reviewed, testable, secure, and aligned with implementation. No critical development, dependency, configuration, secret, testing, container, Cloudflare, or documentation practice should depend on tribal knowledge or ephemeral conversation.
+
+- [Frontend Integrations](./Frontend%20Integrations.md)

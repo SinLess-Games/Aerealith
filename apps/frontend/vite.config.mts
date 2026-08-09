@@ -14,8 +14,14 @@ import { defineConfig, loadEnv } from 'vite';
 export default defineConfig(({ mode }) => {
   const isProduction = mode === 'production';
   const environment = loadEnv(mode, '../..', '');
+  const browserEnvironment = Object.fromEntries(
+    Object.entries(environment).filter(([key]) => key.startsWith('VITE_')),
+  );
   const authServiceUrl =
-    environment['AUTH_SERVICE_URL'] ?? 'http://localhost:3001';
+    environment['AUTH_SERVICE_URL'] ??
+    (isProduction
+      ? 'https://aerealith-auth-preview.sinless-deploy.workers.dev'
+      : 'http://localhost:8787');
 
   return {
     root: import.meta.dirname,
@@ -31,6 +37,14 @@ export default defineConfig(({ mode }) => {
       __AEREALITH_APP_VERSION__: JSON.stringify(
         environment['VITE_APP_VERSION'] ?? 'development',
       ),
+    },
+
+    define: {
+      __AEREALITH_ENV__: JSON.stringify({
+        ...browserEnvironment,
+        MODE: mode,
+        DEV: mode === 'development',
+      }),
     },
 
     /**

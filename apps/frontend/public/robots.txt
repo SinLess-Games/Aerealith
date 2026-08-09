@@ -5,10 +5,14 @@ Allow: /
 
 # Prevent crawling private or application-only areas.
 Disallow: /admin/
+Disallow: /account/
+Disallow: /billing/
 Disallow: /api/
 Disallow: /auth/
 Disallow: /dashboard/
 Disallow: /internal/
+Disallow: /login/
+Disallow: /register/
 Disallow: /settings/
 
 # Avoid crawling common URL parameters.

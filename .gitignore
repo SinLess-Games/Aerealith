@@ -101,6 +101,7 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+!.vscode/mcp.json
 
 # -----------------------------------------------------------------------------
 # AI assistant local state

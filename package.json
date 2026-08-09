@@ -12,6 +12,9 @@
   },
   "scripts": {
     "prepare": "husky",
+    "dev": "nx run-many -t dev -p frontend service-auth service-api --parallel=3",
+    "dev:frontend": "nx run frontend:dev",
+    "dev:frontend:client": "nx run frontend:dev-client",
     "license:check": "node tools/scripts/check-licenses.mjs",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
@@ -113,10 +116,11 @@
     "vite-plugin-static-copy": "4.1.1",
     "vite-tsconfig-paths": "6.1.1",
     "vitest": "4.1.10",
-    "wrangler": "4.110.0"
+    "wrangler": "4.116.0"
   },
   "dependencies": {
     "@base-ui/react": "1.6.0",
+    "@datadog/browser-rum": "^7.6.1",
     "@fontsource-variable/cormorant-garamond": "5.2.6",
     "@fontsource-variable/inter": "5.2.8",
     "@fontsource-variable/jetbrains-mono": "5.2.8",
@@ -127,6 +131,7 @@
     "@hono/node-server": "2.0.2",
     "@hugeicons/core-free-icons": "4.2.2",
     "@hugeicons/react": "1.1.9",
+    "@marsidev/react-turnstile": "^1.5.4",
     "@opentelemetry/api": "1.9.1",
     "@opentelemetry/auto-instrumentations-node": "0.79.0",
     "@opentelemetry/exporter-metrics-otlp-proto": "^0.221.0",

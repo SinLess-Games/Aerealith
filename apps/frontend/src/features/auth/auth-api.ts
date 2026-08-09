@@ -9,6 +9,7 @@ export type SignUpInput = {
   email: string;
   password: string;
   displayName?: string;
+  turnstileToken?: string;
 };
 
 export type LoginInput = {
