@@ -1,4 +1,7 @@
 import {
+  type AdminDashboardOverview,
+  type AccountDetails,
+  type UpdateAccountRequest,
   type AuthUser,
   type LoginRequest,
   type SignUpRequest,
@@ -13,8 +16,21 @@ import {
   DrizzleUserRepository,
   DrizzleUserSessionRepository,
   DrizzleEmailVerificationRepository,
+  schema,
   type DatabaseClient,
 } from '@aerealith-ai/db';
+import {
+  and,
+  count,
+  desc,
+  eq,
+  gt,
+  gte,
+  ilike,
+  isNull,
+  or,
+  sql,
+} from 'drizzle-orm';
 import { createHash, randomBytes } from 'node:crypto';
 
 import { CryptoPasswordHasher } from './crypto-password-hasher';
@@ -28,6 +44,16 @@ export type AuthResult = {
   sessionToken: string;
 };
 
+export type AdminEntityType = 'users' | 'sessions';
+export type AdminEntityRecord = Record<string, unknown> & { id: string };
+export type AdminEntityPage = {
+  entity: AdminEntityType;
+  records: AdminEntityRecord[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
 export interface AuthApplication {
   signUp(input: SignUpRequest): Promise<AuthResult>;
   login(input: LoginRequest): Promise<AuthResult>;
@@ -35,6 +61,28 @@ export interface AuthApplication {
   logout(sessionToken: string | undefined): Promise<void>;
   verifyEmail(token: string): Promise<AuthUser>;
   resendVerification(email: string): Promise<void>;
+  adminOverview(): Promise<AdminDashboardOverview>;
+  accountDetails(userId: string): Promise<AccountDetails>;
+  updateAccount(
+    userId: string,
+    input: UpdateAccountRequest,
+  ): Promise<AccountDetails>;
+  listAdminEntities(
+    entity: AdminEntityType,
+    search: string,
+    page: number,
+    pageSize: number,
+  ): Promise<AdminEntityPage>;
+  updateAdminEntity(
+    entity: AdminEntityType,
+    id: string,
+    changes: Record<string, unknown>,
+  ): Promise<AdminEntityRecord>;
+  deleteAdminEntity(
+    entity: AdminEntityType,
+    id: string,
+    actorId: string,
+  ): Promise<void>;
 }
 
 export interface AuthApplicationOptions {
@@ -58,7 +106,7 @@ export class AuthApplicationService implements AuthApplication {
   private readonly now: () => Date;
 
   constructor(
-    database: DatabaseClient,
+    private readonly database: DatabaseClient,
     private readonly options: AuthApplicationOptions,
   ) {
     this.users = new DrizzleUserRepository(database);
@@ -168,6 +216,346 @@ export class AuthApplicationService implements AuthApplication {
     await this.sendVerification(user);
   }
 
+  async adminOverview(): Promise<AdminDashboardOverview> {
+    const now = this.now();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const [
+      [totalUsers],
+      [verifiedUsers],
+      [activeSessions],
+      [newUsers],
+      [superAdmins],
+    ] = await Promise.all([
+      this.database
+        .select({ value: count() })
+        .from(schema.usersTable)
+        .where(isNull(schema.usersTable.deletedAt)),
+      this.database
+        .select({ value: count() })
+        .from(schema.usersTable)
+        .where(
+          and(
+            isNull(schema.usersTable.deletedAt),
+            eq(schema.usersTable.emailVerified, true),
+          ),
+        ),
+      this.database
+        .select({ value: count() })
+        .from(schema.userSessionsTable)
+        .where(
+          and(
+            isNull(schema.userSessionsTable.deletedAt),
+            isNull(schema.userSessionsTable.revokedAt),
+            gt(schema.userSessionsTable.expiresAt, now),
+          ),
+        ),
+      this.database
+        .select({ value: count() })
+        .from(schema.usersTable)
+        .where(
+          and(
+            isNull(schema.usersTable.deletedAt),
+            gte(schema.usersTable.createdAt, sevenDaysAgo),
+          ),
+        ),
+      this.database
+        .select({ value: count() })
+        .from(schema.usersTable)
+        .where(
+          and(
+            isNull(schema.usersTable.deletedAt),
+            eq(schema.usersTable.role, 'super_admin'),
+          ),
+        ),
+    ]);
+    return {
+      totalUsers: totalUsers?.value ?? 0,
+      verifiedUsers: verifiedUsers?.value ?? 0,
+      activeSessions: activeSessions?.value ?? 0,
+      newUsersLast7Days: newUsers?.value ?? 0,
+      superAdmins: superAdmins?.value ?? 0,
+      generatedAt: now.toISOString(),
+    };
+  }
+
+  async accountDetails(userId: string): Promise<AccountDetails> {
+    const [user, profile, preferences] = await Promise.all([
+      this.users.findById(userId),
+      this.database
+        .select({ avatarUrl: schema.userProfilesTable.avatarUrl })
+        .from(schema.userProfilesTable)
+        .where(
+          and(
+            eq(schema.userProfilesTable.userId, userId),
+            isNull(schema.userProfilesTable.deletedAt),
+          ),
+        )
+        .limit(1),
+      this.database
+        .select({
+          timezone: schema.userPreferencesTable.timezone,
+          locale: schema.userPreferencesTable.locale,
+        })
+        .from(schema.userPreferencesTable)
+        .where(
+          and(
+            eq(schema.userPreferencesTable.userId, userId),
+            isNull(schema.userPreferencesTable.deletedAt),
+          ),
+        )
+        .limit(1),
+    ]);
+    if (!user)
+      throw new AuthApplicationError('NOT_FOUND', 'Account not found.', 404);
+    return {
+      user: toAuthUser(user),
+      avatarUrl: profile[0]?.avatarUrl ?? null,
+      timezone: preferences[0]?.timezone ?? null,
+      locale: preferences[0]?.locale ?? null,
+    };
+  }
+
+  async updateAccount(
+    userId: string,
+    input: UpdateAccountRequest,
+  ): Promise<AccountDetails> {
+    const now = this.now();
+    await this.database.transaction(async (transaction) => {
+      await transaction
+        .update(schema.usersTable)
+        .set({
+          username: input.username.trim(),
+          email: input.email.trim().toLowerCase(),
+          updatedAt: now,
+        })
+        .where(
+          and(
+            eq(schema.usersTable.id, userId),
+            isNull(schema.usersTable.deletedAt),
+          ),
+        );
+      await transaction
+        .insert(schema.userProfilesTable)
+        .values({
+          userId,
+          handle: input.username.trim(),
+          avatarUrl: input.avatarUrl ?? null,
+        })
+        .onConflictDoUpdate({
+          target: schema.userProfilesTable.userId,
+          set: {
+            handle: input.username.trim(),
+            avatarUrl: input.avatarUrl ?? null,
+            updatedAt: now,
+            deletedAt: null,
+          },
+        });
+      await transaction
+        .insert(schema.userPreferencesTable)
+        .values({
+          userId,
+          timezone: input.timezone ?? null,
+          locale: input.locale ?? null,
+        })
+        .onConflictDoUpdate({
+          target: schema.userPreferencesTable.userId,
+          set: {
+            timezone: input.timezone ?? null,
+            locale: input.locale ?? null,
+            updatedAt: now,
+            deletedAt: null,
+          },
+        });
+    });
+    return this.accountDetails(userId);
+  }
+
+  async listAdminEntities(
+    entity: AdminEntityType,
+    search: string,
+    page: number,
+    pageSize: number,
+  ): Promise<AdminEntityPage> {
+    const offset = (page - 1) * pageSize;
+    if (entity === 'users') {
+      const searchFilter = search
+        ? or(
+            ilike(schema.usersTable.username, `%${search}%`),
+            ilike(schema.usersTable.email, `%${search}%`),
+          )
+        : undefined;
+      const where = searchFilter
+        ? and(isNull(schema.usersTable.deletedAt), searchFilter)
+        : isNull(schema.usersTable.deletedAt);
+      const [[aggregate], rows] = await Promise.all([
+        this.database
+          .select({ value: count() })
+          .from(schema.usersTable)
+          .where(where),
+        this.database
+          .select({
+            id: schema.usersTable.id,
+            username: schema.usersTable.username,
+            email: schema.usersTable.email,
+            status: schema.usersTable.status,
+            emailVerified: schema.usersTable.emailVerified,
+            role: schema.usersTable.role,
+            tier: schema.usersTable.tier,
+            metadata: schema.usersTable.metadata,
+            createdAt: schema.usersTable.createdAt,
+            updatedAt: schema.usersTable.updatedAt,
+          })
+          .from(schema.usersTable)
+          .where(where)
+          .orderBy(desc(schema.usersTable.createdAt))
+          .limit(pageSize)
+          .offset(offset),
+      ]);
+      return {
+        entity,
+        records: rows,
+        total: aggregate?.value ?? 0,
+        page,
+        pageSize,
+      };
+    }
+
+    const searchFilter = search
+      ? or(
+          sql`${schema.userSessionsTable.userId}::text ilike ${`%${search}%`}`,
+          ilike(schema.userSessionsTable.deviceName, `%${search}%`),
+          ilike(schema.userSessionsTable.ipAddress, `%${search}%`),
+        )
+      : undefined;
+    const where = searchFilter
+      ? and(isNull(schema.userSessionsTable.deletedAt), searchFilter)
+      : isNull(schema.userSessionsTable.deletedAt);
+    const [[aggregate], rows] = await Promise.all([
+      this.database
+        .select({ value: count() })
+        .from(schema.userSessionsTable)
+        .where(where),
+      this.database
+        .select({
+          id: schema.userSessionsTable.id,
+          userId: schema.userSessionsTable.userId,
+          deviceName: schema.userSessionsTable.deviceName,
+          userAgent: schema.userSessionsTable.userAgent,
+          ipAddress: schema.userSessionsTable.ipAddress,
+          lastSeenAt: schema.userSessionsTable.lastSeenAt,
+          expiresAt: schema.userSessionsTable.expiresAt,
+          revokedAt: schema.userSessionsTable.revokedAt,
+          createdAt: schema.userSessionsTable.createdAt,
+          updatedAt: schema.userSessionsTable.updatedAt,
+        })
+        .from(schema.userSessionsTable)
+        .where(where)
+        .orderBy(desc(schema.userSessionsTable.createdAt))
+        .limit(pageSize)
+        .offset(offset),
+    ]);
+    return {
+      entity,
+      records: rows,
+      total: aggregate?.value ?? 0,
+      page,
+      pageSize,
+    };
+  }
+
+  async updateAdminEntity(
+    entity: AdminEntityType,
+    id: string,
+    changes: Record<string, unknown>,
+  ): Promise<AdminEntityRecord> {
+    const now = this.now();
+    if (entity === 'users') {
+      const allowed = pickDefined(changes, [
+        'username',
+        'email',
+        'status',
+        'emailVerified',
+        'role',
+        'tier',
+        'metadata',
+      ]);
+      const [updated] = await this.database
+        .update(schema.usersTable)
+        .set({ ...allowed, updatedAt: now })
+        .where(
+          and(
+            eq(schema.usersTable.id, id),
+            isNull(schema.usersTable.deletedAt),
+          ),
+        )
+        .returning({
+          id: schema.usersTable.id,
+          username: schema.usersTable.username,
+          email: schema.usersTable.email,
+          status: schema.usersTable.status,
+          emailVerified: schema.usersTable.emailVerified,
+          role: schema.usersTable.role,
+          tier: schema.usersTable.tier,
+          metadata: schema.usersTable.metadata,
+          createdAt: schema.usersTable.createdAt,
+          updatedAt: schema.usersTable.updatedAt,
+        });
+      if (!updated)
+        throw new AuthApplicationError('NOT_FOUND', 'Entity not found.', 404);
+      return updated;
+    }
+
+    const allowed = pickDefined(changes, ['deviceName', 'revokedAt']);
+    const [updated] = await this.database
+      .update(schema.userSessionsTable)
+      .set({ ...allowed, updatedAt: now })
+      .where(
+        and(
+          eq(schema.userSessionsTable.id, id),
+          isNull(schema.userSessionsTable.deletedAt),
+        ),
+      )
+      .returning({
+        id: schema.userSessionsTable.id,
+        userId: schema.userSessionsTable.userId,
+        deviceName: schema.userSessionsTable.deviceName,
+        userAgent: schema.userSessionsTable.userAgent,
+        ipAddress: schema.userSessionsTable.ipAddress,
+        lastSeenAt: schema.userSessionsTable.lastSeenAt,
+        expiresAt: schema.userSessionsTable.expiresAt,
+        revokedAt: schema.userSessionsTable.revokedAt,
+        createdAt: schema.userSessionsTable.createdAt,
+        updatedAt: schema.userSessionsTable.updatedAt,
+      });
+    if (!updated)
+      throw new AuthApplicationError('NOT_FOUND', 'Entity not found.', 404);
+    return updated;
+  }
+
+  async deleteAdminEntity(
+    entity: AdminEntityType,
+    id: string,
+    actorId: string,
+  ): Promise<void> {
+    if (entity === 'users' && id === actorId) {
+      throw new AuthApplicationError(
+        'SELF_DELETE_FORBIDDEN',
+        'You cannot delete your own administrator account.',
+        409,
+      );
+    }
+    const now = this.now();
+    const table =
+      entity === 'users' ? schema.usersTable : schema.userSessionsTable;
+    const [deleted] = await this.database
+      .update(table)
+      .set({ deletedAt: now, updatedAt: now })
+      .where(and(eq(table.id, id), isNull(table.deletedAt)))
+      .returning({ id: table.id });
+    if (!deleted)
+      throw new AuthApplicationError('NOT_FOUND', 'Entity not found.', 404);
+  }
+
   private async sendVerification(user: UserContract): Promise<void> {
     const rawToken = randomBytes(32).toString('base64url');
     const now = this.now();
@@ -188,6 +576,17 @@ export class AuthApplicationService implements AuthApplication {
       expiresInHours: this.verificationExpiresInHours,
     });
   }
+}
+
+function pickDefined(
+  value: Record<string, unknown>,
+  keys: readonly string[],
+): Record<string, unknown> {
+  return Object.fromEntries(
+    keys
+      .filter((key) => value[key] !== undefined)
+      .map((key) => [key, value[key]]),
+  );
 }
 
 export class AuthApplicationError extends Error {
@@ -211,6 +610,7 @@ function toAuthUser(user: UserContract): AuthUser {
     username: user.username,
     email: user.email,
     emailVerified: user.emailVerified,
+    role: user.role,
     ...(user.displayName ? { displayName: user.displayName } : {}),
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,

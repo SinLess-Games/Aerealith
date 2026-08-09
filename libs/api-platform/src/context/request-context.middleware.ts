@@ -3,6 +3,7 @@ import { createMiddleware } from 'hono/factory';
 import type { ApiAppOptions } from '../app/api-app-options.interface';
 import type { ApiEnv } from '../app/api-env.type';
 import type { ApiRequestContext } from './api-request-context.interface';
+import { normalizeApiError } from '../errors/normalize-api-error';
 
 const DEFAULT_REQUEST_ID_HEADER = 'x-request-id';
 const DEFAULT_CORRELATION_ID_HEADER = 'x-correlation-id';
@@ -32,9 +33,19 @@ export function createRequestContextMiddleware<
       honoContext.req.header(correlationIdHeader),
     );
     const pathname = new URL(honoContext.req.url).pathname;
+    const observation = {
+      service: options.serviceName,
+      requestId,
+      method: honoContext.req.method,
+      route: pathname,
+      startedAt,
+    };
+    const traceContext = options.requestObserver?.requestStarted(observation);
     const logger = options.logger.child({
       requestId,
       correlationId,
+      traceId: traceContext?.traceId,
+      spanId: traceContext?.spanId,
       method: honoContext.req.method,
       route: pathname,
       serviceName: options.serviceName,
@@ -67,6 +78,12 @@ export function createRequestContextMiddleware<
 
     try {
       await next();
+      const outcome = {
+        ...observation,
+        durationMs: Date.now() - startedAt.getTime(),
+        status: honoContext.res.status,
+      };
+      options.requestObserver?.requestCompleted(outcome);
       context.logger.info({
         event: 'api.request.completed',
         message: 'API request completed.',
@@ -78,6 +95,15 @@ export function createRequestContextMiddleware<
         },
       });
     } catch (error) {
+      const normalizedError = normalizeApiError(error);
+      options.requestObserver?.requestFailed(
+        {
+          ...observation,
+          durationMs: Date.now() - startedAt.getTime(),
+          status: normalizedError.status,
+        },
+        normalizedError,
+      );
       context.logger.error({
         event: 'api.request.failed',
         message: 'API request failed.',

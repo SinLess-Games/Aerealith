@@ -6,16 +6,18 @@ resolvePeersFromWorkspaceRoot: true
 dedupePeerDependents: true
 dedupeDirectDeps: true
 allowBuilds:
-  "@parcel/watcher": true
-  "@swc/core": true
+  '@datadog/pprof': true
+  '@parcel/watcher': true
+  '@swc/core': true
   esbuild: true
   msw: true
   nx: true
+  protobufjs: true
   sharp: true
   unrs-resolver: true
   workerd: true
 overrides:
-  "@opentelemetry/core": 2.9.0
-  "@esbuild-kit/core-utils>esbuild": 0.28.1
+  '@opentelemetry/core': 2.9.0
+  '@esbuild-kit/core-utils>esbuild': 0.28.1
   axios: 1.18.1
   brace-expansion: 5.0.7

@@ -3,11 +3,14 @@ import type { ReactNode } from 'react';
 import { Navigate, Route, Routes } from 'react-router';
 
 import { useFeatureFlag } from '../features/flags/feature-flags';
+import { useSession } from '../features/auth/use-session';
 import { DashboardLayout } from './layouts/dashboard-layout';
 import { PublicLayout } from './layouts/public-layout';
 import { ErrorRoute, GlobalErrorBoundary } from './routes/[error].route';
 import { AccountRoute } from './routes/auth/account.route';
+import { AdminDashboardRoute } from './routes/auth/admin-dashboard.route';
 import { DashboardRoute } from './routes/auth/dashboard.route';
+import { EntityViewerRoute } from './routes/auth/entity-viewer.route';
 import { SignInRoute } from './routes/auth/sign-in.route';
 import { SignUpRoute } from './routes/auth/sign-up.route';
 import { VerifyEmailRoute } from './routes/auth/verify-email.route';
@@ -67,9 +70,35 @@ export function AppRoutes() {
         >
           <Route index element={<DashboardRoute />} />
           <Route path="account" element={<AccountRoute />} />
+          <Route
+            path="admin"
+            element={
+              <SuperAdminRoute>
+                <AdminDashboardRoute />
+              </SuperAdminRoute>
+            }
+          />
+          <Route
+            path="admin/entities"
+            element={
+              <SuperAdminRoute>
+                <EntityViewerRoute />
+              </SuperAdminRoute>
+            }
+          />
         </Route>
       </Routes>
     </GlobalErrorBoundary>
+  );
+}
+
+function SuperAdminRoute({ children }: { children: ReactNode }) {
+  const { user, isLoading } = useSession();
+  if (isLoading) return null;
+  return user?.role === 'super_admin' ? (
+    children
+  ) : (
+    <Navigate to="/app" replace />
   );
 }
 

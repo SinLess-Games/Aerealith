@@ -3,12 +3,18 @@ import {
   AuthorizationService,
   InMemoryAuthorizationRepository,
 } from '@aerealith-ai/authorization';
-import type { AuthUser, LoginRequest, SignUpRequest } from '@aerealith-ai/core';
+import {
+  UserRole,
+  type AuthUser,
+  type LoginRequest,
+  type SignUpRequest,
+} from '@aerealith-ai/core';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   type AuthApplication,
   type AuthResult,
+  type AdminEntityPage,
 } from './auth/auth-application.service';
 import { createAuthServiceApp } from './create-auth-service-app';
 
@@ -17,6 +23,7 @@ const user: AuthUser = {
   username: 'ada',
   email: 'ada@example.com',
   emailVerified: false,
+  role: UserRole.User,
   displayName: 'Ada',
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
@@ -50,6 +57,37 @@ class FakeAuthApplication implements AuthApplication {
   readonly resendVerification = vi.fn(async (email: string) => {
     void email;
   });
+  readonly adminOverview = vi.fn(async () => ({
+    totalUsers: 42,
+    verifiedUsers: 36,
+    activeSessions: 12,
+    newUsersLast7Days: 7,
+    superAdmins: 1,
+    generatedAt: '2026-07-28T00:00:00.000Z',
+  }));
+  readonly accountDetails = vi.fn(async () => ({
+    user,
+    avatarUrl: null,
+    timezone: null,
+    locale: null,
+  }));
+  readonly updateAccount = vi.fn(async () => ({
+    user,
+    avatarUrl: null,
+    timezone: null,
+    locale: null,
+  }));
+  readonly listAdminEntities = vi.fn(async (): Promise<AdminEntityPage> => ({
+    entity: 'users',
+    records: [],
+    total: 0,
+    page: 1,
+    pageSize: 25,
+  }));
+  readonly updateAdminEntity = vi.fn(
+    async (_entity: 'users' | 'sessions', id: string) => ({ id }),
+  );
+  readonly deleteAdminEntity = vi.fn(async () => undefined);
 }
 
 describe('auth service', () => {
@@ -111,6 +149,36 @@ describe('auth service', () => {
     }
   });
 
+  it('reads and updates the authenticated account profile', async () => {
+    const headers = {
+      cookie: 'aerealith_session=session-token',
+      'content-type': 'application/json',
+    };
+    const read = await app.request('/api/V1/account', { headers });
+    expect(read.status).toBe(200);
+    expect(application.accountDetails).toHaveBeenCalledWith(user.id);
+
+    const update = await app.request('/api/V1/account', {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({
+        username: 'ada-lovelace',
+        email: 'ada@example.com',
+        timezone: 'UTC',
+        locale: 'en-GB',
+      }),
+    });
+    expect(update.status).toBe(200);
+    expect(application.updateAccount).toHaveBeenCalledWith(
+      user.id,
+      expect.objectContaining({
+        username: 'ada-lovelace',
+        timezone: 'UTC',
+        locale: 'en-GB',
+      }),
+    );
+  });
+
   it('rejects an invalid HTTP payload without calling the application', async () => {
     const response = await app.request('/api/V1/auth/login', {
       method: 'POST',
@@ -146,7 +214,7 @@ describe('auth service', () => {
         cookie: 'aerealith_session=session-token',
       },
       body: JSON.stringify({
-        query: '{ me { id username email } }',
+        query: '{ me { id username email role } }',
       }),
     });
 
@@ -157,6 +225,7 @@ describe('auth service', () => {
           id: user.id,
           username: user.username,
           email: user.email,
+          role: user.role,
         },
       },
     });
@@ -186,6 +255,44 @@ describe('auth service', () => {
       'ada@example.com',
     );
   });
+
+  it('serves the protected admin overview', async () => {
+    const response = await app.request('/api/V1/admin/overview', {
+      headers: { cookie: 'aerealith_session=session-token' },
+    });
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      data: {
+        totalUsers: 42,
+        activeSessions: 12,
+        superAdmins: 1,
+      },
+    });
+  });
+
+  it('lists protected database entities without exposing persistence secrets', async () => {
+    application.listAdminEntities.mockResolvedValueOnce({
+      entity: 'users',
+      records: [{ id: user.id, username: user.username, email: user.email }],
+      total: 1,
+      page: 1,
+      pageSize: 25,
+    });
+    const response = await app.request(
+      '/api/V1/admin/entities/users?search=ada&page=1',
+      { headers: { cookie: 'aerealith_session=session-token' } },
+    );
+    expect(response.status).toBe(200);
+    expect(application.listAdminEntities).toHaveBeenCalledWith(
+      'users',
+      'ada',
+      1,
+      25,
+    );
+    await expect(response.json()).resolves.toMatchObject({
+      data: { total: 1, records: [{ username: 'ada' }] },
+    });
+  });
 });
 
 function createAuthorizationService(): AuthorizationService {
@@ -197,6 +304,17 @@ function createAuthorizationService(): AuthorizationService {
     resource: 'account',
     action: 'read',
     displayName: 'Read account',
+    system: true,
+    enabled: true,
+    createdAt: date,
+    updatedAt: date,
+  });
+  repository.permissions.set('users.read', {
+    id: 'permission-users-read',
+    key: 'users.read',
+    resource: 'users',
+    action: 'read',
+    displayName: 'Read users',
     system: true,
     enabled: true,
     createdAt: date,
@@ -230,7 +348,10 @@ function createAuthorizationService(): AuthorizationService {
       },
     ],
     permissionsByRole: {
-      'role-user': [repository.permissions.get('account.read')!],
+      'role-user': [
+        repository.permissions.get('account.read')!,
+        repository.permissions.get('users.read')!,
+      ],
     },
     parentRoleIdsByRole: {},
   });

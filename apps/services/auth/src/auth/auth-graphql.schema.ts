@@ -19,6 +19,7 @@ export function createAuthGraphqlSchema(application: AuthApplication) {
         username: String!
         email: String!
         emailVerified: Boolean!
+        role: String!
         displayName: String
         createdAt: String!
         updatedAt: String!

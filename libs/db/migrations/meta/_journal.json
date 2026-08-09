@@ -22,6 +22,13 @@
       "when": 1785256572007,
       "tag": "0002_handy_shadowcat",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1785284569410,
+      "tag": "0003_sinless777_platform_owner",
+      "breakpoints": true
     }
   ]
 }

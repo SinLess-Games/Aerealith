@@ -21,6 +21,17 @@ export default defineConfig(({ mode }) => {
     root: import.meta.dirname,
     envDir: '../..',
     cacheDir: '../../node_modules/.vite/apps/frontend',
+    define: {
+      __AEREALITH_FARO_URL__: JSON.stringify(
+        environment['VITE_GRAFANA_FARO_URL'] ?? '',
+      ),
+      __AEREALITH_APP_ENVIRONMENT__: JSON.stringify(
+        environment['VITE_APP_ENVIRONMENT'] ?? mode,
+      ),
+      __AEREALITH_APP_VERSION__: JSON.stringify(
+        environment['VITE_APP_VERSION'] ?? 'development',
+      ),
+    },
 
     /**
      * Resolve aliases declared in the frontend TypeScript configuration.

@@ -1,0 +1,116 @@
+.overview {
+  position: relative;
+  color: #f8fafc;
+}
+
+.overview::before {
+  position: absolute;
+  z-index: -1;
+  top: -5rem;
+  left: -4rem;
+  width: 34rem;
+  height: 20rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(80 250 104 / 6%), transparent 68%);
+  content: '';
+}
+
+.onboarding {
+  display: flex;
+  min-height: 8.25rem;
+  align-items: center;
+  gap: 1.5rem;
+  border: 1px solid rgb(139 92 246 / 34%);
+  border-radius: 0.8rem;
+  background:
+    linear-gradient(100deg, rgb(28 17 53 / 75%), rgb(8 12 25 / 96%)),
+    radial-gradient(circle at 75% 50%, rgb(139 92 246 / 13%), transparent 45%);
+  padding: 1.7rem;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 2%);
+}
+
+.accountIcon,
+.cardIcon {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.8rem;
+}
+
+.accountIcon {
+  width: 4.3rem;
+  height: 4.3rem;
+  border: 1px solid rgb(168 85 247 / 32%);
+  border-radius: 50%;
+  background: rgb(124 58 237 / 22%);
+  color: #b568ff;
+  font-size: 2.25rem;
+}
+
+.questionCard {
+  position: relative;
+  display: flex;
+  min-height: 13rem;
+  gap: 1.25rem;
+  overflow: hidden;
+  border: 1px solid rgb(148 163 184 / 17%);
+  border-radius: 0.8rem;
+  background:
+    linear-gradient(145deg, rgb(8 17 22 / 98%), rgb(5 12 17 / 98%)),
+    radial-gradient(circle at top left, rgb(80 250 104 / 8%), transparent 42%);
+  padding: 1.6rem;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 2%);
+}
+
+.questionCard::after {
+  position: absolute;
+  right: -5rem;
+  bottom: -6rem;
+  width: 14rem;
+  height: 12rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(80 250 104 / 6%), transparent 68%);
+  content: '';
+}
+
+.cardIcon {
+  width: 3.5rem;
+  height: 3.5rem;
+  border: 1px solid rgb(80 250 104 / 15%);
+  background: rgb(80 250 104 / 9%);
+  color: #70f24d;
+  font-size: 1.7rem;
+}
+
+.statusBar {
+  display: flex;
+  align-items: center;
+  gap: 1.8rem;
+  overflow-x: auto;
+  border: 1px solid rgb(148 163 184 / 16%);
+  border-radius: 0.8rem;
+  background: linear-gradient(110deg, #071017, #050b10);
+  padding: 1.25rem 1.5rem;
+}
+
+.serviceStatus {
+  display: flex;
+  min-width: 130px;
+  align-items: flex-start;
+  gap: 0.8rem;
+  border-left: 1px solid rgb(148 163 184 / 14%);
+  padding-left: 1.6rem;
+}
+
+@media (max-width: 700px) {
+  .onboarding {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .onboarding a {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

@@ -1,4 +1,5 @@
 import {
+  type ApiRequestObserver,
   createApiApp,
   mountGraphql,
   mountHttpRoutes,
@@ -6,7 +7,10 @@ import {
 } from '@aerealith-ai/api-platform';
 import { ApiRoute, type Logger } from '@aerealith-ai/core';
 import type { AuthorizationService } from '@aerealith-ai/authorization';
-import { createLogger } from '@aerealith-ai/observability';
+import {
+  createLogger,
+  type OperationObserver,
+} from '@aerealith-ai/observability';
 
 import type { AuthApplication } from './auth/auth-application.service';
 import type {
@@ -19,6 +23,7 @@ import { registerAuthHttpRoutes } from './auth/auth-http.routes';
 import { createAuthTrpcRouter } from './auth/auth-trpc.router';
 import { LazyAuthApplication } from './auth/lazy-auth-application';
 import { LazyAuthorizationService } from './auth/lazy-authorization.service';
+import { ObservableAuthApplication } from './auth/observable-auth-application';
 
 export interface CreateAuthServiceAppOptions {
   readonly application?: AuthApplication;
@@ -26,12 +31,18 @@ export interface CreateAuthServiceAppOptions {
   readonly logger?: Logger;
   readonly environment?: string;
   readonly enableGraphiql?: boolean;
+  readonly operationObserver?: OperationObserver;
+  readonly requestObserver?: ApiRequestObserver;
+  readonly readinessCheck?: () => Promise<void>;
 }
 
 export function createAuthServiceApp(
   options: CreateAuthServiceAppOptions = {},
 ) {
-  const application = options.application ?? new LazyAuthApplication();
+  const baseApplication = options.application ?? new LazyAuthApplication();
+  const application = options.operationObserver
+    ? new ObservableAuthApplication(baseApplication, options.operationObserver)
+    : baseApplication;
   const authorization = options.authorization ?? new LazyAuthorizationService();
   const logger =
     options.logger ??
@@ -44,7 +55,10 @@ export function createAuthServiceApp(
   const app = createApiApp<AuthApiEnv>({
     serviceName: 'auth',
     logger,
-    health: true,
+    health: {
+      checkReadiness: options.readinessCheck,
+    },
+    requestObserver: options.requestObserver,
     createContext(base): AuthApiContext {
       return { ...base, auth: application, authorization };
     },

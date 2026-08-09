@@ -109,7 +109,6 @@ lerna-debug.log*
 /.claude/worktrees/
 /.claude/settings.local.json
 
-/.codex/
 /.cache/codex/
 
 # -----------------------------------------------------------------------------

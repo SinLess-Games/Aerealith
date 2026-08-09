@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { FeatureFlag, FeatureFlagDefaults } from '@aerealith-ai/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { renderHook, waitFor } from '@testing-library/react';
+import { render, renderHook, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -13,6 +13,34 @@ import {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('frontend feature flags', () => {
+  it('waits for Flagship before rendering flag-gated application content', async () => {
+    let resolveResponse: ((response: Response) => void) | undefined;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        () =>
+          new Promise<Response>((resolve) => {
+            resolveResponse = resolve;
+          }),
+      ),
+    );
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    render(
+      <QueryClientProvider client={client}>
+        <FeatureFlagsProvider waitForRemote>
+          <div>flagship content</div>
+        </FeatureFlagsProvider>
+      </QueryClientProvider>,
+    );
+
+    expect(screen.queryByText('flagship content')).toBeNull();
+    resolveResponse?.(Response.json({ dashboard: false }));
+    await screen.findByText('flagship content');
+  });
+
   it('validates remote values and fills missing flags from defaults', async () => {
     vi.stubGlobal(
       'fetch',

@@ -33,9 +33,17 @@ export function createApiApp<TEnv extends ApiEnv>(
     app.get(health.path ?? '/health', (context) =>
       context.json({ service: options.serviceName, status: 'ok' }),
     );
-    app.get(health.readinessPath ?? '/ready', (context) =>
-      context.json({ service: options.serviceName, status: 'ready' }),
-    );
+    app.get(health.readinessPath ?? '/ready', async (context) => {
+      try {
+        await health.checkReadiness?.();
+        return context.json({ service: options.serviceName, status: 'ready' });
+      } catch {
+        return context.json(
+          { service: options.serviceName, status: 'not_ready' },
+          503,
+        );
+      }
+    });
   }
 
   app.notFound((context) => {

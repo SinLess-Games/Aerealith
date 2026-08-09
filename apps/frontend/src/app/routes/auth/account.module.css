@@ -1,0 +1,101 @@
+.account {
+  color: #f8fafc;
+}
+.panel {
+  border: 1px solid rgb(148 163 184 / 17%);
+  border-radius: 0.8rem;
+  background: linear-gradient(145deg, #0b131b, #070d13);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 2%);
+}
+.icon {
+  display: flex;
+  width: 2.8rem;
+  height: 2.8rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.55rem;
+  border: 1px solid rgb(80 250 104 / 12%);
+  background: rgb(80 250 104 / 9%);
+  color: #50fa68;
+  font-size: 1.35rem;
+}
+.outlineButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-left: auto;
+  border: 1px solid rgb(148 163 184 / 20%);
+  border-radius: 0.55rem;
+  padding: 0.65rem 1rem;
+  color: #e2e8f0;
+  font-size: 0.875rem;
+}
+.outlineButton:hover {
+  border-color: rgb(80 250 104 / 40%);
+}
+.editor {
+  padding: 1.6rem;
+}
+.control {
+  display: block;
+  width: 100%;
+  border: 1px solid rgb(148 163 184 / 20%);
+  border-radius: 0.55rem;
+  background: #070d13;
+  padding: 0.75rem 1rem;
+  color: #f1f5f9;
+  outline: none;
+}
+.control:focus {
+  border-color: rgb(80 250 104 / 50%);
+  box-shadow: 0 0 0 3px rgb(80 250 104 / 7%);
+}
+.avatar {
+  position: relative;
+  display: flex;
+  width: 5.5rem;
+  height: 5.5rem;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  border: 1px solid rgb(80 250 104 / 25%);
+  border-radius: 50%;
+  background: rgb(80 250 104 / 8%);
+  color: #50fa68;
+  font-size: 2rem;
+}
+.avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.avatar span {
+  position: absolute;
+  right: -0.2rem;
+  bottom: 0;
+  display: flex;
+  width: 1.8rem;
+  height: 1.8rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(148 163 184 / 30%);
+  border-radius: 50%;
+  background: #0b131b;
+  font-size: 0.85rem;
+}
+.saveButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  border-radius: 0.55rem;
+  background: linear-gradient(90deg, #47df39, #62ef44);
+  padding: 0.75rem 1rem;
+  color: #031007;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.saveButton:disabled {
+  opacity: 0.55;
+}

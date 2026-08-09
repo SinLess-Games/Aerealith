@@ -13,6 +13,7 @@ export * from './errors/hono-error-handler';
 export * from './errors/normalize-api-error';
 export * from './modules/api-module.interface';
 export * from './modules/register-api-modules';
+export * from './observability/api-request-observer.interface';
 export * from './testing/create-test-api-context';
 export * from './testing/in-memory-websocket.adapter';
 export * from './testing/test-logger';

@@ -6,6 +6,7 @@ import type {
   ResolvePrincipal,
 } from '../context/api-context-factory.interface';
 import type { ApiRequestContext } from '../context/api-request-context.interface';
+import type { ApiRequestObserver } from '../observability/api-request-observer.interface';
 import type { ApiEnv } from './api-env.type';
 
 export interface ApiMiddlewareRegistration<TEnv extends ApiEnv> {
@@ -16,6 +17,7 @@ export interface ApiMiddlewareRegistration<TEnv extends ApiEnv> {
 export interface ApiHealthOptions {
   readonly path?: string;
   readonly readinessPath?: string;
+  readonly checkReadiness?: () => Promise<void>;
 }
 
 /** Configuration shared by every Aerealith Hono service. */
@@ -34,4 +36,5 @@ export interface ApiAppOptions<
   readonly health?: boolean | ApiHealthOptions;
   readonly requestIdHeader?: string;
   readonly correlationIdHeader?: string;
+  readonly requestObserver?: ApiRequestObserver;
 }

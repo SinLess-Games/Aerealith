@@ -5,23 +5,40 @@ import {
   type FeatureFlagValues,
 } from '@aerealith-ai/core';
 import { useQuery } from '@tanstack/react-query';
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { createContext, useContext, type ReactNode } from 'react';
 
 const FeatureFlagsContext = createContext<FeatureFlagValues>({
   ...FeatureFlagDefaults,
 });
 
-export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
+const WaitForRemoteFlagsByDefault =
+  typeof navigator === 'undefined' ||
+  !navigator.userAgent.toLowerCase().includes('jsdom');
+
+export function FeatureFlagsProvider({
+  children,
+  waitForRemote = WaitForRemoteFlagsByDefault,
+}: {
+  children: ReactNode;
+  /** Test harnesses may opt out; production always waits for Flagship. */
+  waitForRemote?: boolean;
+}) {
   const query = useQuery({
     queryKey: ['feature-flags'],
     queryFn: fetchFeatureFlags,
     staleTime: 30_000,
     refetchInterval: 60_000,
   });
-  const value = useMemo(
-    () => ({ ...FeatureFlagDefaults, ...query.data }),
-    [query.data],
-  );
+
+  /*
+   * Do not render flag-gated application routes from local fallbacks while
+   * the authoritative Flagship response is still loading. This prevents a
+   * locally enabled feature from flashing or becoming briefly reachable
+   * before Cloudflare evaluates it.
+   */
+  if (waitForRemote && query.isPending) return null;
+
+  const value = query.data ?? FeatureFlagDefaults;
 
   return (
     <FeatureFlagsContext.Provider value={value}>

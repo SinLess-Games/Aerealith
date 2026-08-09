@@ -137,6 +137,23 @@ describe('createApiApp', () => {
     expect(middleware).toHaveBeenCalledTimes(2);
   });
 
+  it('reports dependency readiness without exposing failure details', async () => {
+    const app = createApiApp<ApiEnv>({
+      serviceName: 'test',
+      logger: new TestLogger(),
+      health: {
+        checkReadiness: vi.fn().mockRejectedValue(new Error('db password')),
+      },
+    });
+
+    const response = await app.request('/ready');
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toEqual({
+      service: 'test',
+      status: 'not_ready',
+    });
+  });
+
   it('returns standard not-found envelopes', async () => {
     const app = createApiApp<ApiEnv>({
       serviceName: 'test',

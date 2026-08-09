@@ -1,9 +1,14 @@
-import { StrictMode } from 'react'
-import { BrowserRouter } from 'react-router'
-import * as ReactDOM from 'react-dom/client'
-import App from './app/app'
+import { StrictMode } from 'react';
+import { BrowserRouter } from 'react-router';
+import * as ReactDOM from 'react-dom/client';
+import App from './app/app';
+import { initializeBrowserObservability } from './lib/browser-observability';
 
-const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
+initializeBrowserObservability();
+
+const root = ReactDOM.createRoot(
+  document.getElementById('root') as HTMLElement,
+);
 
 root.render(
   <StrictMode>
@@ -11,4 +16,4 @@ root.render(
       <App />
     </BrowserRouter>
   </StrictMode>,
-)
+);

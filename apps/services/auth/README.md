@@ -35,9 +35,32 @@ The HTTP operations are `POST /api/V1/auth/verify-email` and
 `POST /api/V1/auth/resend-verification`; matching GraphQL mutations and tRPC
 procedures are also available.
 
-## Administrator seed migration
+## Grafana observability
 
-Create or normalize the configured verified administrator account with:
+The Node service initializes observability before loading Hono so automatic
+HTTP instrumentation can attach correctly. It exports:
+
+- Structured logs directly to Grafana Loki.
+- Metrics and distributed traces through the Grafana Cloud OTLP gateway.
+- Process uptime and memory metrics.
+- Route-aware request rate, error, duration, and active-request metrics.
+- Auth operation outcomes and latency across HTTP, GraphQL, and tRPC.
+- Trace/span correlation on structured request logs.
+- PostgreSQL-backed readiness at `/ready`; `/health` remains process liveness.
+- Continuous wall/CPU profiles through Grafana Cloud Profiles.
+
+Configure the `OTEL_*`, `LOKI_*`, and `PYROSCOPE_*` variables documented in
+`.env.example`. Tokens and completed authorization headers belong only in
+`.env`, deployment secrets, or a secret manager. Shutdown handlers flush
+telemetry and profiles before the process exits.
+
+Import `ops/observability/grafana/auth-overview.dashboard.json`, load
+`ops/observability/grafana/auth-alerts.yaml` through your metrics rule
+deployment, and publish the linked runbook before enabling alert notifications.
+
+## Super-administrator seed
+
+Create or normalize the configured verified super-administrator account with:
 
 ```bash
 pnpm nx run db:seed-admin
@@ -45,9 +68,11 @@ pnpm nx run db:seed-admin
 
 The migration reads `ADMIN_USERNAME`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD`.
 It is idempotent, refuses ambiguous username/email collisions, and never
-replaces the password of an existing account. If `ADMIN_PASSWORD` is absent
-for a new account, it prints a generated password once. For local PostgreSQL,
-use `pnpm nx run db:postgres-seed-admin`.
+replaces the password of an existing account. It assigns both the broad
+`super_admin` user role and the protected global `platform_owner` authorization
+role. If `ADMIN_PASSWORD` is absent for a new account, it prints a generated
+password once. For local PostgreSQL, use
+`pnpm nx run db:postgres-seed-admin`.
 
 ## Cloudflare Worker
 
