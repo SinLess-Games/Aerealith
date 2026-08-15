@@ -1,110 +1,127 @@
+// libs/db/src/schema/authorization/authorization.table.ts
+
 import { sql } from 'drizzle-orm';
+
 import {
-  boolean,
   check,
   index,
   integer,
-  jsonb,
   pgTable,
   primaryKey,
   text,
   timestamp,
-  uniqueIndex,
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
 
-const timestamps = {
-  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
-    .defaultNow()
-    .notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' })
-    .defaultNow()
-    .notNull(),
-  deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
-};
+import { organizationMemberRoles } from './organization-member-role';
+import { permissions } from './permissions';
+import { platformRoleAssignments } from './platform-role-assignment';
+import { rolePermissions } from './role-permissions';
+import { roles } from './roles';
 
-export const permissionsTable = pgTable(
-  'permissions',
-  {
-    id: uuid('id').defaultRandom().primaryKey(),
-    key: varchar('key', { length: 160 }).notNull(),
-    resource: varchar('resource', { length: 80 }).notNull(),
-    action: varchar('action', { length: 80 }).notNull(),
-    displayName: varchar('display_name', { length: 160 }).notNull(),
-    description: text('description'),
-    system: boolean('system').default(false).notNull(),
-    enabled: boolean('enabled').default(true).notNull(),
-    ...timestamps,
-  },
-  (table) => [
-    uniqueIndex('permissions_key_unique').on(table.key),
-    index('permissions_resource_action_index').on(table.resource, table.action),
-    check(
-      'permissions_key_format_check',
-      sql`${table.key} ~ '^[a-z][a-z0-9_-]*(\\.[a-z][a-z0-9_-]*)+$'`,
-    ),
-  ],
-);
+/**
+ * Authorization schema exports.
+ *
+ * The primary authorization tables are defined in dedicated schema files:
+ *
+ *   permissions.ts
+ *   roles.ts
+ *   role-permissions.ts
+ *   platform-role-assignment.ts
+ *   organization-member-role.ts
+ *
+ * This file exposes consistent *Table aliases for consumers of the
+ * database package and defines the remaining supporting authorization
+ * tables such as role inheritance, role conflicts, and authorization
+ * version tracking.
+ */
 
-export const rolesTable = pgTable(
-  'roles',
-  {
-    id: uuid('id').defaultRandom().primaryKey(),
-    key: varchar('key', { length: 100 }).notNull(),
-    displayName: varchar('display_name', { length: 160 }).notNull(),
-    description: text('description'),
-    system: boolean('system').default(false).notNull(),
-    assignable: boolean('assignable').default(true).notNull(),
-    administrativeRank: integer('administrative_rank').default(0).notNull(),
-    enabled: boolean('enabled').default(true).notNull(),
-    ...timestamps,
-  },
-  (table) => [
-    uniqueIndex('roles_key_unique').on(table.key),
-    check(
-      'roles_administrative_rank_check',
-      sql`${table.administrativeRank} >= 0`,
-    ),
-  ],
-);
+/**
+ * Individual capabilities recognized by the authorization system.
+ */
+export const permissionsTable = permissions;
 
-export const rolePermissionsTable = pgTable(
-  'role_permissions',
-  {
-    roleId: uuid('role_id')
-      .notNull()
-      .references(() => rolesTable.id, { onDelete: 'cascade' }),
-    permissionId: uuid('permission_id')
-      .notNull()
-      .references(() => permissionsTable.id, { onDelete: 'cascade' }),
-    assignedBy: varchar('assigned_by', { length: 160 }).notNull(),
-    assignedAt: timestamp('assigned_at', {
-      withTimezone: true,
-      mode: 'date',
-    })
-      .defaultNow()
-      .notNull(),
-  },
-  (table) => [
-    primaryKey({
-      name: 'role_permissions_primary_key',
-      columns: [table.roleId, table.permissionId],
-    }),
-    index('role_permissions_permission_id_index').on(table.permissionId),
-  ],
-);
+/**
+ * Named collections of permissions.
+ */
+export const rolesTable = roles;
 
+/**
+ * Many-to-many relationship between roles and permissions.
+ */
+export const rolePermissionsTable = rolePermissions;
+
+/**
+ * Platform-level role assignments for users.
+ *
+ * Examples:
+ *
+ *   super-admin
+ *   platform-admin
+ *   support-engineer
+ *   security-auditor
+ */
+export const platformRoleAssignmentsTable = platformRoleAssignments;
+
+/**
+ * Organization-scoped role assignments.
+ *
+ * These assignments operate through an organization membership rather
+ * than directly against the global user identity.
+ */
+export const organizationMemberRolesTable = organizationMemberRoles;
+
+/**
+ * Role inheritance.
+ *
+ * Allows one role to inherit the permissions granted by another role.
+ *
+ * Example:
+ *
+ *   platform-admin
+ *        ↓
+ *   support-engineer
+ *
+ * A platform administrator could therefore receive all permissions from
+ * the support-engineer role in addition to its own permissions.
+ *
+ * Recursive hierarchy validation belongs in the authorization service.
+ */
 export const roleInheritanceTable = pgTable(
   'role_inheritance',
   {
+    /**
+     * Child role receiving inherited permissions.
+     */
     roleId: uuid('role_id')
       .notNull()
-      .references(() => rolesTable.id, { onDelete: 'cascade' }),
+      .references(() => roles.id, {
+        onDelete: 'cascade',
+        onUpdate: 'cascade',
+      }),
+
+    /**
+     * Parent role whose permissions are inherited.
+     */
     parentRoleId: uuid('parent_role_id')
       .notNull()
-      .references(() => rolesTable.id, { onDelete: 'cascade' }),
-    createdBy: varchar('created_by', { length: 160 }).notNull(),
+      .references(() => roles.id, {
+        onDelete: 'cascade',
+        onUpdate: 'cascade',
+      }),
+
+    /**
+     * Actor responsible for creating the inheritance relationship.
+     *
+     * This remains a generic actor identifier because authorization
+     * mutations may eventually be initiated by users, services, or
+     * trusted system processes.
+     */
+    createdBy: varchar('created_by', {
+      length: 160,
+    }).notNull(),
+
     createdAt: timestamp('created_at', {
       withTimezone: true,
       mode: 'date',
@@ -113,11 +130,30 @@ export const roleInheritanceTable = pgTable(
       .notNull(),
   },
   (table) => [
+    /**
+     * The same inheritance relationship may only exist once.
+     */
     primaryKey({
       name: 'role_inheritance_primary_key',
       columns: [table.roleId, table.parentRoleId],
     }),
+
+    /**
+     * Supports reverse traversal:
+     *
+     *   "Which roles inherit from this parent?"
+     */
     index('role_inheritance_parent_role_id_index').on(table.parentRoleId),
+
+    /**
+     * A role cannot directly inherit from itself.
+     *
+     * Longer cycles such as:
+     *
+     *   A -> B -> C -> A
+     *
+     * must still be rejected by the authorization service.
+     */
     check(
       'role_inheritance_no_self_reference_check',
       sql`${table.roleId} <> ${table.parentRoleId}`,
@@ -125,68 +161,59 @@ export const roleInheritanceTable = pgTable(
   ],
 );
 
-export const principalRolesTable = pgTable(
-  'principal_roles',
-  {
-    id: uuid('id').defaultRandom().primaryKey(),
-    principalType: varchar('principal_type', { length: 20 }).notNull(),
-    principalId: varchar('principal_id', { length: 160 }).notNull(),
-    roleId: uuid('role_id')
-      .notNull()
-      .references(() => rolesTable.id, { onDelete: 'restrict' }),
-    scopeType: varchar('scope_type', { length: 32 }).notNull(),
-    scopeId: varchar('scope_id', { length: 160 }),
-    assignedBy: varchar('assigned_by', { length: 160 }).notNull(),
-    assignedAt: timestamp('assigned_at', {
-      withTimezone: true,
-      mode: 'date',
-    })
-      .defaultNow()
-      .notNull(),
-    expiresAt: timestamp('expires_at', { withTimezone: true, mode: 'date' }),
-    revokedBy: varchar('revoked_by', { length: 160 }),
-    revokedAt: timestamp('revoked_at', { withTimezone: true, mode: 'date' }),
-    revocationReason: text('revocation_reason'),
-    metadata: jsonb('metadata')
-      .$type<Record<string, unknown>>()
-      .default({})
-      .notNull(),
-    activeKey: varchar('active_key', { length: 560 }),
-  },
-  (table) => [
-    uniqueIndex('principal_roles_active_key_unique').on(table.activeKey),
-    index('principal_roles_principal_index').on(
-      table.principalType,
-      table.principalId,
-    ),
-    index('principal_roles_role_id_index').on(table.roleId),
-    index('principal_roles_expires_at_index').on(table.expiresAt),
-    check(
-      'principal_roles_principal_type_check',
-      sql`${table.principalType} in ('user', 'service')`,
-    ),
-    check(
-      'principal_roles_scope_type_check',
-      sql`${table.scopeType} in ('global', 'organization', 'workspace', 'project', 'discord_guild', 'resource')`,
-    ),
-    check(
-      'principal_roles_global_scope_check',
-      sql`(${table.scopeType} = 'global' and ${table.scopeId} is null) or (${table.scopeType} <> 'global' and ${table.scopeId} is not null)`,
-    ),
-  ],
-);
-
+/**
+ * Defines mutually incompatible roles.
+ *
+ * This supports separation-of-duty policies where two roles should never
+ * be assigned to the same principal within the relevant authorization
+ * boundary.
+ *
+ * Example:
+ *
+ *   billing-approver
+ *
+ * may conflict with:
+ *
+ *   billing-auditor
+ *
+ * Conflict enforcement belongs in the authorization service because
+ * assignment scope and contextual authorization rules may also matter.
+ */
 export const roleConflictsTable = pgTable(
   'role_conflicts',
   {
+    /**
+     * First role participating in the conflict.
+     */
     roleId: uuid('role_id')
       .notNull()
-      .references(() => rolesTable.id, { onDelete: 'cascade' }),
+      .references(() => roles.id, {
+        onDelete: 'cascade',
+        onUpdate: 'cascade',
+      }),
+
+    /**
+     * Role that conflicts with roleId.
+     */
     conflictingRoleId: uuid('conflicting_role_id')
       .notNull()
-      .references(() => rolesTable.id, { onDelete: 'cascade' }),
+      .references(() => roles.id, {
+        onDelete: 'cascade',
+        onUpdate: 'cascade',
+      }),
+
+    /**
+     * Human-readable explanation of why these roles conflict.
+     */
     reason: text('reason').notNull(),
-    createdBy: varchar('created_by', { length: 160 }).notNull(),
+
+    /**
+     * Actor responsible for defining the conflict.
+     */
+    createdBy: varchar('created_by', {
+      length: 160,
+    }).notNull(),
+
     createdAt: timestamp('created_at', {
       withTimezone: true,
       mode: 'date',
@@ -195,10 +222,35 @@ export const roleConflictsTable = pgTable(
       .notNull(),
   },
   (table) => [
+    /**
+     * Prevent duplicate conflict relationships in the same direction.
+     *
+     * The authorization service should normalize role pairs before
+     * insertion so:
+     *
+     *   A -> B
+     *
+     * and:
+     *
+     *   B -> A
+     *
+     * are not both persisted.
+     */
     primaryKey({
       name: 'role_conflicts_primary_key',
       columns: [table.roleId, table.conflictingRoleId],
     }),
+
+    /**
+     * Supports reverse conflict lookup.
+     */
+    index('role_conflicts_conflicting_role_id_index').on(
+      table.conflictingRoleId,
+    ),
+
+    /**
+     * A role cannot conflict with itself.
+     */
     check(
       'role_conflicts_no_self_reference_check',
       sql`${table.roleId} <> ${table.conflictingRoleId}`,
@@ -206,12 +258,51 @@ export const roleConflictsTable = pgTable(
   ],
 );
 
+/**
+ * Authorization version tracking.
+ *
+ * Authorization decisions may be cached. Whenever authorization-affecting
+ * state changes for a principal, this version should be incremented.
+ *
+ * Cached authorization can then include:
+ *
+ *   principal type
+ *   principal id
+ *   authorization version
+ *
+ * If the persisted version changes, previously cached authorization is
+ * considered stale.
+ *
+ * This table does NOT grant roles or permissions. It only tracks mutation
+ * versions for cache invalidation.
+ */
 export const principalAuthorizationVersionsTable = pgTable(
   'principal_authorization_versions',
   {
-    principalType: varchar('principal_type', { length: 20 }).notNull(),
-    principalId: varchar('principal_id', { length: 160 }).notNull(),
+    /**
+     * Kind of principal whose authorization version is being tracked.
+     *
+     * Aerealith currently recognizes users and services.
+     */
+    principalType: varchar('principal_type', {
+      length: 20,
+    }).notNull(),
+
+    /**
+     * Identifier of the principal.
+     *
+     * This intentionally remains varchar rather than UUID because not
+     * every future principal type is required to use a database UUID.
+     */
+    principalId: varchar('principal_id', {
+      length: 160,
+    }).notNull(),
+
+    /**
+     * Monotonically increasing authorization version.
+     */
     version: integer('version').default(1).notNull(),
+
     updatedAt: timestamp('updated_at', {
       withTimezone: true,
       mode: 'date',
@@ -220,14 +311,26 @@ export const principalAuthorizationVersionsTable = pgTable(
       .notNull(),
   },
   (table) => [
+    /**
+     * Each principal owns exactly one authorization version counter.
+     */
     primaryKey({
       name: 'principal_authorization_versions_primary_key',
       columns: [table.principalType, table.principalId],
     }),
+
+    /**
+     * Only supported principal types may receive authorization-version
+     * records.
+     */
     check(
       'principal_authorization_versions_principal_type_check',
       sql`${table.principalType} in ('user', 'service')`,
     ),
+
+    /**
+     * Authorization versions are always positive.
+     */
     check(
       'principal_authorization_versions_version_check',
       sql`${table.version} > 0`,
@@ -235,6 +338,64 @@ export const principalAuthorizationVersionsTable = pgTable(
   ],
 );
 
+/**
+ * Permission row types.
+ */
 export type PermissionRow = typeof permissionsTable.$inferSelect;
+
+export type NewPermissionRow = typeof permissionsTable.$inferInsert;
+
+/**
+ * Role row types.
+ */
 export type RoleRow = typeof rolesTable.$inferSelect;
-export type PrincipalRoleRow = typeof principalRolesTable.$inferSelect;
+
+export type NewRoleRow = typeof rolesTable.$inferInsert;
+
+/**
+ * Role-permission relationship row types.
+ */
+export type RolePermissionRow = typeof rolePermissionsTable.$inferSelect;
+
+export type NewRolePermissionRow = typeof rolePermissionsTable.$inferInsert;
+
+/**
+ * Platform role assignment row types.
+ */
+export type PlatformRoleAssignmentRow =
+  typeof platformRoleAssignmentsTable.$inferSelect;
+
+export type NewPlatformRoleAssignmentRow =
+  typeof platformRoleAssignmentsTable.$inferInsert;
+
+/**
+ * Organization member role assignment row types.
+ */
+export type OrganizationMemberRoleRow =
+  typeof organizationMemberRolesTable.$inferSelect;
+
+export type NewOrganizationMemberRoleRow =
+  typeof organizationMemberRolesTable.$inferInsert;
+
+/**
+ * Role inheritance row types.
+ */
+export type RoleInheritanceRow = typeof roleInheritanceTable.$inferSelect;
+
+export type NewRoleInheritanceRow = typeof roleInheritanceTable.$inferInsert;
+
+/**
+ * Role conflict row types.
+ */
+export type RoleConflictRow = typeof roleConflictsTable.$inferSelect;
+
+export type NewRoleConflictRow = typeof roleConflictsTable.$inferInsert;
+
+/**
+ * Authorization-version row types.
+ */
+export type PrincipalAuthorizationVersionRow =
+  typeof principalAuthorizationVersionsTable.$inferSelect;
+
+export type NewPrincipalAuthorizationVersionRow =
+  typeof principalAuthorizationVersionsTable.$inferInsert;

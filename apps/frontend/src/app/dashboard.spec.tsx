@@ -60,8 +60,8 @@ describe('dashboard (protected)', () => {
     ).toBeTruthy();
     expect(screen.getByText(/what is connected/i)).toBeTruthy();
     expect(screen.getByText(/what needs attention/i)).toBeTruthy();
-    expect(screen.getByText('Super Admin')).toBeTruthy();
-    expect(screen.getByRole('link', { name: /^admin$/i })).toBeTruthy();
+    expect(await screen.findByText('Super Admin')).toBeTruthy();
+    expect(await screen.findByRole('link', { name: /^admin$/i })).toBeTruthy();
 
     // The dashboard shell header has the only sign-out button here.
     fireEvent.click(screen.getByRole('button', { name: /sign out/i }));
@@ -70,6 +70,44 @@ describe('dashboard (protected)', () => {
         '/api/V1/auth/logout',
         expect.objectContaining({ method: 'POST' }),
       ),
+    );
+  });
+
+  it('shows the saved profile picture in the header account circle', async () => {
+    const avatarUrl = 'data:image/png;base64,cHJvZmlsZS1waWN0dXJl';
+    const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input);
+      const envelope =
+        url === '/api/V1/account'
+          ? {
+              ok: true,
+              data: {
+                user: SIGNED_IN.data,
+                avatarUrl,
+                timezone: null,
+                locale: null,
+              },
+            }
+          : SIGNED_IN;
+      return Promise.resolve({
+        status: 200,
+        json: () => Promise.resolve(envelope),
+      });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderAt('/app');
+
+    await waitFor(() =>
+      expect(
+        screen
+          .getByRole('img', { name: 'ada profile picture' })
+          .getAttribute('src'),
+      ).toBe(avatarUrl),
+    );
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/V1/account',
+      expect.objectContaining({ credentials: 'include' }),
     );
   });
 

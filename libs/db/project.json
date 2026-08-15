@@ -21,7 +21,14 @@
     "seed-admin": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "tsx libs/db/scripts/seed-admin.ts"
+        "command": "tsx libs/db/seeds/users/seed-platform-owner.ts"
+      }
+    },
+
+    "seed": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsx libs/db/seeds/seed.ts"
       }
     },
 

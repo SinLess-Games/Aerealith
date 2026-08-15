@@ -2,10 +2,14 @@
 
 import { homeLandingPageContent } from '@aerealith-ai/content';
 import { FeatureFlag } from '@aerealith-ai/core';
-import { useState, type CSSProperties } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { useState, type CSSProperties, type FormEvent } from 'react';
 import { Link } from 'react-router';
 
 import { useFeatureFlag } from '../../../features/flags/feature-flags';
+import { analyticsEvents } from '../../../analytics/analytics-events';
+import { joinWaitlist } from '../../../features/waitlist/waitlist-api';
+import { ApiError } from '../../../lib/api-client';
 
 const panelClass =
   'home-panel rounded-2xl border shadow-[0_0_30px_rgba(76,29,149,.12),inset_0_1px_0_rgba(255,255,255,.05)] backdrop-blur-md';
@@ -13,7 +17,31 @@ const panelClass =
 export function HomeRoute() {
   const content = homeLandingPageContent;
   const [email, setEmail] = useState('');
+  const [role, setRole] = useState('');
+  const [newsletter, setNewsletter] = useState(false);
+  const [waitlistMessage, setWaitlistMessage] = useState('');
   const waitlistEnabled = useFeatureFlag(FeatureFlag.Waitlist);
+  const waitlist = useMutation({
+    mutationFn: joinWaitlist,
+    onSuccess: (result) => {
+      analyticsEvents.waitlistSignupCompleted('landing_page');
+      setWaitlistMessage(
+        result.newsletterSubscribed
+          ? 'You’re on the waitlist and subscribed to the newsletter.'
+          : 'You’re on the waitlist.',
+      );
+      setEmail('');
+      setRole('');
+      setNewsletter(false);
+    },
+  });
+
+  const submitWaitlist = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setWaitlistMessage('');
+    analyticsEvents.waitlistSignupStarted('landing_page');
+    waitlist.mutate({ email, role, newsletter });
+  };
 
   return (
     <div className="home-route relative isolate flex-1 overflow-hidden bg-transparent">
@@ -374,11 +402,6 @@ export function HomeRoute() {
               {content.hero.description}
             </p>
 
-            <div className="mt-6 flex flex-wrap gap-3">
-              <GradientLink {...content.hero.primaryAction} />
-              <OutlineLink {...content.hero.secondaryAction} />
-            </div>
-
             {/* =====================================================
                 Waitlist
                 ===================================================== */}
@@ -386,18 +409,11 @@ export function HomeRoute() {
             {waitlistEnabled ? (
               <form
                 id="waitlist"
-                className="home-panel mt-6 rounded-2xl border border-fuchsia-400/45 p-5 shadow-[0_0_30px_rgba(89,46,255,.18),inset_0_0_28px_rgba(28,64,170,.08)] backdrop-blur-xl"
-                onSubmit={(event) => event.preventDefault()}
+                aria-label="Join the waitlist"
+                className="home-panel mt-6 rounded-2xl border border-fuchsia-400/45 p-3 shadow-[0_0_30px_rgba(89,46,255,.18),inset_0_0_28px_rgba(28,64,170,.08)] backdrop-blur-xl sm:p-4"
+                onSubmit={submitWaitlist}
               >
-                <p className="text-xs font-semibold tracking-[0.2em] text-cyan-500 uppercase">
-                  {content.waitlist.eyebrow}
-                </p>
-
-                <h2 className="home-heading mt-2 text-lg font-semibold">
-                  {content.waitlist.title}
-                </h2>
-
-                <div className="mt-4 grid gap-3 sm:grid-cols-[1.2fr_.9fr_auto]">
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.25fr)_minmax(8rem,.8fr)_auto_auto] xl:items-center">
                   <label className="sr-only" htmlFor="waitlist-email">
                     {content.waitlist.emailLabel}
                   </label>
@@ -419,7 +435,9 @@ export function HomeRoute() {
 
                   <select
                     id="waitlist-role"
-                    defaultValue=""
+                    value={role}
+                    onChange={(event) => setRole(event.target.value)}
+                    required
                     className="home-field rounded-lg border px-4 py-3 text-sm outline-none backdrop-blur-md transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
                   >
                     <option value="" disabled>
@@ -433,17 +451,50 @@ export function HomeRoute() {
                     ))}
                   </select>
 
+                  <label className="home-field flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm backdrop-blur-md transition hover:border-cyan-400">
+                    <input
+                      type="checkbox"
+                      checked={newsletter}
+                      onChange={(event) => setNewsletter(event.target.checked)}
+                      className="h-4 w-4 shrink-0 rounded border-[var(--home-border-strong)] accent-cyan-500"
+                    />
+                    <span>{content.waitlist.newsletterLabel}</span>
+                  </label>
+
                   <button
                     type="submit"
+                    disabled={waitlist.isPending}
                     className="rounded-lg bg-gradient-to-r from-fuchsia-600 via-violet-500 to-cyan-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_0_24px_rgba(99,70,255,.28)] transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400"
                   >
-                    {content.waitlist.submitLabel}
+                    {waitlist.isPending
+                      ? 'Joining…'
+                      : content.waitlist.submitLabel}
 
                     <span className="ml-2" aria-hidden="true">
                       →
                     </span>
                   </button>
                 </div>
+
+                {waitlistMessage ? (
+                  <p
+                    className="mt-3 text-sm text-[var(--ae-success-foreground)]"
+                    role="status"
+                  >
+                    {waitlistMessage}
+                  </p>
+                ) : null}
+
+                {waitlist.isError ? (
+                  <p
+                    className="mt-3 text-sm text-[var(--ae-danger-foreground)]"
+                    role="alert"
+                  >
+                    {waitlist.error instanceof ApiError
+                      ? waitlist.error.message
+                      : 'We couldn’t add you to the waitlist. Please try again.'}
+                  </p>
+                ) : null}
 
                 <p className="home-muted mt-3 text-xs">
                   {content.waitlist.privacyNote}

@@ -1,4 +1,5 @@
-import { ThemeToggle } from '@aerealith-ai/ui';
+import { Avatar, ThemeToggle } from '@aerealith-ai/ui';
+import { useQuery } from '@tanstack/react-query';
 import {
   FiActivity,
   FiBookOpen,
@@ -7,11 +8,17 @@ import {
   FiLogOut,
   FiMoon,
   FiShield,
+  FiSettings,
   FiSun,
   FiUser,
 } from 'react-icons/fi';
 import { NavLink, Navigate, Outlet } from 'react-router';
 
+import { fetchAccount } from '../../features/auth/account-api';
+import {
+  ADMIN_OVERVIEW_QUERY_KEY,
+  fetchAdminOverview,
+} from '../../features/admin/admin-api';
 import { useLogout, useSession } from '../../features/auth/use-session';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -24,9 +31,24 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   ].join(' ');
 
 export function DashboardLayout() {
-  const { isAuthenticated, isLoading, user } = useSession();
+  const { error, isAuthenticated, isError, isLoading, refetch, user } =
+    useSession();
   const logout = useLogout();
-  const isSuperAdmin = user?.role === 'super_admin';
+  const adminAccess = useQuery({
+    queryKey: ADMIN_OVERVIEW_QUERY_KEY,
+    queryFn: fetchAdminOverview,
+    enabled: isAuthenticated,
+    retry: false,
+    staleTime: 60_000,
+  });
+  const isSuperAdmin = adminAccess.isSuccess;
+  const account = useQuery({
+    queryKey: ['account'],
+    queryFn: fetchAccount,
+    enabled: isAuthenticated,
+    retry: false,
+    staleTime: 60_000,
+  });
 
   if (isLoading) {
     return (
@@ -36,6 +58,37 @@ export function DashboardLayout() {
         aria-live="polite"
       >
         Loading your workspace…
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[var(--ae-background)] p-6 text-[var(--ae-foreground)]">
+        <div
+          role="alert"
+          className="max-w-lg rounded-xl border border-[var(--ae-danger-border)] bg-[var(--ae-danger-subtle)] p-6"
+        >
+          <h1 className="text-xl font-semibold">
+            Authentication is temporarily unavailable
+          </h1>
+          <p className="mt-2 text-sm text-[var(--ae-foreground-muted)]">
+            Your sign-in state could not be checked. No protected workspace
+            content has been loaded.
+          </p>
+          {error ? (
+            <p className="mt-2 text-sm text-[var(--ae-danger-foreground)]">
+              {error.message}
+            </p>
+          ) : null}
+          <button
+            type="button"
+            className="mt-4 rounded-lg border border-[var(--ae-danger-border)] px-4 py-2 text-sm font-semibold"
+            onClick={() => void refetch()}
+          >
+            Try again
+          </button>
+        </div>
       </div>
     );
   }
@@ -81,8 +134,12 @@ export function DashboardLayout() {
               Overview
             </NavLink>
             <NavLink to="/app/account" className={navLinkClass}>
-              <FiUser aria-hidden="true" className="text-xl" />
+              <FiSettings aria-hidden="true" className="text-xl" />
               Account
+            </NavLink>
+            <NavLink to="/app/profile" className={navLinkClass}>
+              <FiUser aria-hidden="true" className="text-xl" />
+              Profile
             </NavLink>
             <NavLink to="/app/security" className={navLinkClass}>
               <FiShield aria-hidden="true" className="text-xl" />
@@ -142,9 +199,13 @@ export function DashboardLayout() {
               />
               <span className="mx-2 hidden h-8 w-px bg-[var(--ae-divider)] sm:block" />
               <div className="ml-1 hidden items-center gap-3 sm:flex">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--ae-accent)] bg-[var(--ae-accent-subtle)] text-[var(--ae-accent)]">
-                  <FiUser aria-hidden="true" />
-                </div>
+                <Avatar
+                  alt={`${user?.username ?? 'Account'} profile picture`}
+                  className="h-9 w-9 border-[var(--ae-accent)] bg-[var(--ae-accent-subtle)] text-[var(--ae-accent)]"
+                  fallback={<FiUser aria-hidden="true" />}
+                  size="sm"
+                  src={account.data?.avatarUrl ?? undefined}
+                />
                 <span className="text-sm font-semibold">
                   {user?.username ?? 'Account'}
                 </span>

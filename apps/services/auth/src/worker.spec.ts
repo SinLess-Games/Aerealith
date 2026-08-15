@@ -3,6 +3,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import worker, { type AuthWorkerEnvironment } from './worker';
 
+function databaseSecret(environment: AuthWorkerEnvironment) {
+  const binding = environment.DATABASE_URL;
+  if (typeof binding === 'string') throw new Error('Expected test binding.');
+  return binding;
+}
+
 function environment(
   overrides: Partial<Record<keyof typeof FeatureFlagDefaults, boolean>> = {},
 ): AuthWorkerEnvironment {
@@ -40,7 +46,7 @@ describe('auth Cloudflare Worker', () => {
 
   it('returns a sanitized error when account secrets are unavailable', async () => {
     const workerEnvironment = environment();
-    workerEnvironment.DATABASE_URL.get = vi.fn(async () => {
+    databaseSecret(workerEnvironment).get = vi.fn(async () => {
       throw new Error('secret value must not leak');
     });
 
@@ -56,6 +62,44 @@ describe('auth Cloudflare Worker', () => {
         message: 'The authentication service is temporarily unavailable.',
       },
     });
+  });
+
+  it('keeps database-backed auth when local registration is enabled', async () => {
+    const workerEnvironment = environment();
+    workerEnvironment.LOCAL_REGISTRATION_ENABLED = 'true';
+
+    const response = await worker.fetch(
+      new Request('https://auth.aerealith.com/api/V1/auth/login', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ usernameOrEmail: '', password: '' }),
+      }),
+      workerEnvironment,
+    );
+
+    expect(response.status).toBe(422);
+    expect(databaseSecret(workerEnvironment).get).toHaveBeenCalledOnce();
+  });
+
+  it('does not require optional email delivery configuration for login', async () => {
+    const workerEnvironment = environment();
+    workerEnvironment.RESEND_API_KEY = {
+      get: vi.fn(async () => {
+        throw new Error('email secret unavailable');
+      }),
+    };
+
+    const response = await worker.fetch(
+      new Request('https://auth.aerealith.com/api/V1/auth/login', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ usernameOrEmail: '', password: '' }),
+      }),
+      workerEnvironment,
+    );
+
+    expect(response.status).toBe(422);
+    expect(databaseSecret(workerEnvironment).get).toHaveBeenCalledOnce();
   });
   it('uses authentication as a service-wide kill switch', async () => {
     const response = await worker.fetch(

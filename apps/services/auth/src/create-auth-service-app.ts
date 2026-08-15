@@ -9,6 +9,8 @@ import { ApiRoute, type Logger } from '@aerealith-ai/core';
 import type { AuthorizationService } from '@aerealith-ai/authorization';
 import type { OperationObserver } from '@aerealith-ai/observability';
 import { createLogger } from '@aerealith-ai/observability/logger';
+import type { MiddlewareHandler } from 'hono';
+import { cors } from 'hono/cors';
 
 import type { AuthApplication } from './auth/auth-application.service';
 import type {
@@ -40,6 +42,8 @@ export interface CreateAuthServiceAppOptions {
 export function createAuthServiceApp(
   options: CreateAuthServiceAppOptions = {},
 ) {
+  const allowedOrigins = new Set(options.allowedOrigins ?? []);
+  const credentialedCors = createCredentialedCors(allowedOrigins);
   const baseApplication = options.application ?? new LazyAuthApplication();
   const application = options.operationObserver
     ? new ObservableAuthApplication(baseApplication, options.operationObserver)
@@ -64,6 +68,13 @@ export function createAuthServiceApp(
       return { ...base, auth: application, authorization };
     },
     middleware: [
+      ...(allowedOrigins.size > 0
+        ? [
+            {
+              handler: credentialedCors,
+            },
+          ]
+        : []),
       {
         handler: requireTrustedOrigin(options.allowedOrigins),
       },
@@ -101,4 +112,33 @@ export function createAuthServiceApp(
   });
 
   return app;
+}
+
+function createCredentialedCors(
+  allowedOrigins: ReadonlySet<string>,
+): MiddlewareHandler<AuthApiEnv> {
+  const handler = cors({
+    origin: (origin) => (allowedOrigins.has(origin) ? origin : ''),
+    allowMethods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowHeaders: [
+      'Accept',
+      'Authorization',
+      'Content-Type',
+      'X-CSRF-Token',
+      'X-Request-ID',
+    ],
+    exposeHeaders: ['Content-Length', 'Content-Type', 'X-Request-ID'],
+    maxAge: 86_400,
+  });
+
+  return async (context, next) => {
+    const response = await handler(context, next);
+    if (allowedOrigins.has(context.req.header('origin') ?? '')) {
+      context.res.headers.set('Access-Control-Allow-Credentials', 'true');
+      if (response) {
+        response.headers.set('Access-Control-Allow-Credentials', 'true');
+      }
+    }
+    return response;
+  };
 }

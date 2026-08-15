@@ -149,6 +149,20 @@ describe('DrizzleUserRepository', () => {
     expect(databaseMock.selectLimit).toHaveBeenCalledWith(1);
   });
 
+  it('finds a user eligible to authenticate an existing session', async () => {
+    const row = createUserRow({
+      emailVerified: true,
+      emailVerifiedAt: new Date('2026-06-20T00:00:00.000Z'),
+    });
+    const repository = new DrizzleUserRepository(
+      createDatabaseMock({ selectedRows: [row] }).database,
+    );
+
+    await expect(
+      repository.findAuthenticationEligibleById(row.id),
+    ).resolves.toEqual(toExpectedContract(row));
+  });
+
   it('returns null when an active user does not exist by ID', async () => {
     const databaseMock = createDatabaseMock();
 

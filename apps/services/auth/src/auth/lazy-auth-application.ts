@@ -87,8 +87,26 @@ export class LazyAuthApplication implements AuthApplication {
     return this.getApplication().updateAccount(...args);
   }
 
+  profileDetails(...args: Parameters<AuthApplication['profileDetails']>) {
+    return this.getApplication().profileDetails(...args);
+  }
+
+  updateProfile(...args: Parameters<AuthApplication['updateProfile']>) {
+    return this.getApplication().updateProfile(...args);
+  }
+
   listAdminEntities(...args: Parameters<AuthApplication['listAdminEntities']>) {
     return this.getApplication().listAdminEntities(...args);
+  }
+
+  adminEntityCatalog(
+    ...args: Parameters<AuthApplication['adminEntityCatalog']>
+  ) {
+    return this.getApplication().adminEntityCatalog(...args);
+  }
+
+  createAdminEntity(...args: Parameters<AuthApplication['createAdminEntity']>) {
+    return this.getApplication().createAdminEntity(...args);
   }
 
   updateAdminEntity(...args: Parameters<AuthApplication['updateAdminEntity']>) {

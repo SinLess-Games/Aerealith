@@ -1,0 +1,22 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "outDir": "../../../dist/out-tsc/apps/e2e/frontend-e2e",
+    "sourceMap": false,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "types": ["node", "@playwright/test"],
+    "ignoreDeprecations": "6.0"
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.js",
+    "playwright.config.mts",
+    "src/**/*.spec.ts",
+    "src/**/*.spec.js",
+    "src/**/*.test.ts",
+    "src/**/*.test.js",
+    "src/**/*.d.ts"
+  ]
+}

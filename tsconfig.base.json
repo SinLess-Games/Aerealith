@@ -34,7 +34,12 @@
       "@aerealith-ai/api": ["./libs/api/src/index.ts"],
       "@aerealith-ai/api-platform": ["./libs/api-platform/src/index.ts"],
       "@aerealith-ai/authorization": ["./libs/authorization/src/index.ts"]
-    }
+    },
+    "strict": false,
+    "noUncheckedSideEffectImports": false,
+    "types": ["*"],
+    "esModuleInterop": false,
+    "ignoreDeprecations": "6.0"
   },
   "exclude": ["node_modules", "tmp"]
 }

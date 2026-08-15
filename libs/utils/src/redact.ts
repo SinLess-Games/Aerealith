@@ -219,16 +219,11 @@ function redactValue(
   seen: WeakSet<object>,
   depth: number,
 ): unknown {
-  if (
-    value === null ||
-    value === undefined ||
-    typeof value === 'string' ||
-    typeof value === 'number' ||
-    typeof value === 'boolean' ||
-    typeof value === 'bigint'
-  ) {
-    return value;
-  }
+  if (value === null || value === undefined) return value;
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number') return value;
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'bigint') return value;
 
   if (typeof value === 'symbol') {
     return value.toString();
@@ -237,6 +232,8 @@ function redactValue(
   if (typeof value === 'function') {
     return `[Function: ${value.name || 'anonymous'}]`;
   }
+
+  if (typeof value !== 'object') return String(value);
 
   if (depth > options.maxDepth) {
     return options.maxDepthReplacement;

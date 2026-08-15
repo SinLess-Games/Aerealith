@@ -36,6 +36,20 @@
       "when": 1786251607014,
       "tag": "0004_loud_mandrill",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786411002533,
+      "tag": "0005_authorization-rbac",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1786469556041,
+      "tag": "0006_brave_vargas",
+      "breakpoints": true
     }
   ]
 }

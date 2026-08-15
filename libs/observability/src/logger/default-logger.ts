@@ -155,7 +155,7 @@ export class DefaultLogger implements Logger {
     if (
       this.runtime.closing ||
       this.runtime.closed ||
-      !shouldLog(level, this.minimumLevel)
+      !shouldLog(this.minimumLevel, level)
     ) {
       return;
     }

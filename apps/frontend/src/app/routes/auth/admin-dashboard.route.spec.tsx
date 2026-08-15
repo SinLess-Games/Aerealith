@@ -1,11 +1,13 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AdminDashboardRoute } from './admin-dashboard.route';
 
 describe('AdminDashboardRoute', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
   it('renders query-backed administrative metrics without fabricated telemetry', async () => {
     vi.stubGlobal(
       'fetch',
@@ -45,5 +47,34 @@ describe('AdminDashboardRoute', () => {
       screen.getByText(/durable audit activity is not available/i),
     ).toBeTruthy();
     expect(screen.queryByText('Recent activity')).toBeNull();
+  });
+
+  it('handles a server-side 403 without rendering admin data', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        status: 403,
+        json: () =>
+          Promise.resolve({
+            ok: false,
+            error: { code: 'FORBIDDEN', message: 'Forbidden' },
+          }),
+      }),
+    );
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    render(
+      <QueryClientProvider client={client}>
+        <AdminDashboardRoute />
+      </QueryClientProvider>,
+    );
+
+    expect(
+      await screen.findByRole('heading', {
+        name: /admin telemetry is unavailable/i,
+      }),
+    ).toBeTruthy();
+    expect(screen.queryByText('Total users')).toBeNull();
   });
 });

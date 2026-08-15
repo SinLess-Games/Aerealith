@@ -5,11 +5,14 @@ import {
   ResendVerificationRequestSchema,
   PasswordResetRequestSchema,
   PasswordResetCompleteSchema,
+  PasswordSchema,
   HttpStatus,
   EmailSchema,
   UsernameSchema,
   UserLifecycleStatus,
   UserTier,
+  EntitySchemas,
+  type UpdateUserProfileContract,
 } from '@aerealith-ai/core';
 import {
   ApiError,
@@ -21,6 +24,7 @@ import { z } from 'zod';
 
 import type { AuthApplication } from './auth-application.service';
 import type { AdminEntityType } from './auth-application.service';
+import { getAdminEntity } from './admin-entity-registry';
 import type { AuthApiEnv } from './auth-api-context';
 import {
   normalizeAuthError,
@@ -42,6 +46,7 @@ export function registerAuthHttpRoutes(
       const input = await parseJsonBody(context, SignUpRequestSchema);
       const result = await application.signUp({
         ...input,
+        email: input.email!,
         displayName: input.displayName ?? undefined,
       });
       writeSessionCookie(context, result.sessionToken);
@@ -126,10 +131,49 @@ export function registerAuthHttpRoutes(
           locale: z.string().trim().max(100).nullable().optional(),
         }),
       );
-      const emailChanged = input.email !== user.email;
-      const result = await application.updateAccount(user.id, input);
+      const emailChanged = input.email! !== user.email;
+      const result = await application.updateAccount(user.id, {
+        ...input,
+        email: input.email!,
+      });
       if (emailChanged) clearSessionCookie(context);
       return context.json(success(context, result));
+    } catch (error) {
+      throw normalizeAuthError(error);
+    }
+  });
+
+  router.get('/profile', async (context) => {
+    const user = await requireAccountAccess(
+      context,
+      application,
+      'account.read',
+    );
+    return context.json(
+      success(context, await application.profileDetails(user.id)),
+    );
+  });
+
+  router.patch('/profile', async (context) => {
+    const user = await requireAccountAccess(
+      context,
+      application,
+      'account.update',
+    );
+    try {
+      const input = await parseJsonBody(
+        context,
+        EntitySchemas.UpdateUserProfileEntitySchema.omit({ status: true }),
+      );
+      return context.json(
+        success(
+          context,
+          await application.updateProfile(
+            user.id,
+            input as UpdateUserProfileContract,
+          ),
+        ),
+      );
     } catch (error) {
       throw normalizeAuthError(error);
     }
@@ -232,10 +276,17 @@ export function registerAuthHttpRoutes(
     await requireAuthorization({
       authorization: context.get('apiContext').authorization,
       principal: { id: user.id, type: 'user' },
-      permission: 'users.read',
+      permission: 'platform.user.read',
       scope: { type: 'global' },
     });
     return context.json(success(context, await application.adminOverview()));
+  });
+
+  router.get('/admin/entities', async (context) => {
+    await requireAdminPermission(context, application, 'platform.system.read');
+    return context.json(
+      success(context, await application.adminEntityCatalog()),
+    );
   });
 
   router.get('/admin/entities/:entity', async (context) => {
@@ -243,7 +294,9 @@ export function registerAuthHttpRoutes(
     const user = await requireAdminPermission(
       context,
       application,
-      entity === 'sessions' ? ['users.read', 'sessions.read'] : 'users.read',
+      entity === 'users' || entity === 'user_sessions'
+        ? 'platform.user.read'
+        : 'platform.system.read',
     );
     void user;
     const page = positiveInteger(context.req.query('page'), 1);
@@ -264,22 +317,51 @@ export function registerAuthHttpRoutes(
     );
   });
 
+  router.post('/admin/entities/:entity', async (context) => {
+    const entity = parseEntityType(context.req.param('entity'));
+    await requireAdminPermission(
+      context,
+      application,
+      entity === 'users' ? 'platform.user.create' : 'platform.system.manage',
+    );
+    try {
+      const input = await parseJsonBody(
+        context,
+        entity === 'users' ? AdminCreateUserSchema : AdminCreateEntitySchema,
+      );
+      return context.json(
+        success(
+          context,
+          await application.createAdminEntity(entity, {
+            ...input,
+            ...(entity === 'users'
+              ? { email: (input as { email?: string }).email! }
+              : {}),
+          }),
+        ),
+        HttpStatus.Created,
+      );
+    } catch (error) {
+      throw normalizeAuthError(error);
+    }
+  });
+
   router.patch('/admin/entities/:entity/:id', async (context) => {
     const entity = parseEntityType(context.req.param('entity'));
     try {
       const changes: Record<string, unknown> =
         entity === 'users'
           ? await parseJsonBody(context, AdminUserChangesSchema)
-          : await parseJsonBody(context, AdminSessionChangesSchema);
+          : entity === 'user_sessions'
+            ? await parseJsonBody(context, AdminSessionChangesSchema)
+            : unsupportedEntityMutation('updated');
       const permissions =
-        entity === 'sessions'
-          ? ['users.update', 'sessions.revoke']
+        entity === 'user_sessions'
+          ? 'platform.user.update'
           : [
-              'users.update',
-              ...(changes['status'] !== undefined ? ['users.suspend'] : []),
-              ...(changes['email'] !== undefined ||
-              changes['tier'] !== undefined
-                ? ['users.manage']
+              'platform.user.update',
+              ...(changes['status'] !== undefined
+                ? ['platform.user.suspend']
                 : []),
             ];
       await requireAdminPermission(context, application, permissions);
@@ -303,9 +385,11 @@ export function registerAuthHttpRoutes(
     const user = await requireAdminPermission(
       context,
       application,
-      entity === 'sessions'
-        ? ['users.update', 'sessions.revoke']
-        : 'users.delete',
+      entity === 'user_sessions'
+        ? 'platform.user.update'
+        : entity === 'users'
+          ? 'platform.user.delete'
+          : unsupportedEntityMutation('deleted'),
     );
     try {
       await application.deleteAdminEntity(
@@ -319,6 +403,21 @@ export function registerAuthHttpRoutes(
     }
   });
 }
+
+const AdminCreateUserSchema = z
+  .object({
+    username: UsernameSchema,
+    email: EmailSchema,
+    password: PasswordSchema,
+    displayName: z.string().trim().min(1).max(100).nullable().optional(),
+    status: z.enum(UserLifecycleStatus).optional(),
+    tier: z.enum(UserTier).optional(),
+    emailVerified: z.boolean().optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
+  })
+  .strict();
+
+const AdminCreateEntitySchema = z.record(z.string(), z.unknown());
 
 const AdminUserChangesSchema = z
   .object({
@@ -385,10 +484,18 @@ async function requireSessionPermission(
 }
 
 function parseEntityType(value: string): AdminEntityType {
-  if (value === 'users' || value === 'sessions') return value;
+  const registered = getAdminEntity(value);
+  if (registered) return registered.definition.name;
   throw new ApiError('Unsupported entity type.', {
     code: ApiErrorCode.ValidationFailed,
     status: HttpStatus.NotFound,
+  });
+}
+
+function unsupportedEntityMutation(action: 'updated' | 'deleted'): never {
+  throw new ApiError(`This entity type cannot be ${action}.`, {
+    code: ApiErrorCode.ValidationFailed,
+    status: HttpStatus.UnprocessableEntity,
   });
 }
 

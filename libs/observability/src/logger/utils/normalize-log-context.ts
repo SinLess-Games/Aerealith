@@ -79,6 +79,10 @@ function normalizeValue(
       : `[Function: ${value.name}]`;
   }
 
+  if (typeof value !== 'object') {
+    return String(value);
+  }
+
   if (depth >= maxDepth) {
     return MAX_DEPTH_MARKER;
   }

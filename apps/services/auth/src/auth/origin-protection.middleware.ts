@@ -13,7 +13,9 @@ const UnsafeMethods = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 export function requireTrustedOrigin(
   allowedOrigins: readonly string[] = [],
 ): MiddlewareHandler<AuthApiEnv> {
-  const allowed = new Set(allowedOrigins.map(normalizeOrigin).filter(Boolean));
+  const allowed = new Set(
+    allowedOrigins.map(normalizeConfiguredOrigin).filter(Boolean),
+  );
 
   return async (context, next) => {
     if (!UnsafeMethods.has(context.req.method)) return next();
@@ -22,7 +24,11 @@ export function requireTrustedOrigin(
     if (!origin) return next();
 
     const requestOrigin = new URL(context.req.url).origin;
-    if (origin === requestOrigin || allowed.has(normalizeOrigin(origin))) {
+    const normalizedOrigin = parseRequestOrigin(origin);
+    if (
+      normalizedOrigin &&
+      (normalizedOrigin === requestOrigin || allowed.has(normalizedOrigin))
+    ) {
       return next();
     }
 
@@ -39,10 +45,33 @@ export function requireTrustedOrigin(
   };
 }
 
-function normalizeOrigin(value: string): string {
+function normalizeConfiguredOrigin(value: string): string {
   try {
-    return new URL(value).origin;
+    const url = new URL(value);
+    return isHttpProtocol(url) ? url.origin : '';
   } catch {
     return '';
   }
+}
+
+/** Browser Origin headers are serialized origins, never full URLs or credentials. */
+function parseRequestOrigin(value: string): string | null {
+  try {
+    const url = new URL(value);
+    if (
+      !isHttpProtocol(url) ||
+      url.username ||
+      url.password ||
+      value !== url.origin
+    ) {
+      return null;
+    }
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
+function isHttpProtocol(url: URL): boolean {
+  return url.protocol === 'http:' || url.protocol === 'https:';
 }

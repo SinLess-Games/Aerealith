@@ -106,6 +106,11 @@ describe('PasswordAuthenticationService', () => {
     ['invalid password', user(), false],
     ['disabled account', user({ status: UserLifecycleStatus.Disabled }), true],
     [
+      'suspended account',
+      user({ status: UserLifecycleStatus.Suspended }),
+      true,
+    ],
+    [
       'unverified email',
       user({ emailVerified: false, emailVerifiedAt: null }),
       true,

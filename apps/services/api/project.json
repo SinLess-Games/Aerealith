@@ -5,13 +5,18 @@
   "projectType": "application",
   "tags": ["scope:services", "type:service"],
   "targets": {
-    "build": {
-      "executor": "@nx/js:tsc",
-      "outputs": ["{options.outputPath}"],
+    "typecheck": {
+      "executor": "nx:run-commands",
       "options": {
-        "outputPath": "dist/apps/services/api",
-        "main": "apps/services/api/src/main.ts",
-        "tsConfig": "apps/services/api/tsconfig.app.json"
+        "command": "tsc --noEmit --rootDir . -p apps/services/api/tsconfig.app.json"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "outputs": ["{workspaceRoot}/dist/apps/services/api"],
+      "options": {
+        "command": "tsc -p apps/services/api/tsconfig.build.json --outDir dist/apps/services/api"
       }
     },
     "lint": {
@@ -47,7 +52,15 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "apps/services/api",
-        "command": "wrangler dev --port 8788 --inspector-port 9230"
+        "command": "wrangler dev --config wrangler.local.toml --port 8788 --inspector-port 9230 --env-file ../../../.env"
+      }
+    },
+    "dev-e2e": {
+      "continuous": true,
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/api",
+        "command": "wrangler dev --config wrangler.local.toml --port 8788 --inspector-port 9230"
       }
     },
     "typegen": {

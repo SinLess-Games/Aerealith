@@ -3,11 +3,11 @@ import {
   useMemo,
   useState,
   type ComponentPropsWithoutRef,
-} from 'react'
+} from 'react';
 
-import { cn } from '@aerealith-ai/ui'
+import { cn } from '@aerealith-ai/ui';
 
-import type { DocsHeading, DocsPage } from '../../../../lib/docs-source'
+import type { DocsHeading, DocsPage } from '../../../../lib/docs-source';
 
 export interface DocsTableOfContentsProps extends Omit<
   ComponentPropsWithoutRef<'aside'>,
@@ -18,54 +18,54 @@ export interface DocsTableOfContentsProps extends Omit<
    *
    * When omitted, headings are read from the supplied documentation page.
    */
-  headings?: readonly DocsHeading[]
+  headings?: readonly DocsHeading[];
 
   /**
    * Documentation page containing generated table-of-contents headings.
    */
-  page?: Pick<DocsPage, 'headings'>
+  page?: Pick<DocsPage, 'headings'>;
 
   /**
    * Accessible and visible title above the table of contents.
    */
-  label?: string
+  label?: string;
 
   /**
    * Small text displayed above the main label.
    */
-  eyebrow?: string
+  eyebrow?: string;
 
   /**
    * Lowest heading depth included.
    */
-  minDepth?: number
+  minDepth?: number;
 
   /**
    * Highest heading depth included.
    */
-  maxDepth?: number
+  maxDepth?: number;
 
   /**
    * Keep the table of contents visible while scrolling.
    */
-  sticky?: boolean
+  sticky?: boolean;
 
   /**
    * Hide the component when no headings are available.
    */
-  hideWhenEmpty?: boolean
+  hideWhenEmpty?: boolean;
 
   /**
    * Maximum height of the scrollable heading list.
    */
-  maxHeightClassName?: string
+  maxHeightClassName?: string;
 }
 
 interface NormalizedHeading {
-  depth: number
-  id: string
-  title: string
-  url: string
+  depth: number;
+  id: string;
+  title: string;
+  url: string;
 }
 
 /**
@@ -88,32 +88,34 @@ export function DocsTableOfContents({
   sticky = true,
   ...props
 }: Readonly<DocsTableOfContentsProps>) {
+  const accessibleLabel = props['aria-label'] ?? `${label} table of contents`;
   const normalizedHeadings = useMemo(
     () =>
       normalizeHeadings(headings ?? page?.headings ?? [], minDepth, maxDepth),
     [headings, maxDepth, minDepth, page?.headings],
-  )
+  );
 
-  const activeHeadingId = useActiveHeading(normalizedHeadings)
+  const activeHeadingId = useActiveHeading(normalizedHeadings);
 
   if (normalizedHeadings.length === 0 && hideWhenEmpty) {
-    return null
+    return null;
   }
 
   const activeIndex = normalizedHeadings.findIndex(
     (heading) => heading.id === activeHeadingId,
-  )
+  );
 
   const progress =
     activeIndex < 0 || normalizedHeadings.length === 0
       ? 0
-      : ((activeIndex + 1) / normalizedHeadings.length) * 100
+      : ((activeIndex + 1) / normalizedHeadings.length) * 100;
 
   return (
     <aside
       {...props}
+      aria-label={accessibleLabel}
       className={cn('hidden min-w-0 xl:block', className)}
-      data-slot='docs-table-of-contents'
+      data-slot="docs-table-of-contents"
     >
       <div
         className={cn(
@@ -155,9 +157,9 @@ export function DocsTableOfContents({
 
           {normalizedHeadings.length > 0 ? (
             <>
-              <nav aria-label={label} className='relative px-3 py-3'>
+              <nav aria-label={label} className="relative px-3 py-3">
                 <div
-                  aria-hidden='true'
+                  aria-hidden="true"
                   className={cn(
                     'absolute top-3 bottom-3 left-[1.15rem]',
                     'w-px bg-[var(--ae-border)]',
@@ -165,7 +167,7 @@ export function DocsTableOfContents({
                 />
 
                 <div
-                  aria-hidden='true'
+                  aria-hidden="true"
                   className={cn(
                     'absolute top-3 left-[1.15rem] w-px',
                     'bg-[var(--ae-accent)]',
@@ -177,9 +179,9 @@ export function DocsTableOfContents({
                   }}
                 />
 
-                <ol className='relative space-y-0.5'>
+                <ol className="relative space-y-0.5">
                   {normalizedHeadings.map((heading) => {
-                    const isActive = heading.id === activeHeadingId
+                    const isActive = heading.id === activeHeadingId;
 
                     return (
                       <li
@@ -210,7 +212,7 @@ export function DocsTableOfContents({
                           )}
                         >
                           <span
-                            aria-hidden='true'
+                            aria-hidden="true"
                             className={cn(
                               'relative z-10 mt-[0.4rem] size-1.5',
                               'shrink-0 rounded-full border',
@@ -229,12 +231,12 @@ export function DocsTableOfContents({
                             )}
                           />
 
-                          <span className='line-clamp-2 min-w-0'>
+                          <span className="line-clamp-2 min-w-0">
                             {heading.title}
                           </span>
                         </a>
                       </li>
-                    )
+                    );
                   })}
                 </ol>
               </nav>
@@ -252,7 +254,7 @@ export function DocsTableOfContents({
                 </span>
 
                 <a
-                  href='#docs-main-content'
+                  href="#docs-main-content"
                   className={cn(
                     'inline-flex items-center gap-1 rounded-md',
                     'font-semibold transition',
@@ -280,125 +282,125 @@ export function DocsTableOfContents({
         </div>
       </div>
     </aside>
-  )
+  );
 }
 
 function useActiveHeading(
   headings: readonly NormalizedHeading[],
 ): string | undefined {
-  const headingKey = headings.map((heading) => heading.id).join('|')
+  const headingKey = headings.map((heading) => heading.id).join('|');
 
   const [activeHeadingId, setActiveHeadingId] = useState<string | undefined>(
     () => getCurrentHashId(),
-  )
+  );
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined') return;
 
-    const headingIds = headingKey.split('|').filter(Boolean)
+    const headingIds = headingKey.split('|').filter(Boolean);
 
-    if (headingIds.length === 0) return
+    if (headingIds.length === 0) return;
 
     const elements = headingIds
       .map((id) => document.getElementById(id))
       .filter(
         (element): element is HTMLElement => element instanceof HTMLElement,
-      )
+      );
 
-    if (elements.length === 0) return
+    if (elements.length === 0) return;
 
     const updateActiveHeading = () => {
-      const nextHeadingId = findActiveHeading(elements)
+      const nextHeadingId = findActiveHeading(elements);
 
       setActiveHeadingId((currentHeadingId) =>
         currentHeadingId === nextHeadingId ? currentHeadingId : nextHeadingId,
-      )
-    }
+      );
+    };
 
     const observer =
       typeof IntersectionObserver === 'function'
         ? new IntersectionObserver(
             () => {
-              updateActiveHeading()
+              updateActiveHeading();
             },
             {
               rootMargin: '-7rem 0px -68% 0px',
               threshold: [0, 1],
             },
           )
-        : undefined
+        : undefined;
 
     for (const element of elements) {
-      observer?.observe(element)
+      observer?.observe(element);
     }
 
     const updateFromHash = () => {
-      const hashId = getCurrentHashId()
+      const hashId = getCurrentHashId();
 
       if (hashId && headingIds.includes(hashId)) {
-        setActiveHeadingId(hashId)
-        return
+        setActiveHeadingId(hashId);
+        return;
       }
 
-      updateActiveHeading()
-    }
+      updateActiveHeading();
+    };
 
-    const initialFrame = window.requestAnimationFrame(updateActiveHeading)
+    const initialFrame = window.requestAnimationFrame(updateActiveHeading);
 
-    window.addEventListener('hashchange', updateFromHash)
+    window.addEventListener('hashchange', updateFromHash);
 
     return () => {
-      window.cancelAnimationFrame(initialFrame)
-      window.removeEventListener('hashchange', updateFromHash)
-      observer?.disconnect()
-    }
-  }, [headingKey])
+      window.cancelAnimationFrame(initialFrame);
+      window.removeEventListener('hashchange', updateFromHash);
+      observer?.disconnect();
+    };
+  }, [headingKey]);
 
-  return activeHeadingId
+  return activeHeadingId;
 }
 
 function findActiveHeading(
   elements: readonly HTMLElement[],
 ): string | undefined {
-  const headerOffset = 132
+  const headerOffset = 132;
 
   let closestAbove:
     | {
-        id: string
-        top: number
+        id: string;
+        top: number;
       }
-    | undefined
+    | undefined;
 
   let closestBelow:
     | {
-        id: string
-        top: number
+        id: string;
+        top: number;
       }
-    | undefined
+    | undefined;
 
   for (const element of elements) {
-    const top = element.getBoundingClientRect().top
+    const top = element.getBoundingClientRect().top;
 
     if (top <= headerOffset) {
       if (!closestAbove || top > closestAbove.top) {
         closestAbove = {
           id: element.id,
           top,
-        }
+        };
       }
 
-      continue
+      continue;
     }
 
     if (!closestBelow || top < closestBelow.top) {
       closestBelow = {
         id: element.id,
         top,
-      }
+      };
     }
   }
 
-  return closestAbove?.id ?? closestBelow?.id
+  return closestAbove?.id ?? closestBelow?.id;
 }
 
 function normalizeHeadings(
@@ -406,8 +408,8 @@ function normalizeHeadings(
   minDepth: number,
   maxDepth: number,
 ): readonly NormalizedHeading[] {
-  const safeMinDepth = Math.max(1, Math.floor(minDepth))
-  const safeMaxDepth = Math.max(safeMinDepth, Math.floor(maxDepth))
+  const safeMinDepth = Math.max(1, Math.floor(minDepth));
+  const safeMaxDepth = Math.max(safeMinDepth, Math.floor(maxDepth));
 
   return headings
     .map(normalizeHeading)
@@ -416,122 +418,122 @@ function normalizeHeadings(
         heading !== undefined &&
         heading.depth >= safeMinDepth &&
         heading.depth <= safeMaxDepth,
-    )
+    );
 }
 
 function normalizeHeading(heading: DocsHeading): NormalizedHeading | undefined {
-  const title = heading.title.trim()
+  const title = heading.title.trim();
 
-  if (title.length === 0) return undefined
+  if (title.length === 0) return undefined;
 
-  const rawUrl = heading.url?.trim()
+  const rawUrl = heading.url?.trim();
 
-  if (!rawUrl) return undefined
+  if (!rawUrl) return undefined;
 
-  const url = normalizeHeadingUrl(rawUrl)
-  const id = getHeadingId(url)
+  const url = normalizeHeadingUrl(rawUrl);
+  const id = getHeadingId(url);
 
-  if (!id) return undefined
+  if (!id) return undefined;
 
   return {
     depth: normalizeDepth(heading.depth),
     id,
     title,
     url,
-  }
+  };
 }
 
 function normalizeHeadingUrl(url: string): string {
-  if (url.startsWith('#')) return url
+  if (url.startsWith('#')) return url;
 
-  const hashIndex = url.indexOf('#')
+  const hashIndex = url.indexOf('#');
 
   if (hashIndex >= 0) {
-    return url.slice(hashIndex)
+    return url.slice(hashIndex);
   }
 
-  return `#${url}`
+  return `#${url}`;
 }
 
 function getHeadingId(url: string): string | undefined {
-  const id = url.replace(/^#/, '').trim()
+  const id = url.replace(/^#/, '').trim();
 
-  if (id.length === 0) return undefined
+  if (id.length === 0) return undefined;
 
   try {
-    return decodeURIComponent(id)
+    return decodeURIComponent(id);
   } catch {
-    return id
+    return id;
   }
 }
 
 function normalizeDepth(depth: number | undefined): number {
   if (typeof depth !== 'number' || !Number.isFinite(depth)) {
-    return 2
+    return 2;
   }
 
-  return Math.max(1, Math.floor(depth))
+  return Math.max(1, Math.floor(depth));
 }
 
 function getCurrentHashId(): string | undefined {
-  if (typeof window === 'undefined') return undefined
+  if (typeof window === 'undefined') return undefined;
 
-  const hash = window.location.hash.replace(/^#/, '')
+  const hash = window.location.hash.replace(/^#/, '');
 
-  if (hash.length === 0) return undefined
+  if (hash.length === 0) return undefined;
 
   try {
-    return decodeURIComponent(hash)
+    return decodeURIComponent(hash);
   } catch {
-    return hash
+    return hash;
   }
 }
 
 function getDepthSpacing(depth: number): string {
   if (depth <= 2) {
-    return 'pl-0'
+    return 'pl-0';
   }
 
   if (depth === 3) {
-    return 'pl-3'
+    return 'pl-3';
   }
 
   if (depth === 4) {
-    return 'pl-6'
+    return 'pl-6';
   }
 
-  return 'pl-8'
+  return 'pl-8';
 }
 
 function getProgressLabel(activeIndex: number, headingCount: number): string {
   if (headingCount === 0) {
-    return 'No sections'
+    return 'No sections';
   }
 
   if (activeIndex < 0) {
-    return `${headingCount} ${headingCount === 1 ? 'section' : 'sections'}`
+    return `${headingCount} ${headingCount === 1 ? 'section' : 'sections'}`;
   }
 
-  return `${activeIndex + 1} of ${headingCount}`
+  return `${activeIndex + 1} of ${headingCount}`;
 }
 
 function ArrowUpIcon() {
   return (
     <svg
-      aria-hidden='true'
-      className='size-3.5'
-      fill='none'
-      viewBox='0 0 16 16'
+      aria-hidden="true"
+      className="size-3.5"
+      fill="none"
+      viewBox="0 0 16 16"
     >
       <path
-        d='M8 12.5v-9m0 0L4.5 7M8 3.5 11.5 7'
-        stroke='currentColor'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-        strokeWidth='1.4'
+        d="M8 12.5v-9m0 0L4.5 7M8 3.5 11.5 7"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.4"
       />
     </svg>
-  )
+  );
 }
 
-export default DocsTableOfContents
+export default DocsTableOfContents;

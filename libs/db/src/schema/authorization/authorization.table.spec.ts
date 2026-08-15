@@ -2,9 +2,10 @@ import { getTableConfig } from 'drizzle-orm/pg-core';
 import { describe, expect, it } from 'vitest';
 
 import {
+  organizationMemberRolesTable,
   permissionsTable,
+  platformRoleAssignmentsTable,
   principalAuthorizationVersionsTable,
-  principalRolesTable,
   roleConflictsTable,
   roleInheritanceTable,
   rolePermissionsTable,
@@ -19,7 +20,8 @@ describe('authorization schema', () => {
         rolesTable,
         rolePermissionsTable,
         roleInheritanceTable,
-        principalRolesTable,
+        platformRoleAssignmentsTable,
+        organizationMemberRolesTable,
         roleConflictsTable,
         principalAuthorizationVersionsTable,
       ].map((table) => getTableConfig(table).name),
@@ -28,23 +30,29 @@ describe('authorization schema', () => {
       'roles',
       'role_permissions',
       'role_inheritance',
-      'principal_roles',
+      'platform_role_assignments',
+      'organization_member_roles',
       'role_conflicts',
       'principal_authorization_versions',
     ]);
   });
 
-  it('enforces unique permission keys and active assignments', () => {
+  it('enforces unique permission keys and normalized assignment keys', () => {
     expect(
       getTableConfig(permissionsTable).indexes.some(
         (index) => index.config.name === 'permissions_key_unique',
       ),
     ).toBe(true);
     expect(
-      getTableConfig(principalRolesTable).indexes.some(
-        (index) => index.config.name === 'principal_roles_active_key_unique',
+      getTableConfig(platformRoleAssignmentsTable).primaryKeys.map(
+        (key) => key.name,
       ),
-    ).toBe(true);
+    ).toContain('platform_role_assignments_pk');
+    expect(
+      getTableConfig(organizationMemberRolesTable).primaryKeys.map(
+        (key) => key.name,
+      ),
+    ).toContain('organization_member_roles_pk');
   });
 
   it('protects hierarchy and conflict integrity with database constraints', () => {

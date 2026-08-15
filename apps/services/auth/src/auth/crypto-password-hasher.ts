@@ -63,15 +63,30 @@ export class CryptoPasswordHasher implements PasswordHasher {
     )
       return false;
 
-    const expected = Buffer.from(encodedDigest, 'base64url');
-    if (expected.length !== KeyLength) return false;
+    const expected = decodeBase64Url(encodedDigest);
+    const salt = decodeBase64Url(encodedSalt);
+    if (
+      !expected ||
+      expected.length !== KeyLength ||
+      !salt ||
+      salt.length < 8 ||
+      salt.length > 64
+    ) {
+      return false;
+    }
 
-    const actual = await derive(
-      password,
-      Buffer.from(encodedSalt, 'base64url'),
-      { N, r, p, maxmem: Parameters.maxmem },
-    );
-    return timingSafeEqual(actual, expected);
+    try {
+      const actual = await derive(password, salt, {
+        N,
+        r,
+        p,
+        maxmem: Parameters.maxmem,
+      });
+      return timingSafeEqual(actual, expected);
+    } catch {
+      // Unsupported/malicious parameter combinations fail authentication.
+      return false;
+    }
   }
 
   needsRehash(encodedHash: string): boolean {
@@ -82,9 +97,17 @@ export class CryptoPasswordHasher implements PasswordHasher {
       parts[1] !== 'v1' ||
       parts[2] !== String(Parameters.N) ||
       parts[3] !== String(Parameters.r) ||
-      parts[4] !== String(Parameters.p)
+      parts[4] !== String(Parameters.p) ||
+      decodeBase64Url(parts[5] ?? '')?.length !== 16 ||
+      decodeBase64Url(parts[6] ?? '')?.length !== KeyLength
     );
   }
+}
+
+function decodeBase64Url(value: string): Buffer | null {
+  if (!value || !/^[A-Za-z0-9_-]+$/.test(value)) return null;
+  const decoded = Buffer.from(value, 'base64url');
+  return decoded.toString('base64url') === value ? decoded : null;
 }
 
 function derive(

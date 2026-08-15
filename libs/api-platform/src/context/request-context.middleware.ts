@@ -40,7 +40,9 @@ export function createRequestContextMiddleware<
       route: pathname,
       startedAt,
     };
-    const traceContext = options.requestObserver?.requestStarted(observation);
+    const startedTrace = options.requestObserver?.requestStarted(observation);
+    const traceContext =
+      startedTrace && typeof startedTrace === 'object' ? startedTrace : {};
     const logger = options.logger.child({
       requestId,
       correlationId,

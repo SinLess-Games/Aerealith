@@ -5,7 +5,11 @@ import {
   type AuthUser,
   type LoginRequest,
   type SignUpRequest,
+  type UpdateUserProfileContract,
+  type UserLifecycleStatus,
+  type UserProfileContract,
   type UserContract,
+  type UserTier,
 } from '@aerealith-ai/core';
 import {
   AuthEvent,
@@ -20,6 +24,7 @@ import {
   DrizzleUserSessionRepository,
   DrizzleEmailVerificationRepository,
   DrizzlePasswordResetTokenRepository,
+  DrizzleUserProfileRepository,
   schema,
   type DatabaseClient,
 } from '@aerealith-ai/db';
@@ -37,8 +42,15 @@ import {
 } from 'drizzle-orm';
 import { createHash, randomBytes } from 'node:crypto';
 
+import {
+  getAdminEntity,
+  listAdminEntityDefinitions,
+  type AdminEntityDefinition,
+  type RegisteredAdminEntity,
+} from './admin-entity-registry';
 import { CryptoPasswordHasher } from './crypto-password-hasher';
 import { CryptoTokenGenerator } from './crypto-token-generator';
+import { assignDefaultPlatformUserRole } from './registration-platform-role';
 import type {
   EmailVerificationSender,
   PasswordResetSender,
@@ -51,7 +63,7 @@ export type AuthResult = {
   sessionToken: string;
 };
 
-export type AdminEntityType = 'users' | 'sessions';
+export type AdminEntityType = string;
 export type AuthSessionSummary = {
   id: string;
   current: boolean;
@@ -62,8 +74,20 @@ export type AuthSessionSummary = {
   createdAt: string;
   lastActiveAt: string;
   expiresAt: string;
+  revokedAt: string | null;
+  status: 'active' | 'expired' | 'revoked';
 };
 export type AdminEntityRecord = Record<string, unknown> & { id: string };
+export type AdminCreateEntityInput = Record<string, unknown> & {
+  username?: string;
+  email?: string;
+  password?: string;
+  displayName?: string | null;
+  status?: UserLifecycleStatus;
+  tier?: UserTier;
+  emailVerified?: boolean;
+  metadata?: Record<string, unknown>;
+};
 export type AdminEntityPage = {
   entity: AdminEntityType;
   records: AdminEntityRecord[];
@@ -86,6 +110,11 @@ export interface AuthApplication {
   revokeOtherSessions(sessionToken: string): Promise<number>;
   adminOverview(): Promise<AdminDashboardOverview>;
   accountDetails(userId: string): Promise<AccountDetails>;
+  profileDetails(userId: string): Promise<UserProfileContract>;
+  updateProfile(
+    userId: string,
+    input: UpdateUserProfileContract,
+  ): Promise<UserProfileContract>;
   updateAccount(
     userId: string,
     input: UpdateAccountRequest,
@@ -96,6 +125,11 @@ export interface AuthApplication {
     page: number,
     pageSize: number,
   ): Promise<AdminEntityPage>;
+  adminEntityCatalog(): Promise<AdminEntityDefinition[]>;
+  createAdminEntity(
+    entity: AdminEntityType,
+    input: AdminCreateEntityInput,
+  ): Promise<AdminEntityRecord>;
   updateAdminEntity(
     entity: AdminEntityType,
     id: string,
@@ -129,6 +163,7 @@ export class AuthApplicationService implements AuthApplication {
   private readonly passwordAuthentication: PasswordAuthenticationService;
   private readonly verification: DrizzleEmailVerificationRepository;
   private readonly passwordReset: DrizzlePasswordResetTokenRepository;
+  private readonly profiles: DrizzleUserProfileRepository;
   private readonly verificationExpiresInHours: number;
   private readonly now: () => Date;
 
@@ -139,6 +174,7 @@ export class AuthApplicationService implements AuthApplication {
     this.users = new DrizzleUserRepository(database);
     this.verification = new DrizzleEmailVerificationRepository(database);
     this.passwordReset = new DrizzlePasswordResetTokenRepository(database);
+    this.profiles = new DrizzleUserProfileRepository(database);
     this.verificationExpiresInHours = options.verificationExpiresInHours ?? 24;
     this.now = options.now ?? (() => new Date());
     this.passwords = new CryptoPasswordHasher();
@@ -172,11 +208,17 @@ export class AuthApplicationService implements AuthApplication {
 
     let user;
     try {
-      user = await this.users.create({
-        username: input.username,
-        email: input.email,
-        passwordHash: await this.passwords.hash(input.password),
-        metadata: input.displayName ? { displayName: input.displayName } : {},
+      const passwordHash = await this.passwords.hash(input.password);
+      user = await this.database.transaction(async (transaction) => {
+        const database = transaction as DatabaseClient;
+        const created = await new DrizzleUserRepository(database).create({
+          username: input.username,
+          email: input.email,
+          passwordHash,
+          metadata: input.displayName ? { displayName: input.displayName } : {},
+        });
+        await assignDefaultPlatformUserRole(database, created.id);
+        return created;
       });
     } catch (error) {
       if (isUniqueViolation(error)) {
@@ -217,7 +259,7 @@ export class AuthApplicationService implements AuthApplication {
     const userId = await this.sessions.findUserIdByToken(sessionToken);
     if (!userId) return null;
 
-    const user = await this.users.findById(userId);
+    const user = await this.users.findAuthenticationEligibleById(userId);
     return user ? toAuthUser(user) : null;
   }
 
@@ -342,7 +384,7 @@ export class AuthApplicationService implements AuthApplication {
     if (!current) return [];
     const userId = await this.sessions.findUserIdByToken(sessionToken);
     if (!userId) return [];
-    return (await this.sessions.listForUser(userId)).map((session) => ({
+    return (await this.sessions.listHistoryForUser(userId)).map((session) => ({
       id: session.id,
       current: session.id === current.id,
       deviceName: session.deviceName,
@@ -352,6 +394,12 @@ export class AuthApplicationService implements AuthApplication {
       createdAt: session.createdAt,
       lastActiveAt: session.lastSeenAt ?? session.createdAt,
       expiresAt: session.expiresAt,
+      revokedAt: session.revokedAt,
+      status: session.revokedAt
+        ? 'revoked'
+        : new Date(session.expiresAt) <= this.now()
+          ? 'expired'
+          : 'active',
     }));
   }
 
@@ -485,58 +533,86 @@ export class AuthApplicationService implements AuthApplication {
       throw new AuthApplicationError('NOT_FOUND', 'Account not found.', 404);
 
     const now = this.now();
+    const username = input.username.trim().toLowerCase();
     const email = input.email.trim().toLowerCase();
     const emailChanged = email !== existing.email;
-    await this.database.transaction(async (transaction) => {
-      await transaction
-        .update(schema.usersTable)
-        .set({
-          username: input.username.trim(),
-          email,
-          ...(emailChanged
-            ? { emailVerified: false, emailVerifiedAt: null }
-            : {}),
-          updatedAt: now,
-        })
-        .where(
-          and(
-            eq(schema.usersTable.id, userId),
-            isNull(schema.usersTable.deletedAt),
-          ),
-        );
-      await transaction
-        .insert(schema.userProfilesTable)
-        .values({
-          userId,
-          handle: input.username.trim(),
-          avatarUrl: input.avatarUrl ?? null,
-        })
-        .onConflictDoUpdate({
-          target: schema.userProfilesTable.userId,
-          set: {
-            handle: input.username.trim(),
-            avatarUrl: input.avatarUrl ?? null,
+    const [usernameOwner, emailOwner] = await Promise.all([
+      this.users.findByUsername(username),
+      this.users.findByEmail(email),
+    ]);
+    if (
+      (usernameOwner && usernameOwner.id !== userId) ||
+      (emailOwner && emailOwner.id !== userId)
+    ) {
+      throw new AuthApplicationError(
+        'ACCOUNT_IDENTITY_CONFLICT',
+        'That username or email address is already in use.',
+        409,
+      );
+    }
+
+    if (input.avatarUrl !== undefined) {
+      await this.profileDetails(userId);
+    }
+
+    try {
+      await this.database.transaction(async (transaction) => {
+        await transaction
+          .update(schema.usersTable)
+          .set({
+            username,
+            email,
+            ...(emailChanged
+              ? { emailVerified: false, emailVerifiedAt: null }
+              : {}),
             updatedAt: now,
-            deletedAt: null,
-          },
-        });
-      await transaction
-        .insert(schema.userPreferencesTable)
-        .values({
-          userId,
-          timezone: input.timezone ?? null,
-          locale: input.locale ?? null,
-        })
-        .onConflictDoUpdate({
-          target: schema.userPreferencesTable.userId,
-          set: {
+          })
+          .where(
+            and(
+              eq(schema.usersTable.id, userId),
+              isNull(schema.usersTable.deletedAt),
+            ),
+          );
+
+        if (input.avatarUrl !== undefined) {
+          await transaction
+            .update(schema.userProfilesTable)
+            .set({ avatarUrl: input.avatarUrl, updatedAt: now })
+            .where(
+              and(
+                eq(schema.userProfilesTable.userId, userId),
+                isNull(schema.userProfilesTable.deletedAt),
+              ),
+            );
+        }
+
+        await transaction
+          .insert(schema.userPreferencesTable)
+          .values({
+            userId,
             timezone: input.timezone ?? null,
             locale: input.locale ?? null,
-            updatedAt: now,
-            deletedAt: null,
-          },
-        });
-    });
+          })
+          .onConflictDoUpdate({
+            target: schema.userPreferencesTable.userId,
+            set: {
+              timezone: input.timezone ?? null,
+              locale: input.locale ?? null,
+              updatedAt: now,
+              deletedAt: null,
+            },
+          });
+      });
+    } catch (error) {
+      if (isUniqueViolation(error)) {
+        throw new AuthApplicationError(
+          'ACCOUNT_IDENTITY_CONFLICT',
+          'That username or email address is already in use.',
+          409,
+        );
+      }
+      throw error;
+    }
     const details = await this.accountDetails(userId);
     if (emailChanged) {
       // An email address is an authentication identity. Existing credentials
@@ -550,97 +626,200 @@ export class AuthApplicationService implements AuthApplication {
     return details;
   }
 
+  async profileDetails(userId: string): Promise<UserProfileContract> {
+    const existing = await this.profiles.findByUserId(userId);
+    if (existing) return existing;
+
+    const user = await this.users.findById(userId);
+    if (!user)
+      throw new AuthApplicationError('NOT_FOUND', 'Account not found.', 404);
+
+    try {
+      return await this.profiles.create({
+        userId,
+        handle: user.username,
+        displayName: user.displayName ?? null,
+      });
+    } catch (error) {
+      if (!isUniqueViolation(error)) throw error;
+      const concurrentlyCreated = await this.profiles.findByUserId(userId);
+      if (concurrentlyCreated) return concurrentlyCreated;
+      return this.profiles.create({
+        userId,
+        handle: `user_${userId.replaceAll('-', '').slice(0, 24)}`,
+        displayName: user.displayName ?? null,
+      });
+    }
+  }
+
+  async updateProfile(
+    userId: string,
+    input: UpdateUserProfileContract,
+  ): Promise<UserProfileContract> {
+    await this.profileDetails(userId);
+    try {
+      const profile = await this.profiles.update(userId, input);
+      if (!profile) {
+        throw new AuthApplicationError('NOT_FOUND', 'Profile not found.', 404);
+      }
+      return profile;
+    } catch (error) {
+      if (isUniqueViolation(error)) {
+        throw new AuthApplicationError(
+          'PROFILE_HANDLE_CONFLICT',
+          'That profile handle is already in use.',
+          409,
+        );
+      }
+      throw error;
+    }
+  }
+
   async listAdminEntities(
     entity: AdminEntityType,
     search: string,
     page: number,
     pageSize: number,
   ): Promise<AdminEntityPage> {
+    const registered = requireAdminEntity(entity);
     const offset = (page - 1) * pageSize;
-    if (entity === 'users') {
-      const searchFilter = search
-        ? or(
-            ilike(schema.usersTable.username, `%${search}%`),
-            ilike(schema.usersTable.email, `%${search}%`),
-          )
-        : undefined;
-      const where = searchFilter
-        ? and(isNull(schema.usersTable.deletedAt), searchFilter)
-        : isNull(schema.usersTable.deletedAt);
-      const [[aggregate], rows] = await Promise.all([
-        this.database
-          .select({ value: count() })
-          .from(schema.usersTable)
-          .where(where),
-        this.database
-          .select({
-            id: schema.usersTable.id,
-            username: schema.usersTable.username,
-            email: schema.usersTable.email,
-            status: schema.usersTable.status,
-            emailVerified: schema.usersTable.emailVerified,
-            role: schema.usersTable.role,
-            tier: schema.usersTable.tier,
-            metadata: schema.usersTable.metadata,
-            createdAt: schema.usersTable.createdAt,
-            updatedAt: schema.usersTable.updatedAt,
-          })
-          .from(schema.usersTable)
-          .where(where)
-          .orderBy(desc(schema.usersTable.createdAt))
-          .limit(pageSize)
-          .offset(offset),
-      ]);
-      return {
-        entity,
-        records: rows,
-        total: aggregate?.value ?? 0,
-        page,
-        pageSize,
-      };
-    }
-
+    const projection = Object.fromEntries(
+      Object.entries(registered.columns).filter(
+        ([key]) =>
+          !registered.definition.columns.find((column) => column.key === key)
+            ?.sensitive,
+      ),
+    );
+    const searchableColumns = Object.entries(registered.columns).filter(
+      ([key]) =>
+        !registered.definition.columns.find((column) => column.key === key)
+          ?.sensitive,
+    );
     const searchFilter = search
       ? or(
-          sql`${schema.userSessionsTable.userId}::text ilike ${`%${search}%`}`,
-          ilike(schema.userSessionsTable.deviceName, `%${search}%`),
-          ilike(schema.userSessionsTable.ipAddress, `%${search}%`),
+          ...searchableColumns.map(([, column]) =>
+            ilike(sql`cast(${column} as text)`, `%${search}%`),
+          ),
         )
       : undefined;
-    const where = searchFilter
-      ? and(isNull(schema.userSessionsTable.deletedAt), searchFilter)
-      : isNull(schema.userSessionsTable.deletedAt);
+    const deletedAt = registered.columns['deletedAt'];
+    const where = deletedAt
+      ? searchFilter
+        ? and(isNull(deletedAt), searchFilter)
+        : isNull(deletedAt)
+      : searchFilter;
+    let rowsQuery = this.database
+      .select(projection)
+      .from(registered.table)
+      .where(where)
+      .$dynamic();
+    const createdAt = registered.columns['createdAt'];
+    if (createdAt) rowsQuery = rowsQuery.orderBy(desc(createdAt));
     const [[aggregate], rows] = await Promise.all([
       this.database
         .select({ value: count() })
-        .from(schema.userSessionsTable)
+        .from(registered.table)
         .where(where),
-      this.database
-        .select({
-          id: schema.userSessionsTable.id,
-          userId: schema.userSessionsTable.userId,
-          deviceName: schema.userSessionsTable.deviceName,
-          userAgent: schema.userSessionsTable.userAgent,
-          ipAddress: schema.userSessionsTable.ipAddress,
-          lastSeenAt: schema.userSessionsTable.lastSeenAt,
-          expiresAt: schema.userSessionsTable.expiresAt,
-          revokedAt: schema.userSessionsTable.revokedAt,
-          createdAt: schema.userSessionsTable.createdAt,
-          updatedAt: schema.userSessionsTable.updatedAt,
-        })
-        .from(schema.userSessionsTable)
-        .where(where)
-        .orderBy(desc(schema.userSessionsTable.createdAt))
-        .limit(pageSize)
-        .offset(offset),
+      rowsQuery.limit(pageSize).offset(offset),
     ]);
     return {
-      entity,
-      records: rows,
+      entity: registered.definition.name,
+      records: rows.map((row, index) =>
+        toAdminEntityRecord(registered, row, offset + index),
+      ),
       total: aggregate?.value ?? 0,
       page,
       pageSize,
     };
+  }
+
+  adminEntityCatalog(): Promise<AdminEntityDefinition[]> {
+    return Promise.resolve(listAdminEntityDefinitions());
+  }
+
+  async createAdminEntity(
+    entity: AdminEntityType,
+    input: AdminCreateEntityInput,
+  ): Promise<AdminEntityRecord> {
+    const registered = requireAdminEntity(entity);
+    if (registered.definition.name !== 'users') {
+      const values = toAdminInsertValues(registered, input);
+      try {
+        const [row] = await this.database
+          .insert(registered.table)
+          .values(values)
+          .returning();
+        if (!row) throw new Error('Failed to create entity record.');
+        return toAdminEntityRecord(registered, row, 0);
+      } catch (error) {
+        if (isUniqueViolation(error)) {
+          throw new AuthApplicationError(
+            'ENTITY_ALREADY_EXISTS',
+            'A record with those unique values already exists.',
+            409,
+          );
+        }
+        throw error;
+      }
+    }
+
+    if (
+      typeof input.username !== 'string' ||
+      typeof input.email !== 'string' ||
+      typeof input.password !== 'string'
+    ) {
+      throw new AuthApplicationError(
+        'INVALID_ENTITY_VALUES',
+        'Username, email, and password are required to create a user.',
+        422,
+      );
+    }
+
+    this.passwordPolicy.validate(input.password);
+    const username = input.username.trim().toLowerCase();
+    const email = input.email.trim().toLowerCase();
+    const [usernameOwner, emailOwner] = await Promise.all([
+      this.users.findByUsername(username),
+      this.users.findByEmail(email),
+    ]);
+    if (usernameOwner || emailOwner) {
+      throw new AuthApplicationError(
+        'USER_ALREADY_EXISTS',
+        'An account already exists for that email or username.',
+        409,
+      );
+    }
+
+    const metadata = {
+      ...(input.metadata ?? {}),
+      ...(input.displayName?.trim()
+        ? { displayName: input.displayName.trim() }
+        : {}),
+    };
+    let user: UserContract;
+    try {
+      user = await this.users.create({
+        username,
+        email,
+        passwordHash: await this.passwords.hash(input.password),
+        status: input.status,
+        tier: input.tier,
+        emailVerified: input.emailVerified ?? false,
+        metadata,
+      });
+    } catch (error) {
+      if (isUniqueViolation(error)) {
+        throw new AuthApplicationError(
+          'USER_ALREADY_EXISTS',
+          'An account already exists for that email or username.',
+          409,
+        );
+      }
+      throw error;
+    }
+
+    if (!user.emailVerified) await this.sendVerification(user);
+    return { ...user, metadata };
   }
 
   async updateAdminEntity(
@@ -705,6 +884,13 @@ export class AuthApplicationService implements AuthApplication {
       }
       return updated;
     }
+    if (entity !== 'sessions' && entity !== 'user_sessions') {
+      throw new AuthApplicationError(
+        'ENTITY_UPDATE_UNSUPPORTED',
+        'This entity is read/create only in the Entity Viewer.',
+        422,
+      );
+    }
 
     const allowed = pickDefined(changes, ['deviceName', 'revokedAt']);
     const [updated] = await this.database
@@ -768,6 +954,17 @@ export class AuthApplicationService implements AuthApplication {
         );
       }
     }
+    if (
+      entity !== 'users' &&
+      entity !== 'sessions' &&
+      entity !== 'user_sessions'
+    ) {
+      throw new AuthApplicationError(
+        'ENTITY_DELETE_UNSUPPORTED',
+        'This entity cannot be deleted from the Entity Viewer.',
+        422,
+      );
+    }
     const now = this.now();
     const table =
       entity === 'users' ? schema.usersTable : schema.userSessionsTable;
@@ -817,29 +1014,174 @@ export class AuthApplicationService implements AuthApplication {
   private async isPlatformOwner(userId: string): Promise<boolean> {
     const now = this.now();
     const [assignment] = await this.database
-      .select({ id: schema.principalRolesTable.id })
-      .from(schema.principalRolesTable)
+      .select({ userId: schema.platformRoleAssignmentsTable.userId })
+      .from(schema.platformRoleAssignmentsTable)
       .innerJoin(
         schema.rolesTable,
-        eq(schema.principalRolesTable.roleId, schema.rolesTable.id),
+        eq(schema.platformRoleAssignmentsTable.roleId, schema.rolesTable.id),
       )
       .where(
         and(
-          eq(schema.principalRolesTable.principalType, 'user'),
-          eq(schema.principalRolesTable.principalId, userId),
-          eq(schema.rolesTable.key, 'platform_owner'),
-          eq(schema.rolesTable.enabled, true),
-          isNull(schema.rolesTable.deletedAt),
-          isNull(schema.principalRolesTable.revokedAt),
+          eq(schema.platformRoleAssignmentsTable.userId, userId),
+          eq(schema.rolesTable.scope, 'platform'),
+          eq(schema.rolesTable.slug, 'platform-owner'),
           or(
-            isNull(schema.principalRolesTable.expiresAt),
-            gt(schema.principalRolesTable.expiresAt, now),
+            isNull(schema.platformRoleAssignmentsTable.expiresAt),
+            gt(schema.platformRoleAssignmentsTable.expiresAt, now),
           ),
         ),
       )
       .limit(1);
     return assignment !== undefined;
   }
+}
+
+function requireAdminEntity(entity: string): RegisteredAdminEntity {
+  const registered = getAdminEntity(entity);
+  if (!registered) {
+    throw new AuthApplicationError(
+      'UNSUPPORTED_ENTITY_TYPE',
+      'Unsupported entity type.',
+      404,
+    );
+  }
+  return registered;
+}
+
+function toAdminEntityRecord(
+  registered: RegisteredAdminEntity,
+  row: Record<string, unknown>,
+  rowIndex: number,
+): AdminEntityRecord {
+  const record = Object.fromEntries(
+    Object.entries(row).map(([key, value]) => [
+      key,
+      normalizeAdminValue(value),
+    ]),
+  );
+  for (const column of registered.definition.columns) {
+    if (column.sensitive) record[column.key] = '[REDACTED]';
+  }
+
+  const primaryKey = registered.primaryKeys
+    .map((key) => `${key}=${String(row[key] ?? '')}`)
+    .join('|');
+  const id = row['id'] ?? (primaryKey || `row-${rowIndex + 1}`);
+  return { ...record, id: String(id) };
+}
+
+function normalizeAdminValue(value: unknown): unknown {
+  if (typeof value === 'bigint') return value.toString();
+  if (value instanceof Date) return value.toISOString();
+  if (value instanceof Uint8Array) return '[BINARY]';
+  if (Array.isArray(value)) return value.map(normalizeAdminValue);
+  if (typeof value === 'object' && value !== null) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, nested]) => [
+        key,
+        normalizeAdminValue(nested),
+      ]),
+    );
+  }
+  return value;
+}
+
+function toAdminInsertValues(
+  registered: RegisteredAdminEntity,
+  input: AdminCreateEntityInput,
+): Record<string, unknown> {
+  const definitions = new Map(
+    registered.definition.columns.map((column) => [column.key, column]),
+  );
+  const values: Record<string, unknown> = {};
+
+  for (const [key, rawValue] of Object.entries(input)) {
+    const column = definitions.get(key);
+    if (!column || !column.insertable) {
+      throw new AuthApplicationError(
+        'INVALID_ENTITY_VALUES',
+        `Field "${key}" cannot be inserted for ${registered.definition.label}.`,
+        422,
+      );
+    }
+    if (rawValue === undefined || rawValue === '') continue;
+    if (rawValue === null) {
+      if (!column.nullable) {
+        throw new AuthApplicationError(
+          'INVALID_ENTITY_VALUES',
+          `${column.label} cannot be null.`,
+          422,
+        );
+      }
+      values[key] = null;
+      continue;
+    }
+
+    values[key] = coerceAdminEntityValue(column.type, rawValue, column.label);
+    if (
+      (key === 'email' || key === 'username') &&
+      typeof values[key] === 'string'
+    ) {
+      values[key] = values[key].trim().toLowerCase();
+    }
+  }
+
+  const missing = registered.definition.columns.filter(
+    (column) =>
+      column.insertable && column.required && values[column.key] === undefined,
+  );
+  if (missing.length > 0) {
+    throw new AuthApplicationError(
+      'INVALID_ENTITY_VALUES',
+      `Required fields are missing: ${missing.map((column) => column.label).join(', ')}.`,
+      422,
+    );
+  }
+
+  return values;
+}
+
+function coerceAdminEntityValue(
+  type: AdminEntityDefinition['columns'][number]['type'],
+  value: unknown,
+  label: string,
+): unknown {
+  if (type === 'string' || type === 'custom') return String(value).trim();
+  if (type === 'boolean') {
+    if (typeof value === 'boolean') return value;
+    if (value === 'true' || value === 'false') return value === 'true';
+  }
+  if (type === 'number') {
+    const parsed = typeof value === 'number' ? value : Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  if (type === 'bigint') {
+    try {
+      return typeof value === 'bigint' ? value : BigInt(String(value));
+    } catch {
+      // Handled by the validation error below.
+    }
+  }
+  if (type === 'date') {
+    const parsed = value instanceof Date ? value : new Date(String(value));
+    if (!Number.isNaN(parsed.getTime())) return parsed;
+  }
+  if (type === 'json') {
+    if (typeof value !== 'string') return value;
+    try {
+      return JSON.parse(value);
+    } catch {
+      // Handled by the validation error below.
+    }
+  }
+  if (type === 'array' && Array.isArray(value)) return value;
+  if (type === 'buffer' && typeof value === 'string') return value;
+
+  throw new AuthApplicationError(
+    'INVALID_ENTITY_VALUES',
+    `${label} has an invalid ${type} value.`,
+    422,
+  );
 }
 
 function pickDefined(

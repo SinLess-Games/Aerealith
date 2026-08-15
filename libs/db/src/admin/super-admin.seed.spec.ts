@@ -37,7 +37,8 @@ describe('seedSuperAdmin', () => {
 
     expect(query.mock.calls[1]?.[0]).toContain("role = 'super_admin'");
     expect(query.mock.calls[3]?.[0]).toContain('role_permissions');
-    expect(query.mock.calls[4]?.[0]).toContain('principal_roles');
+    expect(query.mock.calls[4]?.[0]).toContain('platform_role_assignments');
+    expect(query.mock.calls[4]?.[0]).not.toContain('principal_roles');
     expect(query.mock.calls[5]?.[0]).toContain(
       'principal_authorization_versions',
     );

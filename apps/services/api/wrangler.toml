@@ -27,6 +27,10 @@ head_sampling_rate = 1
 NODE_ENV = "production"
 FRONTEND_URL = "https://aerealith.com"
 
+[env.preview.vars]
+NODE_ENV = "development"
+FRONTEND_URL = "http://localhost:4200"
+
 [[flagship]]
 binding = "FLAGSHIP_FLAGS"
 app_id = "2a1ca9ba-b446-4cb8-b8eb-ab0f3985679f"
@@ -34,3 +38,17 @@ remote = true
 
 # Add service secrets with:
 # `pnpm wrangler secret put <NAME> --config apps/services/api/wrangler.toml`.
+
+[[secrets_store_secrets]]
+binding = "DATABASE_URL"
+store_id = "ab6f1fdec6a246578177e0577e94f40b"
+secret_name = "PRODUCTION_POSTGRES_URL"
+
+[[env.preview.secrets_store_secrets]]
+binding = "DATABASE_URL"
+store_id = "ab6f1fdec6a246578177e0577e94f40b"
+secret_name = "PREVIEW_POSTGRES_URL"
+
+[[r2_buckets]]
+binding = "AEREALITH_AI"
+bucket_name = "aerealith-ai"

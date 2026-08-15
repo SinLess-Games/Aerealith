@@ -2,15 +2,23 @@
 
 name = "aerealith-auth"
 main = "src/worker.ts"
+
 compatibility_date = "2026-07-28"
 compatibility_flags = ["nodejs_compat"]
+
 preview_urls = true
 workers_dev = true
 upload_source_maps = true
 
+
+# =============================================================================
+# Observability
+# =============================================================================
+
 [observability]
 enabled = true
 head_sampling_rate = 1
+
 
 [observability.logs]
 enabled = true
@@ -18,63 +26,110 @@ head_sampling_rate = 1
 persist = true
 invocation_logs = true
 
+
 [observability.traces]
 enabled = true
 persist = true
 head_sampling_rate = 1
 
+
+# =============================================================================
+# Production environment
+# =============================================================================
+
 [vars]
 NODE_ENV = "production"
 FRONTEND_URL = "https://aerealith.com"
+
+
+# -----------------------------------------------------------------------------
+# Feature flags
+# -----------------------------------------------------------------------------
 
 [[flagship]]
 binding = "FLAGSHIP_FLAGS"
 app_id = "2a1ca9ba-b446-4cb8-b8eb-ab0f3985679f"
 remote = true
 
+
+# -----------------------------------------------------------------------------
+# Secrets
+# -----------------------------------------------------------------------------
+
 [[secrets_store_secrets]]
 binding = "DATABASE_URL"
 store_id = "ab6f1fdec6a246578177e0577e94f40b"
 secret_name = "PRODUCTION_POSTGRES_URL"
+
 
 [[secrets_store_secrets]]
 binding = "RESEND_API_KEY"
 store_id = "ab6f1fdec6a246578177e0577e94f40b"
 secret_name = "RESEND_API_KEY"
 
+
+# -----------------------------------------------------------------------------
+# Authentication rate limiting
+# -----------------------------------------------------------------------------
+
 [[ratelimits]]
 name = "AUTH_SENSITIVE_RATE_LIMIT"
-namespace_id = "aerealith-auth-sensitive-v1"
+namespace_id = "1003"
+
 [ratelimits.simple]
 limit = 10
 period = 60
+
+
+# =============================================================================
+# Preview / local development environment
+# =============================================================================
+
 [env.preview]
 name = "aerealith-auth-preview"
 workers_dev = true
 preview_urls = true
 
+
 [env.preview.vars]
 NODE_ENV = "development"
 FRONTEND_URL = "http://localhost:4200"
+
+
+# -----------------------------------------------------------------------------
+# Preview feature flags
+# -----------------------------------------------------------------------------
 
 [[env.preview.flagship]]
 binding = "FLAGSHIP_FLAGS"
 app_id = "2a1ca9ba-b446-4cb8-b8eb-ab0f3985679f"
 remote = true
 
+
+# -----------------------------------------------------------------------------
+# Preview secrets
+# -----------------------------------------------------------------------------
+
 [[env.preview.secrets_store_secrets]]
 binding = "DATABASE_URL"
 store_id = "ab6f1fdec6a246578177e0577e94f40b"
 secret_name = "PREVIEW_POSTGRES_URL"
+
 
 [[env.preview.secrets_store_secrets]]
 binding = "RESEND_API_KEY"
 store_id = "ab6f1fdec6a246578177e0577e94f40b"
 secret_name = "RESEND_API_KEY"
 
+
+# -----------------------------------------------------------------------------
+# Preview authentication rate limiting
+# -----------------------------------------------------------------------------
+
 [[env.preview.ratelimits]]
 name = "AUTH_SENSITIVE_RATE_LIMIT"
-namespace_id = "aerealith-auth-preview-sensitive-v1"
+namespace_id = "1002"
+
 [env.preview.ratelimits.simple]
 limit = 10
 period = 60

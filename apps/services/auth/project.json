@@ -57,7 +57,15 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "apps/services/auth",
-        "command": "wrangler dev --env preview --port 8787 --var LOCAL_REGISTRATION_ENABLED:true"
+        "command": "wrangler dev --config wrangler.local.toml --port 8787 --env-file ../../../.env"
+      }
+    },
+    "dev-e2e": {
+      "continuous": true,
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/auth",
+        "command": "wrangler dev --config wrangler.local.toml --port 8787"
       }
     },
     "typegen": {

@@ -188,4 +188,100 @@ describe('AppRoutes', () => {
         .getAttribute('href'),
     ).toBe('/documentation');
   });
+
+  it('uses server authorization instead of the legacy role projection for admin routes', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const path = String(input);
+        if (path === '/api/V1/flags') {
+          return { ok: true, status: 200, json: async () => ({}) };
+        }
+        if (path === '/api/V1/auth/me') {
+          return {
+            status: 200,
+            json: async () => ({
+              ok: true,
+              data: {
+                id: 'user-1',
+                username: 'normal-user',
+                email: 'normal@example.com',
+                emailVerified: true,
+                role: 'super_admin',
+                createdAt: '2026-01-01T00:00:00.000Z',
+                updatedAt: '2026-01-01T00:00:00.000Z',
+              },
+            }),
+          };
+        }
+        if (path === '/api/V1/admin/overview') {
+          return {
+            status: 403,
+            json: async () => ({
+              ok: false,
+              error: { code: 'FORBIDDEN', message: 'Forbidden' },
+            }),
+          };
+        }
+        return {
+          status: 200,
+          json: async () => ({
+            ok: true,
+            data: { avatarUrl: null, timezone: null, locale: null },
+          }),
+        };
+      }),
+    );
+
+    renderAt('/app/admin');
+
+    expect(await screen.findByText('Command center')).toBeTruthy();
+    expect(
+      screen.queryByRole('heading', { name: /admin dashboard/i }),
+    ).toBeNull();
+  });
+
+  it('never renders privileged admin UI while session state is loading', () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise(() => undefined)),
+    );
+
+    renderAt('/app/admin');
+
+    expect(screen.getByText(/loading your workspace/i)).toBeTruthy();
+    expect(
+      screen.queryByRole('heading', { name: /admin dashboard/i }),
+    ).toBeNull();
+  });
+
+  it('shows a temporary failure state instead of redirecting on auth-service errors', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        if (String(input) === '/api/V1/flags') {
+          return { ok: true, status: 200, json: async () => ({}) };
+        }
+        return {
+          status: 503,
+          json: async () => ({
+            ok: false,
+            error: {
+              code: 'AUTH_SERVICE_UNAVAILABLE',
+              message: 'Authentication is temporarily unavailable',
+            },
+          }),
+        };
+      }),
+    );
+
+    renderAt('/app');
+
+    expect(
+      await screen.findByRole('heading', {
+        name: /authentication is temporarily unavailable/i,
+      }),
+    ).toBeTruthy();
+    expect(screen.queryByText(/welcome,/i)).toBeNull();
+  });
 });

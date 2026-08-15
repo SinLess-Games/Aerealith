@@ -8,10 +8,11 @@ import {
 } from 'react-icons/fi';
 import { useQuery } from '@tanstack/react-query';
 
-import { fetchAdminOverview } from '../../../features/admin/admin-api';
+import {
+  ADMIN_OVERVIEW_QUERY_KEY,
+  fetchAdminOverview,
+} from '../../../features/admin/admin-api';
 import styles from './admin-dashboard.module.css';
-
-const ADMIN_OVERVIEW_QUERY_KEY = ['admin', 'overview'] as const;
 
 export function AdminDashboardRoute() {
   const overview = useQuery({

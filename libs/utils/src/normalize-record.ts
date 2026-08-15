@@ -19,13 +19,9 @@ function normalizeValue(
   value: unknown,
   seen: WeakSet<object>,
 ): SerializableValue {
-  if (
-    value === null ||
-    typeof value === 'string' ||
-    typeof value === 'boolean'
-  ) {
-    return value;
-  }
+  if (value === null) return null;
+  if (typeof value === 'string') return value;
+  if (typeof value === 'boolean') return value;
 
   if (typeof value === 'number') {
     return Number.isFinite(value) ? value : String(value);
@@ -36,6 +32,7 @@ function normalizeValue(
   if (typeof value === 'symbol') return value.toString();
   if (typeof value === 'function')
     return `[Function: ${value.name || 'anonymous'}]`;
+  if (typeof value !== 'object') return String(value);
   if (value instanceof Date) {
     return Number.isNaN(value.getTime()) ? 'Invalid Date' : value.toISOString();
   }

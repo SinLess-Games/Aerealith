@@ -85,11 +85,13 @@ export function DocsSidebar({
   ...props
 }: Readonly<DocsSidebarProps>) {
   const resolvedLabel = label ?? getAudienceLabel(audience);
+  const accessibleLabel = props['aria-label'] ?? `${resolvedLabel} sidebar`;
 
   return (
     <>
       <aside
         {...props}
+        aria-label={accessibleLabel}
         className={cn('hidden min-w-0 lg:block', className, desktopClassName)}
         data-audience={audience}
         data-slot="docs-sidebar"
@@ -201,6 +203,7 @@ function DocsMobileSidebar({
       />
 
       <aside
+        aria-label={`${label} sidebar`}
         className={cn(
           'relative z-10 flex h-full w-[min(22rem,88vw)]',
           'flex-col border-r border-[var(--ae-border)]',

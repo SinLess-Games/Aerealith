@@ -8,17 +8,24 @@ The authentication service exposes the same application operations over:
 
 ## Local development
 
-Frontend development uses the deployed `aerealith-auth-preview` Worker. Its
-`DATABASE_URL` binding resolves to the Cloudflare Secrets Store
-`PREVIEW_POSTGRES_URL`; the credential is never copied into the repository or
-a local process.
+Frontend development starts a local auth Worker. Wrangler requires
+`DATABASE_URL` from the ignored root `.env` through `wrangler.local.toml`.
+`RESEND_API_KEY` is optional for existing-account login; when unavailable,
+email delivery becomes a no-op without logging verification or reset tokens.
+Deployed preview and production Workers continue to resolve configured
+bindings through Cloudflare Secrets Store.
+
+`wrangler.local.toml` explicitly enables registration for local development.
+That flag changes signup availability only; login and sessions remain backed
+by the configured database.
 
 ```bash
-pnpm nx run service-auth:deploy-preview
 pnpm dev
 ```
 
-Vite proxies `/api`, `/graphql`, and `/trpc` to the preview Worker.
+Vite proxies `/api`, `/graphql`, and `/trpc` to the local Worker on port 8787.
+Use `pnpm nx run service-auth:deploy-preview` only when updating the deployed
+preview Worker.
 
 ## Email verification
 
@@ -64,13 +71,12 @@ Create or normalize the configured verified super-administrator account with:
 pnpm nx run db:seed-admin
 ```
 
-The migration reads `ADMIN_USERNAME`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD`.
-It is idempotent, refuses ambiguous username/email collisions, and never
-replaces the password of an existing account. It assigns both the broad
-`super_admin` user role and the protected global `platform_owner` authorization
-role. If `ADMIN_PASSWORD` is absent for a new account, it prints a generated
-password once. For local PostgreSQL, use
-`pnpm nx run db:postgres-seed-admin`.
+The seed reads `ADMIN_USERNAME`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD`.
+It is idempotent, refuses ambiguous username/email collisions, and refreshes
+the bootstrap account password to the explicitly configured development
+password. The normalized `platform-owner` assignment is authoritative;
+`users.role = super_admin` is maintained only as a frontend compatibility
+projection.
 
 ## Cloudflare Worker
 

@@ -5,6 +5,7 @@ import {
 } from '@aerealith-ai/authorization';
 import {
   UserRole,
+  ProfileStatus,
   type AuthUser,
   type LoginRequest,
   type SignUpRequest,
@@ -26,6 +27,34 @@ const user: AuthUser = {
   emailVerified: false,
   role: UserRole.User,
   displayName: 'Ada',
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+};
+
+const profile = {
+  id: '0191ef35-d3c2-74d8-bb2c-253724e5bca9',
+  userId: user.id,
+  handle: 'ada',
+  displayName: 'Ada',
+  givenName: null,
+  middleName: null,
+  familyName: null,
+  pronouns: null,
+  avatarUrl: null,
+  bannerUrl: null,
+  bio: null,
+  status: ProfileStatus.Active,
+  fieldVisibility: {},
+  locationLabel: null,
+  country: null,
+  gender: null,
+  sex: null,
+  sexuality: null,
+  romanticOrientation: null,
+  sexAttitude: null,
+  languages: [],
+  websiteUrl: null,
+  links: [],
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
 };
@@ -83,6 +112,8 @@ class FakeAuthApplication implements AuthApplication {
     timezone: null,
     locale: null,
   }));
+  readonly profileDetails = vi.fn(async () => profile);
+  readonly updateProfile = vi.fn(async () => profile);
   readonly listAdminEntities = vi.fn(async (): Promise<AdminEntityPage> => ({
     entity: 'users',
     records: [],
@@ -90,9 +121,35 @@ class FakeAuthApplication implements AuthApplication {
     page: 1,
     pageSize: 25,
   }));
-  readonly updateAdminEntity = vi.fn(
-    async (_entity: 'users' | 'sessions', id: string) => ({ id }),
+  readonly adminEntityCatalog = vi.fn(async () => [
+    {
+      name: 'users',
+      label: 'Users',
+      singularLabel: 'User',
+      columns: [],
+      canCreate: true,
+      canUpdate: true,
+      canDelete: true,
+    },
+    {
+      name: 'waitlist_entries',
+      label: 'Waitlist entries',
+      singularLabel: 'Waitlist entry',
+      columns: [],
+      canCreate: true,
+      canUpdate: false,
+      canDelete: false,
+    },
+  ]);
+  readonly createAdminEntity = vi.fn(
+    async (_entity: string, input: Record<string, unknown>) => ({
+      id: 'created-user',
+      ...input,
+    }),
   );
+  readonly updateAdminEntity = vi.fn(async (_entity: string, id: string) => ({
+    id,
+  }));
   readonly deleteAdminEntity = vi.fn(async () => undefined);
 }
 
@@ -138,10 +195,45 @@ describe('auth service', () => {
     expect(response.headers.get('set-cookie')).toContain(
       'aerealith_session=signup-token',
     );
+    expect(response.headers.get('set-cookie')).toContain('HttpOnly');
+    expect(response.headers.get('set-cookie')).toContain('SameSite=Lax');
+    expect(response.headers.get('set-cookie')).toContain('Path=/');
+    expect(response.headers.get('set-cookie')).toContain('Max-Age=2592000');
+    expect(response.headers.get('set-cookie')).not.toContain('Secure');
     await expect(response.json()).resolves.toMatchObject({
       ok: true,
       data: user,
     });
+  });
+
+  it('uses Secure cookies on HTTPS and clears the same cookie scope on logout', async () => {
+    const loginResponse = await app.request(
+      'https://auth.aerealith.test/api/V1/auth/login',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          usernameOrEmail: 'ada',
+          password: 'SecurePassword1',
+        }),
+      },
+    );
+    expect(loginResponse.headers.get('set-cookie')).toContain('Secure');
+
+    const logoutResponse = await app.request(
+      'https://auth.aerealith.test/api/V1/auth/logout',
+      {
+        method: 'POST',
+        headers: { cookie: 'aerealith_session=session-token' },
+      },
+    );
+    const cleared = logoutResponse.headers.get('set-cookie');
+    expect(cleared).toContain('aerealith_session=');
+    expect(cleared).toContain('Max-Age=0');
+    expect(cleared).toContain('HttpOnly');
+    expect(cleared).toContain('SameSite=Lax');
+    expect(cleared).toContain('Path=/');
+    expect(cleared).toContain('Secure');
   });
 
   it('exposes the current user through both auth and user HTTP routes', async () => {
@@ -183,6 +275,39 @@ describe('auth service', () => {
         username: 'ada_lovelace',
         timezone: 'UTC',
         locale: 'en-GB',
+      }),
+    );
+  });
+
+  it('reads and updates every owner-facing profile field', async () => {
+    const headers = {
+      cookie: 'aerealith_session=session-token',
+      'content-type': 'application/json',
+    };
+    expect((await app.request('/api/V1/profile', { headers })).status).toBe(
+      200,
+    );
+
+    const update = await app.request('/api/V1/profile', {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({
+        handle: 'ada_lovelace',
+        displayName: 'Ada Lovelace',
+        bio: 'Mathematician',
+        languages: [
+          { language: 'eng', proficiency: 'native', isPrimary: true },
+        ],
+        links: [{ platform: 'website', url: 'https://example.com' }],
+      }),
+    });
+
+    expect(update.status).toBe(200);
+    expect(application.updateProfile).toHaveBeenCalledWith(
+      user.id,
+      expect.objectContaining({
+        handle: 'ada_lovelace',
+        displayName: 'Ada Lovelace',
       }),
     );
   });
@@ -292,6 +417,36 @@ describe('auth service', () => {
     expect(application.logout).not.toHaveBeenCalled();
   });
 
+  it.each([
+    ['malformed URL', 'not an origin'],
+    ['origin with a path', 'https://console.aerealith.example/path'],
+    ['opaque origin', 'null'],
+    ['lookalike subdomain', 'https://console.aerealith.example.attacker.test'],
+  ])('rejects a %s Origin header', async (_case, origin) => {
+    const protectedApp = createAuthServiceApp({
+      application,
+      authorization: createAuthorizationService(),
+      logger: new TestLogger(),
+      environment: 'test',
+      enableGraphiql: false,
+      allowedOrigins: ['https://console.aerealith.example'],
+    });
+    const response = await protectedApp.request('/api/V1/auth/logout', {
+      method: 'POST',
+      headers: { origin },
+    });
+
+    expect(response.status).toBe(403);
+    expect(application.logout).not.toHaveBeenCalled();
+  });
+
+  it('intentionally allows non-browser writes without Origin', async () => {
+    const response = await app.request('/api/V1/auth/logout', {
+      method: 'POST',
+    });
+    expect(response.status).toBe(200);
+  });
+
   it('allows same-origin unsafe writes', async () => {
     const response = await app.request('http://localhost/api/V1/auth/logout', {
       method: 'POST',
@@ -323,6 +478,56 @@ describe('auth service', () => {
     });
 
     expect(response.status).toBe(200);
+  });
+
+  it('answers trusted credentialed CORS preflight without a wildcard', async () => {
+    const allowedApp = createAuthServiceApp({
+      application,
+      authorization: createAuthorizationService(),
+      logger: new TestLogger(),
+      environment: 'test',
+      enableGraphiql: false,
+      allowedOrigins: ['http://localhost:4200'],
+    });
+    const response = await allowedApp.request('/api/V1/auth/login', {
+      method: 'OPTIONS',
+      headers: {
+        origin: 'http://localhost:4200',
+        'access-control-request-method': 'POST',
+        'access-control-request-headers': 'content-type',
+      },
+    });
+
+    expect(response.status).toBe(204);
+    expect(response.headers.get('access-control-allow-origin')).toBe(
+      'http://localhost:4200',
+    );
+    expect(response.headers.get('access-control-allow-credentials')).toBe(
+      'true',
+    );
+    expect(response.headers.get('access-control-allow-origin')).not.toBe('*');
+  });
+
+  it('does not return credentialed CORS headers to an untrusted origin', async () => {
+    const allowedApp = createAuthServiceApp({
+      application,
+      authorization: createAuthorizationService(),
+      logger: new TestLogger(),
+      environment: 'test',
+      enableGraphiql: false,
+      allowedOrigins: ['http://localhost:4200'],
+    });
+    const response = await allowedApp.request('/api/V1/auth/login', {
+      method: 'OPTIONS',
+      headers: {
+        origin: 'https://evil.example',
+        'access-control-request-method': 'POST',
+        'access-control-request-headers': 'content-type',
+      },
+    });
+
+    expect(response.headers.get('access-control-allow-origin')).toBeNull();
+    expect(response.headers.get('access-control-allow-credentials')).toBeNull();
   });
 
   it('validates GraphQL mutation inputs with the same Zod schemas', async () => {
@@ -420,6 +625,50 @@ describe('auth service', () => {
     });
   });
 
+  it('does not treat the users.role compatibility projection as authorization', async () => {
+    application.currentUser.mockResolvedValueOnce({
+      ...user,
+      role: UserRole.SuperAdmin,
+    });
+    const deniedAuthorization = {
+      can: vi.fn(async () => ({ allowed: false })),
+    } as unknown as AuthorizationService;
+    const deniedApp = createAuthServiceApp({
+      application,
+      authorization: deniedAuthorization,
+      logger: new TestLogger(),
+      environment: 'test',
+      enableGraphiql: false,
+    });
+
+    const response = await deniedApp.request('/api/V1/admin/overview', {
+      headers: { cookie: 'aerealith_session=session-token' },
+    });
+
+    expect(response.status).toBe(403);
+    expect(application.adminOverview).not.toHaveBeenCalled();
+  });
+
+  it('does not expose administrator operations through alternate transports', async () => {
+    const trpcResponse = await app.request('/trpc/admin.overview', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    expect(trpcResponse.status).toBe(404);
+
+    const graphqlResponse = await app.request('/graphql', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ query: '{ adminOverview { totalUsers } }' }),
+    });
+    const graphqlBody = (await graphqlResponse.json()) as {
+      errors?: Array<{ message?: string }>;
+    };
+    expect(graphqlBody.errors?.[0]?.message).toContain('Cannot query field');
+    expect(application.adminOverview).not.toHaveBeenCalled();
+  });
+
   it('lists protected database entities without exposing persistence secrets', async () => {
     application.listAdminEntities.mockResolvedValueOnce({
       entity: 'users',
@@ -442,6 +691,70 @@ describe('auth service', () => {
     await expect(response.json()).resolves.toMatchObject({
       data: { total: 1, records: [{ username: 'ada' }] },
     });
+  });
+
+  it('serves the complete database entity catalog', async () => {
+    const response = await app.request('/api/V1/admin/entities', {
+      headers: { cookie: 'aerealith_session=session-token' },
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      data: [
+        { name: 'users', canCreate: true },
+        { name: 'waitlist_entries', canCreate: true },
+      ],
+    });
+  });
+
+  it('creates a validated user entity with explicit administrator permission', async () => {
+    const response = await app.request('/api/V1/admin/entities/users', {
+      method: 'POST',
+      headers: {
+        cookie: 'aerealith_session=session-token',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: 'grace_hopper',
+        email: 'grace@example.com',
+        password: 'SecurePassword1',
+        displayName: 'Grace Hopper',
+        emailVerified: false,
+      }),
+    });
+
+    expect(response.status).toBe(201);
+    expect(application.createAdminEntity).toHaveBeenCalledWith(
+      'users',
+      expect.objectContaining({
+        username: 'grace_hopper',
+        email: 'grace@example.com',
+        displayName: 'Grace Hopper',
+      }),
+    );
+    await expect(response.json()).resolves.toMatchObject({
+      data: { id: 'created-user', username: 'grace_hopper' },
+    });
+  });
+
+  it('creates a non-user database entity with system management permission', async () => {
+    const response = await app.request(
+      '/api/V1/admin/entities/waitlist_entries',
+      {
+        method: 'POST',
+        headers: {
+          cookie: 'aerealith_session=session-token',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ email: 'waitlist@example.com' }),
+      },
+    );
+
+    expect(response.status).toBe(201);
+    expect(application.createAdminEntity).toHaveBeenCalledWith(
+      'waitlist_entries',
+      { email: 'waitlist@example.com' },
+    );
   });
 });
 
@@ -470,9 +783,9 @@ function createAuthorizationService(): AuthorizationService {
     createdAt: date,
     updatedAt: date,
   });
-  repository.permissions.set('users.read', {
-    id: 'permission-users-read',
-    key: 'users.read',
+  repository.permissions.set('platform.user.read', {
+    id: 'permission-platform-user-read',
+    key: 'platform.user.read',
     resource: 'users',
     action: 'read',
     displayName: 'Read users',
@@ -481,12 +794,45 @@ function createAuthorizationService(): AuthorizationService {
     createdAt: date,
     updatedAt: date,
   });
-  repository.permissions.set('users.update', {
-    id: 'permission-users-update',
-    key: 'users.update',
+  repository.permissions.set('platform.user.update', {
+    id: 'permission-platform-user-update',
+    key: 'platform.user.update',
     resource: 'users',
     action: 'update',
     displayName: 'Update users',
+    system: true,
+    enabled: true,
+    createdAt: date,
+    updatedAt: date,
+  });
+  repository.permissions.set('platform.user.create', {
+    id: 'permission-platform-user-create',
+    key: 'platform.user.create',
+    resource: 'users',
+    action: 'create',
+    displayName: 'Create users',
+    system: true,
+    enabled: true,
+    createdAt: date,
+    updatedAt: date,
+  });
+  repository.permissions.set('platform.system.read', {
+    id: 'permission-platform-system-read',
+    key: 'platform.system.read',
+    resource: 'system',
+    action: 'read',
+    displayName: 'Read system entities',
+    system: true,
+    enabled: true,
+    createdAt: date,
+    updatedAt: date,
+  });
+  repository.permissions.set('platform.system.manage', {
+    id: 'permission-platform-system-manage',
+    key: 'platform.system.manage',
+    resource: 'system',
+    action: 'manage',
+    displayName: 'Manage system entities',
     system: true,
     enabled: true,
     createdAt: date,
@@ -523,8 +869,11 @@ function createAuthorizationService(): AuthorizationService {
       'role-user': [
         repository.permissions.get('account.read')!,
         repository.permissions.get('account.update')!,
-        repository.permissions.get('users.read')!,
-        repository.permissions.get('users.update')!,
+        repository.permissions.get('platform.user.read')!,
+        repository.permissions.get('platform.user.create')!,
+        repository.permissions.get('platform.user.update')!,
+        repository.permissions.get('platform.system.read')!,
+        repository.permissions.get('platform.system.manage')!,
       ],
     },
     parentRoleIdsByRole: {},

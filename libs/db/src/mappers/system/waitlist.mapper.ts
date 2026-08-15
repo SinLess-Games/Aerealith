@@ -4,9 +4,9 @@ import {
   WaitlistEntity,
   type JoinWaitlistContract,
   type WaitlistContract,
-} from '@aerealith-ai/core'
+} from '@aerealith-ai/core';
 
-import type { NewWaitlistRow, WaitlistRow } from '../../schema'
+import type { NewWaitlistRow, WaitlistRow } from '../../schema';
 
 /**
  * Converts a database waitlist row into the core waitlist entity.
@@ -15,10 +15,11 @@ export function toWaitlistEntity(row: WaitlistRow): WaitlistEntity {
   return new WaitlistEntity({
     id: row.id,
     email: row.email,
+    role: row.role,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     deletedAt: row.deletedAt,
-  })
+  });
 }
 
 /**
@@ -28,8 +29,9 @@ export function toWaitlistContract(entity: WaitlistEntity): WaitlistContract {
   return {
     id: entity.id,
     email: entity.email,
+    role: entity.role,
     createdAt: entity.createdAt.toISOString(),
-  }
+  };
 }
 
 /**
@@ -40,5 +42,6 @@ export function toWaitlistContract(entity: WaitlistEntity): WaitlistContract {
 export function toNewWaitlistRow(input: JoinWaitlistContract): NewWaitlistRow {
   return {
     email: input.email.trim().toLowerCase(),
-  }
+    role: input.role?.trim() || null,
+  };
 }

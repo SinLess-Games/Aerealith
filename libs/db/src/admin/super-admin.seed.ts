@@ -13,8 +13,8 @@ export interface SuperAdminSeedResult {
 }
 
 /**
- * Idempotently promotes the configured owner in both the legacy user role and
- * normalized authorization model.
+ * Idempotently promotes the configured owner in the normalized authorization
+ * model. users.role remains a compatibility projection only.
  */
 export async function seedSuperAdmin(
   client: Pick<PoolClient, 'query'>,
@@ -92,21 +92,17 @@ export async function seedSuperAdmin(
 
   const roleResult = await client.query<{ id: string }>(
     `INSERT INTO roles (
-       key, display_name, description, system, assignable,
-       administrative_rank, enabled
+       name, slug, scope, description, is_system, is_default
      ) VALUES (
-       'platform_owner', 'Platform Owner',
+       'Platform Owner', 'platform-owner', 'platform',
        'Protected ownership with complete platform access.',
-       true, false, 100, true
+       true, false
      )
-     ON CONFLICT (key) DO UPDATE SET
-       display_name = excluded.display_name,
+     ON CONFLICT (scope, slug) DO UPDATE SET
+       name = excluded.name,
        description = excluded.description,
-       system = true,
-       assignable = false,
-       administrative_rank = 100,
-       enabled = true,
-       deleted_at = NULL,
+       is_system = true,
+       is_default = false,
        updated_at = now()
      RETURNING id`,
   );
@@ -114,28 +110,18 @@ export async function seedSuperAdmin(
   if (!role) throw new Error('The platform-owner role could not be ensured.');
 
   await client.query(
-    `INSERT INTO role_permissions (role_id, permission_id, assigned_by)
-     SELECT $1, permissions.id, 'seed:super-admin'
+    `INSERT INTO role_permissions (role_id, permission_id)
+     SELECT $1, permissions.id
        FROM permissions
-      WHERE permissions.enabled = true
+      WHERE permissions.scope = 'platform'
      ON CONFLICT DO NOTHING`,
     [role.id],
   );
   await client.query(
-    `INSERT INTO principal_roles (
-       principal_type, principal_id, role_id, scope_type, assigned_by,
-       metadata, active_key
-     ) VALUES (
-       'user', $1, $2, 'global', 'seed:super-admin',
-       '{"protectedOwner":true,"source":"admin-seed"}'::jsonb,
-       concat('user:', $1::text, ':', $2::text, ':global:')
-     )
-     ON CONFLICT (active_key) DO UPDATE SET
-       expires_at = NULL,
-       revoked_by = NULL,
-       revoked_at = NULL,
-       revocation_reason = NULL,
-       metadata = principal_roles.metadata || excluded.metadata`,
+    `INSERT INTO platform_role_assignments (
+       user_id, role_id, assigned_by_user_id, expires_at
+     ) VALUES ($1, $2, NULL, NULL)
+     ON CONFLICT (user_id, role_id) DO UPDATE SET expires_at = NULL`,
     [user.id, role.id],
   );
   await client.query(

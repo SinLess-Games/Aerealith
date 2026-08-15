@@ -11,6 +11,7 @@ import {
 } from '@aerealith-ai/core';
 
 import type { DatabaseClient } from '../../client';
+import { authenticationEligibleUserById } from '../../queries';
 import { usersTable, type NewUserRow, type UserRow } from '../../schema';
 
 export type CreateUserInput = {
@@ -52,6 +53,18 @@ export class DrizzleUserRepository {
 
   async findById(id: string): Promise<UserContract | null> {
     const row = await this.findRowById(id);
+
+    return row ? toUserContract(row) : null;
+  }
+
+  async findAuthenticationEligibleById(
+    id: string,
+  ): Promise<UserContract | null> {
+    const [row] = await this.database
+      .select()
+      .from(usersTable)
+      .where(authenticationEligibleUserById(id))
+      .limit(1);
 
     return row ? toUserContract(row) : null;
   }

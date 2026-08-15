@@ -37,6 +37,8 @@ export type AuthSessionSummary = {
   createdAt?: string;
   lastActiveAt?: string;
   expiresAt?: string;
+  revokedAt?: string | null;
+  status?: 'active' | 'expired' | 'revoked';
 };
 
 export type AuthSessionsResponse = {

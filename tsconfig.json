@@ -4,7 +4,8 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "module": "nodenext",
-    "noEmit": true
+    "noEmit": true,
+    "ignoreDeprecations": "6.0"
   },
   "files": [],
   "exclude": ["node_modules", "dist", "tmp"]

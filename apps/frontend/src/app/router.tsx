@@ -1,7 +1,12 @@
 import { FeatureFlag, type FeatureFlagKey } from '@aerealith-ai/core';
+import { useQuery } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { Navigate, Route, Routes } from 'react-router';
 
+import {
+  ADMIN_OVERVIEW_QUERY_KEY,
+  fetchAdminOverview,
+} from '../features/admin/admin-api';
 import { useSession } from '../features/auth/use-session';
 import { useFeatureFlag } from '../features/flags/feature-flags';
 import { DashboardLayout } from './layouts/dashboard-layout';
@@ -18,6 +23,7 @@ import { SignUpRoute } from './routes/auth/sign-up.route';
 import { ForgotPasswordRoute } from './routes/auth/forgot-password.route';
 import { ResetPasswordRoute } from './routes/auth/reset-password.route';
 import { SecurityRoute } from './routes/auth/security.route';
+import { ProfileRoute } from './routes/auth/profile.route';
 import { VerifyEmailRoute } from './routes/auth/verify-email.route';
 import {
   DeveloperDocsRoute,
@@ -98,6 +104,7 @@ export function AppRoutes() {
         >
           <Route index element={<DashboardRoute />} />
           <Route path="account" element={<AccountRoute />} />
+          <Route path="profile" element={<ProfileRoute />} />
           <Route path="security" element={<SecurityRoute />} />
           <Route
             path="admin"
@@ -122,9 +129,18 @@ export function AppRoutes() {
 }
 
 function SuperAdminRoute({ children }: { children: ReactNode }) {
-  const { user, isLoading } = useSession();
-  if (isLoading) return null;
-  return user?.role === 'super_admin' ? (
+  const { isAuthenticated, isError, isLoading } = useSession();
+  const adminAccess = useQuery({
+    queryKey: ADMIN_OVERVIEW_QUERY_KEY,
+    queryFn: fetchAdminOverview,
+    enabled: isAuthenticated,
+    retry: false,
+    staleTime: 60_000,
+  });
+  if (isLoading || isError || (isAuthenticated && adminAccess.isLoading)) {
+    return null;
+  }
+  return isAuthenticated && adminAccess.isSuccess ? (
     children
   ) : (
     <Navigate to="/app" replace />

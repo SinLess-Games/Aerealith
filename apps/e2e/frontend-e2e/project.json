@@ -1,0 +1,53 @@
+{
+  "name": "frontend-e2e",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/e2e/frontend-e2e/src",
+  "tags": ["scope:e2e", "type:test"],
+  "implicitDependencies": ["frontend", "service-auth", "service-api", "db"],
+  "// targets": "to see all targets run: nx show project frontend-e2e --web",
+  "targets": {
+    "e2e": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "dependsOn": [
+        {
+          "projects": ["frontend"],
+          "target": "build"
+        }
+      ],
+      "defaultConfiguration": "mock",
+      "outputs": [
+        "{workspaceRoot}/dist/.playwright/apps/e2e/frontend-e2e/test-output",
+        "{workspaceRoot}/dist/.playwright/apps/e2e/frontend-e2e/playwright-report"
+      ],
+      "options": {
+        "cwd": "apps/e2e/frontend-e2e",
+        "command": "playwright test"
+      },
+      "configurations": {
+        "mock": {
+          "env": {
+            "E2E_TARGET": "mock"
+          }
+        },
+        "local": {
+          "env": {
+            "E2E_TARGET": "local"
+          }
+        },
+        "preview": {
+          "env": {
+            "E2E_TARGET": "preview"
+          }
+        }
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p apps/e2e/frontend-e2e/tsconfig.json"
+      }
+    }
+  }
+}

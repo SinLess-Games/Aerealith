@@ -19,14 +19,31 @@ describe('SessionPolicy', () => {
     );
   });
 
-  it('derives active, expired, and revoked states', () => {
+  it('enforces expiration just before, exactly at, and after the boundary', () => {
     const policy = new SessionPolicy();
+    const expiration = new Date('2026-07-27T12:01:00.000Z');
     expect(
-      policy.status(session({ expiresAt: '2026-07-27T12:01:00.000Z' }), now),
+      policy.status(
+        session({ expiresAt: expiration.toISOString() }),
+        new Date(expiration.getTime() - 1),
+      ),
     ).toBe(SessionStatus.Active);
-    expect(policy.status(session({ expiresAt: now.toISOString() }), now)).toBe(
-      SessionStatus.Expired,
-    );
+    expect(
+      policy.status(
+        session({ expiresAt: expiration.toISOString() }),
+        expiration,
+      ),
+    ).toBe(SessionStatus.Expired);
+    expect(
+      policy.status(
+        session({ expiresAt: expiration.toISOString() }),
+        new Date(expiration.getTime() + 1),
+      ),
+    ).toBe(SessionStatus.Expired);
+  });
+
+  it('prioritizes explicit revocation over expiration state', () => {
+    const policy = new SessionPolicy();
     expect(
       policy.status(
         session({

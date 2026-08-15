@@ -2,6 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 
 import worker, { type AuthWorkerEnvironment } from './worker';
 
+function databaseSecret(environment: AuthWorkerEnvironment) {
+  const binding = environment.DATABASE_URL;
+  if (typeof binding === 'string') throw new Error('Expected test binding.');
+  return binding;
+}
+
 function environment(): AuthWorkerEnvironment {
   return {
     DATABASE_URL: { get: vi.fn(async () => 'postgres://test') },
@@ -41,9 +47,40 @@ describe('auth Worker rate-limit transport', () => {
         message: 'Too many requests. Please try again later.',
       },
     });
-    expect(workerEnvironment.DATABASE_URL.get).not.toHaveBeenCalled();
+    expect(databaseSecret(workerEnvironment).get).not.toHaveBeenCalled();
     expect(
       workerEnvironment.AUTH_SENSITIVE_RATE_LIMIT.limit,
     ).toHaveBeenCalledOnce();
+  });
+
+  it('lets an allowed sensitive request reach transport validation', async () => {
+    const workerEnvironment = environment();
+    workerEnvironment.AUTH_SENSITIVE_RATE_LIMIT.limit = vi.fn(async () => ({
+      success: true,
+    }));
+    const response = await worker.fetch(
+      new Request('https://auth.aerealith.com/api/V1/auth/login', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ usernameOrEmail: '', password: '' }),
+      }),
+      workerEnvironment,
+    );
+
+    expect(response.status).toBe(422);
+    expect(databaseSecret(workerEnvironment).get).toHaveBeenCalledOnce();
+  });
+
+  it('does not charge health, flags, or ordinary safe requests', async () => {
+    for (const path of ['/health', '/api/V1/flags']) {
+      const workerEnvironment = environment();
+      await worker.fetch(
+        new Request(`https://auth.aerealith.com${path}`),
+        workerEnvironment,
+      );
+      expect(
+        workerEnvironment.AUTH_SENSITIVE_RATE_LIMIT.limit,
+      ).not.toHaveBeenCalled();
+    }
   });
 });

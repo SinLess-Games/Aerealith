@@ -17,7 +17,9 @@ export function SecurityRoute() {
   const revokeOtherSessions = useRevokeOtherSessions();
   const [announcement, setAnnouncement] = useState('');
   const otherSessions =
-    sessions.data?.sessions.filter((session) => !session.current) ?? [];
+    sessions.data?.sessions.filter(
+      (session) => !session.current && session.status === 'active',
+    ) ?? [];
 
   return (
     <section className={styles.page}>
@@ -97,11 +99,11 @@ export function SecurityRoute() {
           </span>
           <div>
             <h2 id="sessions-title" className="text-xl font-semibold">
-              Active sessions
+              Session history
             </h2>
             <p className="mt-1 text-sm text-[var(--ae-foreground-muted)]">
-              Only device and activity information is shown here; credentials
-              are never displayed.
+              Review every retained session on your account, including active,
+              expired, and revoked sessions. Credentials are never displayed.
             </p>
           </div>
         </div>
@@ -109,12 +111,12 @@ export function SecurityRoute() {
         <div className="mt-5 space-y-3">
           {sessions.isLoading ? (
             <p className={styles.status} role="status">
-              Loading active sessions…
+              Loading session history…
             </p>
           ) : null}
           {sessions.isError ? (
             <div className={styles.error} role="alert">
-              <p>We couldn’t load your active sessions.</p>
+              <p>We couldn’t load your session history.</p>
               <Button
                 variant="outline"
                 size="sm"
@@ -127,8 +129,8 @@ export function SecurityRoute() {
           ) : null}
           {sessions.isSuccess && sessions.data.sessions.length === 0 ? (
             <p className={styles.status}>
-              No active sessions were returned. Refresh this page if you
-              recently signed in.
+              No session history was returned. Refresh this page if you recently
+              signed in.
             </p>
           ) : null}
           {sessions.isSuccess && otherSessions.length === 0 ? (
@@ -196,6 +198,11 @@ function SessionRow({
               {session.current ? (
                 <span className={styles.currentBadge}>Current session</span>
               ) : null}
+              <span
+                className={`${styles.statusBadge} ${styles[`status${capitalize(session.status ?? 'active')}`]}`}
+              >
+                {capitalize(session.status ?? 'active')}
+              </span>
             </div>
             {session.userAgent ? (
               <p className="mt-1 break-words text-sm text-[var(--ae-foreground-muted)]">
@@ -212,9 +219,19 @@ function SessionRow({
                 Last active {formatDate(activity)}
               </p>
             ) : null}
+            {session.expiresAt ? (
+              <p className="mt-1 text-xs text-[var(--ae-foreground-subtle)]">
+                Expires {formatDate(session.expiresAt)}
+              </p>
+            ) : null}
+            {session.revokedAt ? (
+              <p className="mt-1 text-xs text-[var(--ae-foreground-subtle)]">
+                Revoked {formatDate(session.revokedAt)}
+              </p>
+            ) : null}
           </div>
         </div>
-        {!session.current ? (
+        {!session.current && (session.status ?? 'active') === 'active' ? (
           <Button
             variant="outline"
             size="sm"
@@ -232,6 +249,10 @@ function SessionRow({
 function formatDate(value: string) {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? 'recently' : date.toLocaleString();
+}
+
+function capitalize(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 export default SecurityRoute;

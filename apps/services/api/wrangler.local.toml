@@ -1,0 +1,19 @@
+"$schema" = "../../../node_modules/wrangler/config-schema.json"
+
+name = "aerealith-api-local"
+main = "src/worker.ts"
+compatibility_date = "2026-07-28"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = false
+preview_urls = false
+
+[vars]
+NODE_ENV = "development"
+FRONTEND_URL = "http://localhost:4200"
+
+[secrets]
+required = ["DATABASE_URL"]
+
+[[r2_buckets]]
+binding = "AEREALITH_AI"
+bucket_name = "aerealith-ai-local"

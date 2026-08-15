@@ -23,6 +23,7 @@ import {
   updateAccount,
 } from '../../../features/auth/account-api';
 import styles from './account.module.css';
+import { ApiError } from '../../../lib/api-client';
 
 type Draft = {
   username: string;
@@ -60,7 +61,7 @@ export function AccountRoute() {
     onSuccess: async (updated) => {
       queryClient.setQueryData(SESSION_QUERY_KEY, updated.user);
       queryClient.setQueryData(['account'], updated);
-      setStatusMessage('Your profile changes have been saved.');
+      setStatusMessage('Your account changes have been saved.');
       setEditing(false);
       await queryClient.invalidateQueries({ queryKey: ['account'] });
     },
@@ -112,7 +113,7 @@ export function AccountRoute() {
       </div>
       <h1 className="mt-4 text-4xl font-bold tracking-tight">Account</h1>
       <p className="mt-1 text-sm text-[var(--ae-foreground-muted)]">
-        Manage your profile, security settings, and session preferences.
+        Manage your sign-in identity and regional preferences.
       </p>
       {statusMessage ? (
         <p
@@ -157,7 +158,7 @@ export function AccountRoute() {
               <div className={styles.icon}>
                 <FiUser />
               </div>
-              <h2 className="text-xl font-semibold">Profile</h2>
+              <h2 className="text-xl font-semibold">Account identity</h2>
               <button
                 type="button"
                 onClick={openEditor}
@@ -234,14 +235,14 @@ export function AccountRoute() {
           <aside className={`${styles.panel} ${styles.editor}`}>
             <div className="flex items-start justify-between">
               <div>
-                <h2 className="text-2xl font-semibold">Edit profile</h2>
+                <h2 className="text-2xl font-semibold">Edit account</h2>
                 <p className="mt-2 text-sm text-[var(--ae-foreground-muted)]">
                   Update your account information.
                 </p>
               </div>
               <button
                 type="button"
-                aria-label="Close profile editor"
+                aria-label="Close account editor"
                 onClick={() => setEditing(false)}
                 className={styles.iconButton}
               >
@@ -336,8 +337,9 @@ export function AccountRoute() {
                   role="alert"
                   className="text-sm text-[var(--ae-danger-foreground)]"
                 >
-                  Profile changes could not be saved. Check that the username
-                  and email are unique.
+                  {save.error instanceof ApiError
+                    ? save.error.message
+                    : 'Account changes could not be saved. Please try again.'}
                 </p>
               ) : null}
               <div className="flex flex-col gap-3 border-t border-[var(--ae-divider)] pt-5 sm:flex-row">
@@ -374,13 +376,13 @@ export function AccountRoute() {
             <p className="mt-1 text-sm text-[var(--ae-foreground-subtle)]">
               {account.isLoading
                 ? 'Loading your preferences…'
-                : 'Profile ready to manage'}
+                : 'Account ready to manage'}
             </p>
             <button
               onClick={openEditor}
               className={`${styles.outlineButton} mt-6`}
             >
-              <FiEdit2 /> Edit profile
+              <FiEdit2 /> Edit account
             </button>
           </aside>
         )}

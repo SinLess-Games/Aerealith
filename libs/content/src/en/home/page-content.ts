@@ -1,11 +1,11 @@
-import { atAGlanceSection } from './at-a-glance.section'
-import { communityFundingSection } from './community-funding.section'
-import { faqCards, faqSection } from './faq.section'
-import { HERO_DATA, INVESTOR_VIDEO } from './hero.section'
+import { atAGlanceSection } from './at-a-glance.section';
+import { communityFundingSection } from './community-funding.section';
+import { faqCards, faqSection } from './faq.section';
+import { HERO_DATA, INVESTOR_VIDEO } from './hero.section';
 import {
   aerealithDifferentiators,
   whyAerealithAiSection,
-} from './why-aerealith-ai.section'
+} from './why-aerealith-ai.section';
 
 export const homeLandingPageContent = {
   hero: {
@@ -29,6 +29,7 @@ export const homeLandingPageContent = {
     roleLabel: 'Your role',
     rolePlaceholder: 'Select your role',
     roles: ['Individual', 'Creator', 'Developer', 'Community', 'Team'],
+    newsletterLabel: 'Also join the newsletter',
     submitLabel: 'Join waitlist',
     privacyNote: 'We respect your privacy. No spam, ever.',
   },
@@ -134,23 +135,23 @@ export const homeLandingPageContent = {
     primaryAction: { label: 'Join the waitlist', href: '#waitlist' },
     secondaryAction: { label: 'Explore updates', href: '/contact' },
   },
-} as const
+} as const;
 
 // Compatibility exports for existing consumers of the previous home model.
-export const homeSections = atAGlanceSection.carouselSections
-export const homePageContent = { sections: homeSections } as const
-export const crowdfundingMediaItems = [homeLandingPageContent.funding.video]
+export const homeSections = atAGlanceSection.carouselSections;
+export const homePageContent = { sections: homeSections } as const;
+export const crowdfundingMediaItems = [homeLandingPageContent.funding.video];
 export const crowdfundingSection = {
   ...communityFundingSection,
   videos: crowdfundingMediaItems,
-} as const
-export const pricingPreviewImage = homeLandingPageContent.hero.image
+} as const;
+export const pricingPreviewImage = homeLandingPageContent.hero.image;
 export const pricingPreviewSection = {
   id: 'pricing-preview',
   eyebrow: homeLandingPageContent.pricing.eyebrow,
   title: homeLandingPageContent.pricing.title,
   description: homeLandingPageContent.pricing.description,
   image: pricingPreviewImage,
-} as const
-export const infographicCarouselProps = { autoScrollInterval: 6_500 } as const
-export const productPreviewCarouselProps = { maxImages: 5 } as const
+} as const;
+export const infographicCarouselProps = { autoScrollInterval: 6_500 } as const;
+export const productPreviewCarouselProps = { maxImages: 5 } as const;

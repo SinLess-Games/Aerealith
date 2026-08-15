@@ -1,9 +1,47 @@
-/// <reference types='vitest' />
+/// <reference types="vitest" />
 
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import mdx from 'fumadocs-mdx/vite';
 import { defineConfig, loadEnv } from 'vite';
+
+/**
+ * Hosts that may access the local Vite development/preview server.
+ *
+ * These are HOSTNAMES only:
+ *
+ *   localhost
+ *
+ * Not:
+ *
+ *   http://localhost:4200
+ */
+const allowedHosts = ['localhost', '127.0.0.1', 'local.sinlessgames.com'];
+
+/**
+ * Browser origins allowed to make cross-origin requests to the
+ * Vite development/preview server.
+ *
+ * Origins include:
+ *
+ *   protocol://hostname[:port]
+ *
+ * These settings apply only to Vite itself. Authentication/API services
+ * maintain their own independent CORS and trusted-origin policies.
+ */
+const allowedOrigins = [
+  // Standard local frontend development.
+  'http://localhost:4200',
+  'http://127.0.0.1:4200',
+
+  // Aerealith local development domain.
+  'http://local.sinlessgames.com:4200',
+  'https://local.sinlessgames.com:4200',
+
+  // Production frontend origins.
+  'https://aerealith.com',
+  'https://www.aerealith.com',
+];
 
 /**
  * Vite configuration for the Aerealith frontend.
@@ -14,15 +52,19 @@ import { defineConfig, loadEnv } from 'vite';
  */
 export default defineConfig(({ mode }) => {
   const isProduction = mode === 'production';
+
   const environment = loadEnv(mode, '../..', '');
+
   const browserEnvironment = Object.fromEntries(
     Object.entries(environment).filter(([key]) => key.startsWith('VITE_')),
   );
+
   const authServiceUrl =
     environment['AUTH_SERVICE_URL'] ??
     (isProduction
       ? 'https://aerealith-auth-preview.sinless-deploy.workers.dev'
       : 'http://localhost:8787');
+
   const apiServiceUrl =
     environment['API_SERVICE_URL'] ??
     (isProduction
@@ -31,18 +73,24 @@ export default defineConfig(({ mode }) => {
 
   return {
     root: import.meta.dirname,
+
     envDir: '../..',
+
     cacheDir: '../../node_modules/.vite/apps/frontend',
+
     define: {
       __AEREALITH_FARO_URL__: JSON.stringify(
         environment['VITE_GRAFANA_FARO_URL'] ?? '',
       ),
+
       __AEREALITH_APP_ENVIRONMENT__: JSON.stringify(
         environment['VITE_APP_ENVIRONMENT'] ?? mode,
       ),
+
       __AEREALITH_APP_VERSION__: JSON.stringify(
         environment['VITE_APP_VERSION'] ?? 'development',
       ),
+
       __AEREALITH_ENV__: JSON.stringify({
         ...browserEnvironment,
         MODE: mode,
@@ -61,15 +109,59 @@ export default defineConfig(({ mode }) => {
      * Local development server.
      */
     server: {
-      host: 'localhost',
+      /**
+       * Listen on all local interfaces.
+       *
+       * This allows localhost as well as configured local development
+       * hostnames such as local.sinlessgames.com to reach Vite.
+       */
+      host: '0.0.0.0',
+
       port: 4200,
+
       strictPort: true,
+
+      /**
+       * Protect the Vite development server from unexpected Host headers.
+       */
+      allowedHosts,
+
+      /**
+       * CORS policy for resources served directly by Vite.
+       *
+       * This does NOT replace the auth/API service CORS configuration.
+       */
+      cors: {
+        origin: allowedOrigins,
+        credentials: true,
+      },
+
+      /**
+       * Development API proxy.
+       *
+       * Browser requests remain same-origin with the frontend while Vite
+       * forwards the request to the appropriate local backend service.
+       *
+       * This is preferable during development because the browser sees:
+       *
+       *   http://localhost:4200/api/...
+       *
+       * rather than making direct cross-origin requests to:
+       *
+       *   http://localhost:8787
+       *   http://localhost:8788
+       */
       proxy: {
-        '^/api/V1/(?:auth|users|account|admin)(?:/|$)': authServiceUrl,
+        '^/api/V1/(?:auth|users|account|profile|admin)(?:/|$)': authServiceUrl,
+
         '^/api/V1/services/auth(?:/|$)': authServiceUrl,
+
         '^/api/V1/flags$': authServiceUrl,
+
         '/api/V1': apiServiceUrl,
+
         '/graphql': authServiceUrl,
+
         '/trpc': authServiceUrl,
       },
     },
@@ -78,9 +170,42 @@ export default defineConfig(({ mode }) => {
      * Local preview server for testing production builds.
      */
     preview: {
-      host: 'localhost',
+      host: '0.0.0.0',
+
       port: 4200,
+
       strictPort: true,
+
+      allowedHosts,
+
+      cors: {
+        origin: allowedOrigins,
+        credentials: true,
+      },
+
+      // The live Playwright suite exercises the built application through
+      // `vite preview`, so its same-origin auth/API requests need the same
+      // service routing as development mode. Keep mock-only preview runs
+      // isolated from services that intentionally are not started.
+      // Vite otherwise inherits `server.proxy`, so use an explicit empty
+      // object for mock preview runs.
+      proxy:
+        environment['E2E_ENABLE_SERVICE_PROXY'] === 'true'
+          ? {
+              '^/api/V1/(?:auth|users|account|profile|admin)(?:/|$)':
+                authServiceUrl,
+
+              '^/api/V1/services/auth(?:/|$)': authServiceUrl,
+
+              '^/api/V1/flags$': authServiceUrl,
+
+              '/api/V1': apiServiceUrl,
+
+              '/graphql': authServiceUrl,
+
+              '/trpc': authServiceUrl,
+            }
+          : {},
     },
 
     /**
@@ -92,7 +217,9 @@ export default defineConfig(({ mode }) => {
 
     build: {
       outDir: '../../dist/apps/frontend',
+
       assetsDir: 'assets',
+
       emptyOutDir: true,
 
       /**
@@ -146,10 +273,15 @@ export default defineConfig(({ mode }) => {
            */
           codeSplitting: {
             minSize: 20_000,
+
             maxSize: 400_000,
+
             minModuleSize: 10_000,
+
             maxModuleSize: 500_000,
+
             minShareCount: 2,
+
             includeDependenciesRecursively: false,
 
             groups: [
@@ -158,9 +290,13 @@ export default defineConfig(({ mode }) => {
                */
               {
                 name: 'react-core',
+
                 test: /node_modules[\\/](?:react|react-dom|scheduler)[\\/]/,
+
                 priority: 100,
+
                 minSize: 0,
+
                 maxSize: 300_000,
               },
 
@@ -169,9 +305,13 @@ export default defineConfig(({ mode }) => {
                */
               {
                 name: 'react-router',
+
                 test: /node_modules[\\/](?:react-router|react-router-dom)[\\/]/,
+
                 priority: 95,
+
                 minSize: 0,
+
                 maxSize: 300_000,
               },
 
@@ -180,9 +320,13 @@ export default defineConfig(({ mode }) => {
                */
               {
                 name: 'tanstack',
+
                 test: /node_modules[\\/]@tanstack[\\/]/,
+
                 priority: 90,
+
                 minSize: 0,
+
                 maxSize: 350_000,
               },
 
@@ -191,9 +335,13 @@ export default defineConfig(({ mode }) => {
                */
               {
                 name: 'editors',
+
                 test: /node_modules[\\/](?:monaco-editor|@monaco-editor|codemirror|@codemirror)[\\/]/,
+
                 priority: 90,
+
                 minSize: 0,
+
                 maxSize: 400_000,
               },
 
@@ -202,9 +350,13 @@ export default defineConfig(({ mode }) => {
                */
               {
                 name: 'charts',
+
                 test: /node_modules[\\/](?:recharts|chart\.js|react-chartjs-2|echarts|d3|d3-[^\\/]+|victory|plotly\.js|react-plotly\.js)[\\/]/,
+
                 priority: 85,
+
                 minSize: 0,
+
                 maxSize: 350_000,
               },
 
@@ -213,9 +365,13 @@ export default defineConfig(({ mode }) => {
                */
               {
                 name: 'documentation',
+
                 test: /node_modules[\\/](?:fumadocs-(?:core|ui|mdx)|mermaid|katex|react-markdown|(?:remark|rehype|mdast|hast)-[^\\/]+|unified|micromark)[\\/]/,
+
                 priority: 85,
+
                 minSize: 0,
+
                 maxSize: 400_000,
               },
 
@@ -225,9 +381,13 @@ export default defineConfig(({ mode }) => {
                */
               {
                 name: 'syntax-highlighting',
+
                 test: /node_modules[\\/](?:prismjs|highlight\.js|shiki|@shikijs)[\\/]/,
+
                 priority: 85,
+
                 minSize: 0,
+
                 maxSize: 350_000,
               },
 
@@ -236,28 +396,43 @@ export default defineConfig(({ mode }) => {
                */
               {
                 name: 'authentication',
+
                 test: /node_modules[\\/](?:@auth0|@clerk|next-auth|oidc-client-ts|keycloak-js|@azure[\\/]msal)[\\/]/,
+
                 priority: 80,
+
                 minSize: 0,
+
                 maxSize: 300_000,
               },
 
               /**
-               * Form state and validation libraries.
+               * Form state libraries.
                */
               {
                 name: 'forms',
+
                 test: /node_modules[\\/](?:react-hook-form|@hookform|formik|final-form|react-final-form)[\\/]/,
+
                 priority: 80,
+
                 minSize: 0,
+
                 maxSize: 250_000,
               },
 
+              /**
+               * Validation libraries.
+               */
               {
                 name: 'validation',
+
                 test: /node_modules[\\/](?:zod|valibot|yup|joi|ajv)[\\/]/,
+
                 priority: 80,
+
                 minSize: 0,
+
                 maxSize: 250_000,
               },
 
@@ -266,9 +441,13 @@ export default defineConfig(({ mode }) => {
                */
               {
                 name: 'animation',
+
                 test: /node_modules[\\/](?:motion|framer-motion|@react-spring|gsap|lottie-web)[\\/]/,
+
                 priority: 75,
+
                 minSize: 0,
+
                 maxSize: 300_000,
               },
 
@@ -281,9 +460,13 @@ export default defineConfig(({ mode }) => {
                */
               {
                 name: 'icons',
+
                 test: /node_modules[\\/](?:lucide-react|react-icons|@heroicons|@fortawesome)[\\/]/,
+
                 priority: 75,
+
                 minSize: 0,
+
                 maxSize: 250_000,
               },
 
@@ -292,9 +475,13 @@ export default defineConfig(({ mode }) => {
                */
               {
                 name: 'dates',
+
                 test: /node_modules[\\/](?:date-fns|dayjs|luxon|moment)[\\/]/,
+
                 priority: 70,
+
                 minSize: 0,
+
                 maxSize: 250_000,
               },
 
@@ -303,9 +490,13 @@ export default defineConfig(({ mode }) => {
                */
               {
                 name: 'internationalization',
+
                 test: /node_modules[\\/](?:i18next|react-i18next|@formatjs|intl-messageformat)[\\/]/,
+
                 priority: 70,
+
                 minSize: 0,
+
                 maxSize: 300_000,
               },
 
@@ -314,9 +505,13 @@ export default defineConfig(({ mode }) => {
                */
               {
                 name: 'networking',
+
                 test: /node_modules[\\/](?:axios|ky|graphql|graphql-request|urql|@apollo)[\\/]/,
+
                 priority: 65,
+
                 minSize: 0,
+
                 maxSize: 300_000,
               },
 
@@ -325,9 +520,13 @@ export default defineConfig(({ mode }) => {
                */
               {
                 name: 'ui-frameworks',
+
                 test: /node_modules[\\/](?:@radix-ui|@headlessui|@floating-ui|react-aria|@react-aria|@react-stately)[\\/]/,
+
                 priority: 65,
+
                 minSize: 0,
+
                 maxSize: 350_000,
               },
 
@@ -336,9 +535,13 @@ export default defineConfig(({ mode }) => {
                */
               {
                 name: 'observability',
+
                 test: /node_modules[\\/](?:@sentry|@datadog|web-vitals|@opentelemetry)[\\/]/,
+
                 priority: 65,
+
                 minSize: 0,
+
                 maxSize: 350_000,
               },
 
@@ -347,10 +550,15 @@ export default defineConfig(({ mode }) => {
                */
               {
                 name: 'aerealith-shared',
+
                 test: /(?:^|[\\/])libs[\\/](?:ui|content|shared|utils|types|config)[\\/]/,
+
                 priority: 55,
+
                 minShareCount: 2,
+
                 minSize: 10_000,
+
                 maxSize: 300_000,
               },
 
@@ -362,9 +570,13 @@ export default defineConfig(({ mode }) => {
                */
               {
                 name: 'vendor',
+
                 test: /node_modules[\\/]/,
+
                 priority: 20,
+
                 minSize: 25_000,
+
                 maxSize: 400_000,
               },
 
@@ -373,9 +585,13 @@ export default defineConfig(({ mode }) => {
                */
               {
                 name: 'shared',
+
                 priority: 10,
+
                 minShareCount: 2,
+
                 minSize: 15_000,
+
                 maxSize: 300_000,
               },
             ],
@@ -385,7 +601,9 @@ export default defineConfig(({ mode }) => {
            * Content hashes allow immutable production caching.
            */
           entryFileNames: 'assets/entry/[name]-[hash].js',
+
           chunkFileNames: 'assets/chunks/[name]-[hash].js',
+
           assetFileNames: 'assets/static/[name]-[hash][extname]',
         },
       },
@@ -393,8 +611,11 @@ export default defineConfig(({ mode }) => {
 
     test: {
       name: 'frontend',
+
       watch: false,
+
       globals: true,
+
       environment: 'jsdom',
 
       include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
@@ -410,6 +631,7 @@ export default defineConfig(({ mode }) => {
 
       coverage: {
         provider: 'v8',
+
         reportsDirectory: '../../coverage/apps/frontend',
 
         reporter: ['text', 'json', 'html', 'lcov'],

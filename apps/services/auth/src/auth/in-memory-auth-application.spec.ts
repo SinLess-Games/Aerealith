@@ -113,4 +113,59 @@ describe('InMemoryAuthApplication', () => {
     expect(sessions.records).toHaveLength(1);
     expect(sessions.records[0]).not.toHaveProperty('token');
   });
+
+  it('catalogs and creates any database entity in local development', async () => {
+    const application = new InMemoryAuthApplication();
+
+    const catalog = await application.adminEntityCatalog();
+    expect(catalog.map((entity) => entity.name)).toEqual(
+      expect.arrayContaining([
+        'users',
+        'organizations',
+        'waitlist_entries',
+        'newsletter_recipients',
+      ]),
+    );
+
+    await application.createAdminEntity('waitlist_entries', {
+      email: 'person@example.com',
+      newsletterOptIn: true,
+    });
+    await expect(
+      application.listAdminEntities('waitlist_entries', 'person', 1, 25),
+    ).resolves.toMatchObject({
+      entity: 'waitlist_entries',
+      total: 1,
+      records: [{ email: 'person@example.com', newsletterOptIn: true }],
+    });
+  });
+
+  it('creates and updates the complete local development profile', async () => {
+    const application = new InMemoryAuthApplication();
+    const created = await application.signUp({
+      username: 'local_user',
+      email: 'local@example.com',
+      password: 'development-password',
+      displayName: 'Local User',
+    });
+
+    await expect(
+      application.profileDetails(created.user.id),
+    ).resolves.toMatchObject({
+      handle: 'local_user',
+      displayName: 'Local User',
+      languages: [],
+      links: [],
+    });
+
+    await expect(
+      application.updateProfile(created.user.id, {
+        bio: 'Building Aerealith',
+        locationLabel: 'Denver',
+      }),
+    ).resolves.toMatchObject({
+      bio: 'Building Aerealith',
+      locationLabel: 'Denver',
+    });
+  });
 });

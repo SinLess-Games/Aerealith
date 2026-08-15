@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import * as entityApi from '../../../features/admin/entity-api';
 import { EntityViewerRoute } from './entity-viewer.route';
@@ -10,10 +10,18 @@ vi.mock('../../../features/admin/entity-api', async () => {
   const actual = await vi.importActual<typeof entityApi>(
     '../../../features/admin/entity-api',
   );
-  return { ...actual, fetchEntities: vi.fn(), deleteEntity: vi.fn() };
+  return {
+    ...actual,
+    fetchEntityCatalog: vi.fn(),
+    fetchEntities: vi.fn(),
+    createEntity: vi.fn(),
+    deleteEntity: vi.fn(),
+  };
 });
 
 const fetchEntities = vi.mocked(entityApi.fetchEntities);
+const fetchEntityCatalog = vi.mocked(entityApi.fetchEntityCatalog);
+const createEntity = vi.mocked(entityApi.createEntity);
 const deleteEntity = vi.mocked(entityApi.deleteEntity);
 
 function renderRoute() {
@@ -29,6 +37,54 @@ function renderRoute() {
 
 describe('EntityViewerRoute', () => {
   afterEach(() => vi.clearAllMocks());
+
+  beforeEach(() => {
+    fetchEntityCatalog.mockResolvedValue([
+      {
+        name: 'users',
+        label: 'Users',
+        singularLabel: 'User',
+        columns: [],
+        canCreate: true,
+        canUpdate: true,
+        canDelete: true,
+      },
+      {
+        name: 'waitlist_entries',
+        label: 'Waitlist entries',
+        singularLabel: 'Waitlist entry',
+        columns: [
+          {
+            key: 'email',
+            databaseName: 'email',
+            label: 'Email',
+            type: 'string',
+            required: true,
+            nullable: false,
+            hasDefault: false,
+            primaryKey: false,
+            sensitive: false,
+            insertable: true,
+          },
+          {
+            key: 'newsletterOptIn',
+            databaseName: 'newsletter_opt_in',
+            label: 'Newsletter opt in',
+            type: 'boolean',
+            required: false,
+            nullable: false,
+            hasDefault: true,
+            primaryKey: false,
+            sensitive: false,
+            insertable: true,
+          },
+        ],
+        canCreate: true,
+        canUpdate: false,
+        canDelete: false,
+      },
+    ]);
+  });
 
   it('uses a named Inspect button while preserving native table row semantics', async () => {
     fetchEntities.mockResolvedValue({
@@ -54,6 +110,96 @@ describe('EntityViewerRoute', () => {
     expect(inspectGrace.getAttribute('aria-pressed')).toBe('true');
     expect(screen.getByRole('row', { name: /user-2.*Grace/i })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Grace' })).toBeTruthy();
+  });
+
+  it('creates a user entity from the viewer', async () => {
+    fetchEntities.mockResolvedValue({
+      entity: 'users',
+      page: 1,
+      pageSize: 25,
+      total: 0,
+      records: [],
+    });
+    createEntity.mockResolvedValue({
+      id: 'user-2',
+      username: 'grace_hopper',
+      email: 'grace@example.com',
+    });
+
+    renderRoute();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Add user' }));
+    fireEvent.change(screen.getByLabelText('Username'), {
+      target: { value: 'grace_hopper' },
+    });
+    fireEvent.change(screen.getByLabelText('Email address'), {
+      target: { value: 'grace@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText('Display name'), {
+      target: { value: 'Grace Hopper' },
+    });
+    fireEvent.change(screen.getByLabelText('Temporary password'), {
+      target: { value: 'SecurePassword1' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Create user' }));
+
+    await waitFor(() =>
+      expect(createEntity).toHaveBeenCalledWith(
+        'users',
+        expect.objectContaining({
+          username: 'grace_hopper',
+          email: 'grace@example.com',
+          displayName: 'Grace Hopper',
+          password: 'SecurePassword1',
+          emailVerified: false,
+        }),
+      ),
+    );
+    expect((await screen.findByRole('status')).textContent).toContain(
+      'User created successfully',
+    );
+  });
+
+  it('lists all catalog entities and creates a schema-driven record', async () => {
+    fetchEntities.mockImplementation(async (entity) => ({
+      entity,
+      page: 1,
+      pageSize: 25,
+      total: 0,
+      records: [],
+    }));
+    createEntity.mockResolvedValue({
+      id: 'waitlist-1',
+      email: 'person@example.com',
+      newsletterOptIn: true,
+    });
+
+    renderRoute();
+
+    const selector = await screen.findByLabelText('Entity type');
+    expect(
+      await screen.findByRole('option', { name: 'Waitlist entries' }),
+    ).toBeTruthy();
+    fireEvent.change(selector, { target: { value: 'waitlist_entries' } });
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Add waitlist entry' }),
+    );
+    fireEvent.change(screen.getByLabelText('Email *'), {
+      target: { value: 'person@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText('Newsletter opt in'), {
+      target: { value: 'true' },
+    });
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Create waitlist entry' }),
+    );
+
+    await waitFor(() =>
+      expect(createEntity).toHaveBeenCalledWith('waitlist_entries', {
+        email: 'person@example.com',
+        newsletterOptIn: true,
+      }),
+    );
   });
 
   it('requires an AlertDialog confirmation before deleting a record', async () => {
@@ -88,7 +234,7 @@ describe('EntityViewerRoute', () => {
     expect(deleteButton.hasAttribute('disabled')).toBe(true);
     completeDelete(null);
     expect((await screen.findByRole('status')).textContent).toContain(
-      'user deleted successfully',
+      'User deleted successfully',
     );
   });
 
@@ -127,6 +273,7 @@ describe('EntityViewerRoute', () => {
 
     renderRoute();
 
+    await waitFor(() => expect(fetchEntities).toHaveBeenCalled());
     expect(await screen.findByText('Loading users…')).toBeTruthy();
     resolveQuery({
       entity: 'users',

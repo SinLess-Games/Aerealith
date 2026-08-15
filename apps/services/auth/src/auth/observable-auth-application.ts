@@ -98,9 +98,35 @@ export class ObservableAuthApplication implements AuthApplication {
     );
   }
 
+  profileDetails(...args: Parameters<AuthApplication['profileDetails']>) {
+    return this.observe('profileDetails', () =>
+      this.application.profileDetails(...args),
+    );
+  }
+
+  updateProfile(...args: Parameters<AuthApplication['updateProfile']>) {
+    return this.observe('updateProfile', () =>
+      this.application.updateProfile(...args),
+    );
+  }
+
   listAdminEntities(...args: Parameters<AuthApplication['listAdminEntities']>) {
     return this.observe('listAdminEntities', () =>
       this.application.listAdminEntities(...args),
+    );
+  }
+
+  adminEntityCatalog(
+    ...args: Parameters<AuthApplication['adminEntityCatalog']>
+  ) {
+    return this.observe('adminEntityCatalog', () =>
+      this.application.adminEntityCatalog(...args),
+    );
+  }
+
+  createAdminEntity(...args: Parameters<AuthApplication['createAdminEntity']>) {
+    return this.observe('createAdminEntity', () =>
+      this.application.createAdminEntity(...args),
     );
   }
 

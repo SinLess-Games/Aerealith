@@ -1,6 +1,10 @@
 import {
   DefaultUserRole,
+  DefaultUserTier,
+  DefaultUserProfileFieldVisibility,
   isUserRole,
+  ProfileStatus,
+  UserLifecycleStatus,
   UserRole,
   type AccountDetails,
   type AdminDashboardOverview,
@@ -8,18 +12,26 @@ import {
   type LoginRequest,
   type SignUpRequest,
   type UpdateAccountRequest,
+  type UpdateUserProfileContract,
+  type UserProfileContract,
 } from '@aerealith-ai/core';
 import { randomUUID } from 'node:crypto';
 
 import {
   AuthApplicationError,
   type AdminEntityPage,
+  type AdminCreateEntityInput,
   type AdminEntityRecord,
   type AdminEntityType,
   type AuthApplication,
   type AuthResult,
   type AuthSessionSummary,
 } from './auth-application.service';
+import {
+  getAdminEntity,
+  listAdminEntityDefinitions,
+  type AdminEntityDefinition,
+} from './admin-entity-registry';
 import { CryptoPasswordHasher } from './crypto-password-hasher';
 import { CryptoTokenGenerator } from './crypto-token-generator';
 import { PasswordPolicy } from '@aerealith-ai/auth';
@@ -30,6 +42,7 @@ type StoredUser = {
   avatarUrl: string | null;
   timezone: string | null;
   locale: string | null;
+  profile: UserProfileContract | null;
 };
 
 type StoredSession = {
@@ -56,6 +69,10 @@ export class InMemoryAuthApplication implements AuthApplication {
   private readonly passwordResetTokens = new Map<
     string,
     { userId: string; expiresAt: Date; consumed: boolean }
+  >();
+  private readonly genericAdminEntities = new Map<
+    string,
+    Map<string, AdminEntityRecord>
   >();
   private readonly passwords = new CryptoPasswordHasher();
   private readonly tokens = new CryptoTokenGenerator();
@@ -85,6 +102,7 @@ export class InMemoryAuthApplication implements AuthApplication {
       avatarUrl: null,
       timezone: null,
       locale: null,
+      profile: null,
     });
     return this.createSession(user);
   }
@@ -186,9 +204,7 @@ export class InMemoryAuthApplication implements AuthApplication {
     const current = this.sessions.get(token);
     if (!current || current.revokedAt) return [];
     return [...this.sessions.entries()]
-      .filter(
-        ([, value]) => value.userId === current.userId && !value.revokedAt,
-      )
+      .filter(([, value]) => value.userId === current.userId)
       .map(([raw, value]) => ({
         id: value.id,
         current: raw === token,
@@ -199,6 +215,12 @@ export class InMemoryAuthApplication implements AuthApplication {
         createdAt: value.createdAt,
         lastActiveAt: value.lastSeenAt,
         expiresAt: value.expiresAt,
+        revokedAt: value.revokedAt,
+        status: value.revokedAt
+          ? 'revoked'
+          : new Date(value.expiresAt) <= this.now()
+            ? 'expired'
+            : 'active',
       }));
   }
 
@@ -280,6 +302,13 @@ export class InMemoryAuthApplication implements AuthApplication {
       updatedAt: this.now().toISOString(),
     };
     stored.avatarUrl = input.avatarUrl ?? null;
+    if (stored.profile && input.avatarUrl !== undefined) {
+      stored.profile = {
+        ...stored.profile,
+        avatarUrl: input.avatarUrl,
+        updatedAt: this.now().toISOString(),
+      };
+    }
     stored.timezone = input.timezone ?? null;
     stored.locale = input.locale ?? null;
 
@@ -295,15 +324,90 @@ export class InMemoryAuthApplication implements AuthApplication {
     return Promise.resolve(this.toAccountDetails(stored));
   }
 
+  profileDetails(userId: string): Promise<UserProfileContract> {
+    const stored = this.requireUser(userId);
+    if (!stored.profile) {
+      const now = this.now().toISOString();
+      stored.profile = {
+        id: randomUUID(),
+        userId,
+        handle: stored.user.username,
+        displayName: stored.user.displayName ?? null,
+        givenName: null,
+        middleName: null,
+        familyName: null,
+        pronouns: null,
+        avatarUrl: stored.avatarUrl,
+        bannerUrl: null,
+        bio: null,
+        status: ProfileStatus.PendingSetup,
+        fieldVisibility: { ...DefaultUserProfileFieldVisibility },
+        locationLabel: null,
+        country: null,
+        gender: null,
+        sex: null,
+        sexuality: null,
+        romanticOrientation: null,
+        sexAttitude: null,
+        languages: [],
+        websiteUrl: null,
+        links: [],
+        createdAt: now,
+        updatedAt: now,
+      };
+    }
+    return Promise.resolve(stored.profile);
+  }
+
+  async updateProfile(
+    userId: string,
+    input: UpdateUserProfileContract,
+  ): Promise<UserProfileContract> {
+    const stored = this.requireUser(userId);
+    const profile = await this.profileDetails(userId);
+    if (
+      input.handle &&
+      [...this.users.values()].some(
+        (candidate) =>
+          candidate.user.id !== userId &&
+          candidate.profile?.handle === input.handle,
+      )
+    ) {
+      throw new AuthApplicationError(
+        'PROFILE_HANDLE_CONFLICT',
+        'That profile handle is already in use.',
+        409,
+      );
+    }
+    stored.profile = {
+      ...profile,
+      ...input,
+      ...(input.fieldVisibility
+        ? {
+            fieldVisibility: {
+              ...profile.fieldVisibility,
+              ...input.fieldVisibility,
+            },
+          }
+        : {}),
+      updatedAt: this.now().toISOString(),
+    };
+    stored.avatarUrl = stored.profile.avatarUrl;
+    return stored.profile;
+  }
+
   listAdminEntities(
     entity: AdminEntityType,
     search: string,
     page: number,
     pageSize: number,
   ): Promise<AdminEntityPage> {
+    const registered = getAdminEntity(entity);
+    if (!registered) this.notFound('Unsupported entity type.');
+    const canonicalEntity = registered.definition.name;
     const query = search.toLowerCase();
     const records =
-      entity === 'users'
+      canonicalEntity === 'users'
         ? [...this.users.values()]
             .map((stored) => this.userRecord(stored.user))
             .filter((record) =>
@@ -311,14 +415,21 @@ export class InMemoryAuthApplication implements AuthApplication {
                 .toLowerCase()
                 .includes(query),
             )
-        : [...this.sessions.values()]
-            .map((session) => this.sessionRecord(session))
-            .filter((record) =>
-              `${record['userId']} ${record['deviceName'] ?? ''} ${
-                record['ipAddress'] ?? ''
-              }`
-                .toLowerCase()
-                .includes(query),
+        : canonicalEntity === 'user_sessions'
+          ? [...this.sessions.values()]
+              .map((session) => this.sessionRecord(session))
+              .filter((record) =>
+                `${record['userId']} ${record['deviceName'] ?? ''} ${
+                  record['ipAddress'] ?? ''
+                }`
+                  .toLowerCase()
+                  .includes(query),
+              )
+          : [
+              ...(this.genericAdminEntities.get(canonicalEntity)?.values() ??
+                []),
+            ].filter((record) =>
+              JSON.stringify(record).toLowerCase().includes(query),
             );
     records.sort((left, right) =>
       String(right['createdAt']).localeCompare(String(left['createdAt'])),
@@ -326,12 +437,86 @@ export class InMemoryAuthApplication implements AuthApplication {
     const offset = (page - 1) * pageSize;
 
     return Promise.resolve({
-      entity,
+      entity: canonicalEntity,
       records: records.slice(offset, offset + pageSize),
       total: records.length,
       page,
       pageSize,
     });
+  }
+
+  adminEntityCatalog(): Promise<AdminEntityDefinition[]> {
+    return Promise.resolve(listAdminEntityDefinitions());
+  }
+
+  async createAdminEntity(
+    entity: AdminEntityType,
+    input: AdminCreateEntityInput,
+  ): Promise<AdminEntityRecord> {
+    const registered = getAdminEntity(entity);
+    if (!registered) this.notFound('Unsupported entity type.');
+    const canonicalEntity = registered.definition.name;
+    if (canonicalEntity !== 'users') {
+      const id = typeof input['id'] === 'string' ? input['id'] : randomUUID();
+      const record: AdminEntityRecord = { ...input, id };
+      let entities = this.genericAdminEntities.get(canonicalEntity);
+      if (!entities) {
+        entities = new Map<string, AdminEntityRecord>();
+        this.genericAdminEntities.set(canonicalEntity, entities);
+      }
+      entities.set(id, record);
+      return record;
+    }
+
+    if (
+      typeof input.username !== 'string' ||
+      typeof input.email !== 'string' ||
+      typeof input.password !== 'string'
+    ) {
+      throw new AuthApplicationError(
+        'INVALID_ENTITY_VALUES',
+        'Username, email, and password are required to create a user.',
+        422,
+      );
+    }
+    this.passwordPolicy.validate(input.password);
+    const username = input.username.trim().toLowerCase();
+    const email = input.email.trim().toLowerCase();
+    this.assertUniqueIdentity(username, email);
+    const now = this.now().toISOString();
+    const metadata = {
+      ...(input.metadata ?? {}),
+      ...(input.displayName?.trim()
+        ? { displayName: input.displayName.trim() }
+        : {}),
+    };
+    const user: AuthUser = {
+      id: randomUUID(),
+      username,
+      email,
+      emailVerified: input.emailVerified ?? false,
+      role: DefaultUserRole,
+      ...(input.displayName?.trim()
+        ? { displayName: input.displayName.trim() }
+        : {}),
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.users.set(user.id, {
+      user,
+      passwordHash: await this.passwords.hash(input.password),
+      avatarUrl: null,
+      timezone: null,
+      locale: null,
+      profile: null,
+    });
+
+    return {
+      ...user,
+      status: input.status ?? UserLifecycleStatus.Active,
+      tier: input.tier ?? DefaultUserTier,
+      metadata,
+    };
   }
 
   updateAdminEntity(
@@ -388,14 +573,19 @@ export class InMemoryAuthApplication implements AuthApplication {
       return Promise.resolve(this.userRecord(stored.user));
     }
 
+    if (entity !== 'sessions' && entity !== 'user_sessions') {
+      throw new AuthApplicationError(
+        'ENTITY_UPDATE_UNSUPPORTED',
+        'This entity type cannot be updated.',
+        422,
+      );
+    }
     const session = this.findSessionById(id);
     if (!session) this.notFound('Entity not found.');
     const now = this.now().toISOString();
-    if (
-      typeof changes['deviceName'] === 'string' ||
-      changes['deviceName'] === null
-    ) {
-      session.deviceName = changes['deviceName'];
+    const deviceName = changes['deviceName'];
+    if (typeof deviceName === 'string' || deviceName === null) {
+      session.deviceName = deviceName as string | null;
     }
     if (typeof changes['revokedAt'] === 'string') {
       session.revokedAt = changes['revokedAt'];
@@ -437,6 +627,13 @@ export class InMemoryAuthApplication implements AuthApplication {
       return Promise.resolve();
     }
 
+    if (entity !== 'sessions' && entity !== 'user_sessions') {
+      throw new AuthApplicationError(
+        'ENTITY_DELETE_UNSUPPORTED',
+        'This entity type cannot be deleted.',
+        422,
+      );
+    }
     const entry = [...this.sessions.entries()].find(
       ([, session]) => session.id === id,
     );
