@@ -52,7 +52,7 @@ yarn.lock linguist-generated=true
 *.ogg binary
 *.mp4 binary
 *.webm binary
-*.zip binary
+*.zip filter=lfs diff=lfs merge=lfs -text
 *.gz binary
 *.tar binary
 *.tgz binary
@@ -73,7 +73,6 @@ yarn.lock linguist-generated=true
 # ---------------------------------------------------------------------------
 vendor/** linguist-vendored=true
 third_party/** linguist-vendored=true
-
 # ---------------------------------------------------------------------------
 # Large file storage
 # ---------------------------------------------------------------------------
