@@ -12,13 +12,15 @@ FROM node:${NODE_VERSION}-alpine AS base
 
 ARG PNPM_VERSION
 
-ENV PNPM_HOME=/pnpm
-ENV PATH=${PNPM_HOME}:${PATH}
-
 WORKDIR /app
 
-RUN corepack enable \
-  && corepack prepare "pnpm@${PNPM_VERSION}" --activate
+# Corepack is no longer bundled with newer Node.js releases.
+# Install the exact pnpm version directly.
+RUN npm install \
+  --global \
+  --ignore-scripts \
+  "pnpm@${PNPM_VERSION}" \
+  && pnpm --version
 
 
 # =============================================================================
@@ -27,19 +29,27 @@ RUN corepack enable \
 
 FROM base AS dependencies
 
-# Native build dependencies required by @datadog/pprof.
+# Native toolchain required to build @datadog/pprof.
+# This stage is discarded and does not become part of the runtime image.
 RUN apk add --no-cache \
-  python3 \
+  g++ \
   make \
-  g++
+  python3
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY tsconfig.base.json ./
 COPY apps/services/auth ./apps/services/auth
 COPY libs ./libs
 
-RUN --mount=type=cache,id=aerealith-pnpm,target=/pnpm/store \
-  pnpm install --frozen-lockfile \
+# Disable arbitrary dependency lifecycle scripts during installation.
+#
+# @datadog/pprof is explicitly rebuilt afterward because it requires its
+# native build lifecycle.
+RUN --mount=type=cache,id=aerealith-pnpm,target=/pnpm/store,sharing=locked \
+  pnpm install \
+  --frozen-lockfile \
+  --ignore-scripts \
+  --store-dir=/pnpm/store \
   && pnpm rebuild @datadog/pprof
 
 
@@ -63,23 +73,23 @@ LABEL org.opencontainers.image.title="Aerealith Auth Service" \
 #   Handles PID 1 duties and forwards termination signals correctly.
 #
 # libstdc++:
-#   Provides the runtime C++ library required by native Node modules such as
+#   Provides the runtime C++ library needed by native Node modules such as
 #   @datadog/pprof without carrying the compiler toolchain into production.
 #
-# The application receives a dedicated non-root UID/GID.
+# The service runs with a dedicated non-root UID/GID.
 RUN apk add --no-cache \
   tini \
   libstdc++ \
   && addgroup \
-  -S \
-  -g "${APP_GID}" \
+  --system \
+  --gid "${APP_GID}" \
   aerealith \
   && adduser \
-  -S \
-  -D \
-  -H \
-  -u "${APP_UID}" \
-  -G aerealith \
+  --system \
+  --disabled-password \
+  --no-create-home \
+  --uid "${APP_UID}" \
+  --ingroup aerealith \
   aerealith
 
 
@@ -87,20 +97,39 @@ RUN apk add --no-cache \
 # Application
 # =============================================================================
 
-# Keep application code and dependencies owned by root.
+# Keep application code and dependencies root-owned.
 #
-# The runtime user only needs read/execute access. This prevents the
-# application process from modifying its own source code or installed
-# dependencies if it is compromised.
+# The runtime account receives read/execute access only and therefore cannot
+# modify its own application source or installed dependencies.
 
-COPY --from=dependencies /app/package.json ./package.json
-COPY --from=dependencies /app/pnpm-lock.yaml ./pnpm-lock.yaml
-COPY --from=dependencies /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
-COPY --from=dependencies /app/tsconfig.base.json ./tsconfig.base.json
+COPY --from=dependencies --chown=0:0 \
+  /app/package.json \
+  /app/pnpm-lock.yaml \
+  /app/pnpm-workspace.yaml \
+  /app/tsconfig.base.json \
+  /app/
 
-COPY --from=dependencies /app/node_modules ./node_modules
-COPY --from=dependencies /app/apps/services/auth ./apps/services/auth
-COPY --from=dependencies /app/libs ./libs
+COPY --from=dependencies --chown=0:0 \
+  /app/node_modules \
+  /app/node_modules
+
+COPY --from=dependencies --chown=0:0 \
+  /app/apps/services/auth \
+  /app/apps/services/auth
+
+COPY --from=dependencies --chown=0:0 \
+  /app/libs \
+  /app/libs
+
+RUN chmod -R u=rwX,go=rX \
+  /app/node_modules \
+  /app/apps/services/auth \
+  /app/libs \
+  && chmod 0644 \
+  /app/package.json \
+  /app/pnpm-lock.yaml \
+  /app/pnpm-workspace.yaml \
+  /app/tsconfig.base.json
 
 
 # =============================================================================

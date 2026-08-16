@@ -12,13 +12,15 @@ FROM node:${NODE_VERSION}-alpine AS base
 
 ARG PNPM_VERSION
 
-ENV PNPM_HOME=/pnpm
-ENV PATH=${PNPM_HOME}:${PATH}
-
 WORKDIR /app
 
-RUN corepack enable \
-  && corepack prepare "pnpm@${PNPM_VERSION}" --activate
+# Corepack is no longer bundled with Node.js 25+.
+# Install the exact pnpm version directly.
+RUN npm install \
+  --global \
+  --ignore-scripts \
+  "pnpm@${PNPM_VERSION}" \
+  && pnpm --version
 
 
 # =============================================================================
@@ -33,8 +35,11 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 # metadata and dependencies correctly.
 COPY apps/services/api ./apps/services/api
 
-RUN --mount=type=cache,id=aerealith-pnpm,target=/pnpm/store \
-  pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=aerealith-pnpm,target=/pnpm/store,sharing=locked \
+  pnpm install \
+  --frozen-lockfile \
+  --ignore-scripts \
+  --store-dir=/pnpm/store
 
 
 # =============================================================================
@@ -46,16 +51,19 @@ FROM base AS runtime
 ARG APP_UID=10001
 ARG APP_GID=10001
 
-ENV NODE_ENV=production
+ENV NODE_ENV=production \
+  HOST=0.0.0.0 \
+  PORT=8788 \
+  HOME=/tmp
 
 LABEL org.opencontainers.image.title="Aerealith API" \
   org.opencontainers.image.description="Production container for the Aerealith Hono API service" \
   org.opencontainers.image.vendor="SinLess Games LLC"
 
-# tini provides proper PID 1 behavior and forwards termination signals cleanly.
+# tini provides proper PID 1 behavior and signal forwarding.
 #
-# A dedicated application account is used instead of root or the image's
-# built-in node account so the runtime identity is explicit and predictable.
+# The application uses a dedicated non-root UID/GID. Application files remain
+# root-owned so the running process cannot modify its own source or dependencies.
 RUN apk add --no-cache tini \
   && addgroup \
   --system \
@@ -67,26 +75,37 @@ RUN apk add --no-cache tini \
   --no-create-home \
   --uid "${APP_UID}" \
   --ingroup aerealith \
-  aerealith \
-  && mkdir -p /app \
-  && chown -R aerealith:aerealith /app
+  aerealith
 
-# Copy installed dependencies and application sources from the dependency
-# stage. Ownership is assigned directly during COPY so no additional recursive
-# chown layer is required.
-COPY --from=dependencies --chown=aerealith:aerealith \
+
+# =============================================================================
+# Application
+# =============================================================================
+
+# Keep application dependencies and source root-owned.
+# The runtime account only needs read/execute access.
+
+COPY --from=dependencies --chown=0:0 \
   /app/node_modules \
   /app/node_modules
 
-COPY --from=dependencies --chown=aerealith:aerealith \
+COPY --from=dependencies --chown=0:0 \
   /app/package.json \
   /app/pnpm-lock.yaml \
   /app/pnpm-workspace.yaml \
   /app/
 
-COPY --from=dependencies --chown=aerealith:aerealith \
+COPY --from=dependencies --chown=0:0 \
   /app/apps/services/api \
   /app/apps/services/api
+
+RUN chmod -R u=rwX,go=rX \
+  /app/node_modules \
+  /app/apps/services/api \
+  && chmod 0644 \
+  /app/package.json \
+  /app/pnpm-lock.yaml \
+  /app/pnpm-workspace.yaml
 
 
 # =============================================================================
@@ -95,7 +114,6 @@ COPY --from=dependencies --chown=aerealith:aerealith \
 
 USER ${APP_UID}:${APP_GID}
 
-# Change this if the Hono service binds to a different container port.
 EXPOSE 8788
 
 ENTRYPOINT ["tini", "--"]

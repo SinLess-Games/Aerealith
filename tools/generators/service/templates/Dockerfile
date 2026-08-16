@@ -12,13 +12,16 @@ FROM node:${NODE_VERSION}-bookworm-slim AS base
 
 ARG PNPM_VERSION
 
-ENV PNPM_HOME="/pnpm"
-ENV PATH="${PNPM_HOME}:${PATH}"
-
 WORKDIR /workspace
 
-RUN corepack enable \
-  && corepack prepare "pnpm@${PNPM_VERSION}" --activate
+# Corepack is no longer bundled with newer Node.js releases.
+# Install the exact pnpm version directly.
+RUN npm install \
+  --global \
+  --ignore-scripts \
+  "pnpm@${PNPM_VERSION}" \
+  && pnpm --version \
+  && npm cache clean --force
 
 
 # =============================================================================
@@ -27,31 +30,38 @@ RUN corepack enable \
 
 FROM base AS build
 
-# Support native Node dependencies such as @datadog/pprof.
+# Native compilation support is isolated to the build stage and never copied
+# into the production image.
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
-  python3 \
-  make \
   g++ \
+  make \
+  python3 \
   && rm -rf /var/lib/apt/lists/*
 
 COPY . .
 
+# Do not automatically execute dependency lifecycle scripts during installation.
+#
+# @datadog/pprof is explicitly rebuilt only when it exists in this workspace,
+# allowing auth services to use the native profiler without forcing every
+# generated service to depend on it.
 RUN --mount=type=cache,id=aerealith-pnpm-store,target=/pnpm/store,sharing=locked \
-  pnpm install --frozen-lockfile
-
-RUN pnpm exec nx run service-<%= serviceName %>:build
-
-# Keep the Nx output with the service before producing the isolated
-# production deployment.
-RUN mkdir -p "apps/services/<%= serviceName %>/dist" \
+  pnpm install \
+  --frozen-lockfile \
+  --ignore-scripts \
+  --store-dir=/pnpm/store \
+  && if pnpm list --recursive --depth=0 @datadog/pprof 2>/dev/null \
+  | grep -q '@datadog/pprof'; then \
+  pnpm rebuild @datadog/pprof; \
+  fi \
+  && pnpm exec nx run service-<%= serviceName %>:build \
+  && test -d "dist/apps/services/<%= serviceName %>" \
+  && mkdir -p "apps/services/<%= serviceName %>/dist" \
   && cp -R \
   "dist/apps/services/<%= serviceName %>/." \
-  "apps/services/<%= serviceName %>/dist/"
-
-# Produce a production-only deployment containing the service and its
-# production dependencies.
-RUN pnpm \
+  "apps/services/<%= serviceName %>/dist/" \
+  && pnpm \
   --filter "./apps/services/<%= serviceName %>" \
   --prod \
   --legacy \
@@ -77,11 +87,17 @@ LABEL org.opencontainers.image.title="Aerealith <%= serviceName %> Service" \
   org.opencontainers.image.description="Production container for the Aerealith <%= serviceName %> service" \
   org.opencontainers.image.vendor="SinLess Games LLC"
 
-# tini provides correct PID 1 and signal handling.
+# tini:
+#   Provides correct PID 1 behavior and forwards termination signals to Node.
 #
-# A dedicated runtime identity is used instead of root or the image's
-# built-in node account. The application files remain root-owned and are
-# therefore not writable by the running service.
+# ca-certificates:
+#   Provides trusted system CAs for outbound TLS.
+#
+# libstdc++6:
+#   Provides the runtime C++ library required by native Node modules such as
+#   @datadog/pprof without shipping the compiler toolchain.
+#
+# The generated service receives its own explicit non-root runtime identity.
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
   ca-certificates \
@@ -107,8 +123,12 @@ RUN apt-get update \
 WORKDIR /app
 
 # Keep the deployed application root-owned.
-# The runtime account only requires read/execute access.
-COPY --from=build /deploy ./
+#
+# The service process can read and execute its application but cannot modify
+# its own code or production dependencies if compromised.
+COPY --from=build --chown=0:0 /deploy ./
+
+RUN chmod -R u=rwX,go=rX /app
 
 
 # =============================================================================

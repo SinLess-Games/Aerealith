@@ -4,6 +4,7 @@ ARG NODE_VERSION=26.5.0
 ARG PNPM_VERSION=11.13.1
 ARG NGINX_VERSION=1.29.0
 
+
 # =============================================================================
 # Base
 # =============================================================================
@@ -12,13 +13,18 @@ FROM node:${NODE_VERSION}-bookworm-slim AS base
 
 ARG PNPM_VERSION
 
-ENV PNPM_HOME=/pnpm
-ENV PATH=${PNPM_HOME}:${PATH}
+ENV NODE_ENV=development
 
 WORKDIR /workspace
 
-RUN corepack enable \
-  && corepack prepare "pnpm@${PNPM_VERSION}" --activate
+# Corepack is no longer bundled with Node.js 25+.
+# Install the exact pnpm version directly and disable package lifecycle scripts
+# during the package-manager installation itself.
+RUN npm install \
+  --global \
+  --ignore-scripts \
+  "pnpm@${PNPM_VERSION}" \
+  && pnpm --version
 
 
 # =============================================================================
@@ -29,8 +35,10 @@ FROM base AS dependencies
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-RUN --mount=type=cache,id=aerealith-pnpm,target=/pnpm/store \
-  pnpm fetch --frozen-lockfile
+RUN --mount=type=cache,id=aerealith-pnpm,target=/pnpm/store,sharing=locked \
+  pnpm fetch \
+  --frozen-lockfile \
+  --store-dir=/pnpm/store
 
 
 # =============================================================================
@@ -41,10 +49,14 @@ FROM dependencies AS build
 
 COPY . .
 
-RUN --mount=type=cache,id=aerealith-pnpm,target=/pnpm/store \
-  pnpm install --offline --frozen-lockfile
-
-RUN pnpm nx build frontend --configuration=production \
+# Do not implicitly execute lifecycle scripts from dependencies.
+RUN --mount=type=cache,id=aerealith-pnpm,target=/pnpm/store,sharing=locked \
+  pnpm install \
+  --offline \
+  --frozen-lockfile \
+  --ignore-scripts \
+  --store-dir=/pnpm/store \
+  && pnpm nx build frontend --configuration=production \
   && test -f dist/apps/frontend/index.html
 
 
@@ -61,39 +73,44 @@ LABEL org.opencontainers.image.title="Aerealith Frontend" \
   org.opencontainers.image.description="Production container for the Aerealith web frontend" \
   org.opencontainers.image.vendor="SinLess Games LLC"
 
-# Create a dedicated non-root runtime account.
+
+# =============================================================================
+# Runtime user and Nginx configuration
+# =============================================================================
+
+# Keep all runtime initialization in a single image layer.
 #
-# Nginx listens on 8080, uses /tmp for its PID and temporary files, and therefore
-# does not require root privileges at runtime.
-RUN addgroup \
+# Only Nginx temporary directories are writable by the application user.
+# Configuration remains root-owned.
+RUN <<'SETUP'
+set -eu
+
+addgroup \
   --system \
   --gid "${APP_GID}" \
-  aerealith \
-  && adduser \
+  aerealith
+
+adduser \
   --system \
   --disabled-password \
   --no-create-home \
   --uid "${APP_UID}" \
   --ingroup aerealith \
-  aerealith \
-  && rm -f /etc/nginx/conf.d/default.conf \
-  && mkdir -p \
+  aerealith
+
+rm -f /etc/nginx/conf.d/default.conf
+
+mkdir -p \
   /usr/share/nginx/html \
   /tmp/nginx/client_temp \
   /tmp/nginx/proxy_temp \
   /tmp/nginx/fastcgi_temp \
   /tmp/nginx/uwsgi_temp \
-  /tmp/nginx/scgi_temp \
-  && chown -R aerealith:aerealith \
-  /usr/share/nginx/html \
-  /tmp/nginx
+  /tmp/nginx/scgi_temp
 
+chown -R aerealith:aerealith /tmp/nginx
 
-# =============================================================================
-# Nginx configuration
-# =============================================================================
-
-RUN cat <<'EOF' > /etc/nginx/nginx.conf
+cat > /etc/nginx/nginx.conf <<'NGINX_CONF'
 worker_processes auto;
 pid /tmp/nginx/nginx.pid;
 error_log /dev/stderr warn;
@@ -126,6 +143,7 @@ http {
   gzip on;
   gzip_vary on;
   gzip_min_length 1024;
+
   gzip_types
     application/javascript
     application/json
@@ -138,9 +156,9 @@ http {
 
   include /etc/nginx/conf.d/*.conf;
 }
-EOF
+NGINX_CONF
 
-RUN cat <<'EOF' > /etc/nginx/conf.d/frontend.conf
+cat > /etc/nginx/conf.d/frontend.conf <<'FRONTEND_CONF'
 server {
   listen 8080;
   listen [::]:8080;
@@ -182,23 +200,33 @@ server {
     try_files $uri $uri/ /index.html;
   }
 }
-EOF
+FRONTEND_CONF
+
+chmod 0644 \
+  /etc/nginx/nginx.conf \
+  /etc/nginx/conf.d/frontend.conf
+SETUP
 
 
 # =============================================================================
 # Application assets
 # =============================================================================
 
-COPY --from=build --chown=aerealith:aerealith \
+# Static application content deliberately remains owned by root.
+#
+# The Nginx runtime account only needs read access and cannot alter the
+# application being served.
+COPY --from=build --chown=0:0 \
   /workspace/dist/apps/frontend/ \
   /usr/share/nginx/html/
+
+RUN chmod -R u=rwX,go=rX /usr/share/nginx/html
 
 
 # =============================================================================
 # Runtime security
 # =============================================================================
 
-# Run both the Nginx master and worker processes without root privileges.
 USER ${APP_UID}:${APP_GID}
 
 EXPOSE 8080
