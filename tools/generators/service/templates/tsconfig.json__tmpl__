@@ -1,11 +1,15 @@
 {
   "extends": "../../../tsconfig.base.json",
   "compilerOptions": {
+    "composite": true,
+    "ignoreDeprecations": "6.0",
+
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "ignoreDeprecations": "6.0"
+    "types": ["node"]
   },
   "files": [],
+  "include": [],
   "references": [
     {
       "path": "./tsconfig.app.json"

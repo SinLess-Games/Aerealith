@@ -1,0 +1,188 @@
+import { existsSync } from 'node:fs';
+
+import {
+  createApiRequestObserver,
+  createNodeLogger,
+  startNodeObservability,
+} from '@aerealith-ai/observability';
+
+const SERVICE_NAME = '<%= serviceName %>' as const;
+const SERVICE_COMPONENT = `${SERVICE_NAME}-service` as const;
+const DEFAULT_PORT = <%= nodePort %>;
+
+async function main(): Promise<void> {
+  /*
+   * Load local environment variables when running the generated Node service
+   * directly.
+   *
+   * Production environments should inject configuration through environment
+   * variables rather than shipping a .env file with the application.
+   */
+  if (existsSync('.env')) {
+    process.loadEnvFile('.env');
+  }
+
+  const port = parsePort(process.env['PORT']);
+
+  /*
+   * Configure structured logging before loading the service application.
+   *
+   * createNodeLogger() automatically configures the Node-compatible Aerealith
+   * logging sinks from the current environment.
+   */
+  const logger = createNodeLogger({
+    service: SERVICE_NAME,
+    environment: process.env,
+
+    onSinkError(error: unknown) {
+      console.error(
+        `An observability logging sink failed for ${SERVICE_NAME}.`,
+        error,
+      );
+    },
+  });
+
+  /*
+   * Initialize Node observability before importing Hono or the generated
+   * service application.
+   *
+   * This gives OpenTelemetry instrumentation an opportunity to register its
+   * hooks before supported libraries are loaded.
+   */
+  const observability = await startNodeObservability({
+    service: SERVICE_NAME,
+    environment: process.env,
+
+    onError(error: unknown) {
+      logger.warn({
+        event: `${SERVICE_NAME}.observability.exporter.failed`,
+        message: 'An observability exporter failed.',
+        component: SERVICE_COMPONENT,
+        error,
+      });
+    },
+  });
+
+  /*
+   * Load the Node HTTP adapter and runtime-independent service application only
+   * after observability has initialized.
+   *
+   * Do not import "./main.ts__tmpl__" here. The "__tmpl__" suffix exists only
+   * inside the generator source tree. Nx generates it as "./main.ts".
+   */
+  const [{ serve }, { createServiceApp }] = await Promise.all([
+    import('@hono/node-server'),
+    import('./main'),
+  ]);
+
+  /*
+   * Connect the shared HTTP application to the Node observability runtime.
+   *
+   * main.ts stays runtime-independent while server.ts supplies:
+   *
+   *   - the configured Node logger
+   *   - OpenTelemetry request metrics
+   *   - the runtime environment
+   */
+  const app = createServiceApp({
+    environment: process.env['NODE_ENV'] ?? 'development',
+    logger,
+    requestObserver: createApiRequestObserver(observability.meter),
+  });
+
+  /*
+   * Start the Node HTTP server.
+   */
+  const server = serve(
+    {
+      fetch: app.fetch,
+      port,
+    },
+    ({ port: listeningPort }) => {
+      logger.info({
+        event: `${SERVICE_NAME}.service.started`,
+        message: '<%= className %> service is listening.',
+        component: SERVICE_COMPONENT,
+
+        context: {
+          port: listeningPort,
+          telemetryEnabled: observability.enabled,
+          profilingEnabled: observability.profilingEnabled,
+        },
+      });
+    },
+  );
+
+  let shuttingDown = false;
+
+  /*
+   * Gracefully stop accepting new requests before flushing observability and
+   * logging resources.
+   *
+   * SIGINT:
+   *   Local development / interactive termination.
+   *
+   * SIGTERM:
+   *   Docker, Kubernetes, systemd, and other production orchestrators.
+   */
+  const shutdown = (signal: NodeJS.Signals): void => {
+    if (shuttingDown) {
+      return;
+    }
+
+    shuttingDown = true;
+
+    logger.info({
+      event: `${SERVICE_NAME}.service.stopping`,
+      message: '<%= className %> service is shutting down.',
+      component: SERVICE_COMPONENT,
+
+      context: {
+        signal,
+      },
+    });
+
+    server.close((error) => {
+      if (error) {
+        logger.error({
+          event: `${SERVICE_NAME}.service.shutdown.failed`,
+          message:
+            'The <%= className %> HTTP server failed to shut down cleanly.',
+          component: SERVICE_COMPONENT,
+          error,
+        });
+
+        process.exitCode = 1;
+      }
+
+      void Promise.allSettled([
+        observability.shutdown(),
+        logger.close(),
+      ]).finally(() => {
+        process.exit(process.exitCode ?? 0);
+      });
+    });
+  };
+
+  process.once('SIGINT', () => shutdown('SIGINT'));
+  process.once('SIGTERM', () => shutdown('SIGTERM'));
+}
+
+void main().catch((error: unknown) => {
+  console.error('The <%= className %> service failed to start.', error);
+
+  process.exitCode = 1;
+});
+
+/**
+ * Resolve and validate the TCP port used by the Node HTTP server.
+ */
+function parsePort(value: string | undefined): number {
+  const port = Number(value ?? DEFAULT_PORT);
+
+  if (!Number.isInteger(port) || port < 1 || port > 65_535) {
+    throw new Error('PORT must be a valid TCP port between 1 and 65535.');
+  }
+
+  return port;
+}

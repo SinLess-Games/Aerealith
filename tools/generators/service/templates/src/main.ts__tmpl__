@@ -1,0 +1,135 @@
+import {
+  createApiApp,
+  type ApiRequestObserver,
+} from '@aerealith-ai/api-platform';
+import type { Logger } from '@aerealith-ai/core';
+import { createLogger } from '@aerealith-ai/observability/logger';
+
+const SERVICE_NAME = '<%= serviceName %>' as const;
+const SERVICE_ROUTE = '<%= routePrefix %>' as const;
+
+export interface CreateServiceAppOptions {
+  /**
+   * Structured logger supplied by the runtime.
+   *
+   * Node runtimes should normally provide the logger created by
+   * createNodeLogger() so logs, exporters, and shutdown lifecycle are shared
+   * with server.ts.
+   */
+  readonly logger?: Logger;
+
+  /**
+   * Runtime environment associated with generated log records.
+   *
+   * Examples:
+   * - development
+   * - test
+   * - staging
+   * - production
+   */
+  readonly environment?: string;
+
+  /**
+   * Optional request observer supplied by the runtime.
+   *
+   * The Node server can provide createApiRequestObserver() after
+   * observability has initialized. Worker runtimes may omit it when no
+   * compatible metrics provider is configured.
+   */
+  readonly requestObserver?: ApiRequestObserver;
+
+  /**
+   * Optional readiness check for services that depend on databases,
+   * queues, caches, or other external infrastructure.
+   */
+  readonly readinessCheck?: () => Promise<void>;
+}
+
+/**
+ * Creates the runtime-independent Hono application for the generated service.
+ *
+ * Keep business routes and shared HTTP behavior here.
+ *
+ * Runtime-specific concerns belong in:
+ *
+ *   server.ts  -> Node.js
+ *   worker.ts  -> Cloudflare Workers
+ */
+export function createServiceApp(
+  options: CreateServiceAppOptions = {},
+) {
+  const environment = options.environment ?? 'development';
+
+  const logger =
+    options.logger ??
+    createLogger({
+      service: SERVICE_NAME,
+      environment,
+
+      onSinkError(failure) {
+        console.error(
+          `A logging sink failed for ${SERVICE_NAME}.`,
+          failure.error,
+        );
+      },
+    });
+
+  /*
+   * createApiApp supplies the common Aerealith service foundation:
+   *
+   *   - request IDs
+   *   - request context
+   *   - structured request logging
+   *   - request observation hooks
+   *   - normalized errors
+   *   - JSON 404 responses
+   *   - health/readiness endpoints
+   */
+  const app = createApiApp({
+    serviceName: SERVICE_NAME,
+    logger,
+
+    health: {
+      path: '/health',
+      readinessPath: '/ready',
+      checkReadiness: options.readinessCheck,
+    },
+
+    requestObserver: options.requestObserver,
+  });
+
+  /**
+   * Service discovery/status endpoint.
+   */
+  app.get(SERVICE_ROUTE, (context) => {
+    logger.debug({
+      event: `${SERVICE_NAME}.service.status.requested`,
+      message: 'Service status requested.',
+      component: `${SERVICE_NAME}-service`,
+
+      context: {
+        path: context.req.path,
+      },
+    });
+
+    return context.json({
+      service: SERVICE_NAME,
+      status: 'ok',
+    });
+  });
+
+  return app;
+}
+
+/*
+ * Default application for runtimes that do not need to inject additional
+ * observability or lifecycle dependencies.
+ *
+ * The Node server should normally call createServiceApp() itself so it can
+ * provide its initialized logger and request observer.
+ */
+const app = createServiceApp();
+
+export { app };
+
+export default app;

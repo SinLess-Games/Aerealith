@@ -1,0 +1,23 @@
+{
+  "name": "@aerealith-ai/service-api",
+  "version": "0.0.1",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "type": "commonjs",
+  "engines": {
+    "node": "26.5.0",
+    "pnpm": "11.13.1"
+  },
+  "main": "./dist/server.js",
+  "scripts": {
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "@aerealith-ai/core": "workspace:*",
+    "@aerealith-ai/db": "workspace:*",
+    "@aerealith-ai/observability": "workspace:*",
+    "@hono/node-server": "2.0.2",
+    "hono": "4.12.30",
+    "zod": "4.4.3"
+  }
+}

@@ -7,7 +7,17 @@
     "module": "commonjs",
     "moduleResolution": "bundler",
     "types": ["node"],
-    "ignoreDeprecations": "6.0"
+    "ignoreDeprecations": "6.0",
+    "paths": {
+      "@aerealith-ai/core": ["../../../dist/libs/core/src/index.d.ts"],
+      "@aerealith-ai/db": ["../../../dist/libs/db/src/index.d.ts"],
+      "@aerealith-ai/observability": [
+        "../../../dist/libs/observability/src/index.d.ts"
+      ],
+      "@aerealith-ai/observability/logger": [
+        "../../../dist/libs/observability/src/logger/index.d.ts"
+      ]
+    }
   },
   "include": ["src/**/*.ts", "worker-configuration.d.ts"],
   "exclude": ["src/**/*.spec.ts", "src/**/*.test.ts"]

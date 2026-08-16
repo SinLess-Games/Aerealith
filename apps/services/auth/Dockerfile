@@ -142,4 +142,4 @@ EXPOSE 3001
 
 ENTRYPOINT ["tini", "--"]
 
-CMD ["pnpm", "exec", "tsx", "apps/services/auth/src/server.ts"]
+CMD ["node", "dist/server.js"]
