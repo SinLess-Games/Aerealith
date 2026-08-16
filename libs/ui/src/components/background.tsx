@@ -116,6 +116,6 @@ function resolveTheme(): BackgroundMode {
 }
 
 function toCssUrl(image: string): string {
-  const escapedImage = image.replaceAll('"', '\\"')
+  const escapedImage = image.replaceAll('"', String.raw`\"`)
   return `url("${escapedImage}")`
 }

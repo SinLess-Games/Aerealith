@@ -1,0 +1,16 @@
+---
+title: Deployment Topology
+description: Understand build artifacts, runtime environments, and external dependencies.
+order: 40
+audience: developer
+---
+
+# Deployment Topology
+
+Deployment topology describes where applications run, which services they call, and how configuration reaches each environment.
+
+Keep development, preview, staging, and production configuration distinct. Build artifacts must not contain secrets; runtime bindings and approved secret stores supply environment-specific values.
+
+Cloudflare-hosted code should use supported Web Standards APIs. Do not assume Node.js capabilities without explicit compatibility configuration and verification.
+
+Before release, confirm the project, environment, artifact, bindings, routes, compatibility settings, health signals, and rollback path. See [Deployment](/documentation/developer/operations/deployment).

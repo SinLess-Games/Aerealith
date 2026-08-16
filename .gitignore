@@ -27,6 +27,7 @@ node_modules/
 .source/
 # Vite / Vitest generated files.
 .vite/
+.source/
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
 

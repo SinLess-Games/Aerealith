@@ -1,0 +1,16 @@
+---
+title: Coverage Requirements
+description: Use coverage as a gap signal while prioritizing risk and behavior.
+order: 40
+audience: developer
+---
+
+# Coverage Requirements
+
+Coverage percentages show executed code, not correctness.
+
+Every change should cover new behavior, regressions, important branches, and expected failures. Higher-risk authentication, authorization, billing, destructive operations, migrations, and public contracts require explicit success and denial cases.
+
+Do not add low-value assertions merely to raise a number. Explain intentional exclusions, and keep generated code out of meaningful coverage decisions.
+
+CI thresholds are the minimum; reviewers may require more based on impact.

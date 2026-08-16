@@ -1,8 +1,8 @@
 import {
+  useCallback,
   useEffect,
   useId,
   useState,
-  useCallback,
   type ComponentPropsWithoutRef,
   type ReactNode,
 } from 'react'
@@ -21,10 +21,19 @@ export interface CarouselImageItem extends CarouselItemBase {
   objectFit?: 'contain' | 'cover'
 }
 
+export interface CarouselCaptionTrack {
+  src: string
+  srcLang: string
+  label?: string
+  default?: boolean
+}
+
 export interface CarouselVideoItem extends CarouselItemBase {
   type: 'video'
   src: string
   poster?: string
+  /** Captions for spoken content in the video. */
+  captions: Readonly<CarouselCaptionTrack>
   /** Starts playback when the video becomes active. Browsers require muted autoplay. */
   autoPlay?: boolean
   controls?: boolean
@@ -100,7 +109,7 @@ export function Carousel({
   showControls = true,
   showIndicators = true,
   ...props
-}: CarouselProps) {
+}: Readonly<CarouselProps>) {
   const [internalIndex, setInternalIndex] = useState(() =>
     normalizeIndex(defaultIndex, items.length),
   )
@@ -158,15 +167,14 @@ export function Carousel({
         {currentItem.label ?? `Item ${currentIndex + 1} of ${items.length}`}
       </span>
 
-      <div
+      <article
         aria-labelledby={titleId}
         aria-live={autoScroll ? 'off' : 'polite'}
         className='h-full w-full'
         data-slot='carousel-item'
-        role='group'
       >
         <CarouselItemContent item={currentItem} />
-      </div>
+      </article>
 
       {showControls && items.length > 1 && (
         <div className='absolute inset-x-0 top-1/2 flex -translate-y-1/2 justify-between px-2'>
@@ -177,7 +185,7 @@ export function Carousel({
             onClick={() => goTo(currentIndex - 1)}
             type='button'
           >
-            ‹
+            &lsaquo;
           </button>
           <button
             aria-label='Next item'
@@ -186,34 +194,34 @@ export function Carousel({
             onClick={() => goTo(currentIndex + 1)}
             type='button'
           >
-            ›
+            &rsaquo;
           </button>
         </div>
       )}
 
       {showIndicators && items.length > 1 && (
-        <div
-          aria-label='Choose carousel item'
-          className='absolute inset-x-0 bottom-2 flex justify-center gap-2'
-          role='group'
-        >
-          {items.map((item, itemIndex) => (
-            <button
-              aria-label={`Show ${item.label ?? `item ${itemIndex + 1}`}`}
-              aria-pressed={itemIndex === currentIndex}
-              className='size-2 rounded-full bg-white/60 aria-pressed:bg-white'
-              key={`${item.type}-${itemIndex}`}
-              onClick={() => goTo(itemIndex)}
-              type='button'
-            />
-          ))}
-        </div>
+        <fieldset className='absolute inset-x-0 bottom-2 flex justify-center gap-2'>
+          <legend className='sr-only'>Choose carousel item</legend>
+          {items.map((item, itemIndex) => {
+            const itemLabel = item.label ?? `item ${itemIndex + 1}`
+            return (
+              <button
+                aria-label={`Show ${itemLabel}`}
+                aria-pressed={itemIndex === currentIndex}
+                className='size-2 rounded-full bg-white/60 aria-pressed:bg-white'
+                key={`${item.type}-${itemIndex}`}
+                onClick={() => goTo(itemIndex)}
+                type='button'
+              />
+            )
+          })}
+        </fieldset>
       )}
     </section>
   )
 }
 
-function CarouselItemContent({ item }: { item: CarouselItem }) {
+function CarouselItemContent({ item }: Readonly<{ item: CarouselItem }>) {
   if (item.type === 'image') {
     return (
       <img
@@ -230,6 +238,7 @@ function CarouselItemContent({ item }: { item: CarouselItem }) {
   if (item.type === 'video') {
     return (
       <video
+        aria-label={item.label}
         autoPlay={item.autoPlay}
         className='h-full w-full'
         controls={item.controls ?? true}
@@ -238,7 +247,15 @@ function CarouselItemContent({ item }: { item: CarouselItem }) {
         playsInline
         poster={item.poster}
         src={item.src}
-      />
+      >
+        <track
+          default={item.captions.default}
+          kind='captions'
+          label={item.captions.label}
+          src={item.captions.src}
+          srcLang={item.captions.srcLang}
+        />
+      </video>
     )
   }
 
@@ -249,7 +266,9 @@ function CarouselItemContent({ item }: { item: CarouselItem }) {
   return <>{item.content}</>
 }
 
-function PresentationPlayer({ item }: { item: CarouselPresentationItem }) {
+function PresentationPlayer({
+  item,
+}: Readonly<{ item: CarouselPresentationItem }>) {
   const [slideIndex, setSlideIndex] = useState(0)
   const slideTime = item.slideTime ?? 5_000
 
@@ -266,11 +285,10 @@ function PresentationPlayer({ item }: { item: CarouselPresentationItem }) {
   const slide = item.slides[slideIndex]
 
   return (
-    <div
+    <figure
       aria-label={`Presentation slide ${slideIndex + 1} of ${item.slides.length}`}
       className='h-full w-full'
       data-slot='presentation-player'
-      role='group'
     >
       {slide.content ?? (
         <img
@@ -279,7 +297,7 @@ function PresentationPlayer({ item }: { item: CarouselPresentationItem }) {
           src={slide.src}
         />
       )}
-    </div>
+    </figure>
   )
 }
 

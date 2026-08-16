@@ -1,0 +1,16 @@
+---
+title: Permission Boundaries
+description: Scope user, service, integration, and administrative privileges.
+order: 30
+audience: developer
+---
+
+# Permission Boundaries
+
+Grant the minimum capability required for the shortest practical duration.
+
+Separate read, create, update, delete, publish, deploy, billing, and administrative permissions. Service credentials should be environment-specific and unable to cross tenant or deployment boundaries.
+
+Connected services require clear consent and target visibility. Reauthorization should be required when requested scope materially expands.
+
+Audit high-impact permission changes without recording secrets. Test denied paths as thoroughly as successful paths.

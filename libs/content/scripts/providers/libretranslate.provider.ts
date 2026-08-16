@@ -3,9 +3,15 @@ import type { TranslationProvider } from './translation-provider'
 interface LibreLanguage {
   code: string
 }
+
 interface LibreTranslation {
   translatedText: string
 }
+
+type RequestAttemptResult =
+  | { kind: 'success'; response: Response }
+  | { kind: 'retry'; error: Error }
+  | { kind: 'failure'; error: Error }
 
 export class LibreTranslateProvider implements TranslationProvider {
   readonly name = 'libretranslate'
@@ -38,7 +44,9 @@ export class LibreTranslateProvider implements TranslationProvider {
     const response = await this.request('/languages', { method: 'GET' })
     const body = (await response.json()) as unknown
     if (!Array.isArray(body) || !body.every(isLanguage)) {
-      throw new Error('LibreTranslate returned an invalid /languages response.')
+      throw new TypeError(
+        'LibreTranslate returned an invalid /languages response.',
+      )
     }
     return new Set(body.map((language) => language.code))
   }
@@ -64,7 +72,7 @@ export class LibreTranslateProvider implements TranslationProvider {
       })
       const result = (await response.json()) as Partial<LibreTranslation>
       if (typeof result.translatedText !== 'string') {
-        throw new Error(
+        throw new TypeError(
           'LibreTranslate returned an invalid translation response.',
         )
       }
@@ -86,49 +94,83 @@ export class LibreTranslateProvider implements TranslationProvider {
   }
 
   private async request(path: string, init: RequestInit): Promise<Response> {
-    let lastError: unknown
+    let lastError: Error | undefined
+
     for (let attempt = 0; attempt < 3; attempt += 1) {
-      const controller = new AbortController()
-      const timeout = setTimeout(
-        () => controller.abort(),
-        this.requestTimeoutMs,
-      )
-      try {
-        const response = await fetch(`${this.baseUrl}${path}`, {
-          ...init,
-          signal: controller.signal,
-        })
-        if (response.ok) return response
-        const message = await response.text()
-        if (response.status === 429)
-          throw new Error(
-            `LibreTranslate rate limit exceeded: ${message || 'HTTP 429'}`,
-          )
-        if (response.status < 500)
-          throw new Error(
-            `LibreTranslate request failed (${response.status}): ${message}`,
-          )
-        lastError = new Error(
-          `LibreTranslate temporary failure (${response.status}): ${message}`,
-        )
-      } catch (error) {
-        lastError = error
-        if (
-          error instanceof Error &&
-          /rate limit|request failed/.test(error.message)
-        )
-          throw error
-      } finally {
-        clearTimeout(timeout)
+      const result = await this.performRequestAttempt(path, init)
+
+      if (result.kind === 'success') {
+        return result.response
       }
+
+      if (result.kind === 'failure') throw result.error
+
+      lastError = result.error
       if (attempt < 2) await delay(250 * (attempt + 1))
     }
-    const detail =
-      lastError instanceof Error ? lastError.message : String(lastError)
+
+    const detail = lastError?.message ?? 'Unknown request failure'
     throw new Error(
       `Could not connect to LibreTranslate at ${this.baseUrl}. Start the self-hosted server and try again. ${detail}`,
     )
   }
+
+  private async performRequestAttempt(
+    path: string,
+    init: RequestInit,
+  ): Promise<RequestAttemptResult> {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), this.requestTimeoutMs)
+
+    try {
+      const response = await fetch(`${this.baseUrl}${path}`, {
+        ...init,
+        signal: controller.signal,
+      })
+
+      if (response.ok) return { kind: 'success', response }
+
+      return classifyFailedResponse(response, await response.text())
+    } catch (error) {
+      return { kind: 'retry', error: toError(error) }
+    } finally {
+      clearTimeout(timeout)
+    }
+  }
+}
+
+function classifyFailedResponse(
+  response: Response,
+  message: string,
+): RequestAttemptResult {
+  if (response.status === 429) {
+    return {
+      kind: 'failure',
+      error: new Error(
+        `LibreTranslate rate limit exceeded: ${message || 'HTTP 429'}`,
+      ),
+    }
+  }
+
+  if (response.status < 500) {
+    return {
+      kind: 'failure',
+      error: new Error(
+        `LibreTranslate request failed (${response.status}): ${message}`,
+      ),
+    }
+  }
+
+  return {
+    kind: 'retry',
+    error: new Error(
+      `LibreTranslate temporary failure (${response.status}): ${message}`,
+    ),
+  }
+}
+
+function toError(error: unknown): Error {
+  return error instanceof Error ? error : new Error(String(error))
 }
 
 function isLanguage(value: unknown): value is LibreLanguage {

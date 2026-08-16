@@ -51,6 +51,7 @@ export function DialogTrigger({
         dialog.setOpen(true)
         onClick?.(event)
       }}
+      type='button'
     />
   )
 }
@@ -67,6 +68,7 @@ export function DialogClose({
         dialog.setOpen(false)
         onClick?.(event)
       }}
+      type='button'
     />
   )
 }

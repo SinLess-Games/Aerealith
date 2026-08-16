@@ -611,7 +611,7 @@ jobs:
             "$SONAR_API_URL/api/issues/search"
             --data-urlencode "componentKeys=$SONAR_PROJECT_KEY"
             --data-urlencode 'resolved=false'
-            --data-urlencode 'ps=100'
+            --data-urlencode 'ps=500'
           )
 
           if [[ "$EVENT_NAME" == 'pull_request' ]] &&

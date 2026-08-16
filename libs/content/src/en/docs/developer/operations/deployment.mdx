@@ -1,0 +1,22 @@
+---
+title: Deployment
+description: Release Aerealith projects with verification and recovery checkpoints.
+order: 10
+audience: developer
+---
+
+# Deployment
+
+Deploy through the owning Nx target and approved environment workflow.
+
+## Checklist
+
+1. Identify project, version, environment, and owner.
+2. Run required build, tests, typecheck, and lint.
+3. Review configuration, bindings, routes, and migrations.
+4. Confirm compatibility and rollback.
+5. Deploy once.
+6. Verify health, logs, and a representative journey.
+7. Record the result.
+
+Do not retry an uncertain deployment before checking provider state. Roll back or stop traffic when verification fails and continued exposure increases harm.

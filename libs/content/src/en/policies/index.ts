@@ -1,24 +1,25 @@
+import acceptableUsePolicyData from './acceptable-use.json'
+import aiTransparencyPolicyData from './ai-transparency.json'
+import billingRefundCancellationPolicyData from './billing-refund-cancellation.json'
+import cookieTrackingPolicyData from './cookie-tracking.json'
+import copyrightTakedownPolicyData from './copyright-takedown.json'
+import dataPolicyData from './data.json'
+import developerPolicyData from './developer.json'
+import incidentNotificationPolicyData from './incident-notification.json'
+import paymentProcessorCompliancePolicyData from './payment-processor-compliance.json'
+import privacyPolicyData from './privacy.json'
+import responsibleAiPolicyData from './responsible-ai.json'
+import securityPolicyData from './security.json'
+import subprocessorVendorListPolicyData from './subprocessor-vendor-list.json'
+import supportPolicyData from './support.json'
+import termsOfUsePolicyData from './terms-of-use.json'
+import underagePolicyData from './underage.json'
+import userGeneratedContentPolicyData from './user-generated-content.json'
+
 import type { PolicyDocument } from '../../types'
+import { definePolicyDocuments } from './define-policy-documents'
 
-import acceptableUsePolicy from './acceptable-use'
-import aiTransparencyPolicy from './ai-transparency'
-import billingRefundCancellationPolicy from './billing-refund-cancellation'
-import cookieTrackingPolicy from './cookie-tracking'
-import copyrightTakedownPolicy from './copyright-takedown'
-import dataPolicy from './data'
-import developerPolicy from './developer'
-import incidentNotificationPolicy from './incident-notification'
-import paymentProcessorCompliancePolicy from './payment-processor-compliance'
-import privacyPolicy from './privacy'
-import responsibleAiPolicy from './responsible-ai'
-import securityPolicy from './security'
-import subprocessorVendorListPolicy from './subprocessor-vendor-list'
-import supportPolicy from './support'
-import termsOfUsePolicy from './terms-of-use'
-import underagePolicy from './underage'
-import userGeneratedContentPolicy from './user-generated-content'
-
-export {
+export const {
   acceptableUsePolicy,
   aiTransparencyPolicy,
   billingRefundCancellationPolicy,
@@ -36,7 +37,25 @@ export {
   termsOfUsePolicy,
   underagePolicy,
   userGeneratedContentPolicy,
-}
+} = definePolicyDocuments({
+  acceptableUsePolicy: acceptableUsePolicyData,
+  aiTransparencyPolicy: aiTransparencyPolicyData,
+  billingRefundCancellationPolicy: billingRefundCancellationPolicyData,
+  cookieTrackingPolicy: cookieTrackingPolicyData,
+  copyrightTakedownPolicy: copyrightTakedownPolicyData,
+  dataPolicy: dataPolicyData,
+  developerPolicy: developerPolicyData,
+  incidentNotificationPolicy: incidentNotificationPolicyData,
+  paymentProcessorCompliancePolicy: paymentProcessorCompliancePolicyData,
+  privacyPolicy: privacyPolicyData,
+  responsibleAiPolicy: responsibleAiPolicyData,
+  securityPolicy: securityPolicyData,
+  subprocessorVendorListPolicy: subprocessorVendorListPolicyData,
+  supportPolicy: supportPolicyData,
+  termsOfUsePolicy: termsOfUsePolicyData,
+  underagePolicy: underagePolicyData,
+  userGeneratedContentPolicy: userGeneratedContentPolicyData,
+})
 
 export const englishPolicies = [
   termsOfUsePolicy,

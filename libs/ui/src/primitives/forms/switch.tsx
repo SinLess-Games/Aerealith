@@ -40,6 +40,7 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(
         }}
         ref={ref}
         role='switch'
+        type='button'
       >
         <span
           aria-hidden='true'

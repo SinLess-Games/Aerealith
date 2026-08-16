@@ -1,0 +1,14 @@
+---
+title: Environment Variables
+description: Define and consume environment variables without leaking secrets.
+order: 20
+audience: developer
+---
+
+# Environment Variables
+
+Environment variables and runtime bindings must be declared, validated, and scoped to an owning project.
+
+Use clear names and document purpose, required environments, and sensitivity. Never commit production values or expose server-only values through client bundles.
+
+Example files may contain safe placeholders only. Missing required values should fail early without printing the value. Rotate exposed secrets through their issuing system.

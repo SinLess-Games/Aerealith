@@ -1,10 +1,6 @@
 import type { BackgroundContent } from './background.types'
 import type { CarouselContent, CarouselItem } from './carousel.types'
-import type {
-  ContentLink,
-  ContentLocale,
-  PublicationDetails,
-} from './shared.types'
+import type { ContentLink, PublicationDetails } from './shared.types'
 
 export interface PageMetadata extends PublicationDetails {
   readonly title: string
@@ -41,7 +37,8 @@ export interface PageContent<
   THero extends HeroContent = HeroContent,
 > {
   readonly slug: string
-  readonly locale?: ContentLocale
+  /** Locale tag such as `en`, `en-US`, or `fr-CA`. */
+  readonly locale?: string
   readonly metadata: PageMetadata
   readonly hero?: THero
   readonly sections: readonly TSection[]

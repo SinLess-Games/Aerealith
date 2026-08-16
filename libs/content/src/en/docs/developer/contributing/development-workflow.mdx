@@ -1,0 +1,21 @@
+---
+title: Development Workflow
+description: Move a repository change from investigation through validation.
+order: 10
+audience: developer
+---
+
+# Development Workflow
+
+1. Reproduce or define the desired behavior.
+2. Identify the owning project and dependencies.
+3. Inspect existing patterns and tests.
+4. Make the smallest cohesive change.
+5. Format changed files.
+6. Run narrow Nx targets.
+7. Expand validation based on affected scope.
+8. Review the final diff for unrelated edits and sensitive data.
+
+Do not bypass generators for scaffolding when the workspace provides one. Do not hand-edit generated output without changing its source.
+
+Record assumptions and remaining risk in the pull request.

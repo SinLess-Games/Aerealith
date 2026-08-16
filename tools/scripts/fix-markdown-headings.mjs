@@ -2,6 +2,7 @@ import { readdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
 const root = process.cwd()
+const codeFence = String.fromCodePoint(96).repeat(3)
 
 const ignoredDirs = new Set([
   '.git',
@@ -46,7 +47,7 @@ function normalizeHeadings(content) {
 
   return lines
     .map((line) => {
-      if (/^```/.test(line.trim())) {
+      if (line.trim().startsWith(codeFence)) {
         inFence = !inFence
         return line
       }
@@ -55,7 +56,7 @@ function normalizeHeadings(content) {
         return line
       }
 
-      if (/^# /.test(line)) {
+      if (line.startsWith('# ')) {
         if (!seenH1) {
           seenH1 = true
           return line

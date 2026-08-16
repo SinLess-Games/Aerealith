@@ -1,0 +1,20 @@
+---
+title: Cloudflare
+description: Develop and operate Cloudflare-hosted Aerealith services.
+order: 10
+audience: developer
+---
+
+# Cloudflare
+
+Cloudflare-hosted projects should use Web Standards APIs and declared bindings. Verify runtime compatibility before introducing Node-specific behavior.
+
+## Configuration
+
+Keep routes, compatibility dates, bindings, and environment configuration in the owning project. Store secrets through approved secret mechanisms, never source control.
+
+## Development and deployment
+
+Run project targets through Nx. Use local or preview environments for verification before production deployment. Validate bindings, migration requirements, routes, and health signals.
+
+Design Durable Object, queue, storage, and worker interactions for retries and partial failures. Consult current official Cloudflare documentation for platform limits and behavior.

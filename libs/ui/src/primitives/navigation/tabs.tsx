@@ -100,6 +100,7 @@ export function TabsTrigger({
       }}
       role='tab'
       tabIndex={selected ? 0 : -1}
+      type='button'
     />
   )
 }

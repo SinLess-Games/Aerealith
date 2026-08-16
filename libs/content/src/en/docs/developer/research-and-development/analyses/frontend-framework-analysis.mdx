@@ -1,0 +1,577 @@
+---
+title: Frontend Framework Analysis
+description: Historical analysis of the frontend technologies evaluated for Aerealith and the decision to use Vite with React Router.
+order: 10
+audience: developer
+status: Adopted
+confidence: High
+researchType: Technical Analysis
+owners:
+  - sinless777
+researchStarted: 2019
+decisionDate: 2024
+updated: 2026-07-25
+related:
+  - /documentation/developer/research-and-development
+---
+
+# Frontend Framework Analysis
+
+## Summary
+
+Frontend technology research for Aerealith began in **2019** as part of the project's original research and concept-development phase.
+
+Several frontend frameworks and build systems were evaluated over the following years:
+
+- Next.js
+- Angular and AngularJS
+- Vue
+- Vite with React and React Router
+
+In **2024**, Aerealith adopted **Vite, React, and React Router** as its primary frontend foundation.
+
+The deciding factor was not that Vite was universally superior to every alternative. It was that Vite provided the best overall fit for Aerealith's architecture, development workflow, and intended deployment through Cloudflare.
+
+## Research Question
+
+Which frontend framework and build system provides the best foundation for the Aerealith web platform?
+
+The selected solution needed to support:
+
+- A modular frontend architecture.
+- Fast local development.
+- Strong TypeScript support.
+- Client-side routing.
+- Reusable UI components.
+- Straightforward testing.
+- Efficient production builds.
+- Deployment through Cloudflare.
+- Integration with Cloudflare Workers.
+- Long-term maintainability.
+- Compatibility with the Aerealith monorepo.
+- Separation between frontend and backend responsibilities.
+
+## Background
+
+Aerealith research began in **2019**, originally under the **Helix** identity.
+
+During the early research phase, the frontend requirements were still evolving. The platform was expected to eventually support:
+
+- User-facing applications.
+- Developer-facing tools.
+- Administrative interfaces.
+- Documentation.
+- Authentication flows.
+- AI-assisted interactions.
+- Modular integrations.
+- Real-time platform functionality.
+
+Because these requirements were broader than those of a traditional content website, the frontend decision needed to account for both immediate development needs and long-term platform growth.
+
+The research continued from 2019 until the primary frontend direction was selected in 2024.
+
+## Objectives
+
+The frontend analysis had the following objectives:
+
+1. Compare established frontend frameworks and application architectures.
+2. Determine which option aligned best with Cloudflare deployment.
+3. Avoid unnecessary framework complexity.
+4. Maintain control over routing, rendering, and application structure.
+5. Support rapid development without sacrificing production quality.
+6. Keep the frontend independent from the backend implementation.
+7. Select an ecosystem capable of supporting Aerealith's long-term plans.
+
+## Scope
+
+The analysis considered the following technologies:
+
+- Next.js
+- Angular
+- AngularJS
+- Vue
+- Vite
+- React
+- React Router
+
+The research focused on their suitability for the primary Aerealith frontend application.
+
+## Out of Scope
+
+This analysis did not establish permanent technology choices for every Aerealith interface.
+
+Separate applications may use different technologies when justified by their requirements.
+
+The analysis also did not cover:
+
+- Native mobile frameworks.
+- Desktop application frameworks.
+- Game-engine interfaces.
+- Embedded interfaces.
+- Documentation-specific frameworks.
+- Discord user interfaces.
+- Third-party integration interfaces.
+
+## Evaluation Criteria
+
+Each option was evaluated using the following criteria:
+
+| Criterion                | Description                                                                                  |
+| ------------------------ | -------------------------------------------------------------------------------------------- |
+| Developer experience     | Quality and speed of the local development workflow.                                         |
+| Build performance        | Startup speed, rebuild speed, and production build efficiency.                               |
+| TypeScript support       | Ability to use TypeScript consistently across the application.                               |
+| Routing                  | Flexibility and maintainability of application navigation.                                   |
+| Cloudflare compatibility | Suitability for deployment through Cloudflare's platform.                                    |
+| Worker compatibility     | Ability to integrate with Cloudflare Workers and edge services.                              |
+| Architectural control    | Freedom to structure the application around Aerealith's requirements.                        |
+| Complexity               | Amount of framework-specific behavior developers must understand.                            |
+| Ecosystem                | Availability of libraries, tooling, documentation, and community support.                    |
+| Maintainability          | Expected long-term cost of updating and supporting the application.                          |
+| Portability              | Ability to move or adapt the frontend without replacing the entire application architecture. |
+| Monorepo compatibility   | Suitability for use within Aerealith's shared repository structure.                          |
+
+## Technologies Evaluated
+
+## Next.js
+
+Next.js was evaluated as a React framework that provides an integrated application structure.
+
+Its primary advantages included:
+
+- A large React ecosystem.
+- File-based routing.
+- Server-side rendering.
+- Static generation.
+- API route support.
+- Established conventions.
+- Integrated optimization features.
+- A large developer community.
+
+Next.js was capable of supporting a substantial web application, but it introduced framework-level conventions and runtime assumptions that were not necessary for every part of Aerealith.
+
+### Strengths
+
+- Mature React framework.
+- Strong support for server-rendered applications.
+- Built-in routing.
+- Established deployment patterns.
+- Large ecosystem.
+- Good support for search-engine-optimized public pages.
+- Useful conventions for teams that want an integrated full-stack framework.
+
+### Limitations
+
+- Greater framework complexity than a client-focused Vite application.
+- More coupling between rendering strategy and framework behavior.
+- Features that Aerealith did not require for every application route.
+- Potential duplication between framework backend features and Aerealith's independent backend services.
+- More framework-specific deployment considerations.
+- Less direct control over some parts of the build and runtime model.
+
+### Conclusion
+
+Next.js remained a valid option, particularly for server-rendered or content-heavy applications.
+
+It was not selected as the primary Aerealith frontend because the platform required a more independently structured frontend that could communicate with separate backend services and Cloudflare Workers without relying on a full-stack React framework.
+
+## Angular and AngularJS
+
+Angular and AngularJS were evaluated because of their structured application model and long history in enterprise web development.
+
+Angular provides a comprehensive framework that includes:
+
+- Dependency injection.
+- Routing.
+- Forms.
+- HTTP utilities.
+- Component architecture.
+- Testing conventions.
+- Build tooling.
+- Strong TypeScript integration.
+
+AngularJS represented an earlier generation of this ecosystem and was considered during the initial research period.
+
+### Strengths
+
+- Highly structured application architecture.
+- Strong TypeScript support in modern Angular.
+- Integrated routing and forms.
+- Clear dependency-injection patterns.
+- Consistent conventions for large teams.
+- Extensive official tooling.
+- Strong support for complex enterprise applications.
+
+### Limitations
+
+- Higher initial complexity.
+- More framework-specific concepts and conventions.
+- Greater boilerplate for smaller modules and interfaces.
+- A heavier architecture than Aerealith required.
+- Less flexibility when deviating from the framework's preferred patterns.
+- AngularJS was already becoming unsuitable for a new long-term platform during the research period.
+- Migration differences between AngularJS and modern Angular increased ecosystem complexity.
+
+### Conclusion
+
+Angular provided a capable and disciplined architecture but required more framework overhead than Aerealith needed.
+
+AngularJS was rejected because it was not an appropriate foundation for a new long-term application.
+
+Modern Angular was not selected because its structure, conventions, and complexity did not provide enough benefit over a lighter React and Vite architecture for Aerealith's development model.
+
+## Vue
+
+Vue was evaluated as a progressive frontend framework with a lower entry barrier and a flexible component model.
+
+Its primary advantages included:
+
+- Clear single-file components.
+- A relatively approachable API.
+- Strong reactive-state capabilities.
+- Good TypeScript support.
+- Official routing and state-management libraries.
+- A capable build ecosystem.
+- Flexibility for both small and large applications.
+
+### Strengths
+
+- Easy to begin using.
+- Clear component organization.
+- Good documentation.
+- Flexible adoption model.
+- Effective reactivity system.
+- Official router support.
+- Strong performance.
+- Suitable for both small applications and larger interfaces.
+
+### Limitations
+
+- A smaller ecosystem than React for some specialized Aerealith requirements.
+- Fewer existing React-oriented libraries could be reused.
+- Less alignment with the development experience and component ecosystem selected for Aerealith.
+- Adopting Vue would have required committing the platform to a separate component and tooling ecosystem.
+
+### Conclusion
+
+Vue was one of the strongest alternatives considered.
+
+It offered a good balance between framework capability and developer experience. However, React provided a broader ecosystem and better aligned with Aerealith's intended architecture, tooling, and long-term component strategy.
+
+Vue was therefore not selected, although it was considered technically capable of supporting the platform.
+
+## Vite, React, and React Router
+
+Vite was evaluated as a frontend development server and production build system.
+
+React was evaluated as the component and rendering library, while React Router was evaluated as the application's routing layer.
+
+Together, these tools provided a modular alternative to adopting a larger integrated framework.
+
+### Strengths
+
+- Fast local development startup.
+- Fast hot module replacement.
+- Straightforward TypeScript support.
+- Flexible application architecture.
+- Strong React ecosystem.
+- Explicit client-side routing through React Router.
+- Clear separation between frontend and backend services.
+- Efficient production builds.
+- Straightforward integration with monorepo tooling.
+- Greater control over application structure.
+- Compatibility with static asset deployment.
+- Strong fit for Cloudflare-hosted applications.
+- Ability to integrate frontend routes with Cloudflare Workers and related services.
+- Reduced reliance on framework-specific server behavior.
+
+### Limitations
+
+- Fewer built-in application conventions than Next.js or Angular.
+- The development team must define more of the project structure.
+- Server-side rendering is not provided automatically.
+- Authentication, data loading, caching, and API integration require explicit architectural decisions.
+- Developers must select and maintain supporting libraries.
+- Poor architectural discipline can result in inconsistent application patterns.
+
+### Conclusion
+
+Vite, React, and React Router provided the best balance of:
+
+- Performance.
+- Flexibility.
+- Ecosystem support.
+- Architectural control.
+- Cloudflare compatibility.
+- Maintainability.
+
+This combination allowed Aerealith to use React without adopting unnecessary full-stack framework behavior.
+
+## Comparative Analysis
+
+| Technology          | Main Advantage                                                | Primary Concern                                   | Decision     |
+| ------------------- | ------------------------------------------------------------- | ------------------------------------------------- | ------------ |
+| Next.js             | Integrated React framework with server-rendering capabilities | More framework and runtime coupling than required | Not selected |
+| Angular             | Comprehensive and highly structured framework                 | Excessive complexity and framework overhead       | Not selected |
+| AngularJS           | Established early web-application framework                   | Unsuitable for a new long-term application        | Rejected     |
+| Vue                 | Flexible and approachable component framework                 | Smaller alignment with the selected ecosystem     | Not selected |
+| Vite + React Router | Fast, modular, flexible, and Cloudflare-friendly              | Requires more explicit architecture               | Adopted      |
+
+## Cloudflare Considerations
+
+Cloudflare compatibility was a major factor in the final decision.
+
+Aerealith was designed to use Cloudflare for several infrastructure and application-delivery responsibilities. The frontend therefore needed to work cleanly with:
+
+- Cloudflare Workers.
+- Cloudflare's edge network.
+- Static asset hosting.
+- API requests handled by independent services.
+- Authentication and authorization services.
+- Environment-specific configuration.
+- Cache-control policies.
+- Edge middleware and request processing.
+
+Vite produces a frontend application that can be deployed independently while allowing Cloudflare Workers to handle server-side and edge responsibilities.
+
+This creates a clear boundary:
+
+```text
+Browser
+  │
+  ▼
+Vite and React frontend
+  │
+  ├── Static assets
+  ├── Client-side routes
+  ├── User interface state
+  └── API requests
+          │
+          ▼
+Cloudflare Workers and Aerealith services
+  │
+  ├── Authentication
+  ├── Authorization
+  ├── Request validation
+  ├── API routing
+  ├── AI services
+  ├── Business logic
+  └── Data access
+```
+
+This separation was considered more appropriate for Aerealith than placing frontend rendering and backend application logic inside the same framework.
+
+## Decision
+
+In **2024**, Aerealith selected the following primary frontend stack:
+
+- **Vite** for development and production builds.
+- **React** for the user-interface component system.
+- **React Router** for application routing.
+- **TypeScript** for frontend application development.
+- **Cloudflare Workers** for edge and server-side functionality where applicable.
+
+The frontend is maintained within the Aerealith monorepo.
+
+The primary frontend application is located at:
+
+```text
+apps/frontend
+```
+
+Shared content and documentation are maintained under:
+
+```text
+libs/content
+```
+
+## Decision Rationale
+
+The Vite-based approach was selected because it:
+
+1. Provided the best fit for Aerealith's Cloudflare deployment strategy.
+2. Maintained a strong separation between frontend and backend responsibilities.
+3. Offered a fast local development experience.
+4. Allowed direct control over the application architecture.
+5. Supported React's component and library ecosystem.
+6. Avoided unnecessary server-rendering and framework features.
+7. Integrated cleanly with TypeScript and monorepo tooling.
+8. Reduced dependence on a single full-stack framework.
+9. Allowed Cloudflare Workers to handle edge-specific responsibilities.
+10. Supported the long-term modular direction of the Aerealith platform.
+
+## Consequences
+
+### Positive Consequences
+
+- Frontend development remains fast and lightweight.
+- React libraries can be adopted where appropriate.
+- Routing behavior remains explicit and configurable.
+- The frontend can be deployed independently.
+- Cloudflare Workers can evolve separately from the UI.
+- Backend services are not tied to the frontend framework.
+- The application can use shared monorepo libraries.
+- Production architecture remains modular.
+- Framework migration risk is reduced compared with relying on a fully integrated frontend and backend framework.
+
+### Negative Consequences
+
+- The project must define its own frontend conventions.
+- Developers must make explicit decisions about data loading and caching.
+- Server-side rendering requires additional implementation if it becomes necessary.
+- Authentication and route protection must be designed and maintained by the Aerealith team.
+- Supporting libraries must be individually evaluated.
+- Architecture can become inconsistent without clear documentation and enforcement.
+
+### Neutral Consequences
+
+- Vite is a build tool rather than a complete application framework.
+- React Router controls navigation but does not define the rest of the application architecture.
+- The frontend depends on Aerealith's APIs and services for business logic.
+- Additional tools may be introduced when justified by a specific requirement.
+
+## Implementation Principles
+
+The Aerealith frontend should follow these principles.
+
+### Keep Business Logic Outside UI Components
+
+React components should primarily manage presentation and user interaction.
+
+Reusable business logic should be placed in:
+
+- Services.
+- Hooks.
+- Shared libraries.
+- API clients.
+- Domain modules.
+- State-management modules.
+
+### Keep Backend Logic Outside the Frontend
+
+Security-sensitive operations must be performed by trusted backend or Worker services.
+
+The frontend must not be trusted to enforce:
+
+- Authorization.
+- Permission boundaries.
+- Billing rules.
+- Administrative access.
+- Data ownership.
+- Secret handling.
+- Security policy.
+
+### Prefer Explicit Dependencies
+
+Libraries should be added only when they solve a defined problem.
+
+The frontend should avoid unnecessary dependency growth and overlapping libraries.
+
+### Preserve Framework Portability
+
+Aerealith should avoid deeply coupling domain logic to React when the same logic can be implemented in framework-independent TypeScript libraries.
+
+### Use React Router Intentionally
+
+Routes should be:
+
+- Organized by application area.
+- Protected based on authenticated user access.
+- Lazy-loaded where appropriate.
+- Designed with predictable loading and error states.
+- Documented when they represent major product capabilities.
+
+### Optimize for Cloudflare Deployment
+
+Frontend functionality should account for:
+
+- Edge caching.
+- Static asset caching.
+- Worker request limits.
+- Environment bindings.
+- API latency.
+- Regional data access.
+- Authentication at the edge.
+- Deployment-preview environments.
+
+## Alternatives Reconsideration
+
+This decision may be reconsidered if Aerealith develops requirements that the current stack cannot reasonably support.
+
+Potential reasons for reassessment include:
+
+- A strong requirement for server-side rendering across the application.
+- A major shift toward server components.
+- A requirement for framework-managed backend routes.
+- Unacceptable limitations in Cloudflare deployment.
+- Significant maintainability problems.
+- A future framework providing a clearly superior architecture for Aerealith's needs.
+- Changes to React, Vite, React Router, or Cloudflare support.
+
+A new decision should require updated research and should not be based solely on framework popularity.
+
+## Limitations of the Original Research
+
+The original research began in 2019 and continued through the 2024 decision.
+
+Because frontend technology changes quickly, some early findings are now historical rather than current performance comparisons.
+
+The decision documented here records why Vite was selected for Aerealith. It should not be interpreted as a permanent claim that Vite is always the best frontend tool for every project.
+
+Future evaluations should compare current versions, deployment behavior, ecosystem maturity, security, and maintenance requirements.
+
+## Conclusion
+
+Aerealith evaluated Next.js, Angular, AngularJS, Vue, and a Vite-based React application between **2019 and 2024**.
+
+Each option was capable of supporting at least part of the platform's requirements, but **Vite with React and React Router** provided the best overall fit.
+
+The adopted architecture gives Aerealith:
+
+- A fast development workflow.
+- A mature component ecosystem.
+- Explicit routing.
+- Independent backend services.
+- Strong TypeScript support.
+- Direct architectural control.
+- A clean deployment path through Cloudflare.
+- Effective integration with Cloudflare Workers.
+
+The frontend decision was finalized in **2024** and remains the adopted direction for the primary Aerealith web application.
+
+## Recommendation
+
+Continue using Vite, React, React Router, and TypeScript for the primary Aerealith frontend.
+
+Future frontend changes should preserve:
+
+- Cloudflare compatibility.
+- Modular architecture.
+- Independent backend services.
+- Strong frontend security boundaries.
+- Shared monorepo libraries.
+- Explicit routing and data-access patterns.
+- The ability to replace individual tools without rebuilding the entire platform.
+
+## Follow-Up Work
+
+- [ ] Document the frontend directory architecture.
+- [ ] Document routing conventions.
+- [ ] Document authentication and protected-route behavior.
+- [ ] Document API-client conventions.
+- [ ] Document frontend state-management decisions.
+- [ ] Document Cloudflare deployment architecture.
+- [ ] Document environment-variable handling.
+- [ ] Document frontend testing requirements.
+- [ ] Document accessibility requirements.
+- [ ] Document performance budgets.
+- [ ] Create an ADR for the adopted frontend stack.
+- [ ] Add current benchmark data when a new framework comparison is required.
+
+## Revision History
+
+| Date       | Author                       | Change                                                                    |
+| ---------- | ---------------------------- | ------------------------------------------------------------------------- |
+| 2019       | Timothy “Andy” Andrew Pierce | Began researching frontend technologies for the project.                  |
+| 2024       | Timothy “Andy” Andrew Pierce | Selected Vite, React, and React Router as the primary frontend stack.     |
+| 2026-07-25 | Timothy “Andy” Andrew Pierce | Converted the historical research and decision into formal documentation. |

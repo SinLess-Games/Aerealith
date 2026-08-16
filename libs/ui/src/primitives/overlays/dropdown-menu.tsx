@@ -38,6 +38,7 @@ export function DropdownMenuTrigger({
         menu.setOpen(!menu.open)
         onClick?.(event)
       }}
+      type='button'
     />
   )
 }
@@ -78,6 +79,7 @@ export function DropdownMenuItem({
         onClick?.(event)
       }}
       role='menuitem'
+      type='button'
     />
   )
 }

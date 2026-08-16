@@ -1,0 +1,124 @@
+---
+title: Your First Workflow
+description: Plan, complete, and verify a useful first task in Aerealith.
+order: 10
+audience: user
+keywords:
+  - first workflow
+  - tasks
+  - onboarding
+  - verification
+---
+
+# Your First Workflow
+
+A good first workflow is small enough to verify, useful enough to matter, and limited enough that a mistake is easy to correct. This guide uses a project-summary task, but the same process applies to research, planning, documentation, and technical work.
+
+## Choose a bounded task
+
+Start with information you understand and an outcome you can review yourself.
+
+Good first tasks include:
+
+- turning meeting notes into a structured summary
+- extracting action items from a project update
+- comparing a short list of documented options
+- rewriting existing content for a specific audience
+- organizing requirements into categories
+- drafting a checklist from an approved process
+
+Avoid making your first task a high-impact external action, a large repository-wide change, or a decision that requires professional judgment.
+
+## Define the outcome
+
+Before submitting anything, write one sentence that describes what success looks like.
+
+For example:
+
+> Create a project status summary that a stakeholder can read in less than three minutes.
+
+Add the details needed to evaluate the result:
+
+- **Audience:** Who will read or use it?
+- **Source:** Which information should be used?
+- **Format:** What structure should the result follow?
+- **Constraints:** What must be included or avoided?
+- **Quality bar:** How will you decide whether it is ready?
+
+## Prepare the source material
+
+Remove information that is unrelated to the task. Check the remaining material for secrets, personal data, confidential business information, or content you are not authorized to share.
+
+If the source has conflicting or incomplete information, identify that before asking Aerealith to work with it. You can also instruct Aerealith to list conflicts instead of resolving them silently.
+
+<SecurityNote>
+  Include only information that is necessary and appropriate for the current
+  workspace. Redact credentials, private keys, session tokens, recovery codes,
+  and unrelated personal information.
+</SecurityNote>
+
+## Write the request
+
+A complete request might look like this:
+
+> Using only the notes below, create a project status summary for nontechnical stakeholders. Use the sections Completed, In Progress, Risks, Decisions Needed, and Next Actions. Preserve names and dates exactly. If an owner or due date is missing, write “Not specified” instead of guessing.
+
+This request establishes:
+
+- an allowed source
+- an audience
+- a predictable structure
+- rules for uncertain information
+- a clear boundary against invention
+
+See [Writing Effective Requests](/documentation/user/getting-started/writing-effective-requests) for additional patterns.
+
+## Review the first result
+
+Do not begin by polishing wording. First check whether the result is faithful to the source.
+
+1. Confirm every name, date, status, and numerical value.
+2. Check that important source information was not omitted.
+3. Identify statements that are stronger or more certain than the source.
+4. Confirm that the requested structure was followed.
+5. Look for content that appears plausible but was not provided.
+
+Then improve clarity, tone, and formatting.
+
+## Ask for a targeted revision
+
+When a result needs correction, describe the defect and the expected change.
+
+Less useful:
+
+> Make it better.
+
+More useful:
+
+> Keep the existing structure. Shorten Completed to three bullets, move the deployment delay to Risks, and mark the launch date as “Not confirmed” because the notes contain two different dates.
+
+Targeted revisions preserve correct work and make changes easier to verify.
+
+## Save or share the result
+
+Before copying, exporting, publishing, or sending the result:
+
+- complete a final factual review
+- remove internal notes that should not be shared
+- confirm the intended audience
+- confirm the destination and permissions
+- keep a source reference when traceability matters
+
+If an action affects another system or another person, inspect the final target immediately before approval.
+
+## Build from the first workflow
+
+Once the process is reliable, you can gradually increase scope:
+
+1. Add more source material.
+2. Introduce a reusable template.
+3. Connect an approved external service.
+4. Add review checkpoints.
+5. Automate only the steps that remain safe and predictable.
+
+Continue with [Reviewing Results](/documentation/user/getting-started/reviewing-results) before relying on longer or higher-impact workflows.

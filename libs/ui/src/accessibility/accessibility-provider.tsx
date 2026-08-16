@@ -35,7 +35,7 @@ export function AccessibilityProvider({
   children,
   initialPreferences,
   storageKey = ACCESSIBILITY_STORAGE_KEY,
-}: AccessibilityProviderProps) {
+}: Readonly<AccessibilityProviderProps>) {
   const [preferences, setPreferences] = useState<AccessibilityPreferences>(
     () => {
       const fallback = {

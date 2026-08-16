@@ -3,7 +3,6 @@ import type {
   ImageContent,
   VideoContent,
 } from './media.types'
-import type { ContentId } from './shared.types'
 
 export type PresentationSlide<
   TComponentProps = Readonly<Record<string, unknown>>,
@@ -13,7 +12,7 @@ export interface PresentationContent<
   TComponentProps = Readonly<Record<string, unknown>>,
 > {
   readonly type: 'presentation'
-  readonly id?: ContentId
+  readonly id?: string
   readonly label: string
   readonly slides: readonly PresentationSlide<TComponentProps>[]
   readonly autoPlay?: boolean
@@ -30,7 +29,7 @@ export type CarouselItem<TComponentProps = Readonly<Record<string, unknown>>> =
 export interface CarouselContent<
   TComponentProps = Readonly<Record<string, unknown>>,
 > {
-  readonly id?: ContentId
+  readonly id?: string
   readonly label?: string
   readonly items: readonly CarouselItem<TComponentProps>[]
   readonly autoScroll?: boolean

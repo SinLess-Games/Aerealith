@@ -1,0 +1,22 @@
+---
+title: Testing Strategy
+description: Choose test boundaries based on behavior, risk, and failure cost.
+order: 10
+audience: developer
+---
+
+# Testing Strategy
+
+Test observable behavior rather than implementation details.
+
+## Layers
+
+- Unit tests cover pure rules and transformations.
+- Component tests cover rendering and interaction contracts.
+- Integration tests cover persistence, adapters, and service composition.
+- Contract tests protect public schemas.
+- End-to-end tests protect critical journeys.
+
+Prefer the lowest layer that proves the behavior. Add higher-level coverage when wiring, runtime, permissions, or external boundaries create meaningful risk.
+
+Tests must control time, randomness, network access, and external state.

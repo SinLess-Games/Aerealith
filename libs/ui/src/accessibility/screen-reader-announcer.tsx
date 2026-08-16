@@ -12,7 +12,9 @@ type Politeness = 'polite' | 'assertive'
 type Announce = (message: string, politeness?: Politeness) => void
 const AnnouncerContext = createContext<Announce | undefined>(undefined)
 
-export function ScreenReaderAnnouncer({ children }: { children: ReactNode }) {
+export function ScreenReaderAnnouncer({
+  children,
+}: Readonly<{ children: ReactNode }>) {
   const [messages, setMessages] = useState<Record<Politeness, string>>({
     polite: '',
     assertive: '',

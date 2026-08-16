@@ -11,9 +11,28 @@ export function collectPlaceholders(value: string): string[] {
 }
 
 export function collectUrls(value: string): string[] {
-  return [...(value.match(URL_PATTERN) ?? [])].sort()
+  return collectPatternMatches(value, URL_PATTERN).sort((left, right) =>
+    left.localeCompare(right),
+  )
 }
 
 function collectMatches(value: string, patterns: readonly RegExp[]): string[] {
-  return patterns.flatMap((pattern) => value.match(pattern) ?? []).sort()
+  return patterns
+    .flatMap((pattern) => collectPatternMatches(value, pattern))
+    .sort((left, right) => left.localeCompare(right))
+}
+
+function collectPatternMatches(value: string, pattern: RegExp): string[] {
+  const matcher = new RegExp(pattern.source, pattern.flags)
+  const matches: string[] = []
+
+  for (
+    let match = matcher.exec(value);
+    match !== null;
+    match = matcher.exec(value)
+  ) {
+    matches.push(match[0])
+  }
+
+  return matches
 }

@@ -95,6 +95,16 @@ describe('machine translation workflow', () => {
     expect(protectedText.restore(protectedText.text.toLowerCase())).toBe(source)
   })
 
+  it('protects email addresses surrounded by punctuation', () => {
+    const source = 'Contact support@aerealith.com, or admin+ai@example.co.uk.'
+
+    const protectedText = protectContent(source)
+
+    expect(protectedText.text).not.toContain('support@aerealith.com')
+    expect(protectedText.text).not.toContain('admin+ai@example.co.uk')
+    expect(protectedText.restore(protectedText.text)).toBe(source)
+  })
+
   it('returns cached translations for unchanged source text', async () => {
     const root = await fixtureRoot()
     const path = join(root, 'cache.json')

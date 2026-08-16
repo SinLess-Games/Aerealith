@@ -4,7 +4,10 @@ export function localeExportName(locale: string): string {
   const identifier = `${first.toLowerCase()}${rest
     .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
     .join('')}`
-  return `${/^\d/.test(identifier) ? `locale${identifier}` : identifier}Content`
+  const safeIdentifier = /^\d/.test(identifier)
+    ? `locale${identifier}`
+    : identifier
+  return `${safeIdentifier}Content`
 }
 
 export function formatLocaleModule(locale: string, content: unknown): string {

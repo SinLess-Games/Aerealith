@@ -1,0 +1,23 @@
+---
+title: API Errors
+description: Return stable, actionable, and non-sensitive API errors.
+order: 30
+audience: developer
+---
+
+# API Errors
+
+Errors need stable machine codes and safe human messages.
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "The request is invalid.",
+    "requestId": "opaque-id",
+    "details": []
+  }
+}
+```
+
+Keep codes stable across wording changes. Never expose stack traces, SQL, secrets, or topology. Correlation identifiers connect reports with protected logs. Distinguish validation, authentication, authorization, conflict, rate-limit, dependency, and internal failures, and document whether retrying is safe.

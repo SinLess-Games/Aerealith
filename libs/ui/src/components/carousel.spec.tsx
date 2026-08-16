@@ -10,7 +10,17 @@ afterEach(() => vi.useRealTimers())
 const items: CarouselItem[] = [
   { type: 'image', src: '/nebula.webp', alt: 'Nebula' },
   { type: 'component', content: <div>Custom panel</div> },
-  { type: 'video', src: '/launch.mp4', label: 'Launch video' },
+  {
+    type: 'video',
+    src: '/launch.mp4',
+    label: 'Launch video',
+    captions: {
+      src: '/launch-en.vtt',
+      srcLang: 'en',
+      label: 'English',
+      default: true,
+    },
+  },
 ]
 
 describe('Carousel', () => {
@@ -27,6 +37,9 @@ describe('Carousel', () => {
     const video = document.querySelector('video')
     expect(video?.getAttribute('src')).toBe('/launch.mp4')
     expect(video?.hasAttribute('controls')).toBe(true)
+    expect(video?.querySelector('track')?.getAttribute('src')).toBe(
+      '/launch-en.vtt',
+    )
   })
 
   it('automatically scrolls at the configured interval', () => {

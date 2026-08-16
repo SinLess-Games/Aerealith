@@ -393,7 +393,7 @@ staging
 production
 ```
 
-Cloudflare Wrangler environments create separately named Worker deployments based on the root Worker name and environment name. Environment-specific settings must be reviewed carefully because some Wrangler configuration keys are non-inheritable. ([Cloudflare Docs][1])
+Cloudflare Wrangler environments create separately named Worker deployments based on the root Worker name and environment name. Environment-specific settings must be reviewed carefully because some Wrangler configuration keys are non-inheritable. (Cloudflare Docs)
 
 Recommended naming:
 
@@ -644,7 +644,7 @@ Do not update every Worker blindly in one release.
 Treat compatibility-date changes as runtime upgrades.
 ```
 
-Cloudflare compatibility dates allow a Worker to opt into runtime changes through a date-based compatibility model. ([Cloudflare Docs][2])
+Cloudflare compatibility dates allow a Worker to opt into runtime changes through a date-based compatibility model. (Cloudflare Docs)
 
 ---
 
@@ -678,7 +678,7 @@ Security or runtime fixes may require faster adoption.
 
 ## Node.js Compatibility
 
-Cloudflare Workers support a growing set of Node.js APIs through the `nodejs_compat` compatibility flag. With a sufficiently recent compatibility date, the flag also enables the newer compatibility implementation. Node compatibility may increase bundle size and does not mean every Node.js behavior is identical to a full Node runtime. ([Cloudflare Docs][3])
+Cloudflare Workers support a growing set of Node.js APIs through the `nodejs_compat` compatibility flag. With a sufficiently recent compatibility date, the flag also enables the newer compatibility implementation. Node compatibility may increase bundle size and does not mean every Node.js behavior is identical to a full Node runtime. (Cloudflare Docs)
 
 Recommended Worker configuration:
 
@@ -1041,7 +1041,7 @@ Secret values do not belong in `vars`.
 
 ## Secrets
 
-Cloudflare Worker secrets are encrypted bindings intended for sensitive values such as API keys and tokens. Local development can use `.dev.vars` or `.env`, but the two local mechanisms should not be mixed, and secret files must not be committed. Wrangler can also validate that declared required secrets exist before deployment. ([Cloudflare Docs][4])
+Cloudflare Worker secrets are encrypted bindings intended for sensitive values such as API keys and tokens. Local development can use `.dev.vars` or `.env`, but the two local mechanisms should not be mixed, and secret files must not be committed. Wrangler can also validate that declared required secrets exist before deployment. (Cloudflare Docs)
 
 Approved examples:
 
@@ -1114,7 +1114,7 @@ Secret rotation should not require rebuilding Worker code unless the configurati
 
 ## Service Bindings
 
-Service bindings allow one Worker to call another Worker without exposing the target through a public URL. They support request forwarding and Worker RPC-style interfaces. ([Cloudflare Docs][5])
+Service bindings allow one Worker to call another Worker without exposing the target through a public URL. They support request forwarding and Worker RPC-style interfaces. (Cloudflare Docs)
 
 Use service bindings for:
 
@@ -1232,7 +1232,7 @@ api.aerealith.ai
 
 ## Routes and Custom Domains
 
-Cloudflare routes map URL patterns to Workers and can place a Worker in front of an existing origin. Cloudflare recommends custom domains when the Worker itself is the application origin. ([Cloudflare Docs][6])
+Cloudflare routes map URL patterns to Workers and can place a Worker in front of an existing origin. Cloudflare recommends custom domains when the Worker itself is the application origin. (Cloudflare Docs)
 
 Aerealith should prefer:
 
@@ -1284,7 +1284,7 @@ Cloudflare-native storage does not replace this decision without a new architect
 
 Hyperdrive is the preferred Cloudflare Worker path to PostgreSQL-compatible relational databases.
 
-Cloudflare documents Hyperdrive support for PostgreSQL-compatible databases, including CockroachDB, and provides a Drizzle integration path for Worker applications. ([Cloudflare Docs][7])
+Cloudflare documents Hyperdrive support for PostgreSQL-compatible databases, including CockroachDB, and provides a Drizzle integration path for Worker applications. (Cloudflare Docs)
 
 Hyperdrive provides:
 
@@ -1468,7 +1468,7 @@ D1 schema ownership must remain separate from PostgreSQL and CockroachDB migrati
 
 Workers KV is approved for read-heavy, cacheable, non-authoritative data.
 
-Workers KV is eventually consistent. Cloudflare notes that changes can take 60 seconds or longer to become visible at other locations, and advises against using KV for atomic or transactional workloads. ([Cloudflare Docs][8])
+Workers KV is eventually consistent. Cloudflare notes that changes can take 60 seconds or longer to become visible at other locations, and advises against using KV for atomic or transactional workloads. (Cloudflare Docs)
 
 Approved uses:
 
@@ -1554,7 +1554,7 @@ A cache failure should not corrupt authoritative state.
 
 R2 is the preferred Cloudflare object-storage adapter.
 
-R2 supports Worker bindings and an S3-compatible API, allowing Aerealith to preserve an S3-style portability boundary. ([Cloudflare Docs][9])
+R2 supports Worker bindings and an S3-compatible API, allowing Aerealith to preserve an S3-style portability boundary. (Cloudflare Docs)
 
 Approved R2 use cases:
 
@@ -1681,7 +1681,7 @@ other self-hosted object storage
 
 Durable Objects are approved for narrow stateful coordination.
 
-Cloudflare describes each Durable Object as a globally unique, single-threaded stateful instance with private persistent storage, making it useful for coordination problems. ([Cloudflare Docs][10])
+Cloudflare describes each Durable Object as a globally unique, single-threaded stateful instance with private persistent storage, making it useful for coordination problems. (Cloudflare Docs)
 
 Potential Aerealith uses:
 
@@ -1794,7 +1794,7 @@ dedicated coordinator service
 
 Cloudflare Queues is the preferred asynchronous delivery mechanism for Worker-native services.
 
-Queues support asynchronous processing, batching, retries, delays, dead-letter handling, and external pull consumers. ([Cloudflare Docs][11])
+Queues support asynchronous processing, batching, retries, delays, dead-letter handling, and external pull consumers. (Cloudflare Docs)
 
 Approved use cases:
 
@@ -2014,7 +2014,7 @@ Provider limits and database capacity remain authoritative constraints.
 
 ## Cloudflare Workflows
 
-Cloudflare Workflows provides durable multi-step execution with persisted state and automatic retry behavior. ([Cloudflare Docs][12])
+Cloudflare Workflows provides durable multi-step execution with persisted state and automatic retry behavior. (Cloudflare Docs)
 
 Cloudflare Workflows may support:
 
@@ -2166,7 +2166,7 @@ The scheduled Worker should not monopolize execution by processing an unbounded 
 
 ## Cache API
 
-Cloudflare’s Cache API provides programmatic access to cache data from a Worker. Cache contents are location-specific rather than automatically replicated between data centers. ([Cloudflare Docs][13])
+Cloudflare’s Cache API provides programmatic access to cache data from a Worker. Cache contents are location-specific rather than automatically replicated between data centers. (Cloudflare Docs)
 
 Approved use cases:
 
@@ -2833,7 +2833,7 @@ database latency
 
 ## Workers Logs
 
-Workers Logs can collect invocation logs, custom logs, errors, and uncaught exceptions. Cloudflare recommends structured JSON logging for queryable fields. ([Cloudflare Docs][14])
+Workers Logs can collect invocation logs, custom logs, errors, and uncaught exceptions. Cloudflare recommends structured JSON logging for queryable fields. (Cloudflare Docs)
 
 Aerealith logs should still use the shared structured logging schema.
 
@@ -2883,7 +2883,7 @@ Log redaction should occur before data reaches Cloudflare logging.
 
 ## Real-Time Logs
 
-Real-time logs and `wrangler tail` are useful for deployment diagnostics, but high-volume streams may be sampled and are not a durable audit mechanism. ([Cloudflare Docs][15])
+Real-time logs and `wrangler tail` are useful for deployment diagnostics, but high-volume streams may be sampled and are not a durable audit mechanism. (Cloudflare Docs)
 
 Do not rely on real-time logs for:
 
@@ -2898,7 +2898,7 @@ workflow history
 
 ## Logpush and External Observability
 
-Cloudflare Logpush can export Worker trace-event logs to supported destinations. ([Cloudflare Docs][16])
+Cloudflare Logpush can export Worker trace-event logs to supported destinations. (Cloudflare Docs)
 
 Potential destinations include:
 
@@ -2974,7 +2974,7 @@ Metrics must avoid unbounded high-cardinality attributes.
 
 ## Cloudflare Limits
 
-Cloudflare runtime, storage, queue, and request limits vary by product and plan and may change over time. Workers also impose runtime limits such as isolate memory, subrequests, and connection constraints. ([Cloudflare Docs][17])
+Cloudflare runtime, storage, queue, and request limits vary by product and plan and may change over time. Workers also impose runtime limits such as isolate memory, subrequests, and connection constraints. (Cloudflare Docs)
 
 Rules:
 
@@ -3189,7 +3189,7 @@ deployment smoke tests
 
 ## Workers Vitest Integration
 
-Cloudflare provides a Vitest integration that runs tests inside the Workers runtime using local Worker infrastructure and supports bindings and Worker APIs. ([Cloudflare Docs][18])
+Cloudflare provides a Vitest integration that runs tests inside the Workers runtime using local Worker infrastructure and supports bindings and Worker APIs. (Cloudflare Docs)
 
 The Worker project should use the supported Cloudflare Vitest integration rather than pretending Node.js tests prove Worker compatibility.
 
@@ -3471,7 +3471,7 @@ Recommended pipeline:
 
 ## Worker Versions and Deployments
 
-Cloudflare separates Worker versions from deployments. A version may be uploaded without immediately serving traffic, and deployments can gradually shift traffic between versions. Storage resources such as KV, R2, Durable Objects, and D1 are not rolled back merely by switching Worker code versions. ([Cloudflare Docs][19])
+Cloudflare separates Worker versions from deployments. A version may be uploaded without immediately serving traffic, and deployments can gradually shift traffic between versions. Storage resources such as KV, R2, Durable Objects, and D1 are not rolled back merely by switching Worker code versions. (Cloudflare Docs)
 
 This distinction is critical.
 

@@ -1,0 +1,20 @@
+---
+title: Service Boundaries
+description: Define ownership and dependency direction between services and libraries.
+order: 20
+audience: developer
+---
+
+# Service Boundaries
+
+A boundary owns a capability, its data rules, and the contract exposed to callers.
+
+## Rules
+
+- Expose contracts through public entry points.
+- Validate untrusted input at the boundary.
+- Return typed errors rather than vendor responses.
+- Keep persistence and transport behind adapters.
+- Avoid shared mutable state across runtimes.
+
+When changing a contract, identify consumers, define compatibility, update contract tests, and document migration behavior. External adapters should own authentication, timeouts, retries, rate limits, error translation, and safe observability.
