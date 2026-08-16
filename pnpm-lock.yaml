@@ -388,6 +388,72 @@ importers:
         specifier: 4.116.0
         version: 4.116.0(@cloudflare/workers-types@5.20260712.1)
 
+  apps/services/api:
+    dependencies:
+      '@aerealith-ai/core':
+        specifier: workspace:*
+        version: link:../../../libs/core
+      '@aerealith-ai/db':
+        specifier: workspace:*
+        version: link:../../../libs/db
+      '@aerealith-ai/observability':
+        specifier: workspace:*
+        version: link:../../../libs/observability
+      '@hono/node-server':
+        specifier: 2.0.2
+        version: 2.0.2(hono@4.12.30)
+      hono:
+        specifier: 4.12.30
+        version: 4.12.30
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
+
+  apps/services/auth:
+    dependencies:
+      '@aerealith-ai/api-platform':
+        specifier: workspace:*
+        version: link:../../../libs/api-platform
+      '@aerealith-ai/auth':
+        specifier: workspace:*
+        version: link:../../../libs/auth
+      '@aerealith-ai/authorization':
+        specifier: workspace:*
+        version: link:../../../libs/authorization
+      '@aerealith-ai/core':
+        specifier: workspace:*
+        version: link:../../../libs/core
+      '@aerealith-ai/db':
+        specifier: workspace:*
+        version: link:../../../libs/db
+      '@aerealith-ai/observability':
+        specifier: workspace:*
+        version: link:../../../libs/observability
+      '@hono/node-server':
+        specifier: 2.0.2
+        version: 2.0.2(hono@4.12.30)
+      '@trpc/server':
+        specifier: 11.18.0
+        version: 11.18.0(typescript@6.0.3)
+      drizzle-orm:
+        specifier: 0.45.2
+        version: 0.45.2(@cloudflare/workers-types@5.20260712.1)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.22.0)
+      graphql:
+        specifier: 17.0.2
+        version: 17.0.2
+      graphql-yoga:
+        specifier: 5.21.2
+        version: 5.21.2(graphql@17.0.2)
+      hono:
+        specifier: 4.12.30
+        version: 4.12.30
+      resend:
+        specifier: 6.17.2
+        version: 6.17.2
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
+
   libs/api-platform:
     dependencies:
       '@aerealith-ai/authorization':
@@ -507,9 +573,6 @@ importers:
       '@nx/devkit':
         specifier: 23.0.2
         version: 23.0.2(nx@23.1.1(@swc-node/register@1.11.1(@swc/core@1.15.43(@swc/helpers@0.5.23))(@swc/types@0.1.27)(typescript@6.0.3))(@swc/core@1.15.43(@swc/helpers@0.5.23)))
-      hono:
-        specifier: 4.12.30
-        version: 4.12.30
       tslib:
         specifier: ^2.3.0
         version: 2.8.1
