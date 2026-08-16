@@ -4,6 +4,10 @@ ARG NODE_VERSION=26.5.0
 ARG PNPM_VERSION=11.13.1
 ARG NGINX_VERSION=1.29.0
 
+# =============================================================================
+# Base
+# =============================================================================
+
 FROM node:${NODE_VERSION}-bookworm-slim AS base
 
 ARG PNPM_VERSION
@@ -16,12 +20,22 @@ WORKDIR /workspace
 RUN corepack enable \
   && corepack prepare "pnpm@${PNPM_VERSION}" --activate
 
+
+# =============================================================================
+# Dependencies
+# =============================================================================
+
 FROM base AS dependencies
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 RUN --mount=type=cache,id=aerealith-pnpm,target=/pnpm/store \
   pnpm fetch --frozen-lockfile
+
+
+# =============================================================================
+# Build
+# =============================================================================
 
 FROM dependencies AS build
 
@@ -33,19 +47,51 @@ RUN --mount=type=cache,id=aerealith-pnpm,target=/pnpm/store \
 RUN pnpm nx build frontend --configuration=production \
   && test -f dist/apps/frontend/index.html
 
+
+# =============================================================================
+# Runtime
+# =============================================================================
+
 FROM nginx:${NGINX_VERSION}-alpine AS runtime
+
+ARG APP_UID=10001
+ARG APP_GID=10001
 
 LABEL org.opencontainers.image.title="Aerealith Frontend" \
   org.opencontainers.image.description="Production container for the Aerealith web frontend" \
   org.opencontainers.image.vendor="SinLess Games LLC"
 
-RUN rm -f /etc/nginx/conf.d/default.conf \
+# Create a dedicated non-root runtime account.
+#
+# Nginx listens on 8080, uses /tmp for its PID and temporary files, and therefore
+# does not require root privileges at runtime.
+RUN addgroup \
+  --system \
+  --gid "${APP_GID}" \
+  aerealith \
+  && adduser \
+  --system \
+  --disabled-password \
+  --no-create-home \
+  --uid "${APP_UID}" \
+  --ingroup aerealith \
+  aerealith \
+  && rm -f /etc/nginx/conf.d/default.conf \
   && mkdir -p \
+  /usr/share/nginx/html \
   /tmp/nginx/client_temp \
   /tmp/nginx/proxy_temp \
   /tmp/nginx/fastcgi_temp \
   /tmp/nginx/uwsgi_temp \
-  /tmp/nginx/scgi_temp
+  /tmp/nginx/scgi_temp \
+  && chown -R aerealith:aerealith \
+  /usr/share/nginx/html \
+  /tmp/nginx
+
+
+# =============================================================================
+# Nginx configuration
+# =============================================================================
 
 RUN cat <<'EOF' > /etc/nginx/nginx.conf
 worker_processes auto;
@@ -117,12 +163,14 @@ server {
   location /assets/ {
     try_files $uri =404;
     expires 1y;
+
     add_header Cache-Control "public, max-age=31536000, immutable" always;
     add_header X-Content-Type-Options "nosniff" always;
   }
 
   location = /index.html {
     expires -1;
+
     add_header Cache-Control "no-cache, no-store, must-revalidate" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-Frame-Options "DENY" always;
@@ -136,11 +184,22 @@ server {
 }
 EOF
 
-COPY --from=build --chown=nginx:nginx \
+
+# =============================================================================
+# Application assets
+# =============================================================================
+
+COPY --from=build --chown=aerealith:aerealith \
   /workspace/dist/apps/frontend/ \
   /usr/share/nginx/html/
 
-USER nginx
+
+# =============================================================================
+# Runtime security
+# =============================================================================
+
+# Run both the Nginx master and worker processes without root privileges.
+USER ${APP_UID}:${APP_GID}
 
 EXPOSE 8080
 
