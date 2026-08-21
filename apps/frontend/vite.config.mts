@@ -1,5 +1,6 @@
 /// <reference types="vitest" />
 
+import meticulous from '@alwaysmeticulous/recorder-plugin/vite';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import mdx from 'fumadocs-mdx/vite';
@@ -213,7 +214,15 @@ export default defineConfig(({ mode }) => {
      * `apps/frontend/source.config.ts` alongside the standard frontend
      * plugins.
      */
-    plugins: [mdx(), react(), tailwindcss()],
+    plugins: [
+      mdx(),
+      react(),
+      tailwindcss(),
+      meticulous({
+        recordingToken: 'ZGbrQaFcTtkVa3XXVGOhAWPQ9PTq2NUFEjF6GmpG',
+        enabled: 'always',
+      }),
+    ],
 
     build: {
       outDir: '../../dist/apps/frontend',

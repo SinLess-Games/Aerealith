@@ -43,6 +43,7 @@
     "services:new": "nx g @aerealith-ai/service-generator:service --name"
   },
   "devDependencies": {
+    "@alwaysmeticulous/recorder-plugin": "^2.293.0",
     "@axe-core/playwright": "4.12.1",
     "@babel/core": "8.0.1",
     "@babel/preset-react": "8.0.1",
