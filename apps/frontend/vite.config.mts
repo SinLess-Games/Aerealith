@@ -72,6 +72,23 @@ export default defineConfig(({ mode }) => {
       ? 'https://aerealith-api-preview.sinless-deploy.workers.dev'
       : 'http://localhost:8788');
 
+  const serviceProxy: Record<string, string> = {
+    '^/api/V1/(?:auth|users|account|profile|admin)(?:/|$)': authServiceUrl,
+
+    '^/api/V1/services/auth(?:/|$)': authServiceUrl,
+
+    '^/api/V1/flags$': authServiceUrl,
+
+    '/api/V1': apiServiceUrl,
+
+    '/graphql': authServiceUrl,
+
+    '/trpc': authServiceUrl,
+  };
+
+  const previewProxy: Record<string, string> =
+    environment['E2E_ENABLE_SERVICE_PROXY'] === 'true' ? serviceProxy : {};
+
   return {
     root: import.meta.dirname,
 
@@ -152,19 +169,7 @@ export default defineConfig(({ mode }) => {
        *   http://localhost:8787
        *   http://localhost:8788
        */
-      proxy: {
-        '^/api/V1/(?:auth|users|account|profile|admin)(?:/|$)': authServiceUrl,
-
-        '^/api/V1/services/auth(?:/|$)': authServiceUrl,
-
-        '^/api/V1/flags$': authServiceUrl,
-
-        '/api/V1': apiServiceUrl,
-
-        '/graphql': authServiceUrl,
-
-        '/trpc': authServiceUrl,
-      },
+      proxy: serviceProxy,
     },
 
     /**
@@ -190,23 +195,7 @@ export default defineConfig(({ mode }) => {
       // isolated from services that intentionally are not started.
       // Vite otherwise inherits `server.proxy`, so use an explicit empty
       // object for mock preview runs.
-      proxy:
-        environment['E2E_ENABLE_SERVICE_PROXY'] === 'true'
-          ? {
-              '^/api/V1/(?:auth|users|account|profile|admin)(?:/|$)':
-                authServiceUrl,
-
-              '^/api/V1/services/auth(?:/|$)': authServiceUrl,
-
-              '^/api/V1/flags$': authServiceUrl,
-
-              '/api/V1': apiServiceUrl,
-
-              '/graphql': authServiceUrl,
-
-              '/trpc': authServiceUrl,
-            }
-          : {},
+      proxy: previewProxy,
     },
 
     /**
