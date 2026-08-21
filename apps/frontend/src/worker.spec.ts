@@ -70,7 +70,7 @@ describe('frontend worker', () => {
 
     const response = await worker.fetch(
       new Request(
-        'https://aerealith.com/api/V1/auth//attacker.invalid/path?next=%2Fme',
+        'https://aerealith.com/api/V1/auth//attacker.invalid/path%20name?next=%2Fme&label=hello%20world',
       ),
       {
         ...createEnvironment(new Response('asset')),
@@ -82,7 +82,7 @@ describe('frontend worker', () => {
 
     const proxiedRequest = fetchMock.mock.calls[0]?.[0] as Request;
     expect(proxiedRequest.url).toBe(
-      'https://auth.internal/api/V1/auth//attacker.invalid/path?next=%2Fme',
+      'https://auth.internal/api/V1/auth//attacker.invalid/path%20name?next=%2Fme&label=hello+world',
     );
   });
 

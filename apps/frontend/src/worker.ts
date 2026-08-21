@@ -459,14 +459,29 @@ function proxyServiceUrl(
 
   // Assigning URL components preserves the configured upstream origin even
   // when an incoming path starts with `//`. Resolving the request path as a
-  // relative URL would allow that form to replace the configured host.
-  target.pathname = url.pathname;
-  target.search = url.search;
+  // relative URL would allow that form to replace the configured host. Each
+  // component is also decoded and re-encoded so the outbound URL contains
+  // only canonical path and query data from the incoming request.
+  target.pathname = canonicalizeProxyPathname(url.pathname);
+  target.search = new URLSearchParams(url.searchParams).toString();
   target.hash = '';
 
   const proxiedRequest = new Request(target, request);
 
   return fetch(proxiedRequest);
+}
+
+function canonicalizeProxyPathname(pathname: string): string {
+  return pathname
+    .split('/')
+    .map((segment) => {
+      try {
+        return encodeURIComponent(decodeURIComponent(segment));
+      } catch {
+        return encodeURIComponent(segment);
+      }
+    })
+    .join('/');
 }
 
 function createServiceUnavailableResponse(
