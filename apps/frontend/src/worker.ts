@@ -476,7 +476,8 @@ function proxyServiceUrl(
   // and query component is canonicalized before it is appended.
   const pathname = canonicalizeProxyPathname(url.pathname);
   const search = new URLSearchParams(url.searchParams).toString();
-  const targetUrl = `${upstream.origin}${pathname}${search ? `?${search}` : ''}`;
+  const targetUrl = new URL(pathname, upstream);
+  targetUrl.search = search;
 
   const proxiedRequest = new Request(targetUrl, request);
 

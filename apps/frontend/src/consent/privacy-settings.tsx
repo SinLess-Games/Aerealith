@@ -142,13 +142,13 @@ function ConsentToggle({
   checked,
   disabled = false,
   onChange,
-}: {
+}: Readonly<{
   label: string;
   description: string;
   checked: boolean;
   disabled?: boolean;
   onChange?: (checked: boolean) => void;
-}) {
+}>) {
   const descriptionId = `consent-${label.toLowerCase().replaceAll(' ', '-')}`;
 
   return (

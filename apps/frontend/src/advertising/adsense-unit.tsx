@@ -30,13 +30,13 @@ export function AdsenseUnit({
   responsive = true,
   className,
   testMode = integrationConfig.adsense.testMode,
-}: {
+}: Readonly<{
   slot: string;
   format?: string;
   responsive?: boolean;
   className?: string;
   testMode?: boolean;
-}) {
+}>) {
   const location = useLocation();
   const { preferences } = useConsent();
   const initialized = useRef(false);

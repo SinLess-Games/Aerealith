@@ -85,7 +85,11 @@ function extractHeadings(source: string) {
 
     const title = line
       .slice(depth)
-      .replace(/[*_`[\]]/g, '')
+      .replaceAll('*', '')
+      .replaceAll('_', '')
+      .replaceAll('`', '')
+      .replaceAll('[', '')
+      .replaceAll(']', '')
       .trim();
 
     return title

@@ -5,7 +5,7 @@ import {
   type FeatureFlagValues,
 } from '@aerealith-ai/core';
 import { useQuery } from '@tanstack/react-query';
-import { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
 
 const FeatureFlagsContext = createContext<FeatureFlagValues>({
   ...FeatureFlagDefaults,
@@ -18,11 +18,11 @@ const WaitForRemoteFlagsByDefault =
 export function FeatureFlagsProvider({
   children,
   waitForRemote = WaitForRemoteFlagsByDefault,
-}: {
+}: Readonly<{
   children: ReactNode;
   /** Test harnesses may opt out; production always waits for Flagship. */
   waitForRemote?: boolean;
-}) {
+}>) {
   const query = useQuery({
     queryKey: ['feature-flags'],
     queryFn: fetchFeatureFlags,
@@ -51,12 +51,17 @@ export function FeatureFlagsProvider({
 export function StaticFeatureFlagsProvider({
   children,
   values,
-}: {
+}: Readonly<{
   children: ReactNode;
   values: Partial<FeatureFlagValues>;
-}) {
+}>) {
+  const resolvedValues = useMemo(
+    () => ({ ...FeatureFlagDefaults, ...values }),
+    [values],
+  );
+
   return (
-    <FeatureFlagsContext.Provider value={{ ...FeatureFlagDefaults, ...values }}>
+    <FeatureFlagsContext.Provider value={resolvedValues}>
       {children}
     </FeatureFlagsContext.Provider>
   );

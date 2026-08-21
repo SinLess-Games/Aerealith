@@ -172,8 +172,8 @@ export class ConsoleLogFormatter {
     if (error.cause !== undefined) {
       lines.push(
         this.colorize(`${INDENT.repeat(depth + 1)}Caused by:`, ANSI_YELLOW),
+        ...this.formatErrorChain(error.cause, depth + 1),
       );
-      lines.push(...this.formatErrorChain(error.cause, depth + 1));
     }
 
     return lines;
@@ -257,13 +257,9 @@ function formatInlineValue(value: LogValue): string {
     return containsWhitespace(value) ? JSON.stringify(value) : value;
   }
 
-  if (
-    typeof value === 'number' ||
-    typeof value === 'boolean' ||
-    value === null
-  ) {
-    return String(value);
-  }
+  if (typeof value === 'number') return value.toString();
+  if (typeof value === 'boolean') return value ? 'true' : 'false';
+  if (value === null) return 'null';
 
   return JSON.stringify(value);
 }
@@ -320,5 +316,5 @@ function formatTimezoneOffset(offsetMinutes: number): string {
 }
 
 function padNumber(value: number, length: number): string {
-  return String(value).padStart(length, '0');
+  return value.toString().padStart(length, '0');
 }

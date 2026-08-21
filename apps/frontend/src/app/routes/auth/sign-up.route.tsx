@@ -2,7 +2,7 @@
 
 import { Button, Input, Label } from '@aerealith-ai/ui';
 import type { TurnstileInstance } from '@marsidev/react-turnstile';
-import { useRef, useState, type FormEvent } from 'react';
+import { useRef, useState, type SubmitEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
 
 import { analyticsEvents } from '../../../analytics/analytics-events';
@@ -33,7 +33,7 @@ export function SignUpRoute() {
   const { mutate, isPending, isError, error } = useSignUp();
   const passwordIsValid = meetsPasswordPolicy(password);
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  function onSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     const nextFieldErrors = validateSignUpFields({ username, email, password });
     if (Object.keys(nextFieldErrors).length > 0) {

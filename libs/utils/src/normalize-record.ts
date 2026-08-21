@@ -24,15 +24,15 @@ function normalizeValue(
   if (typeof value === 'boolean') return value;
 
   if (typeof value === 'number') {
-    return Number.isFinite(value) ? value : String(value);
+    return Number.isFinite(value) ? value : value.toString();
   }
 
   if (typeof value === 'bigint') return value.toString();
-  if (typeof value === 'undefined') return '[UNDEFINED]';
+  if (value === undefined) return '[UNDEFINED]';
   if (typeof value === 'symbol') return value.toString();
   if (typeof value === 'function')
     return `[Function: ${value.name || 'anonymous'}]`;
-  if (typeof value !== 'object') return String(value);
+  if (typeof value !== 'object') return '[UNSUPPORTED]';
   if (value instanceof Date) {
     return Number.isNaN(value.getTime()) ? 'Invalid Date' : value.toISOString();
   }
@@ -66,7 +66,7 @@ function normalizeValue(
   if (value instanceof Map) {
     return Object.fromEntries(
       [...value].map(([key, item]) => [
-        String(key),
+        normalizeMapKey(key),
         normalizeValue(item, seen),
       ]),
     );
@@ -82,4 +82,20 @@ function normalizeValue(
       normalizeValue(item, seen),
     ]),
   );
+}
+
+function normalizeMapKey(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (
+    typeof value === 'number' ||
+    typeof value === 'bigint' ||
+    typeof value === 'boolean' ||
+    typeof value === 'symbol'
+  ) {
+    return value.toString();
+  }
+  if (value === null) return 'null';
+  if (value === undefined) return 'undefined';
+  if (value instanceof Date) return value.toISOString();
+  return Object.prototype.toString.call(value);
 }

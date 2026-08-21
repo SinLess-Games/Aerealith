@@ -10,7 +10,7 @@ import {
   useId,
   useState,
   type CSSProperties,
-  type FormEvent,
+  type SubmitEvent,
   type ReactNode,
 } from 'react';
 import { Link } from 'react-router';
@@ -84,7 +84,7 @@ function isValidEmail(value: string) {
 
   return (
     atIndex > 0 &&
-    value.indexOf('@', atIndex + 1) === -1 &&
+    !value.includes('@', atIndex + 1) &&
     dotIndex > atIndex + 1 &&
     dotIndex < value.length - 1 &&
     !/\s/.test(value)
@@ -98,7 +98,7 @@ export function PublicFooter() {
   const waitlistEnabled = useFeatureFlag(FeatureFlag.Waitlist);
   const consent = useConsent();
 
-  function subscribe(event: FormEvent<HTMLFormElement>) {
+  function subscribe(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const normalizedEmail = email.trim();
@@ -612,12 +612,12 @@ function FooterLink({
   label,
   mobile = false,
   to,
-}: {
+}: Readonly<{
   href?: string;
   label: string;
   mobile?: boolean;
   to?: string;
-}) {
+}>) {
   const className = [
     'footer-link inline-flex max-w-full items-center gap-2 text-sm leading-5',
     'transition-colors focus-visible:rounded-sm focus-visible:outline-2',
@@ -652,13 +652,13 @@ function Newsletter({
   messageType,
   onEmailChange,
   onSubmit,
-}: {
+}: Readonly<{
   email: string;
   message: string;
   messageType: MessageType;
   onEmailChange: (value: string) => void;
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
-}) {
+  onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
+}>) {
   const emailId = useId();
   const messageId = useId();
 
@@ -743,12 +743,12 @@ function SocialLink({
   children,
   href,
   label,
-}: {
+}: Readonly<{
   accent: string;
   children: ReactNode;
   href: string;
   label: string;
-}) {
+}>) {
   const isExternal = href.startsWith('http');
 
   return (
@@ -774,7 +774,7 @@ function SocialLink({
   );
 }
 
-function SectionIcon({ name }: { name: FooterSectionIcon }) {
+function SectionIcon({ name }: Readonly<{ name: FooterSectionIcon }>) {
   switch (name) {
     case 'product':
       return (
@@ -813,10 +813,10 @@ function SectionIcon({ name }: { name: FooterSectionIcon }) {
 function Icon({
   children,
   className = 'h-5 w-5',
-}: {
+}: Readonly<{
   children: ReactNode;
   className?: string;
-}) {
+}>) {
   return (
     <svg
       aria-hidden="true"

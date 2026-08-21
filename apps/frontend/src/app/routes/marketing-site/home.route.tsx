@@ -3,7 +3,7 @@
 import { homeLandingPageContent } from '@aerealith-ai/content';
 import { FeatureFlag } from '@aerealith-ai/core';
 import { useMutation } from '@tanstack/react-query';
-import { useState, type CSSProperties, type FormEvent } from 'react';
+import { useState, type CSSProperties, type SubmitEvent } from 'react';
 import { Link } from 'react-router';
 
 import { useFeatureFlag } from '../../../features/flags/feature-flags';
@@ -36,7 +36,7 @@ export function HomeRoute() {
     },
   });
 
-  const submitWaitlist = (event: FormEvent<HTMLFormElement>) => {
+  const submitWaitlist = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     setWaitlistMessage('');
     analyticsEvents.waitlistSignupStarted('landing_page');
@@ -477,12 +477,9 @@ export function HomeRoute() {
                 </div>
 
                 {waitlistMessage ? (
-                  <p
-                    className="mt-3 text-sm text-[var(--ae-success-foreground)]"
-                    role="status"
-                  >
+                  <output className="mt-3 block text-sm text-[var(--ae-success-foreground)]">
                     {waitlistMessage}
-                  </p>
+                  </output>
                 ) : null}
 
                 {waitlist.isError ? (
@@ -877,11 +874,11 @@ function SectionIntro({
   eyebrow,
   title,
   description,
-}: {
+}: Readonly<{
   eyebrow: string;
   title: string;
   description: string;
-}) {
+}>) {
   return (
     <header>
       <p className="text-[10px] font-semibold tracking-[0.24em] text-cyan-500 uppercase">
@@ -897,7 +894,10 @@ function SectionIntro({
   );
 }
 
-function GradientLink({ href, label }: { href: string; label: string }) {
+function GradientLink({
+  href,
+  label,
+}: Readonly<{ href: string; label: string }>) {
   return (
     <Link
       to={href}
@@ -912,7 +912,10 @@ function GradientLink({ href, label }: { href: string; label: string }) {
   );
 }
 
-function OutlineLink({ href, label }: { href: string; label: string }) {
+function OutlineLink({
+  href,
+  label,
+}: Readonly<{ href: string; label: string }>) {
   return (
     <Link
       to={href}

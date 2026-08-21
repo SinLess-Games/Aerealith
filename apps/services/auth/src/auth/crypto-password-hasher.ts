@@ -66,8 +66,7 @@ export class CryptoPasswordHasher implements PasswordHasher {
     const expected = decodeBase64Url(encodedDigest);
     const salt = decodeBase64Url(encodedSalt);
     if (
-      !expected ||
-      expected.length !== KeyLength ||
+      expected?.length !== KeyLength ||
       !salt ||
       salt.length < 8 ||
       salt.length > 64

@@ -9,7 +9,9 @@ const linkClass = 'rounded-md px-3 py-2 text-sm font-medium transition-colors';
 const buttonClass =
   'rounded-md border border-[var(--ae-border)] px-3 py-2 text-sm font-medium transition-colors';
 
-export function HeaderAuthNav({ mobile = false }: { mobile?: boolean }) {
+export function HeaderAuthNav({
+  mobile = false,
+}: Readonly<{ mobile?: boolean }>) {
   const { user, isAuthenticated, isLoading } = useSession();
   const logout = useLogout();
   const authenticationEnabled = useFeatureFlag(FeatureFlag.Authentication);

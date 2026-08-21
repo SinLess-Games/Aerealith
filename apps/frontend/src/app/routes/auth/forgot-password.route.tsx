@@ -1,5 +1,5 @@
 import { Button, Input, Label } from '@aerealith-ai/ui';
-import { useState, type FormEvent } from 'react';
+import { useState, type SubmitEvent } from 'react';
 import { Link } from 'react-router';
 
 import { usePasswordResetRequest } from '../../../features/auth/use-auth-security';
@@ -12,7 +12,7 @@ export function ForgotPasswordRoute() {
   const [emailError, setEmailError] = useState('');
   const reset = usePasswordResetRequest();
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  function onSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!isValidEmail(email)) {
       setEmailError('Enter a valid email address.');
@@ -28,10 +28,10 @@ export function ForgotPasswordRoute() {
         subtitle="If that email belongs to an account, we’ve sent password-reset instructions."
         footer={<Link to="/sign-in">Return to sign in</Link>}
       >
-        <p className={styles.message} role="status">
+        <output className={`${styles.message} block`}>
           For your privacy, we use this same message whether or not an account
           exists.
-        </p>
+        </output>
       </AuthCard>
     );
   }

@@ -1,12 +1,9 @@
 import { HttpStatus } from '@aerealith-ai/core';
 
-import {
-  ApiErrorCode,
-  type ApiErrorCode as ErrorCode,
-} from './api-error-code.enum';
+import { ApiErrorCode } from './api-error-code.enum';
 
 export interface ApiErrorOptions {
-  readonly code?: ErrorCode | string;
+  readonly code?: string;
   readonly status?: number;
   readonly cause?: unknown;
   readonly metadata?: Readonly<Record<string, unknown>>;

@@ -1,5 +1,5 @@
 import { Button, Input, Label } from '@aerealith-ai/ui';
-import { useState, type FormEvent } from 'react';
+import { useState, type SubmitEvent } from 'react';
 import { Link, useSearchParams } from 'react-router';
 
 import {
@@ -17,7 +17,7 @@ export function ResetPasswordRoute() {
   const [passwordError, setPasswordError] = useState('');
   const reset = usePasswordResetComplete();
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  function onSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!token || !meetsPasswordPolicy(newPassword)) {
       setPasswordError(

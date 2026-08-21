@@ -149,7 +149,7 @@ function readCode(
   }
 
   if (typeof code === 'number' || typeof code === 'bigint') {
-    return String(code);
+    return code.toString();
   }
 
   return undefined;
@@ -179,14 +179,11 @@ function stringifyThrownValue(value: unknown): string {
     return value.length === 0 ? 'An empty string was thrown' : value;
   }
 
-  if (
-    typeof value === 'number' ||
-    typeof value === 'boolean' ||
-    typeof value === 'bigint' ||
-    typeof value === 'symbol'
-  ) {
-    return String(value);
+  if (typeof value === 'number' || typeof value === 'bigint') {
+    return value.toString();
   }
+  if (typeof value === 'boolean') return value ? 'true' : 'false';
+  if (typeof value === 'symbol') return value.description ?? 'A symbol';
 
   if (typeof value === 'function') {
     return value.name.length > 0
@@ -195,7 +192,7 @@ function stringifyThrownValue(value: unknown): string {
   }
 
   try {
-    return String(value);
+    return JSON.stringify(value) ?? 'An unknown value was thrown';
   } catch {
     return 'An unknown value was thrown';
   }

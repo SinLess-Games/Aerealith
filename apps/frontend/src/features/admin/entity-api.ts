@@ -1,6 +1,5 @@
 import { apiFetch } from '../../lib/api-client';
 
-export type EntityType = string;
 export type EntityColumnType =
   | 'string'
   | 'number'
@@ -25,7 +24,7 @@ export type EntityColumn = {
   enumValues?: readonly string[];
 };
 export type EntityDefinition = {
-  name: EntityType;
+  name: string;
   label: string;
   singularLabel: string;
   columns: readonly EntityColumn[];
@@ -35,7 +34,7 @@ export type EntityDefinition = {
 };
 export type EntityRecord = Record<string, unknown> & { id: string };
 export type EntityPage = {
-  entity: EntityType;
+  entity: string;
   records: EntityRecord[];
   total: number;
   page: number;
@@ -58,7 +57,7 @@ export function fetchEntityCatalog(): Promise<EntityDefinition[]> {
 }
 
 export function fetchEntities(
-  entity: EntityType,
+  entity: string,
   search: string,
   page: number,
 ): Promise<EntityPage> {
@@ -71,7 +70,7 @@ export function fetchEntities(
 }
 
 export function updateEntity(
-  entity: EntityType,
+  entity: string,
   id: string,
   changes: Record<string, unknown>,
 ): Promise<EntityRecord> {
@@ -82,7 +81,7 @@ export function updateEntity(
 }
 
 export function createEntity(
-  entity: EntityType,
+  entity: string,
   input: Record<string, unknown> | CreateUserEntityInput,
 ): Promise<EntityRecord> {
   return apiFetch(`/api/V1/admin/entities/${entity}`, {
@@ -91,7 +90,7 @@ export function createEntity(
   });
 }
 
-export function deleteEntity(entity: EntityType, id: string): Promise<null> {
+export function deleteEntity(entity: string, id: string): Promise<null> {
   return apiFetch(`/api/V1/admin/entities/${entity}/${id}`, {
     method: 'DELETE',
   });

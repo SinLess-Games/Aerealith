@@ -356,7 +356,7 @@ function Brand() {
   );
 }
 
-function ThemeButton({ mobile = false }: { mobile?: boolean }) {
+function ThemeButton({ mobile = false }: Readonly<{ mobile?: boolean }>) {
   return (
     <ThemeToggle
       iconOnly={!mobile}
@@ -385,7 +385,7 @@ function ThemeButton({ mobile = false }: { mobile?: boolean }) {
   );
 }
 
-function NavIcon({ label }: { label: string }) {
+function NavIcon({ label }: Readonly<{ label: string }>) {
   return (
     <span
       className={[
@@ -409,10 +409,10 @@ function NavIcon({ label }: { label: string }) {
 function Icon({
   children,
   className = 'h-5 w-5',
-}: {
+}: Readonly<{
   children: ReactNode;
   className?: string;
-}) {
+}>) {
   return (
     <svg
       aria-hidden="true"
@@ -518,7 +518,7 @@ function GitHubIcon() {
   );
 }
 
-function ChevronRightIcon({ className }: { className?: string }) {
+function ChevronRightIcon({ className }: Readonly<{ className?: string }>) {
   return (
     <Icon className={className}>
       <path d="m9 18 6-6-6-6" />
@@ -526,7 +526,7 @@ function ChevronRightIcon({ className }: { className?: string }) {
   );
 }
 
-function ExternalLinkIcon({ className }: { className?: string }) {
+function ExternalLinkIcon({ className }: Readonly<{ className?: string }>) {
   return (
     <Icon className={className}>
       <path d="M15 3h6v6" />

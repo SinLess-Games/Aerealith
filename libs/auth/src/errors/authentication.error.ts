@@ -1,9 +1,10 @@
 import {
   AerealithError,
-  AuthErrorCode,
   HttpStatus,
   type AuthErrorCode as AuthErrorCodeValue,
 } from '@aerealith-ai/core';
+
+export { AuthErrorCode as authenticationErrorCodes } from '@aerealith-ai/core';
 
 import type { AuthFailureReason } from '../enums/auth-failure-reason.enum';
 
@@ -20,5 +21,3 @@ export class AuthenticationError extends AerealithError {
     this.reason = reason;
   }
 }
-
-export const authenticationErrorCodes = AuthErrorCode;

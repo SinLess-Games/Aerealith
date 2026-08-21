@@ -109,7 +109,7 @@ export function ThemeProvider({
   defaultTheme = 'system',
   persist = true,
   storageKey = DEFAULT_STORAGE_KEY,
-}: ThemeProviderProps) {
+}: Readonly<ThemeProviderProps>) {
   const [mode, setMode] = useState<ThemeMode>(() =>
     getInitialThemeMode(defaultTheme, persist, storageKey),
   );
@@ -252,7 +252,7 @@ export function ThemeToggle({
   type = 'button',
   onClick,
   ...props
-}: ThemeToggleProps) {
+}: Readonly<ThemeToggleProps>) {
   const { theme, toggleTheme } = useTheme();
 
   const isDark = theme === 'dark';

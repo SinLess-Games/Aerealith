@@ -16,7 +16,7 @@ interface ArrowIconProps {
 /**
  * Icons shown beside the three short hero highlights.
  */
-function HighlightIcon({ index }: { index: number }) {
+function HighlightIcon({ index }: Readonly<{ index: number }>) {
   const commonProps = {
     'aria-hidden': true,
     className: 'h-5 w-5',
@@ -63,7 +63,7 @@ function HighlightIcon({ index }: { index: number }) {
  * The icon color comes from the feature's accent value, allowing the icon,
  * border, background tint, and card glow to stay visually synchronized.
  */
-function FeatureIcon({ index, accent }: FeatureIconProps) {
+function FeatureIcon({ index, accent }: Readonly<FeatureIconProps>) {
   const commonProps = {
     'aria-hidden': true,
     className: 'h-9 w-9',
@@ -172,7 +172,7 @@ function FeatureIcon({ index, accent }: FeatureIconProps) {
   );
 }
 
-function ArrowIcon({ className = 'h-5 w-5' }: ArrowIconProps) {
+function ArrowIcon({ className = 'h-5 w-5' }: Readonly<ArrowIconProps>) {
   return (
     <svg
       aria-hidden="true"

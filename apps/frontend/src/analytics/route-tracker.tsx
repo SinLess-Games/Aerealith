@@ -17,9 +17,11 @@ const sensitiveParameters = new Set([
 
 export function sanitizedPath(pathname: string, search: string): string {
   const parameters = new URLSearchParams(search);
-  for (const key of [...parameters.keys()]) {
-    if (sensitiveParameters.has(key.toLowerCase())) parameters.delete(key);
-  }
+  const keysToDelete = new Set<string>();
+  parameters.forEach((_value, key) => {
+    if (sensitiveParameters.has(key.toLowerCase())) keysToDelete.add(key);
+  });
+  keysToDelete.forEach((key) => parameters.delete(key));
   const sanitized = parameters.toString();
   return sanitized ? `${pathname}?${sanitized}` : pathname;
 }

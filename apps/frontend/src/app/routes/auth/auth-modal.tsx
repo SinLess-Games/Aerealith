@@ -5,10 +5,10 @@ import { useNavigate } from 'react-router';
 export function AuthModal({
   ariaLabel,
   children,
-}: {
+}: Readonly<{
   ariaLabel: string;
   children: ReactNode;
-}) {
+}>) {
   const navigate = useNavigate();
   const close = () => navigate('/');
 

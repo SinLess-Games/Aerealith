@@ -63,7 +63,6 @@ export type AuthResult = {
   sessionToken: string;
 };
 
-export type AdminEntityType = string;
 export type AuthSessionSummary = {
   id: string;
   current: boolean;
@@ -89,7 +88,7 @@ export type AdminCreateEntityInput = Record<string, unknown> & {
   metadata?: Record<string, unknown>;
 };
 export type AdminEntityPage = {
-  entity: AdminEntityType;
+  entity: string;
   records: AdminEntityRecord[];
   total: number;
   page: number;
@@ -120,26 +119,22 @@ export interface AuthApplication {
     input: UpdateAccountRequest,
   ): Promise<AccountDetails>;
   listAdminEntities(
-    entity: AdminEntityType,
+    entity: string,
     search: string,
     page: number,
     pageSize: number,
   ): Promise<AdminEntityPage>;
   adminEntityCatalog(): Promise<AdminEntityDefinition[]>;
   createAdminEntity(
-    entity: AdminEntityType,
+    entity: string,
     input: AdminCreateEntityInput,
   ): Promise<AdminEntityRecord>;
   updateAdminEntity(
-    entity: AdminEntityType,
+    entity: string,
     id: string,
     changes: Record<string, unknown>,
   ): Promise<AdminEntityRecord>;
-  deleteAdminEntity(
-    entity: AdminEntityType,
-    id: string,
-    actorId: string,
-  ): Promise<void>;
+  deleteAdminEntity(entity: string, id: string, actorId: string): Promise<void>;
 }
 
 export interface AuthApplicationOptions {
@@ -304,7 +299,7 @@ export class AuthApplicationService implements AuthApplication {
 
   async requestPasswordReset(email: string): Promise<void> {
     const user = await this.users.findEntityByEmail(email);
-    if (!user || !user.passwordHash) return;
+    if (!user?.passwordHash) return;
     const rawToken = randomBytes(32).toString('base64url');
     const now = this.now();
     await this.passwordReset.consumeAllForUser(user.id, now);
@@ -473,7 +468,9 @@ export class AuthApplicationService implements AuthApplication {
         .where(
           and(
             isNull(schema.usersTable.deletedAt),
-            eq(schema.usersTable.role, 'super_admin'),
+            // The admin aggregate intentionally reports the legacy compatibility
+            // projection until all clients consume normalized role assignments.
+            eq(schema.usersTable.role, 'super_admin'), // NOSONAR
           ),
         ),
     ]);
@@ -676,7 +673,7 @@ export class AuthApplicationService implements AuthApplication {
   }
 
   async listAdminEntities(
-    entity: AdminEntityType,
+    entity: string,
     search: string,
     page: number,
     pageSize: number,
@@ -738,7 +735,7 @@ export class AuthApplicationService implements AuthApplication {
   }
 
   async createAdminEntity(
-    entity: AdminEntityType,
+    entity: string,
     input: AdminCreateEntityInput,
   ): Promise<AdminEntityRecord> {
     const registered = requireAdminEntity(entity);
@@ -791,7 +788,7 @@ export class AuthApplicationService implements AuthApplication {
     }
 
     const metadata = {
-      ...(input.metadata ?? {}),
+      ...input.metadata,
       ...(input.displayName?.trim()
         ? { displayName: input.displayName.trim() }
         : {}),
@@ -823,7 +820,7 @@ export class AuthApplicationService implements AuthApplication {
   }
 
   async updateAdminEntity(
-    entity: AdminEntityType,
+    entity: string,
     id: string,
     changes: Record<string, unknown>,
   ): Promise<AdminEntityRecord> {
@@ -866,7 +863,8 @@ export class AuthApplicationService implements AuthApplication {
           email: schema.usersTable.email,
           status: schema.usersTable.status,
           emailVerified: schema.usersTable.emailVerified,
-          role: schema.usersTable.role,
+          // Entity Viewer still exposes the documented compatibility projection.
+          role: schema.usersTable.role, // NOSONAR
           tier: schema.usersTable.tier,
           metadata: schema.usersTable.metadata,
           createdAt: schema.usersTable.createdAt,
@@ -920,7 +918,7 @@ export class AuthApplicationService implements AuthApplication {
   }
 
   async deleteAdminEntity(
-    entity: AdminEntityType,
+    entity: string,
     id: string,
     actorId: string,
   ): Promise<void> {
@@ -1004,7 +1002,8 @@ export class AuthApplicationService implements AuthApplication {
       .from(schema.usersTable)
       .where(
         and(
-          eq(schema.usersTable.role, 'super_admin'),
+          // Deletion safety must include legacy super-admin rows during migration.
+          eq(schema.usersTable.role, 'super_admin'), // NOSONAR
           isNull(schema.usersTable.deletedAt),
         ),
       );
@@ -1064,10 +1063,10 @@ function toAdminEntityRecord(
   }
 
   const primaryKey = registered.primaryKeys
-    .map((key) => `${key}=${String(row[key] ?? '')}`)
+    .map((key) => `${key}=${toAdminScalarText(row[key]) ?? ''}`)
     .join('|');
   const id = row['id'] ?? (primaryKey || `row-${rowIndex + 1}`);
-  return { ...record, id: String(id) };
+  return { ...record, id: toAdminScalarText(id) ?? `row-${rowIndex + 1}` };
 }
 
 function normalizeAdminValue(value: unknown): unknown {
@@ -1097,7 +1096,7 @@ function toAdminInsertValues(
 
   for (const [key, rawValue] of Object.entries(input)) {
     const column = definitions.get(key);
-    if (!column || !column.insertable) {
+    if (!column?.insertable) {
       throw new AuthApplicationError(
         'INVALID_ENTITY_VALUES',
         `Field "${key}" cannot be inserted for ${registered.definition.label}.`,
@@ -1146,7 +1145,10 @@ function coerceAdminEntityValue(
   value: unknown,
   label: string,
 ): unknown {
-  if (type === 'string' || type === 'custom') return String(value).trim();
+  const scalarText = toAdminScalarText(value);
+  if ((type === 'string' || type === 'custom') && scalarText !== undefined) {
+    return scalarText.trim();
+  }
   if (type === 'boolean') {
     if (typeof value === 'boolean') return value;
     if (value === 'true' || value === 'false') return value === 'true';
@@ -1157,13 +1159,15 @@ function coerceAdminEntityValue(
   }
   if (type === 'bigint') {
     try {
-      return typeof value === 'bigint' ? value : BigInt(String(value));
+      if (typeof value === 'bigint') return value;
+      if (scalarText !== undefined) return BigInt(scalarText);
     } catch {
       // Handled by the validation error below.
     }
   }
   if (type === 'date') {
-    const parsed = value instanceof Date ? value : new Date(String(value));
+    const parsed =
+      value instanceof Date ? value : new Date(scalarText ?? Number.NaN);
     if (!Number.isNaN(parsed.getTime())) return parsed;
   }
   if (type === 'json') {
@@ -1182,6 +1186,16 @@ function coerceAdminEntityValue(
     `${label} has an invalid ${type} value.`,
     422,
   );
+}
+
+function toAdminScalarText(value: unknown): string | undefined {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'bigint') {
+    return value.toString();
+  }
+  if (typeof value === 'boolean') return value ? 'true' : 'false';
+  if (value instanceof Date) return value.toISOString();
+  return undefined;
 }
 
 function pickDefined(

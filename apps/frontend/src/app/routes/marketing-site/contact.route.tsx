@@ -2,7 +2,7 @@ import { ContactDescription, contactOptions } from '@aerealith-ai/content';
 import {
   useState,
   type CSSProperties,
-  type FormEvent,
+  type SubmitEvent,
   type ReactNode,
 } from 'react';
 import { Link } from 'react-router';
@@ -26,10 +26,10 @@ type IconName =
 function Icon({
   name,
   className = 'h-5 w-5',
-}: {
+}: Readonly<{
   name: IconName;
   className?: string;
-}) {
+}>) {
   const common = {
     'aria-hidden': true,
     className,
@@ -124,18 +124,18 @@ export function ContactRoute() {
     contactOptions[1],
     contactOptions[3],
   ];
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     analyticsEvents.contactFormSubmitted();
     const data = new FormData(event.currentTarget);
     const name =
-      `${data.get('firstName') ?? ''} ${data.get('lastName') ?? ''}`.trim();
-    const subject = String(data.get('subject') ?? 'Contact request');
+      `${readFormField(data, 'firstName')} ${readFormField(data, 'lastName')}`.trim();
+    const subject = readFormField(data, 'subject') || 'Contact request';
     const body = [
       `From: ${name}`,
-      `Reply to: ${data.get('email') ?? ''}`,
+      `Reply to: ${readFormField(data, 'email')}`,
       '',
-      String(data.get('message') ?? ''),
+      readFormField(data, 'message'),
     ].join('\n');
     setContactStatus('opened-email');
     window.location.href = `mailto:${supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -430,6 +430,11 @@ export function ContactRoute() {
   );
 }
 
+function readFormField(data: FormData, name: string): string {
+  const value = data.get(name);
+  return typeof value === 'string' ? value : '';
+}
+
 function Field({
   name,
   label,
@@ -437,14 +442,14 @@ function Field({
   type = 'text',
   autoComplete,
   wide = false,
-}: {
+}: Readonly<{
   name: string;
   label: string;
   icon: IconName;
   type?: string;
   autoComplete?: string;
   wide?: boolean;
-}) {
+}>) {
   return (
     <label className={`relative ${wide ? 'sm:col-span-2' : ''}`}>
       <span className="sr-only">{label}</span>

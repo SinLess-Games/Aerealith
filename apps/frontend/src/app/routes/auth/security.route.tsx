@@ -110,9 +110,9 @@ export function SecurityRoute() {
 
         <div className="mt-5 space-y-3">
           {sessions.isLoading ? (
-            <p className={styles.status} role="status">
+            <output className={`${styles.status} block`}>
               Loading session history…
-            </p>
+            </output>
           ) : null}
           {sessions.isError ? (
             <div className={styles.error} role="alert">
@@ -170,11 +170,13 @@ function SessionRow({
   session,
   isPending,
   onRevoke,
-}: {
+}: Readonly<{
   session: AuthSessionSummary;
   isPending: boolean;
   onRevoke: () => void;
-}) {
+}>) {
+  const status = session.status ?? 'active';
+  const statusClassName = styles[`status${capitalize(status)}`];
   const detail = [session.location, session.ipAddress]
     .filter(Boolean)
     .join(' · ');
@@ -198,10 +200,8 @@ function SessionRow({
               {session.current ? (
                 <span className={styles.currentBadge}>Current session</span>
               ) : null}
-              <span
-                className={`${styles.statusBadge} ${styles[`status${capitalize(session.status ?? 'active')}`]}`}
-              >
-                {capitalize(session.status ?? 'active')}
+              <span className={`${styles.statusBadge} ${statusClassName}`}>
+                {capitalize(status)}
               </span>
             </div>
             {session.userAgent ? (

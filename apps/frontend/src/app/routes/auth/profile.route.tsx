@@ -88,7 +88,7 @@ const languageValues = [...new Set(Object.values(Languages))];
 export function ProfileRoute() {
   const profile = useProfile();
   const save = useUpdateProfile();
-  const [draftState, setDraft] = useState<ProfileDraft>();
+  const [draftState, setDraftState] = useState<ProfileDraft>();
   const [dirty, setDirty] = useState(false);
   const [message, setMessage] = useState('');
   const [mediaError, setMediaError] = useState('');
@@ -97,7 +97,7 @@ export function ProfileRoute() {
     draftState ?? (profile.data ? toDraft(profile.data) : emptyDraft);
 
   const updateDraft = (changes: Partial<ProfileDraft>) => {
-    setDraft((current) => ({
+    setDraftState((current) => ({
       ...(current ?? (profile.data ? toDraft(profile.data) : emptyDraft)),
       ...changes,
     }));
@@ -134,14 +134,18 @@ export function ProfileRoute() {
     }
     const reader = new FileReader();
     reader.onload = () => {
-      updateDraft({ [field]: String(reader.result) });
+      if (typeof reader.result !== 'string') {
+        setMediaError('The selected profile image could not be read.');
+        return;
+      }
+      updateDraft({ [field]: reader.result });
       setMediaError('');
     };
     reader.readAsDataURL(file);
   };
 
   if (profile.isLoading) {
-    return <p role="status">Loading your profile…</p>;
+    return <output className="block">Loading your profile…</output>;
   }
 
   if (profile.isError) {
@@ -180,12 +184,9 @@ export function ProfileRoute() {
       </div>
 
       {message ? (
-        <p
-          role="status"
-          className="mt-4 rounded-lg border border-[var(--ae-success-border)] bg-[var(--ae-success-subtle)] p-3 text-sm text-[var(--ae-success-foreground)]"
-        >
+        <output className="mt-4 block rounded-lg border border-[var(--ae-success-border)] bg-[var(--ae-success-subtle)] p-3 text-sm text-[var(--ae-success-foreground)]">
           {message}
-        </p>
+        </output>
       ) : null}
 
       <form
@@ -194,7 +195,7 @@ export function ProfileRoute() {
           event.preventDefault();
           save.mutate(toUpdate(draft), {
             onSuccess: (updated) => {
-              setDraft(toDraft(updated));
+              setDraftState(toDraft(updated));
               setDirty(false);
               setMessage('Your profile has been saved.');
             },
@@ -526,7 +527,7 @@ export function ProfileRoute() {
             className={styles.button}
             disabled={!dirty || save.isPending}
             onClick={() => {
-              if (profile.data) setDraft(toDraft(profile.data));
+              if (profile.data) setDraftState(toDraft(profile.data));
               setDirty(false);
               setMessage('');
             }}
@@ -551,11 +552,11 @@ function ProfileSection({
   title,
   description,
   children,
-}: {
+}: Readonly<{
   title: string;
   description: string;
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <section className={`${styles.panel} space-y-5 p-5 sm:p-6`}>
       <div>
@@ -577,7 +578,7 @@ function TextField({
   required = false,
   autoComplete,
   visuallyHidden = false,
-}: {
+}: Readonly<{
   label: string;
   value: string;
   onChange: (value: string) => void;
@@ -585,7 +586,7 @@ function TextField({
   required?: boolean;
   autoComplete?: string;
   visuallyHidden?: boolean;
-}) {
+}>) {
   return (
     <label
       className={
@@ -612,12 +613,12 @@ function TextArea({
   value,
   maxLength,
   onChange,
-}: {
+}: Readonly<{
   label: string;
   value: string;
   maxLength: number;
   onChange: (value: string) => void;
-}) {
+}>) {
   return (
     <label className="block text-sm text-[var(--ae-foreground-muted)]">
       {label}
@@ -641,14 +642,14 @@ function SelectField({
   onChange,
   emptyLabel,
   visuallyHidden = false,
-}: {
+}: Readonly<{
   label: string;
   value: string;
   options: readonly string[];
   onChange: (value: string) => void;
   emptyLabel?: string;
   visuallyHidden?: boolean;
-}) {
+}>) {
   return (
     <label
       className={
@@ -681,7 +682,7 @@ function MediaField({
   previewClassName,
   onChange,
   onFile,
-}: {
+}: Readonly<{
   label: string;
   field: 'avatarUrl' | 'bannerUrl';
   value: string;
@@ -691,7 +692,7 @@ function MediaField({
     field: 'avatarUrl' | 'bannerUrl',
     event: ChangeEvent<HTMLInputElement>,
   ) => void;
-}) {
+}>) {
   return (
     <div className="space-y-3">
       <div className={previewClassName}>
@@ -720,10 +721,10 @@ function MediaField({
 function CollectionHeader({
   title,
   onAdd,
-}: {
+}: Readonly<{
   title: string;
   onAdd: () => void;
-}) {
+}>) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <h3 className="font-semibold">{title}</h3>
@@ -737,10 +738,10 @@ function CollectionHeader({
 function RemoveButton({
   label,
   onClick,
-}: {
+}: Readonly<{
   label: string;
   onClick: () => void;
-}) {
+}>) {
   return (
     <button
       type="button"
@@ -754,7 +755,9 @@ function RemoveButton({
   );
 }
 
-function EmptyCollection({ children }: { children: React.ReactNode }) {
+function EmptyCollection({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <p className="rounded-lg border border-dashed border-[var(--ae-border)] p-4 text-sm text-[var(--ae-foreground-muted)]">
       {children}

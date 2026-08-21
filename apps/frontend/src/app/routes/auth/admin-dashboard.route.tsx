@@ -130,12 +130,12 @@ function MetricCard({
   label,
   value,
   detail,
-}: {
+}: Readonly<{
   icon: typeof FiUsers;
   label: string;
   value: number;
   detail: string;
-}) {
+}>) {
   return (
     <article className={`${styles.panel} ${styles.metricCard}`}>
       <div className={styles.metricIcon}>

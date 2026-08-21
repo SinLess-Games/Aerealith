@@ -1,8 +1,10 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useId,
+  useMemo,
   useRef,
   useState,
   type ComponentPropsWithoutRef,
@@ -32,36 +34,39 @@ function useMenu() {
   return menu;
 }
 
-export function DropdownMenu({ children }: { children: ReactNode }) {
+export function DropdownMenu({ children }: Readonly<{ children: ReactNode }>) {
   const [open, setOpen] = useState(false);
   const [focusTarget, setFocusTarget] = useState<FocusTarget>('first');
   const baseId = useId();
   const triggerId = `${baseId}-trigger`;
 
-  const openMenu = (target: FocusTarget = 'first') => {
+  const openMenu = useCallback((target: FocusTarget = 'first') => {
     setFocusTarget(target);
     setOpen(true);
-  };
-  const closeMenu = (restoreFocus = false) => {
-    setOpen(false);
-    if (restoreFocus) {
-      document.getElementById(triggerId)?.focus();
-    }
-  };
+  }, []);
+  const closeMenu = useCallback(
+    (restoreFocus = false) => {
+      setOpen(false);
+      if (restoreFocus) {
+        document.getElementById(triggerId)?.focus();
+      }
+    },
+    [triggerId],
+  );
+  const contextValue = useMemo(
+    () => ({
+      contentId: `${baseId}-menu`,
+      open,
+      openMenu,
+      closeMenu,
+      triggerId,
+      focusTarget,
+    }),
+    [baseId, closeMenu, focusTarget, open, openMenu, triggerId],
+  );
 
   return (
-    <MenuContext.Provider
-      value={{
-        contentId: `${baseId}-menu`,
-        open,
-        openMenu,
-        closeMenu,
-        triggerId,
-        focusTarget,
-      }}
-    >
-      {children}
-    </MenuContext.Provider>
+    <MenuContext.Provider value={contextValue}>{children}</MenuContext.Provider>
   );
 }
 
@@ -199,12 +204,14 @@ export function DropdownMenuLabel(props: ComponentPropsWithoutRef<'div'>) {
 export function DropdownMenuSeparator(props: ComponentPropsWithoutRef<'hr'>) {
   return <hr {...props} data-slot="dropdown-menu-separator" />;
 }
-export function DropdownMenuGroup({ children }: { children: ReactNode }) {
-  return <div role="group">{children}</div>;
+export function DropdownMenuGroup({
+  children,
+}: Readonly<{ children: ReactNode }>) {
+  return <fieldset className="m-0 min-w-0 border-0 p-0">{children}</fieldset>;
 }
-export const DropdownMenuPortal = ({ children }: { children: ReactNode }) => (
-  <>{children}</>
-);
+export const DropdownMenuPortal = ({
+  children,
+}: Readonly<{ children: ReactNode }>) => <>{children}</>;
 export const DropdownMenuShortcut = (
   props: ComponentPropsWithoutRef<'span'>,
 ) => <span {...props} data-slot="dropdown-menu-shortcut" />;

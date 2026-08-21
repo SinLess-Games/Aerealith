@@ -23,7 +23,7 @@ const HTTP_SERVER_ERROR = 500;
 const DEFAULT_JITTER_FACTOR = 0.75;
 const MINIMUM_JITTER_FACTOR = 0.5;
 const JITTER_FACTOR_RANGE = 0.5;
-const MAXIMUM_UINT32 = 0xffff_ffff;
+const MAXIMUM_UINT32 = 0xffffffff;
 
 const textEncoder = new TextEncoder();
 

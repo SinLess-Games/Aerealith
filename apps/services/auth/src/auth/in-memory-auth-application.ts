@@ -22,7 +22,6 @@ import {
   type AdminEntityPage,
   type AdminCreateEntityInput,
   type AdminEntityRecord,
-  type AdminEntityType,
   type AuthApplication,
   type AuthResult,
   type AuthSessionSummary,
@@ -147,8 +146,7 @@ export class InMemoryAuthApplication implements AuthApplication {
     return Promise.resolve();
   }
 
-  verifyEmail(token: string): Promise<AuthUser> {
-    void token;
+  verifyEmail(): Promise<AuthUser> {
     return Promise.reject(
       new AuthApplicationError(
         'INVALID_VERIFICATION_TOKEN',
@@ -158,8 +156,7 @@ export class InMemoryAuthApplication implements AuthApplication {
     );
   }
 
-  resendVerification(email: string): Promise<void> {
-    void email;
+  resendVerification(): Promise<void> {
     return Promise.resolve();
   }
 
@@ -229,12 +226,7 @@ export class InMemoryAuthApplication implements AuthApplication {
     const target = [...this.sessions.values()].find(
       (item) => item.id === sessionId,
     );
-    if (
-      !current ||
-      !target ||
-      target.userId !== current.userId ||
-      target.revokedAt
-    )
+    if (!current || target?.userId !== current.userId || target.revokedAt)
       return false;
     target.revokedAt = this.now().toISOString();
     return true;
@@ -397,7 +389,7 @@ export class InMemoryAuthApplication implements AuthApplication {
   }
 
   listAdminEntities(
-    entity: AdminEntityType,
+    entity: string,
     search: string,
     page: number,
     pageSize: number,
@@ -411,7 +403,7 @@ export class InMemoryAuthApplication implements AuthApplication {
         ? [...this.users.values()]
             .map((stored) => this.userRecord(stored.user))
             .filter((record) =>
-              `${record['username']} ${record['email']}`
+              `${adminValueText(record['username'])} ${adminValueText(record['email'])}`
                 .toLowerCase()
                 .includes(query),
             )
@@ -419,9 +411,9 @@ export class InMemoryAuthApplication implements AuthApplication {
           ? [...this.sessions.values()]
               .map((session) => this.sessionRecord(session))
               .filter((record) =>
-                `${record['userId']} ${record['deviceName'] ?? ''} ${
-                  record['ipAddress'] ?? ''
-                }`
+                `${adminValueText(record['userId'])} ${adminValueText(
+                  record['deviceName'],
+                )} ${adminValueText(record['ipAddress'])}`
                   .toLowerCase()
                   .includes(query),
               )
@@ -432,7 +424,9 @@ export class InMemoryAuthApplication implements AuthApplication {
               JSON.stringify(record).toLowerCase().includes(query),
             );
     records.sort((left, right) =>
-      String(right['createdAt']).localeCompare(String(left['createdAt'])),
+      adminValueText(right['createdAt']).localeCompare(
+        adminValueText(left['createdAt']),
+      ),
     );
     const offset = (page - 1) * pageSize;
 
@@ -450,7 +444,7 @@ export class InMemoryAuthApplication implements AuthApplication {
   }
 
   async createAdminEntity(
-    entity: AdminEntityType,
+    entity: string,
     input: AdminCreateEntityInput,
   ): Promise<AdminEntityRecord> {
     const registered = getAdminEntity(entity);
@@ -485,7 +479,7 @@ export class InMemoryAuthApplication implements AuthApplication {
     this.assertUniqueIdentity(username, email);
     const now = this.now().toISOString();
     const metadata = {
-      ...(input.metadata ?? {}),
+      ...input.metadata,
       ...(input.displayName?.trim()
         ? { displayName: input.displayName.trim() }
         : {}),
@@ -520,7 +514,7 @@ export class InMemoryAuthApplication implements AuthApplication {
   }
 
   updateAdminEntity(
-    entity: AdminEntityType,
+    entity: string,
     id: string,
     changes: Record<string, unknown>,
   ): Promise<AdminEntityRecord> {
@@ -597,7 +591,7 @@ export class InMemoryAuthApplication implements AuthApplication {
   }
 
   deleteAdminEntity(
-    entity: AdminEntityType,
+    entity: string,
     id: string,
     actorId: string,
   ): Promise<void> {
@@ -719,4 +713,15 @@ export class InMemoryAuthApplication implements AuthApplication {
   private notFound(message: string): never {
     throw new AuthApplicationError('NOT_FOUND', message, 404);
   }
+}
+
+function adminValueText(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'bigint') {
+    return value.toString();
+  }
+  if (typeof value === 'boolean') return value ? 'true' : 'false';
+  if (value instanceof Date) return value.toISOString();
+  return '';
 }

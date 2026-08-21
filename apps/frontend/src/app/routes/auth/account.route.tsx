@@ -94,7 +94,12 @@ export function AccountRoute() {
     }
     const reader = new FileReader();
     reader.onload = () => {
-      setDraft((value) => ({ ...value, avatarUrl: String(reader.result) }));
+      const result = reader.result;
+      if (typeof result !== 'string') {
+        setAvatarError('The selected avatar could not be read.');
+        return;
+      }
+      setDraft((value) => ({ ...value, avatarUrl: result }));
       setAvatarError(undefined);
     };
     reader.readAsDataURL(file);
@@ -116,21 +121,15 @@ export function AccountRoute() {
         Manage your sign-in identity and regional preferences.
       </p>
       {statusMessage ? (
-        <p
-          role="status"
-          className="mt-4 rounded-lg border border-[var(--ae-success-border)] bg-[var(--ae-success-subtle)] p-3 text-sm text-[var(--ae-success-foreground)]"
-        >
+        <output className="mt-4 block rounded-lg border border-[var(--ae-success-border)] bg-[var(--ae-success-subtle)] p-3 text-sm text-[var(--ae-success-foreground)]">
           {statusMessage}
-        </p>
+        </output>
       ) : null}
 
       {account.isLoading ? (
-        <p
-          className="mt-4 text-sm text-[var(--ae-foreground-muted)]"
-          role="status"
-        >
+        <output className="mt-4 block text-sm text-[var(--ae-foreground-muted)]">
           Loading account preferences…
-        </p>
+        </output>
       ) : null}
       {account.isError ? (
         <div
@@ -398,12 +397,12 @@ function Field({
   value,
   badge,
   verified,
-}: {
+}: Readonly<{
   label: string;
   value: string;
   badge?: boolean;
   verified?: boolean;
-}) {
+}>) {
   return (
     <div className="flex flex-col gap-1 border-b border-[var(--ae-divider)] py-3.5 last:border-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
       <dt className="text-sm text-[var(--ae-foreground-muted)]">{label}</dt>
@@ -426,12 +425,12 @@ function Input({
   type = 'text',
   value,
   onChange,
-}: {
+}: Readonly<{
   label: string;
   type?: string;
   value: string;
   onChange: (value: string) => void;
-}) {
+}>) {
   return (
     <label className="block text-sm text-[var(--ae-foreground-muted)]">
       {label}
@@ -452,12 +451,12 @@ function Select({
   value,
   onChange,
   options,
-}: {
+}: Readonly<{
   label: string;
   value: string;
   onChange: (value: string) => void;
   options: string[];
-}) {
+}>) {
   return (
     <label className="block text-sm text-[var(--ae-foreground-muted)]">
       {label}

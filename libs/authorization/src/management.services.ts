@@ -319,8 +319,7 @@ export class RoleAssignmentService {
       input.assignmentId,
     );
     if (
-      !assignment ||
-      assignment.principal.id !== input.target.id ||
+      assignment?.principal.id !== input.target.id ||
       assignment.principal.type !== input.target.type
     )
       throw new RoleAssignmentConflictError();

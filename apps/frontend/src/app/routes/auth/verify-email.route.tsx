@@ -1,5 +1,5 @@
 import { Button, Input, Label } from '@aerealith-ai/ui';
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type SubmitEvent } from 'react';
 import { Link, useSearchParams } from 'react-router';
 
 import {
@@ -32,7 +32,7 @@ export function VerifyEmailRoute() {
       });
   }, [token]);
 
-  async function onResend(event: FormEvent<HTMLFormElement>) {
+  async function onResend(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage('');
     setIsResending(true);
@@ -56,12 +56,9 @@ export function VerifyEmailRoute() {
         title="Verifying your email"
         subtitle="Securing your Aerealith identity…"
       >
-        <p
-          role="status"
-          className="rounded-lg border border-[var(--ae-info-border)] bg-[var(--ae-info-subtle)] p-3 text-sm text-[var(--ae-info-foreground)]"
-        >
+        <output className="block rounded-lg border border-[var(--ae-info-border)] bg-[var(--ae-info-subtle)] p-3 text-sm text-[var(--ae-info-foreground)]">
           Please keep this page open for a moment.
-        </p>
+        </output>
       </AuthCard>
     );
   }
@@ -101,23 +98,31 @@ export function VerifyEmailRoute() {
             onChange={(event) => setEmail(event.target.value)}
           />
         </div>
-        {message ? (
-          <p
-            role={message.startsWith('If that address') ? 'status' : 'alert'}
-            className={`rounded-lg border p-3 text-sm ${
-              message.startsWith('If that address')
-                ? 'border-[var(--ae-info-border)] bg-[var(--ae-info-subtle)] text-[var(--ae-info-foreground)]'
-                : 'border-[var(--ae-danger-border)] bg-[var(--ae-danger-subtle)] text-[var(--ae-danger-foreground)]'
-            }`}
-          >
-            {message}
-          </p>
-        ) : null}
+        {message ? <VerificationMessage message={message} /> : null}
         <Button type="submit" fullWidth disabled={isResending}>
           {isResending ? 'Sending a new link…' : 'Send a new verification link'}
         </Button>
       </form>
     </AuthCard>
+  );
+}
+
+function VerificationMessage({ message }: Readonly<{ message: string }>) {
+  if (message.startsWith('If that address')) {
+    return (
+      <output className="block rounded-lg border border-[var(--ae-info-border)] bg-[var(--ae-info-subtle)] p-3 text-sm text-[var(--ae-info-foreground)]">
+        {message}
+      </output>
+    );
+  }
+
+  return (
+    <p
+      role="alert"
+      className="rounded-lg border border-[var(--ae-danger-border)] bg-[var(--ae-danger-subtle)] p-3 text-sm text-[var(--ae-danger-foreground)]"
+    >
+      {message}
+    </p>
   );
 }
 

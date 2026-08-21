@@ -1,7 +1,9 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useId,
+  useMemo,
   useState,
   type ComponentPropsWithoutRef,
   type KeyboardEvent,
@@ -42,19 +44,24 @@ export function Tabs({
   orientation = 'horizontal',
   className,
   ...props
-}: TabsProps) {
+}: Readonly<TabsProps>) {
   const [internal, setInternal] = useState(defaultValue);
   const baseId = useId();
   const current = value ?? internal;
-  const setValue = (next: string) => {
-    if (value === undefined) setInternal(next);
-    onValueChange?.(next);
-  };
+  const setValue = useCallback(
+    (next: string) => {
+      if (value === undefined) setInternal(next);
+      onValueChange?.(next);
+    },
+    [onValueChange, value],
+  );
+  const contextValue = useMemo(
+    () => ({ baseId, value: current, setValue, orientation }),
+    [baseId, current, orientation, setValue],
+  );
 
   return (
-    <TabsContext.Provider
-      value={{ baseId, value: current, setValue, orientation }}
-    >
+    <TabsContext.Provider value={contextValue}>
       <div
         {...props}
         className={cn(

@@ -80,7 +80,7 @@ function normalizeValue(
   }
 
   if (typeof value !== 'object') {
-    return String(value);
+    return undefined;
   }
 
   if (depth >= maxDepth) {
@@ -250,10 +250,28 @@ function normalizeMap(
   const record: Record<string, unknown> = {};
 
   for (const [entryKey, entryValue] of entries) {
-    record[String(entryKey)] = entryValue;
+    record[normalizeMapKey(entryKey)] = entryValue;
   }
 
   return normalizeObject(record, depth, maxDepth, maxCollectionSize, ancestors);
+}
+
+function normalizeMapKey(value: unknown): string {
+  if (value === null) return 'null';
+  if (value === undefined) return 'undefined';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'bigint') {
+    return value.toString();
+  }
+  if (typeof value === 'boolean') return value ? 'true' : 'false';
+  if (typeof value === 'symbol') return value.description ?? '[Symbol]';
+  if (typeof value === 'function') return value.name || '[Function]';
+
+  try {
+    return JSON.stringify(value) ?? '[Object]';
+  } catch {
+    return UNREADABLE_VALUE_MARKER;
+  }
 }
 
 function normalizeObject(
@@ -320,12 +338,13 @@ function normalizeError(
     normalized['stack'] = error.stack;
   }
 
-  if (
-    typeof errorRecord.code === 'string' ||
+  if (typeof errorRecord.code === 'string') {
+    normalized['code'] = errorRecord.code;
+  } else if (
     typeof errorRecord.code === 'number' ||
     typeof errorRecord.code === 'bigint'
   ) {
-    normalized['code'] = String(errorRecord.code);
+    normalized['code'] = errorRecord.code.toString();
   }
 
   if (errorRecord.cause !== undefined) {

@@ -33,7 +33,6 @@ import {
   type EntityColumn,
   type EntityDefinition,
   type EntityRecord,
-  type EntityType,
 } from '../../../features/admin/entity-api';
 import { ApiError } from '../../../lib/api-client';
 import styles from './entity-viewer.module.css';
@@ -45,7 +44,7 @@ const editableFields: Record<string, readonly string[]> = {
 
 export function EntityViewerRoute() {
   const queryClient = useQueryClient();
-  const [entity, setEntity] = useState<EntityType>('users');
+  const [entity, setEntity] = useState('users');
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -83,7 +82,7 @@ export function EntityViewerRoute() {
 
   const update = useMutation({
     mutationFn: (input: {
-      entity: EntityType;
+      entity: string;
       id: string;
       changes: Record<string, unknown>;
     }) => updateEntity(input.entity, input.id, input.changes),
@@ -99,7 +98,7 @@ export function EntityViewerRoute() {
   });
   const create = useMutation({
     mutationFn: (input: {
-      entity: EntityType;
+      entity: string;
       values: Record<string, unknown> | CreateUserEntityInput;
     }) => createEntity(input.entity, input.values),
     onSuccess: async (record, variables) => {
@@ -113,7 +112,7 @@ export function EntityViewerRoute() {
     onError: () => setAnnouncement('The record could not be created.'),
   });
   const remove = useMutation({
-    mutationFn: (input: { entity: EntityType; id: string }) =>
+    mutationFn: (input: { entity: string; id: string }) =>
       deleteEntity(input.entity, input.id),
     onSuccess: async (_result, variables) => {
       setSelectedId(undefined);
@@ -126,7 +125,7 @@ export function EntityViewerRoute() {
     onError: () => setAnnouncement('The record could not be deleted.'),
   });
 
-  const selectEntity = (next: EntityType) => {
+  const selectEntity = (next: string) => {
     setEntity(next);
     setPage(1);
     setSearch('');
@@ -566,11 +565,11 @@ function RecordDetails({
   record,
   definition,
   onCopy,
-}: {
+}: Readonly<{
   record: EntityRecord;
   definition?: EntityDefinition;
   onCopy: (value: string, label: string) => Promise<void>;
-}) {
+}>) {
   return (
     <>
       <h3 className="font-semibold">Record overview</h3>
@@ -634,12 +633,12 @@ function CreateUserForm({
   error,
   onCancel,
   onCreate,
-}: {
+}: Readonly<{
   pending: boolean;
   error?: string;
   onCancel: () => void;
   onCreate: (input: CreateUserEntityInput) => void;
-}) {
+}>) {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -785,13 +784,13 @@ function CreateEntityForm({
   error,
   onCancel,
   onCreate,
-}: {
+}: Readonly<{
   definition: EntityDefinition;
   pending: boolean;
   error?: string;
   onCancel: () => void;
   onCreate: (input: Record<string, unknown>) => void;
-}) {
+}>) {
   const [values, setValues] = useState<Record<string, string>>({});
   const [validationError, setValidationError] = useState('');
   const columns = definition.columns.filter((column) => column.insertable);
@@ -850,7 +849,7 @@ function EntityCreateShell({
   onSubmit,
   submitLabel,
   children,
-}: {
+}: Readonly<{
   label: string;
   pending: boolean;
   error?: string;
@@ -858,7 +857,7 @@ function EntityCreateShell({
   onSubmit: () => void;
   submitLabel: string;
   children: ReactNode;
-}) {
+}>) {
   return (
     <>
       <div className="flex items-start justify-between gap-3 border-b border-[var(--ae-divider)] p-5">
@@ -918,12 +917,12 @@ function SchemaField({
   value,
   pending,
   onChange,
-}: {
+}: Readonly<{
   column: EntityColumn;
   value: string;
   pending: boolean;
   onChange: (value: string) => void;
-}) {
+}>) {
   const label = `${column.label}${column.required ? ' *' : ''}`;
   if (column.enumValues?.length) {
     return (
@@ -1015,7 +1014,7 @@ function EntityTextField({
   type = 'text',
   autoComplete,
   required = false,
-}: {
+}: Readonly<{
   label: string;
   value: string;
   pending: boolean;
@@ -1023,7 +1022,7 @@ function EntityTextField({
   type?: string;
   autoComplete?: string;
   required?: boolean;
-}) {
+}>) {
   return (
     <label className="block text-xs font-medium text-[var(--ae-foreground-muted)]">
       {label}
@@ -1046,13 +1045,13 @@ function EntitySelectField({
   options,
   pending,
   onChange,
-}: {
+}: Readonly<{
   label: string;
   value: string;
   options: readonly string[];
   pending: boolean;
   onChange: (value: string) => void;
-}) {
+}>) {
   return (
     <label className="block text-xs font-medium text-[var(--ae-foreground-muted)]">
       {label}
@@ -1079,14 +1078,14 @@ function EditForm({
   pending,
   onCancel,
   onSave,
-}: {
-  entity: EntityType;
+}: Readonly<{
+  entity: string;
   draft: Record<string, unknown>;
   setDraft: (draft: Record<string, unknown>) => void;
   pending: boolean;
   onCancel: () => void;
   onSave: () => void;
-}) {
+}>) {
   return (
     <form
       onSubmit={(event) => {
@@ -1135,7 +1134,7 @@ function EditForm({
               <input
                 className={`${styles.control} mt-2 px-3 py-2`}
                 disabled={pending}
-                value={draft[field] == null ? '' : String(draft[field])}
+                value={toDisplayText(draft[field])}
                 onChange={(event) =>
                   setDraft({ ...draft, [field]: event.target.value || null })
                 }
@@ -1224,7 +1223,7 @@ function labelForEntity(
 }
 
 function recordTitle(record: EntityRecord): string {
-  return String(
+  return toDisplayText(
     record['username'] ??
       record['email'] ??
       record['name'] ??
@@ -1250,9 +1249,25 @@ function labelFor(value: string) {
 function formatValue(value: unknown): string {
   if (value === null || value === undefined || value === '') return '—';
   if (typeof value === 'boolean') return value ? 'Yes' : 'No';
-  if (typeof value === 'object') return JSON.stringify(value);
-  const text = String(value);
+  const text = toDisplayText(value);
   return /^\d{4}-\d{2}-\d{2}T/.test(text)
     ? new Date(text).toLocaleString()
     : text;
+}
+
+function toDisplayText(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'bigint') {
+    return value.toString();
+  }
+  if (typeof value === 'boolean') return value ? 'true' : 'false';
+  if (typeof value === 'symbol') return value.description ?? '';
+  if (typeof value === 'function') return value.name;
+
+  try {
+    return JSON.stringify(value) ?? '';
+  } catch {
+    return '';
+  }
 }

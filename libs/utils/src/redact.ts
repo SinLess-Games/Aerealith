@@ -175,7 +175,7 @@ function redactMap(
   const result: Record<string, unknown> = {};
 
   for (const [key, item] of value.entries()) {
-    const propertyName = String(key);
+    const propertyName = normalizeMapKey(key);
 
     result[propertyName] = isSensitiveKey(propertyName, options)
       ? options.replacement
@@ -183,6 +183,22 @@ function redactMap(
   }
 
   return result;
+}
+
+function normalizeMapKey(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (
+    typeof value === 'number' ||
+    typeof value === 'bigint' ||
+    typeof value === 'boolean' ||
+    typeof value === 'symbol'
+  ) {
+    return value.toString();
+  }
+  if (value === null) return 'null';
+  if (value === undefined) return 'undefined';
+  if (value instanceof Date) return value.toISOString();
+  return Object.prototype.toString.call(value);
 }
 
 function redactSet(
@@ -233,7 +249,9 @@ function redactValue(
     return `[Function: ${value.name || 'anonymous'}]`;
   }
 
-  if (typeof value !== 'object') return String(value);
+  if (typeof value !== 'object') {
+    return value;
+  }
 
   if (depth > options.maxDepth) {
     return options.maxDepthReplacement;

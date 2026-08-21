@@ -18,19 +18,23 @@ export function createNodeLogger(options: CreateNodeLoggerOptions): Logger {
   const token = environment['LOKI_TOKEN']?.trim();
   const deploymentEnvironment =
     environment['NODE_ENV']?.trim() || 'development';
+  const authorization =
+    user && token
+      ? `Basic ${Buffer.from([user, token].join(':')).toString('base64')}`
+      : undefined;
 
   return createLogger({
     service: options.service,
     environment: deploymentEnvironment,
     ...(options.level ? { level: options.level } : {}),
     ...(options.version ? { version: options.version } : {}),
-    ...(endpoint && user && token
+    ...(endpoint && authorization
       ? {
           loki: {
             enabled: true,
             endpoint,
             headers: {
-              Authorization: `Basic ${Buffer.from(`${user}:${token}`).toString('base64')}`,
+              Authorization: authorization,
             },
             labels: {
               service: options.service,

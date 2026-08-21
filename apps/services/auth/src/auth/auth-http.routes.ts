@@ -23,7 +23,6 @@ import type { Context, Hono } from 'hono';
 import { z } from 'zod';
 
 import type { AuthApplication } from './auth-application.service';
-import type { AdminEntityType } from './auth-application.service';
 import { getAdminEntity } from './admin-entity-registry';
 import type { AuthApiEnv } from './auth-api-context';
 import {
@@ -234,12 +233,7 @@ export function registerAuthHttpRoutes(
   });
 
   router.get('/auth/sessions', async (context) => {
-    const user = await requireSessionPermission(
-      context,
-      application,
-      'sessions.read',
-    );
-    void user;
+    await requireSessionPermission(context, application, 'sessions.read');
     const token = readSessionCookie(context);
     return context.json(
       success(context, { sessions: await application.listSessions(token!) }),
@@ -291,14 +285,13 @@ export function registerAuthHttpRoutes(
 
   router.get('/admin/entities/:entity', async (context) => {
     const entity = parseEntityType(context.req.param('entity'));
-    const user = await requireAdminPermission(
+    await requireAdminPermission(
       context,
       application,
       entity === 'users' || entity === 'user_sessions'
         ? 'platform.user.read'
         : 'platform.system.read',
     );
-    void user;
     const page = positiveInteger(context.req.query('page'), 1);
     const pageSize = Math.min(
       100,
@@ -483,7 +476,7 @@ async function requireSessionPermission(
   return user;
 }
 
-function parseEntityType(value: string): AdminEntityType {
+function parseEntityType(value: string): string {
   const registered = getAdminEntity(value);
   if (registered) return registered.definition.name;
   throw new ApiError('Unsupported entity type.', {

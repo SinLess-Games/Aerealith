@@ -406,7 +406,11 @@ jobs:
             # Legal-policy modules are static content records, not executable
             # application logic. Excluding them keeps the executable analysis
             # within the SonarQube Cloud organization LOC allowance.
-            echo 'sonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/.nx/**,**/.vite/**,**/.wrangler/**,**/.source/**,**/out-tsc/**,**/storybook-static/**,**/playwright-report/**,**/test-results/**,**/public/**,**/templates/**,libs/content/src/en/policies/**,**/*.d.ts,**/*.json,**/*.jsonc,**/*.test.*,**/*.spec.*,**/*.e2e.*,**/*.integration.*,**/*.stories.*,**/test/**,**/tests/**,**/spec/**,**/specs/**,**/e2e/**,**/e2e-tests/**,**/integration/**,**/integration-tests/**,**/__tests__/**,**/__mocks__/**,**/__fixtures__/**'
+            # Drizzle migrations target PostgreSQL. SonarQube Cloud currently
+            # analyzes SQL files with PL/SQL rules (for example, requiring
+            # Oracle VARCHAR2 and constants in generated DDL), so keep those
+            # migration artifacts under migration/tooling validation instead.
+            echo 'sonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/.nx/**,**/.vite/**,**/.wrangler/**,**/.source/**,**/out-tsc/**,**/storybook-static/**,**/playwright-report/**,**/test-results/**,**/public/**,**/templates/**,libs/content/src/en/policies/**,libs/db/migrations/**,**/*.d.ts,**/*.json,**/*.jsonc,**/*.test.*,**/*.spec.*,**/*.e2e.*,**/*.integration.*,**/*.stories.*,**/test/**,**/tests/**,**/spec/**,**/specs/**,**/e2e/**,**/e2e-tests/**,**/integration/**,**/integration-tests/**,**/__tests__/**,**/__mocks__/**,**/__fixtures__/**'
 
             # Unit-coverage metrics apply to executable application and library
             # logic. Static localized content, declarative configuration,

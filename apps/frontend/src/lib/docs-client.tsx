@@ -1,8 +1,9 @@
-import type { MDXComponents } from 'mdx/types'
-import type { ComponentType, ReactNode } from 'react'
+import type { MDXComponents } from 'mdx/types';
+import type { ComponentType, ReactNode } from 'react';
 
-import browserCollections from '../../.source/browser'
-import { docsManifestEntries } from './docs-manifest'
+import browserCollections from '../../.source/browser';
+
+export { docsManifestEntries as docsEntries } from './docs-manifest';
 
 /**
  * Properties supplied to compiled MDX documentation pages.
@@ -12,7 +13,7 @@ import { docsManifestEntries } from './docs-manifest'
  * frontend or UI implementation files directly.
  */
 export interface DocsContentProps {
-  components?: MDXComponents
+  components?: MDXComponents;
 }
 
 /**
@@ -24,8 +25,8 @@ export interface DocsContentProps {
  */
 interface CompiledMdxModule {
   default: ComponentType<{
-    components?: MDXComponents
-  }>
+    components?: MDXComponents;
+  }>;
 }
 
 /**
@@ -34,8 +35,6 @@ interface CompiledMdxModule {
  * These entries expose document metadata and generated paths without eagerly
  * loading every compiled MDX page into the application's initial bundle.
  */
-export const docsEntries = docsManifestEntries
-
 /**
  * Browser-side Fumadocs content loader.
  *
@@ -48,11 +47,11 @@ export const docsClient = browserCollections.docs.createClientLoader({
     compiledModule: CompiledMdxModule,
     props: DocsContentProps,
   ): ReactNode {
-    const MdxContent = compiledModule.default
+    const MdxContent = compiledModule.default;
 
-    return <MdxContent components={props.components} />
+    return <MdxContent components={props.components} />;
   },
-})
+});
 
 /**
  * Preload a compiled MDX page before rendering it.
@@ -60,7 +59,7 @@ export const docsClient = browserCollections.docs.createClientLoader({
  * The path must be the generated Fumadocs document path, not the public URL.
  */
 export async function preloadDoc(path: string): Promise<void> {
-  await docsClient.preload(path)
+  await docsClient.preload(path);
 }
 
 /**
@@ -73,5 +72,5 @@ export function useDocContent(
   path: string,
   props: DocsContentProps = {},
 ): ReactNode {
-  return docsClient.useContent(path, props)
+  return docsClient.useContent(path, props);
 }

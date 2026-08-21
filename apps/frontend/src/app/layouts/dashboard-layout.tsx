@@ -146,24 +146,22 @@ export function DashboardLayout() {
               Security &amp; sessions
             </NavLink>
             {isSuperAdmin ? (
-              <>
-                <div className="shrink-0 rounded-lg border border-[var(--ae-border)] p-1.5 md:mt-2">
+              <div className="shrink-0 rounded-lg border border-[var(--ae-border)] p-1.5 md:mt-2">
+                <NavLink to="/app/admin" end className={navLinkClass}>
+                  <FiShield aria-hidden="true" className="text-xl" />
+                  Admin
+                </NavLink>
+                <div className="ml-4 mt-1 hidden border-l border-[var(--ae-divider)] pl-2 md:block">
                   <NavLink to="/app/admin" end className={navLinkClass}>
-                    <FiShield aria-hidden="true" className="text-xl" />
-                    Admin
+                    <FiActivity aria-hidden="true" />
+                    Dashboard
                   </NavLink>
-                  <div className="ml-4 mt-1 hidden border-l border-[var(--ae-divider)] pl-2 md:block">
-                    <NavLink to="/app/admin" end className={navLinkClass}>
-                      <FiActivity aria-hidden="true" />
-                      Dashboard
-                    </NavLink>
-                    <NavLink to="/app/admin/entities" className={navLinkClass}>
-                      <FiDatabase aria-hidden="true" />
-                      Entity Viewer
-                    </NavLink>
-                  </div>
+                  <NavLink to="/app/admin/entities" className={navLinkClass}>
+                    <FiDatabase aria-hidden="true" />
+                    Entity Viewer
+                  </NavLink>
                 </div>
-              </>
+              </div>
             ) : null}
           </nav>
 

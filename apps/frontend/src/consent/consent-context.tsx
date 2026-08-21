@@ -63,7 +63,9 @@ function readStoredConsent(): {
   }
 }
 
-export function ConsentProvider({ children }: { children: ReactNode }) {
+export function ConsentProvider({
+  children,
+}: Readonly<{ children: ReactNode }>) {
   const [initial] = useState(readStoredConsent);
   const [preferences, setPreferences] = useState(initial.preferences);
   const [hasDecision, setHasDecision] = useState(initial.hasDecision);

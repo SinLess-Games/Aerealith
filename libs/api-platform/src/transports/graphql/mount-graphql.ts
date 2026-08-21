@@ -115,7 +115,7 @@ function logExecutionErrors(
     event: 'api.graphql.request.failed',
     message: 'GraphQL execution failed.',
     component: 'api-platform',
-    error: result.errors[0]?.originalError,
+    error: result.errors[0],
     context: {
       errorCount: result.errors.length,
       operation,
