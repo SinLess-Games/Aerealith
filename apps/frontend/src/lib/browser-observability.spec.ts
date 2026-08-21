@@ -18,6 +18,11 @@ describe('initializeBrowserObservability', () => {
     expect(initializeFaro).not.toHaveBeenCalled();
   });
 
+  it('reads the compiled environment when no override is supplied', () => {
+    expect(initializeBrowserObservability()).toBe(false);
+    expect(initializeFaro).not.toHaveBeenCalled();
+  });
+
   it('configures a non-persistent browser session', () => {
     expect(
       initializeBrowserObservability({
@@ -34,6 +39,25 @@ describe('initializeBrowserObservability', () => {
           version: '1.2.3',
         }),
         sessionTracking: { enabled: true, persistent: false },
+      }),
+    );
+  });
+
+  it('normalizes the collector URL and defaults blank application labels', () => {
+    expect(
+      initializeBrowserObservability({
+        VITE_GRAFANA_FARO_URL: '  https://faro.example/collect  ',
+        VITE_APP_ENVIRONMENT: ' ',
+        VITE_APP_VERSION: ' ',
+      }),
+    ).toBe(true);
+    expect(initializeFaro).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: 'https://faro.example/collect',
+        app: expect.objectContaining({
+          environment: 'development',
+          version: 'development',
+        }),
       }),
     );
   });
