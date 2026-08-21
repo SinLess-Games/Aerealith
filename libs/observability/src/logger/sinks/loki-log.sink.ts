@@ -437,11 +437,23 @@ function normalizeEndpoint(endpoint: string): string {
     throw new Error('A Loki endpoint is required');
   }
 
-  if (/\/loki\/api\/v1\/push\/?$/u.test(normalized)) {
-    return normalized.replace(/\/$/u, '');
+  const withoutTrailingSlashes = trimTrailingSlashes(normalized);
+
+  if (withoutTrailingSlashes.endsWith(LOKI_PUSH_PATH)) {
+    return withoutTrailingSlashes;
   }
 
-  return `${normalized.replace(/\/+$/u, '')}${LOKI_PUSH_PATH}`;
+  return `${withoutTrailingSlashes}${LOKI_PUSH_PATH}`;
+}
+
+function trimTrailingSlashes(value: string): string {
+  let end = value.length;
+
+  while (end > 0 && value.charCodeAt(end - 1) === 47) {
+    end -= 1;
+  }
+
+  return end === value.length ? value : value.slice(0, end);
 }
 
 function createHeaders(options: LokiLoggerOptions): Headers {

@@ -455,7 +455,14 @@ function proxyServiceUrl(
   url: URL,
   serviceUrl: string,
 ): Promise<Response> {
-  const target = new URL(`${url.pathname}${url.search}`, serviceUrl);
+  const target = new URL(serviceUrl);
+
+  // Assigning URL components preserves the configured upstream origin even
+  // when an incoming path starts with `//`. Resolving the request path as a
+  // relative URL would allow that form to replace the configured host.
+  target.pathname = url.pathname;
+  target.search = url.search;
+  target.hash = '';
 
   const proxiedRequest = new Request(target, request);
 

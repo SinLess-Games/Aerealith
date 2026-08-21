@@ -5,6 +5,7 @@
   "type": "commonjs",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
+  "license": "AGPL-3.0-only",
   "dependencies": {
     "tslib": "^2.3.0"
   }

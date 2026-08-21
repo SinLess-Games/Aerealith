@@ -9,7 +9,11 @@
 name: 13 · Labeler
 
 on:
-  pull_request_target:
+  pull_request_target: # zizmor: ignore[dangerous-triggers] Required for fork PR labeling; no PR code is checked out or executed.
+    branches:
+      - master
+      - staging
+      - production
     types:
       - opened
       - reopened
@@ -24,6 +28,7 @@ concurrency:
 
 jobs:
   label:
+    if: github.repository == 'SinLess-Games/Aerealith'
     name: Apply pull request labels
     runs-on: ubuntu-latest
     timeout-minutes: 5

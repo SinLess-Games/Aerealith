@@ -52,7 +52,7 @@ export function resolveNodeObservabilityConfiguration(
     ...(endpoint && environment['OTEL_SDK_DISABLED'] !== 'true'
       ? {
           otlp: {
-            endpoint: endpoint.replace(/\/+$/u, ''),
+            endpoint: trimTrailingSlashes(endpoint),
             headers: parseOtlpHeaders(
               environment['OTEL_EXPORTER_OTLP_HEADERS'],
             ),
@@ -71,7 +71,7 @@ export function resolveNodeObservabilityConfiguration(
           pyroscope: {
             applicationName:
               environment['PYROSCOPE_APPLICATION_NAME']?.trim() || service,
-            endpoint: pyroscopeEndpoint.replace(/\/+$/u, ''),
+            endpoint: trimTrailingSlashes(pyroscopeEndpoint),
             user: pyroscopeUser,
             password: pyroscopePassword,
             flushIntervalMs: parsePositiveInteger(
@@ -105,7 +105,17 @@ export function otlpSignalEndpoint(
   endpoint: string,
   signal: 'metrics' | 'traces',
 ): string {
-  return `${endpoint.replace(/\/+$/u, '')}/v1/${signal}`;
+  return `${trimTrailingSlashes(endpoint)}/v1/${signal}`;
+}
+
+function trimTrailingSlashes(value: string): string {
+  let end = value.length;
+
+  while (end > 0 && value.charCodeAt(end - 1) === 47) {
+    end -= 1;
+  }
+
+  return end === value.length ? value : value.slice(0, end);
 }
 
 function decode(value: string): string {

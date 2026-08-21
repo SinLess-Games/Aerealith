@@ -2,7 +2,7 @@
 
 ARG NODE_VERSION=26.5.0
 ARG PNPM_VERSION=11.13.1
-ARG NGINX_VERSION=1.29.0
+ARG NGINX_VERSION=1.30.4
 
 
 # =============================================================================
@@ -13,7 +13,9 @@ FROM node:${NODE_VERSION}-bookworm-slim AS base
 
 ARG PNPM_VERSION
 
-ENV NODE_ENV=development
+ENV CI=true \
+  NODE_ENV=development \
+  PNPM_CONFIG_IGNORE_SCRIPTS=true
 
 WORKDIR /workspace
 
@@ -56,7 +58,7 @@ RUN --mount=type=cache,id=aerealith-pnpm,target=/pnpm/store,sharing=locked \
   --frozen-lockfile \
   --ignore-scripts \
   --store-dir=/pnpm/store \
-  && pnpm nx build frontend --configuration=production \
+  && PNPM_CONFIG_STORE_DIR=/pnpm/store pnpm exec nx build frontend --configuration=production \
   && test -f dist/apps/frontend/index.html
 
 

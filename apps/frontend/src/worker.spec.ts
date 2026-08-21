@@ -64,6 +64,28 @@ describe('frontend worker', () => {
     );
   });
 
+  it('keeps proxied request paths on the configured service origin', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(Response.json({ ok: true }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const response = await worker.fetch(
+      new Request(
+        'https://aerealith.com/api/V1/auth//attacker.invalid/path?next=%2Fme',
+      ),
+      {
+        ...createEnvironment(new Response('asset')),
+        AUTH_SERVICE_URL: 'https://auth.internal/base',
+      },
+    );
+
+    expect(response.status).toBe(200);
+
+    const proxiedRequest = fetchMock.mock.calls[0]?.[0] as Request;
+    expect(proxiedRequest.url).toBe(
+      'https://auth.internal/api/V1/auth//attacker.invalid/path?next=%2Fme',
+    );
+  });
+
   it('prefers the auth Worker binding when one is configured', async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);

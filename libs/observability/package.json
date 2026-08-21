@@ -5,6 +5,7 @@
   "type": "commonjs",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
+  "license": "AGPL-3.0-only",
   "dependencies": {
     "@aerealith-ai/api-platform": "workspace:*",
     "@aerealith-ai/core": "workspace:*",

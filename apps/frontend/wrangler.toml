@@ -77,6 +77,12 @@ dataset = "Aerealith"
 [cache]
 enabled = true
 
+# The API Worker is not currently provisioned as a service-binding target.
+# Keep the frontend deployment independent by using the worker's validated
+# URL fallback until that service exists in the Cloudflare account.
+[vars]
+API_SERVICE_URL = "https://aerealith-api-preview.sinless-deploy.workers.dev"
+
 
 # ---------------------------------------------------------------
 # Workers
@@ -86,8 +92,3 @@ enabled = true
 [[services]]
 binding = "AUTH_WORKER"
 service = "aerealith-auth"
-
-# Api Worker
-[[services]]
-binding = "API_WORKER"
-service = "aerealith-api"

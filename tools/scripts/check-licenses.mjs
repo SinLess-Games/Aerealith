@@ -1,13 +1,32 @@
 // SPDX-FileCopyrightText: 2026 SinLess Games LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import { createHash } from 'node:crypto'
-import { readFile, readdir, stat } from 'node:fs/promises'
-import { join, relative, resolve, sep } from 'node:path'
-import process from 'node:process'
+import { createHash } from 'node:crypto';
+import { readFile, readdir, stat } from 'node:fs/promises';
+import { join, relative, resolve, sep } from 'node:path';
+import process from 'node:process';
 
-const root = process.cwd()
-const errors = []
+const root = process.cwd();
+const errors = [];
+
+const expectedPackages = new Map([
+  ['package.json', 'AGPL-3.0-only'],
+
+  ['apps/services/api/package.json', 'AGPL-3.0-only'],
+  ['apps/services/auth/package.json', 'AGPL-3.0-only'],
+
+  ['libs/api-platform/package.json', 'AGPL-3.0-only'],
+  ['libs/auth/package.json', 'AGPL-3.0-only'],
+  ['libs/authorization/package.json', 'AGPL-3.0-only'],
+  ['libs/content/package.json', 'AGPL-3.0-only'],
+  ['libs/core/package.json', 'AGPL-3.0-only'],
+  ['libs/db/package.json', 'AGPL-3.0-only'],
+  ['libs/observability/package.json', 'AGPL-3.0-only'],
+  ['libs/ui/package.json', 'AGPL-3.0-only'],
+  ['libs/utils/package.json', 'AGPL-3.0-only'],
+
+  ['tools/generators/service/package.json', 'AGPL-3.0-only'],
+]);
 
 const requiredFiles = [
   'LICENSE',
@@ -27,7 +46,7 @@ const requiredFiles = [
   'apps/frontend/public/images/brand/LICENSE.md',
   '.github/project/LICENSE',
   '.github/workflows/LICENSE',
-]
+];
 
 const officialLicenseHashes = new Map([
   [
@@ -42,16 +61,7 @@ const officialLicenseHashes = new Map([
     'LICENSES/CC-BY-4.0.txt',
     '9ba9550ad48438d0836ddab3da480b3b69ffa0aac7b7878b5a0039e7ab429411',
   ],
-])
-const expectedPackages = new Map([
-  ['package.json', 'AGPL-3.0-only'],
-  ['libs/content/package.json', 'AGPL-3.0-only'],
-  ['libs/core/package.json', 'AGPL-3.0-only'],
-  ['libs/db/package.json', 'AGPL-3.0-only'],
-  ['libs/ui/package.json', 'AGPL-3.0-only'],
-  ['libs/utils/package.json', 'AGPL-3.0-only'],
-  ['tools/generators/service/package.json', 'AGPL-3.0-only'],
-])
+]);
 
 const policyPaths = [
   'apps/frontend/**',
@@ -71,7 +81,13 @@ const policyPaths = [
   'apps/frontend/worker-configuration.d.ts',
   'libs/content/src/generated/**',
   'libs/content/translations/**',
-]
+  'apps/services/api/**',
+  'apps/services/auth/**',
+  'libs/api-platform/**',
+  'libs/auth/**',
+  'libs/authorization/**',
+  'libs/observability/**',
+];
 
 const ignoredDirectories = new Set([
   '.git',
@@ -81,78 +97,78 @@ const ignoredDirectories = new Set([
   'dist',
   'node_modules',
   'tmp',
-])
+]);
 
 async function exists(path) {
   try {
-    await stat(resolve(root, path))
-    return true
+    await stat(resolve(root, path));
+    return true;
   } catch {
-    return false
+    return false;
   }
 }
 
 async function read(path) {
-  return readFile(resolve(root, path), 'utf8')
+  return readFile(resolve(root, path), 'utf8');
 }
 
 async function findPackageManifests(directory) {
-  const manifests = []
-  const entries = await readdir(directory, { withFileTypes: true })
+  const manifests = [];
+  const entries = await readdir(directory, { withFileTypes: true });
 
   for (const entry of entries) {
     if (entry.isDirectory() && ignoredDirectories.has(entry.name)) {
-      continue
+      continue;
     }
 
-    const absolute = join(directory, entry.name)
+    const absolute = join(directory, entry.name);
 
     if (entry.isDirectory()) {
-      manifests.push(...(await findPackageManifests(absolute)))
+      manifests.push(...(await findPackageManifests(absolute)));
     } else if (entry.name === 'package.json') {
-      manifests.push(relative(root, absolute).split(sep).join('/'))
+      manifests.push(relative(root, absolute).split(sep).join('/'));
     }
   }
 
-  return manifests
+  return manifests;
 }
 
 for (const path of requiredFiles) {
   if (!(await exists(path))) {
-    errors.push(`${path}: required licensing file is missing`)
+    errors.push(`${path}: required licensing file is missing`);
   }
 }
 
 for (const [path, expectedHash] of officialLicenseHashes) {
   if (!(await exists(path))) {
-    continue
+    continue;
   }
 
   const hash = createHash('sha256')
     .update(await readFile(resolve(root, path)))
-    .digest('hex')
+    .digest('hex');
   if (hash !== expectedHash) {
     errors.push(
       `${path}: official license text hash does not match its canonical source`,
-    )
+    );
   }
 }
 for (const [path, expectedLicense] of expectedPackages) {
   if (!(await exists(path))) {
-    errors.push(`${path}: expected owned package manifest is missing`)
-    continue
+    errors.push(`${path}: expected owned package manifest is missing`);
+    continue;
   }
 
   try {
-    const manifest = JSON.parse(await read(path))
+    const manifest = JSON.parse(await read(path));
 
     if (manifest.license !== expectedLicense) {
       errors.push(
         `${path}: expected license "${expectedLicense}", found ${JSON.stringify(manifest.license)}`,
-      )
+      );
     }
   } catch (error) {
-    errors.push(`${path}: cannot parse package manifest: ${error.message}`)
+    errors.push(`${path}: cannot parse package manifest: ${error.message}`);
   }
 }
 
@@ -160,18 +176,18 @@ for (const path of await findPackageManifests(root)) {
   if (!expectedPackages.has(path)) {
     errors.push(
       `${path}: package ownership or license is not represented in the license policy`,
-    )
+    );
   }
 }
 
 if (await exists('LICENSE-POLICY.md')) {
-  const policy = await read('LICENSE-POLICY.md')
+  const policy = await read('LICENSE-POLICY.md');
 
   for (const path of policyPaths) {
     if (!policy.includes('`' + path + '`')) {
       errors.push(
         `LICENSE-POLICY.md: path matrix is missing the required entry "${path}"`,
-      )
+      );
     }
   }
 }
@@ -186,25 +202,25 @@ const contentChecks = new Map([
   ],
   ['.github/project/LICENSE', ['All Rights Reserved', 'proprietary']],
   ['.github/workflows/LICENSE', ['All Rights Reserved', 'proprietary']],
-])
+]);
 
 for (const [path, markers] of contentChecks) {
   if (!(await exists(path))) {
-    continue
+    continue;
   }
 
-  const value = await read(path)
+  const value = await read(path);
 
   for (const marker of markers) {
     if (!value.includes(marker)) {
-      errors.push(`${path}: expected licensing marker "${marker}" is missing`)
+      errors.push(`${path}: expected licensing marker "${marker}" is missing`);
     }
   }
 }
 
-const thirdPartyNoticePath = 'apps/frontend/worker-configuration.d.ts'
+const thirdPartyNoticePath = 'apps/frontend/worker-configuration.d.ts';
 if (await exists(thirdPartyNoticePath)) {
-  const notice = await read(thirdPartyNoticePath)
+  const notice = await read(thirdPartyNoticePath);
   for (const marker of [
     'Copyright (c) Cloudflare',
     'Licensed under the Apache License, Version 2.0',
@@ -212,19 +228,19 @@ if (await exists(thirdPartyNoticePath)) {
     if (!notice.includes(marker)) {
       errors.push(
         `${thirdPartyNoticePath}: existing third-party notice marker "${marker}" is missing`,
-      )
+      );
     }
   }
 }
 
 if (errors.length > 0) {
-  console.error('License policy validation failed:')
+  console.error('License policy validation failed:');
   for (const error of errors) {
-    console.error(`- ${error}`)
+    console.error(`- ${error}`);
   }
-  process.exitCode = 1
+  process.exitCode = 1;
 } else {
   console.log(
     `License policy validation passed for ${expectedPackages.size} owned packages and ${requiredFiles.length} required files.`,
-  )
+  );
 }

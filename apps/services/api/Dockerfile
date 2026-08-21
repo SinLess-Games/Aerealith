@@ -42,10 +42,19 @@ RUN apk add --no-cache \
 
 # Copy workspace metadata first.
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY tsconfig.base.json ./
+COPY nx.json tsconfig.base.json ./
+COPY worker-configuration.d.ts ./
 
-# Copy the API workspace and its internal workspace dependencies.
-COPY apps/services/api ./apps/services/api
+# Copy only the API files required to resolve the Nx project and compile it.
+# Keeping the Dockerfile out of this layer preserves dependency-install cache
+# reuse when the image assembly changes.
+COPY apps/services/api/package.json \
+  apps/services/api/project.json \
+  apps/services/api/tsconfig.app.json \
+  apps/services/api/tsconfig.build.json \
+  apps/services/api/tsconfig.json \
+  ./apps/services/api/
+COPY apps/services/api/src ./apps/services/api/src
 COPY libs ./libs
 
 # Install the workspace dependency graph without automatically executing
@@ -69,7 +78,8 @@ RUN --mount=type=cache,id=aerealith-pnpm,target=/pnpm/store,sharing=locked \
 #
 # service-api:build depends on its upstream Nx library builds, including
 # core, db, observability, authorization, and their dependency closure.
-RUN pnpm exec nx run service-api:build \
+RUN --mount=type=cache,id=aerealith-pnpm,target=/pnpm/store,sharing=locked \
+  PNPM_CONFIG_STORE_DIR=/pnpm/store pnpm exec nx run service-api:build \
   && test -f /workspace/dist/apps/services/api/server.js
 
 
@@ -92,10 +102,11 @@ RUN mkdir -p /workspace/apps/services/api/dist \
 # and its production dependency graph.
 #
 # Do not copy the monorepo root node_modules into the runtime image.
-RUN pnpm \
+RUN --mount=type=cache,id=aerealith-pnpm,target=/pnpm/store,sharing=locked \
+  PNPM_CONFIG_STORE_DIR=/pnpm/store pnpm \
+  --config.inject-workspace-packages=true \
   --filter "@aerealith-ai/service-api" \
   --prod \
-  --legacy \
   deploy \
   /deploy
 
@@ -119,11 +130,11 @@ RUN set -eux; \
   observability \
   utils; \
   do \
-  if [ -d "/workspace/dist/libs/${lib}" ] \
-  && [ -d "/deploy/node_modules/@aerealith-ai/${lib}" ]; then \
-  cp -R \
-  "/workspace/dist/libs/${lib}/." \
-  "/deploy/node_modules/@aerealith-ai/${lib}/"; \
+  if [ -d "/workspace/dist/libs/${lib}" ]; then \
+  find /deploy/node_modules/.pnpm \
+  -type d \
+  -path "*/node_modules/@aerealith-ai/${lib}" \
+  -exec cp -R "/workspace/dist/libs/${lib}/." {} \;; \
   fi; \
   done
 
@@ -193,8 +204,6 @@ WORKDIR /app
 # The runtime account receives read/execute access only and cannot modify its
 # own code or installed dependencies.
 COPY --from=build --chown=0:0 /deploy ./
-
-RUN chmod -R u=rwX,go=rX /app
 
 
 # =============================================================================

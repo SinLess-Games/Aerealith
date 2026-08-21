@@ -52,12 +52,12 @@ on:
   workflow_dispatch:
     inputs:
       pull_request_number:
-        description: "Pull request number used to create the preview alias."
+        description: 'Pull request number used to create the preview alias.'
         required: true
         type: string
 
       wrangler_config_path:
-        description: "Optional repository-relative Wrangler config path override."
+        description: 'Optional repository-relative Wrangler config path override.'
         required: false
         type: string
 
@@ -78,19 +78,19 @@ defaults:
     shell: bash
 
 env:
-  CI: "true"
-  FORCE_COLOR: "1"
-  HUSKY: "0"
+  CI: 'true'
+  FORCE_COLOR: '1'
+  HUSKY: '0'
 
-  NODE_VERSION: "25.9.0"
-  PNPM_VERSION: "11.12.0"
+  NODE_VERSION: '26.5.0'
+  PNPM_VERSION: '11.13.1'
 
-  FRONTEND_PROJECT: "frontend"
-  FRONTEND_DIRECTORY: "apps/frontend"
+  FRONTEND_PROJECT: 'frontend'
+  FRONTEND_DIRECTORY: 'apps/frontend'
 
-  WORKER_NAME: "aerealith"
-  PREVIEW_ALIAS_PREFIX: "pr"
-  HEALTH_PATH: "/__aerealith/health"
+  WORKER_NAME: 'aerealith'
+  PREVIEW_ALIAS_PREFIX: 'pr'
+  HEALTH_PATH: '/__aerealith/health'
 
 jobs:
   preflight:
@@ -331,7 +331,7 @@ jobs:
         run: |
           set -euo pipefail
           corepack enable
-          corepack prepare "pnpm@${PNPM_VERSION:-11.12.0}" --activate
+          corepack prepare "pnpm@${PNPM_VERSION:-11.13.1}" --activate
 
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
