@@ -455,33 +455,47 @@ function proxyServiceUrl(
   url: URL,
   serviceUrl: string,
 ): Promise<Response> {
-  const target = new URL(serviceUrl);
+  const upstream = new URL(serviceUrl);
 
-  // Assigning URL components preserves the configured upstream origin even
-  // when an incoming path starts with `//`. Resolving the request path as a
-  // relative URL would allow that form to replace the configured host. Each
-  // component is also decoded and re-encoded so the outbound URL contains
-  // only canonical path and query data from the incoming request.
-  target.pathname = canonicalizeProxyPathname(url.pathname);
-  target.search = new URLSearchParams(url.searchParams).toString();
-  target.hash = '';
+  if (
+    (upstream.protocol !== 'https:' && upstream.protocol !== 'http:') ||
+    upstream.username !== '' ||
+    upstream.password !== ''
+  ) {
+    return Promise.resolve(
+      createServiceUnavailableResponse(
+        'INVALID_SERVICE_CONFIGURATION',
+        'upstream',
+      ),
+    );
+  }
 
-  const proxiedRequest = new Request(target, request);
+  // Build the request from the trusted configured origin, never from the
+  // incoming URL. Empty path segments are removed so attacker-controlled `//`
+  // input cannot be interpreted as a scheme-relative authority. Every path
+  // and query component is canonicalized before it is appended.
+  const pathname = canonicalizeProxyPathname(url.pathname);
+  const search = new URLSearchParams(url.searchParams).toString();
+  const targetUrl = `${upstream.origin}${pathname}${search ? `?${search}` : ''}`;
+
+  const proxiedRequest = new Request(targetUrl, request);
 
   return fetch(proxiedRequest);
 }
 
 function canonicalizeProxyPathname(pathname: string): string {
-  return pathname
+  const segments = pathname
     .split('/')
+    .filter((segment) => segment !== '')
     .map((segment) => {
       try {
         return encodeURIComponent(decodeURIComponent(segment));
       } catch {
         return encodeURIComponent(segment);
       }
-    })
-    .join('/');
+    });
+
+  return `/${segments.join('/')}`;
 }
 
 function createServiceUnavailableResponse(

@@ -82,8 +82,30 @@ describe('frontend worker', () => {
 
     const proxiedRequest = fetchMock.mock.calls[0]?.[0] as Request;
     expect(proxiedRequest.url).toBe(
-      'https://auth.internal/api/V1/auth//attacker.invalid/path%20name?next=%2Fme&label=hello+world',
+      'https://auth.internal/api/V1/auth/attacker.invalid/path%20name?next=%2Fme&label=hello+world',
     );
+  });
+
+  it('rejects non-HTTP and credential-bearing upstream configurations', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    for (const serviceUrl of [
+      'file:///etc/passwd',
+      'https://user:password@auth.internal',
+    ]) {
+      const response = await worker.fetch(
+        new Request('https://aerealith.com/api/V1/auth/me'),
+        {
+          ...createEnvironment(new Response('asset')),
+          AUTH_SERVICE_URL: serviceUrl,
+        },
+      );
+
+      expect(response.status).toBe(503);
+    }
+
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('prefers the auth Worker binding when one is configured', async () => {
