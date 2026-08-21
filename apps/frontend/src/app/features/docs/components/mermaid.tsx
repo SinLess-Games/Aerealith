@@ -612,13 +612,24 @@ function sanitizeId(value: string): string {
 }
 
 function toFilename(value: string): string {
-  const filename = value
-    .trim()
-    .toLowerCase()
-    .replaceAll(/[^a-z0-9]+/g, '-')
-    .replaceAll(/^-+|-+$/g, '');
+  const filename = trimHyphens(
+    value
+      .trim()
+      .toLowerCase()
+      .replaceAll(/[^a-z0-9]+/g, '-'),
+  );
 
   return filename || 'aerealith-diagram';
+}
+
+function trimHyphens(value: string): string {
+  let start = 0;
+  let end = value.length;
+
+  while (start < end && value.codePointAt(start) === 45) start += 1;
+  while (end > start && value.codePointAt(end - 1) === 45) end -= 1;
+
+  return value.slice(start, end);
 }
 
 function getErrorMessage(error: unknown): string {

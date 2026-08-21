@@ -158,11 +158,12 @@ async function hashKey(value: string): Promise<string> {
     'SHA-256',
     new TextEncoder().encode(value),
   );
-  const binary = String.fromCharCode(...new Uint8Array(digest));
-  return btoa(binary)
-    .replaceAll('+', '-')
-    .replaceAll('/', '_')
-    .replace(/=+$/, '');
+  const binary = String.fromCodePoint(...new Uint8Array(digest));
+  let encoded = btoa(binary).replaceAll('+', '-').replaceAll('/', '_');
+
+  while (encoded.endsWith('=')) encoded = encoded.slice(0, -1);
+
+  return encoded;
 }
 
 function unique(values: string[]): string[] {

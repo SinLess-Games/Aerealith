@@ -307,7 +307,7 @@ export function AccountRoute() {
                 onChange={(email) => setDraft({ ...draft, email })}
               />
               <label className="block text-sm text-[var(--ae-foreground-muted)]">
-                Role
+                <span>Role</span>
                 <input
                   disabled
                   className={`${styles.control} mt-2`}
@@ -351,6 +351,7 @@ export function AccountRoute() {
                   Cancel
                 </button>
                 <button
+                  type="submit"
                   disabled={save.isPending || Boolean(avatarError)}
                   className={`${styles.saveButton} flex-1`}
                 >
@@ -379,6 +380,7 @@ export function AccountRoute() {
                 : 'Account ready to manage'}
             </p>
             <button
+              type="button"
               onClick={openEditor}
               className={`${styles.outlineButton} mt-6`}
             >

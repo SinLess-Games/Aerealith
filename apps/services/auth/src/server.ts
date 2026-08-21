@@ -13,11 +13,11 @@ const DEFAULT_ALLOWED_ORIGINS = [
   'https://www.aerealith.com',
 
   // Local development
-  'http://localhost:4200',
-  'http://127.0.0.1:4200',
+  'http://localhost:4200', // NOSONAR -- loopback-only development origin
+  'http://127.0.0.1:4200', // NOSONAR -- loopback-only development origin
 
   // Local Aerealith/SinLess development domain
-  'http://local.sinlessgames.com',
+  'http://local.sinlessgames.com', // NOSONAR -- local development DNS only
   'https://local.sinlessgames.com',
 ] as const;
 

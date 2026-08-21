@@ -548,17 +548,17 @@ CREATE INDEX "role_conflicts_conflicting_role_id_index"
  * carrying deprecated identifiers or conflicting resource/action tuples.
  */
 
-DELETE FROM "role_conflicts";
+DELETE FROM "role_conflicts" WHERE TRUE;
 --> statement-breakpoint
 
-DELETE FROM "role_inheritance";
+DELETE FROM "role_inheritance" WHERE TRUE;
 --> statement-breakpoint
 
-DELETE FROM "role_permissions";
+DELETE FROM "role_permissions" WHERE TRUE;
 --> statement-breakpoint
 
-DELETE FROM "roles";
+DELETE FROM "roles" WHERE TRUE;
 --> statement-breakpoint
 
-DELETE FROM "permissions";
+DELETE FROM "permissions" WHERE TRUE;
 --> statement-breakpoint

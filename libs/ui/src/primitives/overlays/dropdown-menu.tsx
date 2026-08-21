@@ -163,6 +163,7 @@ export function DropdownMenuContent({
       }}
       ref={contentRef}
       role="menu"
+      tabIndex={-1}
     />
   );
 }

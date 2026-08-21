@@ -408,7 +408,12 @@ jobs:
             # within the SonarQube Cloud organization LOC allowance.
             echo 'sonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/.nx/**,**/.vite/**,**/.wrangler/**,**/.source/**,**/out-tsc/**,**/storybook-static/**,**/playwright-report/**,**/test-results/**,**/public/**,**/templates/**,libs/content/src/en/policies/**,**/*.d.ts,**/*.json,**/*.jsonc,**/*.test.*,**/*.spec.*,**/*.e2e.*,**/*.integration.*,**/*.stories.*,**/test/**,**/tests/**,**/spec/**,**/specs/**,**/e2e/**,**/e2e-tests/**,**/integration/**,**/integration-tests/**,**/__tests__/**,**/__mocks__/**,**/__fixtures__/**'
 
-            echo 'sonar.coverage.exclusions=**/*.test.*,**/*.spec.*,**/*.e2e.*,**/*.integration.*,**/*.stories.*,**/test/**,**/tests/**,**/spec/**,**/specs/**,**/e2e/**,**/e2e-tests/**,**/integration/**,**/integration-tests/**,**/__tests__/**,**/__mocks__/**,**/__fixtures__/**,**/*.d.ts'
+            # Unit-coverage metrics apply to executable application and library
+            # logic. Static localized content, declarative configuration,
+            # operational seed catalogs, and process bootstrap entrypoints are
+            # validated by content/config checks, seed integration tests, and
+            # container health checks rather than unit branch coverage.
+            echo 'sonar.coverage.exclusions=**/*.test.*,**/*.spec.*,**/*.e2e.*,**/*.integration.*,**/*.stories.*,**/test/**,**/tests/**,**/spec/**,**/specs/**,**/e2e/**,**/e2e-tests/**,**/integration/**,**/integration-tests/**,**/__tests__/**,**/__mocks__/**,**/__fixtures__/**,**/*.d.ts,**/*.config.*,**/src/main.*,**/src/server.ts,**/seeds/**,libs/content/src/en/**'
 
             if [[ -n "${LCOV_REPORTS:-}" ]]; then
               echo "sonar.javascript.lcov.reportPaths=$LCOV_REPORTS"

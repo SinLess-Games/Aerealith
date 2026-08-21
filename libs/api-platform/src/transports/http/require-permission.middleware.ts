@@ -7,6 +7,7 @@ import type {
   AuthorizationApiContext,
   AuthorizationScopeResolver,
 } from '../../authorization/authorization-api-context.interface';
+import { GLOBAL_AUTHORIZATION_SCOPE } from '../../authorization/authorization-api-context.interface';
 import { requireAuthorization } from '../../authorization/require-authorization';
 
 export function requirePermission<
@@ -14,9 +15,9 @@ export function requirePermission<
   TEnv extends ApiEnv<TContext>,
 >(
   permission: string,
-  scope: AuthorizationScope | AuthorizationScopeResolver<TContext> = {
-    type: 'global',
-  },
+  scope:
+    | AuthorizationScope
+    | AuthorizationScopeResolver<TContext> = GLOBAL_AUTHORIZATION_SCOPE,
 ): MiddlewareHandler<TEnv> {
   return async (honoContext, next) => {
     const apiContext = honoContext.get('apiContext');

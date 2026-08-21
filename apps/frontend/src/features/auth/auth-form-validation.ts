@@ -1,10 +1,21 @@
 import { meetsPasswordPolicy, passwordPolicyHint } from './password-policy';
 
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
 const usernamePattern = /^[a-z0-9_]{3,32}$/u;
 
 export function isValidEmail(value: string) {
-  return emailPattern.test(value.trim());
+  const email = value.trim();
+  const atIndex = email.indexOf('@');
+
+  if (atIndex <= 0 || atIndex !== email.lastIndexOf('@')) return false;
+
+  const domain = email.slice(atIndex + 1);
+  const dotIndex = domain.lastIndexOf('.');
+
+  return (
+    dotIndex > 0 &&
+    dotIndex < domain.length - 1 &&
+    !Array.from(email).some((character) => character.trim().length === 0)
+  );
 }
 
 export function validateLoginIdentity(value: string) {

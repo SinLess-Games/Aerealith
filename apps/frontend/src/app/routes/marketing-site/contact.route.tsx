@@ -182,7 +182,7 @@ export function ContactRoute() {
               Contact us
             </p>
             <h1 className="mt-5 text-4xl leading-[1.08] font-bold tracking-[-.045em] sm:text-5xl xl:text-6xl">
-              Let&apos;s Build the Future
+              <span>Let&apos;s Build the Future</span>
               <span className="block bg-gradient-to-r from-fuchsia-500 via-violet-400 to-cyan-400 bg-clip-text text-transparent">
                 Together
               </span>
@@ -294,7 +294,7 @@ export function ContactRoute() {
                 >
                   {supportEmail}
                 </a>
-                .
+                {'.'}
               </p>
               <button
                 type="button"

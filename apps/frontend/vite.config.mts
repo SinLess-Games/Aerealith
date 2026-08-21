@@ -31,11 +31,11 @@ const allowedHosts = ['localhost', '127.0.0.1', 'local.sinlessgames.com'];
  */
 const allowedOrigins = [
   // Standard local frontend development.
-  'http://localhost:4200',
-  'http://127.0.0.1:4200',
+  'http://localhost:4200', // NOSONAR -- loopback-only Vite development origin
+  'http://127.0.0.1:4200', // NOSONAR -- loopback-only Vite development origin
 
   // Aerealith local development domain.
-  'http://local.sinlessgames.com:4200',
+  'http://local.sinlessgames.com:4200', // NOSONAR -- local development DNS only
   'https://local.sinlessgames.com:4200',
 
   // Production frontend origins.

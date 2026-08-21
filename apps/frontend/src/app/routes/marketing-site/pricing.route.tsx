@@ -277,43 +277,43 @@ const capabilities: Capability[] = [
     values: {
       free: (
         <>
-          No limit
+          <span>No limit</span>
           <small>Priority and rate limited</small>
         </>
       ),
       basic: (
         <>
-          No limit
+          <span>No limit</span>
           <small>Priority and rate limited</small>
         </>
       ),
       'basic-plus': (
         <>
-          No limit
+          <span>No limit</span>
           <small>Priority and rate limited</small>
         </>
       ),
       premium: (
         <>
-          No limit
+          <span>No limit</span>
           <small>Priority and rate limited</small>
         </>
       ),
       'premium-plus': (
         <>
-          No limit
+          <span>No limit</span>
           <small>Priority and rate limited</small>
         </>
       ),
       pro: (
         <>
-          No limit
+          <span>No limit</span>
           <small>Priority and rate limited</small>
         </>
       ),
       'pro-plus': (
         <>
-          No limit
+          <span>No limit</span>
           <small>Priority and rate limited</small>
         </>
       ),
@@ -955,7 +955,7 @@ export function PricingRoute() {
           </p>
 
           <h1 className="text-4xl font-bold tracking-[-0.04em] sm:text-5xl lg:text-6xl">
-            One platform.
+            <span>One platform.</span>
             <span className="block bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-500 bg-clip-text text-transparent">
               A plan for every workflow.
             </span>
@@ -1006,7 +1006,7 @@ export function PricingRoute() {
                     : 'hover:text-current',
                 ].join(' ')}
               >
-                Yearly
+                <span>Yearly</span>
                 <span className="ml-2 rounded-md bg-emerald-500/15 px-2 py-0.5 text-[0.65rem] font-bold text-emerald-400">
                   20% off
                 </span>

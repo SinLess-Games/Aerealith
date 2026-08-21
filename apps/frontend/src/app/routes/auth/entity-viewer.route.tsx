@@ -754,10 +754,10 @@ function CreateUserForm({
           disabled={pending}
           onChange={(event) => setEmailVerified(event.target.checked)}
         />
-        Mark this email address as already verified
+        <span>Mark this email address as already verified</span>
       </label>
       <label className="mt-5 block text-xs font-medium text-[var(--ae-foreground-muted)]">
-        Metadata (JSON)
+        <span>Metadata (JSON)</span>
         <textarea
           rows={6}
           className={`${styles.control} mt-2 px-3 py-2 font-mono text-xs`}

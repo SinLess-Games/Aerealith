@@ -149,6 +149,7 @@ export function ProfileRoute() {
       <div role="alert" className={`${styles.panel} p-5`}>
         <p>We couldn’t load your profile.</p>
         <button
+          type="button"
           className={`${styles.button} mt-4`}
           onClick={() => profile.refetch()}
         >
@@ -460,7 +461,7 @@ export function ProfileRoute() {
                       })
                     }
                   />
-                  Primary
+                  <span>Primary</span>
                 </label>
                 <RemoveButton
                   label={`Remove language ${index + 1}`}

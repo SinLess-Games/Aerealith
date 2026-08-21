@@ -4,6 +4,7 @@ import type {
   AuthorizationApiContext,
   AuthorizationScopeResolver,
 } from '../../authorization/authorization-api-context.interface';
+import { GLOBAL_AUTHORIZATION_SCOPE } from '../../authorization/authorization-api-context.interface';
 import { requireAuthorization } from '../../authorization/require-authorization';
 
 export async function requireWebSocketPermission<
@@ -11,9 +12,9 @@ export async function requireWebSocketPermission<
 >(
   context: TContext,
   permission: string,
-  scope: AuthorizationScope | AuthorizationScopeResolver<TContext> = {
-    type: 'global',
-  },
+  scope:
+    | AuthorizationScope
+    | AuthorizationScopeResolver<TContext> = GLOBAL_AUTHORIZATION_SCOPE,
 ): Promise<void> {
   await requireAuthorization({
     authorization: context.authorization,
