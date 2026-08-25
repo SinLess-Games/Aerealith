@@ -52,7 +52,7 @@ importers:
         version: 2.8.2
       '@hono/node-server':
         specifier: 2.0.10
-        version: 2.0.10(hono@4.12.30)
+        version: 2.0.10(hono@4.12.34)
       '@hugeicons/core-free-icons':
         specifier: 4.2.2
         version: 4.2.2
@@ -123,8 +123,8 @@ importers:
         specifier: 5.21.2
         version: 5.21.2(graphql@17.0.2)
       hono:
-        specifier: 4.12.30
-        version: 4.12.30
+        specifier: 4.12.34
+        version: 4.12.34
       katex:
         specifier: ^0.18.1
         version: 0.18.1
@@ -419,10 +419,10 @@ importers:
         version: link:../../../libs/observability
       '@hono/node-server':
         specifier: 2.0.10
-        version: 2.0.10(hono@4.12.30)
+        version: 2.0.10(hono@4.12.34)
       hono:
-        specifier: 4.12.30
-        version: 4.12.30
+        specifier: 4.12.34
+        version: 4.12.34
       zod:
         specifier: 4.4.3
         version: 4.4.3
@@ -449,7 +449,7 @@ importers:
         version: link:../../../libs/observability
       '@hono/node-server':
         specifier: 2.0.10
-        version: 2.0.10(hono@4.12.30)
+        version: 2.0.10(hono@4.12.34)
       '@trpc/server':
         specifier: 11.18.0
         version: 11.18.0(typescript@6.0.3)
@@ -463,8 +463,8 @@ importers:
         specifier: 5.21.2
         version: 5.21.2(graphql@17.0.2)
       hono:
-        specifier: 4.12.30
-        version: 4.12.30
+        specifier: 4.12.34
+        version: 4.12.34
       resend:
         specifier: 6.17.2
         version: 6.17.2
@@ -490,8 +490,8 @@ importers:
         specifier: 5.21.2
         version: 5.21.2(graphql@17.0.2)
       hono:
-        specifier: 4.12.30
-        version: 4.12.30
+        specifier: 4.12.34
+        version: 4.12.34
       tslib:
         specifier: ^2.3.0
         version: 2.8.1
@@ -7420,8 +7420,8 @@ packages:
   hoist-non-react-statics@3.3.2:
     resolution: {integrity: sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==}
 
-  hono@4.12.30:
-    resolution: {integrity: sha512-emn+JoJjrN9YTpRDS5it/UI2SO9BAE37T6I3d963RxcZ81G9A4pr2SZTEiiaiKbzx+NKRg5BZ89fCL7gCJCUog==}
+  hono@4.12.34:
+    resolution: {integrity: sha512-GqXJqY/xJkJmuloTrnV1ZEXG3fqte+VjkUqoRNZXcrUidiUOP4fMSIHHY4tsqZBK++kVyWmt/AAfSUuy57/eSA==}
     engines: {node: '>=16.9.0'}
 
   html-encoding-sniffer@3.0.0:
@@ -12508,9 +12508,9 @@ snapshots:
       protobufjs: 7.6.5
       yargs: 17.7.3
 
-  '@hono/node-server@2.0.10(hono@4.12.30)':
+  '@hono/node-server@2.0.10(hono@4.12.34)':
     dependencies:
-      hono: 4.12.30
+      hono: 4.12.34
 
   '@hugeicons/core-free-icons@4.2.2': {}
 
@@ -18455,7 +18455,7 @@ snapshots:
     dependencies:
       react-is: 16.13.1
 
-  hono@4.12.30: {}
+  hono@4.12.34: {}
 
   html-encoding-sniffer@3.0.0:
     dependencies:
