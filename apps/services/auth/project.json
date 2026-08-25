@@ -7,6 +7,7 @@
   "targets": {
     "typecheck": {
       "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
       "options": {
         "commands": [
           "tsc --noEmit --rootDir . -p apps/services/auth/tsconfig.app.json",
