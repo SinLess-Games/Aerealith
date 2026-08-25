@@ -386,7 +386,7 @@ jobs:
 
           deployment_snapshot="$RUNNER_TEMP/cloudflare-current-production-deployment.json"
 
-          pnpm exec wrangler versions deployments list \
+          pnpm exec wrangler deployments list \
             --config "$WRANGLER_CONFIG_PATH" \
             --json \
             > "$deployment_snapshot"
