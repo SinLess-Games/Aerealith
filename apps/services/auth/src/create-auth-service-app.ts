@@ -7,10 +7,8 @@ import {
 } from '@aerealith-ai/api-platform';
 import { ApiRoute, type Logger } from '@aerealith-ai/core';
 import type { AuthorizationService } from '@aerealith-ai/authorization';
-import {
-  createLogger,
-  type OperationObserver,
-} from '@aerealith-ai/observability';
+import type { OperationObserver } from '@aerealith-ai/observability';
+import { createLogger } from '@aerealith-ai/observability/logger';
 import type { MiddlewareHandler } from 'hono';
 import { cors } from 'hono/cors';
 
