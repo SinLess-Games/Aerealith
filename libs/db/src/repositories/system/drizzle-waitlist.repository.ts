@@ -1,11 +1,14 @@
 // libs/db/src/repositories/system/drizzle-waitlist.repository.ts
 
-import { and, eq, isNull } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm';
 
-import type { JoinWaitlistContract, WaitlistContract } from '@aerealith-ai/core'
+import type {
+  JoinWaitlistContract,
+  WaitlistContract,
+} from '@aerealith-ai/core';
 
-import type { DatabaseClient } from '../../client'
-import { type WaitlistRow, waitlistTable } from '../../schema'
+import type { DatabaseClient } from '../../client';
+import { type WaitlistRow, waitlistTable } from '../../schema';
 
 /**
  * Drizzle persistence for public waitlist entries.
@@ -23,9 +26,9 @@ export class DrizzleWaitlistRepository {
       .where(
         and(eq(waitlistTable.email, email), isNull(waitlistTable.deletedAt)),
       )
-      .limit(1)
+      .limit(1);
 
-    return row ? toWaitlistContract(row) : null
+    return row ? toWaitlistContract(row) : null;
   }
 
   async create(input: JoinWaitlistContract): Promise<WaitlistContract> {
@@ -33,14 +36,15 @@ export class DrizzleWaitlistRepository {
       .insert(waitlistTable)
       .values({
         email: input.email,
+        role: input.role ?? null,
       })
-      .returning()
+      .returning();
 
     if (!row) {
-      throw new Error('Failed to create waitlist entry.')
+      throw new Error('Failed to create waitlist entry.');
     }
 
-    return toWaitlistContract(row)
+    return toWaitlistContract(row);
   }
 
   async softDeleteByEmail(email: string): Promise<boolean> {
@@ -55,9 +59,9 @@ export class DrizzleWaitlistRepository {
       )
       .returning({
         id: waitlistTable.id,
-      })
+      });
 
-    return row !== undefined
+    return row !== undefined;
   }
 }
 
@@ -65,6 +69,7 @@ function toWaitlistContract(row: WaitlistRow): WaitlistContract {
   return {
     id: row.id,
     email: row.email,
+    role: row.role,
     createdAt: row.createdAt.toISOString(),
-  }
+  };
 }

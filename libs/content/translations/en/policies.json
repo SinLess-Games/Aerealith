@@ -86,7 +86,7 @@
         "title": "1. Purpose",
         "body": [
           "These Terms of Use govern access to and use of Aerealith AI.",
-          "Aerealith AI is operated by SinLess Games LLC.",
+          "Aerealith is operated under SinLess Industries and provided by SinLess Games LLC. Aerealith AI is the assistant within Aerealith.",
           "Aerealith AI is designed to help users think, create, automate, analyze, monitor, and act across connected systems. Because Aerealith AI may involve artificial intelligence, user data, memory, files, integrations, automations, APIs, plugins, marketplace items, dashboards, analytics, and organization workspaces, these Terms explain the rights, responsibilities, limits, and conditions that apply when using the service.",
           "By accessing or using Aerealith AI, you agree to these Terms and all policies incorporated by reference.",
           "If you do not agree to these Terms, do not use Aerealith AI."
@@ -139,7 +139,7 @@
         "id": "company-information",
         "title": "3. Company Information",
         "body": [
-          "Aerealith AI is operated by SinLess Games LLC.",
+          "Aerealith is operated under SinLess Industries and provided by SinLess Games LLC. Aerealith AI is the assistant within Aerealith.",
           "Before publishing these Terms, insert the official business address and required contact information.",
           "Before publishing, confirm that these email aliases exist and are monitored."
         ],
@@ -1676,7 +1676,9 @@
       {
         "id": "publication-checklist",
         "title": "71. Publication Checklist",
-        "body": ["Before publishing these Terms, complete the following:"],
+        "body": [
+          "Before publishing these Terms, complete the following:"
+        ],
         "bullets": [
           "Confirm official company name: SinLess Games LLC",
           "Confirm official product name: Aerealith AI",
@@ -1941,7 +1943,9 @@
       {
         "id": "definitions",
         "title": "5. Definitions",
-        "body": ["For this policy:"],
+        "body": [
+          "For this policy:"
+        ],
         "bullets": [
           "“Aerealith AI,” “we,” “us,” and “our” mean SinLess Games LLC and the Aerealith AI services.",
           "“User,” “you,” and “your” mean anyone who uses or interacts with Aerealith AI.",
@@ -1983,7 +1987,9 @@
       {
         "id": "account-information",
         "title": "7.1 Account Information",
-        "body": ["We may collect:"],
+        "body": [
+          "We may collect:"
+        ],
         "bullets": [
           "Name",
           "Email address",
@@ -2277,7 +2283,9 @@
       {
         "id": "sources-of-personal-information",
         "title": "9. Sources of Personal Information",
-        "body": ["We may collect personal information from:"],
+        "body": [
+          "We may collect personal information from:"
+        ],
         "bullets": [
           "You directly",
           "Your account activity",
@@ -3273,7 +3281,9 @@
       {
         "id": "user-responsibilities",
         "title": "49. User Responsibilities",
-        "body": ["Users are responsible for:"],
+        "body": [
+          "Users are responsible for:"
+        ],
         "bullets": [
           "Providing only data they are authorized to provide",
           "Avoiding unnecessary sensitive data",
@@ -3292,7 +3302,9 @@
       {
         "id": "organization-responsibilities",
         "title": "50. Organization Responsibilities",
-        "body": ["Organizations are responsible for:"],
+        "body": [
+          "Organizations are responsible for:"
+        ],
         "bullets": [
           "Managing users",
           "Managing roles and permissions",
@@ -3394,7 +3406,9 @@
       {
         "id": "publication-checklist",
         "title": "54. Publication Checklist",
-        "body": ["Before publishing this policy, complete the following:"],
+        "body": [
+          "Before publishing this policy, complete the following:"
+        ],
         "bullets": [
           "Confirm official company name: SinLess Games LLC",
           "Confirm official product name: Aerealith AI",
@@ -3514,7 +3528,7 @@
         "title": "1. Purpose",
         "body": [
           "This Data Policy explains how Aerealith AI handles data provided by users, organizations, developers, integrations, automations, plugins, and connected services.",
-          "Aerealith AI is operated by SinLess Games LLC.",
+          "Aerealith is operated under SinLess Industries and provided by SinLess Games LLC. Aerealith AI is the assistant within Aerealith.",
           "This policy explains:",
           "The core principle is simple:",
           "Users own their data. Aerealith AI does not sell user data. Aerealith AI does not use user data outside of legitimate service business logic and approved research purposes."
@@ -4869,7 +4883,9 @@
       {
         "id": "user-responsibilities",
         "title": "54. User Responsibilities",
-        "body": ["Users are responsible for:"],
+        "body": [
+          "Users are responsible for:"
+        ],
         "bullets": [
           "Providing only data they are authorized to provide",
           "Avoiding unnecessary sensitive data",
@@ -4888,7 +4904,9 @@
       {
         "id": "organization-responsibilities",
         "title": "55. Organization Responsibilities",
-        "body": ["Organizations are responsible for:"],
+        "body": [
+          "Organizations are responsible for:"
+        ],
         "bullets": [
           "Managing users",
           "Managing roles and permissions",
@@ -6663,7 +6681,9 @@
       {
         "id": "publication-checklist",
         "title": "54. Publication Checklist",
-        "body": ["Before publishing this policy, complete the following:"],
+        "body": [
+          "Before publishing this policy, complete the following:"
+        ],
         "bullets": [
           "Confirm official company name: SinLess Games LLC",
           "Confirm official product name: Aerealith AI",
@@ -7305,7 +7325,9 @@
       {
         "id": "contact",
         "title": "23. Contact",
-        "body": ["Questions about this policy may be sent to:"],
+        "body": [
+          "Questions about this policy may be sent to:"
+        ],
         "contacts": [
           {
             "label": "Legal",
@@ -7404,7 +7426,7 @@
         "id": "what-aerealith-ai-is",
         "title": "3. What Aerealith AI Is",
         "body": [
-          "Aerealith AI is an artificial intelligence assistant platform operated by SinLess Games LLC.",
+          "Aerealith AI is the artificial intelligence assistant within Aerealith, which is operated under SinLess Industries and provided by SinLess Games LLC.",
           "Aerealith AI may help users:",
           "Aerealith AI is not a human, attorney, doctor, financial advisor, accountant, therapist, emergency responder, government official, or licensed professional."
         ],
@@ -8045,7 +8067,9 @@
       {
         "id": "contact",
         "title": "31. Contact",
-        "body": ["Questions about this policy may be sent to:"],
+        "body": [
+          "Questions about this policy may be sent to:"
+        ],
         "contacts": [
           {
             "label": "Legal",
@@ -9430,7 +9454,9 @@
       {
         "id": "publication-checklist",
         "title": "48. Publication Checklist",
-        "body": ["Before publishing this policy, complete the following:"],
+        "body": [
+          "Before publishing this policy, complete the following:"
+        ],
         "bullets": [
           "Confirm official company name: SinLess Games LLC",
           "Confirm official product name: Aerealith AI",
@@ -9572,7 +9598,7 @@
         "title": "1. Purpose",
         "body": [
           "This Cookie and Tracking Policy explains how Aerealith AI uses cookies, pixels, local storage, software development kits, analytics tags, device identifiers, log data, and similar tracking technologies.",
-          "Aerealith AI is operated by SinLess Games LLC.",
+          "Aerealith is operated under SinLess Industries and provided by SinLess Games LLC. Aerealith AI is the assistant within Aerealith.",
           "This policy explains:",
           "This policy should be read together with our Privacy Policy, Data Policy, Security Policy, and Terms of Use."
         ],
@@ -9888,7 +9914,9 @@
       {
         "id": "why-we-use-cookies-and-tracking-technologies",
         "title": "7. Why We Use Cookies and Tracking Technologies",
-        "body": ["Aerealith AI may use cookies and tracking technologies to:"],
+        "body": [
+          "Aerealith AI may use cookies and tracking technologies to:"
+        ],
         "bullets": [
           "Provide the service",
           "Authenticate users",
@@ -10763,7 +10791,7 @@
         "title": "1. Purpose",
         "body": [
           "This Billing, Refund, and Cancellation Policy explains how billing, subscriptions, renewals, refunds, cancellations, credits, add-ons, usage charges, failed payments, and account changes work for Aerealith AI.",
-          "Aerealith AI is operated by SinLess Games LLC.",
+          "Aerealith is operated under SinLess Industries and provided by SinLess Games LLC. Aerealith AI is the assistant within Aerealith.",
           "This policy is intended to provide clear expectations for users, customers, organizations, developers, and enterprise accounts.",
           "By purchasing, subscribing to, or using paid Aerealith AI services, you agree to this policy, our Terms of Use, Privacy Policy, Data Policy, Security Policy, Acceptable Use Policy, and any applicable order form, invoice, service agreement, or enterprise agreement."
         ],
@@ -11723,7 +11751,10 @@
       {
         "id": "scope",
         "title": "2. Scope",
-        "body": ["This policy applies to:", "This policy applies to:"],
+        "body": [
+          "This policy applies to:",
+          "This policy applies to:"
+        ],
         "bullets": [
           "Individual subscriptions",
           "Organization subscriptions",
@@ -12912,7 +12943,9 @@
       {
         "id": "publication-checklist",
         "title": "46. Publication Checklist",
-        "body": ["Before publishing this policy, complete the following:"],
+        "body": [
+          "Before publishing this policy, complete the following:"
+        ],
         "bullets": [
           "Confirm official company name: SinLess Games LLC",
           "Confirm actual payment processors in use",
@@ -13151,7 +13184,9 @@
       {
         "id": "prohibited-copyright-activity",
         "title": "6. Prohibited Copyright Activity",
-        "body": ["You may not use Aerealith AI to:"],
+        "body": [
+          "You may not use Aerealith AI to:"
+        ],
         "bullets": [
           "Upload, publish, share, or distribute copyrighted material without authorization",
           "Copy, reproduce, or distribute protected works without permission or legal basis",
@@ -13251,7 +13286,9 @@
       {
         "id": "processing-takedown-notices",
         "title": "11. Processing Takedown Notices",
-        "body": ["When we receive a copyright takedown notice, we may:"],
+        "body": [
+          "When we receive a copyright takedown notice, we may:"
+        ],
         "bullets": [
           "Review the notice for completeness",
           "Request additional information",
@@ -13748,7 +13785,9 @@
       {
         "id": "publication-checklist",
         "title": "34. Publication Checklist",
-        "body": ["Before publishing this policy, complete the following:"],
+        "body": [
+          "Before publishing this policy, complete the following:"
+        ],
         "bullets": [
           "Confirm the official legal name: SinLess Games LLC",
           "Confirm the designated DMCA agent name",
@@ -14096,7 +14135,9 @@
       {
         "id": "severity-1-critical",
         "title": "Severity 1: Critical",
-        "body": ["A critical incident may include:"],
+        "body": [
+          "A critical incident may include:"
+        ],
         "bullets": [
           "Widespread outage of core Aerealith AI services",
           "Confirmed unauthorized access to sensitive data",
@@ -14112,7 +14153,9 @@
       {
         "id": "severity-2-high",
         "title": "Severity 2: High",
-        "body": ["A high-severity incident may include:"],
+        "body": [
+          "A high-severity incident may include:"
+        ],
         "bullets": [
           "Major feature outage",
           "Significant service degradation",
@@ -14128,7 +14171,9 @@
       {
         "id": "severity-3-medium",
         "title": "Severity 3: Medium",
-        "body": ["A medium-severity incident may include:"],
+        "body": [
+          "A medium-severity incident may include:"
+        ],
         "bullets": [
           "Partial feature degradation",
           "Limited API disruption",
@@ -14143,7 +14188,9 @@
       {
         "id": "severity-4-low",
         "title": "Severity 4: Low",
-        "body": ["A low-severity incident may include:"],
+        "body": [
+          "A low-severity incident may include:"
+        ],
         "bullets": [
           "Minor service disruption",
           "Minor documentation or status issue",
@@ -14798,7 +14845,9 @@
       {
         "id": "publication-checklist",
         "title": "31. Publication Checklist",
-        "body": ["Before publishing this policy, complete the following:"],
+        "body": [
+          "Before publishing this policy, complete the following:"
+        ],
         "bullets": [
           "Confirm official company name: SinLess Games LLC",
           "Confirm official Aerealith AI status page URL",
@@ -14892,7 +14941,7 @@
         "title": "1. Purpose",
         "body": [
           "This Subprocessor and Vendor List identifies third parties that SinLess Games LLC may use to provide, secure, operate, support, monitor, bill, analyze, improve, and maintain Aerealith AI.",
-          "Aerealith AI is operated by SinLess Games LLC.",
+          "Aerealith is operated under SinLess Industries and provided by SinLess Games LLC. Aerealith AI is the assistant within Aerealith.",
           "This list is intended to provide transparency about vendors that may process, store, transmit, access, or support data related to Aerealith AI.",
           "This document should be read together with:"
         ],
@@ -14986,7 +15035,9 @@
       {
         "id": "definitions",
         "title": "4. Definitions",
-        "body": ["For this list:"]
+        "body": [
+          "For this list:"
+        ]
       },
       {
         "id": "subprocessor",
@@ -15643,7 +15694,9 @@
       {
         "id": "publication-checklist",
         "title": "29. Publication Checklist",
-        "body": ["Before publishing this document, complete the following:"],
+        "body": [
+          "Before publishing this document, complete the following:"
+        ],
         "bullets": [
           "Confirm official company name: SinLess Games LLC",
           "Confirm official product name: Aerealith AI",
@@ -16005,7 +16058,9 @@
       {
         "id": "support-scope",
         "title": "6. Support Scope",
-        "body": ["Aerealith AI support may assist with:"],
+        "body": [
+          "Aerealith AI support may assist with:"
+        ],
         "bullets": [
           "Account access issues",
           "Login issues",
@@ -16111,7 +16166,9 @@
       {
         "id": "priority-1-critical",
         "title": "Priority 1: Critical",
-        "body": ["A Priority 1 issue may include:"],
+        "body": [
+          "A Priority 1 issue may include:"
+        ],
         "bullets": [
           "Widespread service outage",
           "Critical production impact",
@@ -16128,7 +16185,9 @@
       {
         "id": "priority-2-high",
         "title": "Priority 2: High",
-        "body": ["A Priority 2 issue may include:"],
+        "body": [
+          "A Priority 2 issue may include:"
+        ],
         "bullets": [
           "Major feature unavailable",
           "Significant service degradation",
@@ -16145,7 +16204,9 @@
       {
         "id": "priority-3-medium",
         "title": "Priority 3: Medium",
-        "body": ["A Priority 3 issue may include:"],
+        "body": [
+          "A Priority 3 issue may include:"
+        ],
         "bullets": [
           "Non-critical product bug",
           "Isolated feature issue",
@@ -16161,7 +16222,9 @@
       {
         "id": "priority-4-low",
         "title": "Priority 4: Low",
-        "body": ["A Priority 4 issue may include:"],
+        "body": [
+          "A Priority 4 issue may include:"
+        ],
         "bullets": [
           "General question",
           "Feature request",
@@ -17161,7 +17224,9 @@
       {
         "id": "publication-checklist",
         "title": "50. Publication Checklist",
-        "body": ["Before publishing this policy, complete the following:"],
+        "body": [
+          "Before publishing this policy, complete the following:"
+        ],
         "bullets": [
           "Confirm official company name: SinLess Games LLC",
           "Confirm official product name: Aerealith AI",
@@ -17468,7 +17533,9 @@
       {
         "id": "definitions",
         "title": "4. Definitions",
-        "body": ["For this policy:"],
+        "body": [
+          "For this policy:"
+        ],
         "bullets": [
           "“Minor” means a person who has not reached the age of majority in their jurisdiction.",
           "“Child” means a minor under the age threshold where parental consent or special child-privacy protections are required by applicable law.",
@@ -18411,7 +18478,9 @@
       {
         "id": "publication-checklist",
         "title": "41. Publication Checklist",
-        "body": ["Before publishing this policy, complete the following:"],
+        "body": [
+          "Before publishing this policy, complete the following:"
+        ],
         "bullets": [
           "Confirm official company name: SinLess Games LLC",
           "Confirm official product name: Aerealith AI",
@@ -18549,7 +18618,7 @@
         "title": "1. Purpose",
         "body": [
           "This User-Generated Content Policy explains how Aerealith AI handles content created, uploaded, generated, transformed, published, shared, distributed, or otherwise processed by users.",
-          "Aerealith AI is operated by SinLess Games LLC.",
+          "Aerealith is operated under SinLess Industries and provided by SinLess Games LLC. Aerealith AI is the assistant within Aerealith.",
           "Aerealith AI allows users to create and work with prompts, messages, files, code, images, documents, dashboards, workflows, automations, marketplace items, plugins, templates, AI-generated outputs, and other content. This policy explains ownership, user responsibility, required attribution, prohibited content, moderation, takedowns, and public-sharing rules.",
           "The core rule is:",
           "Users own what they generate through Aerealith AI, as between the user and SinLess Games LLC, but Aerealith AI must be attributed in a reasonable manner when generated or AI-assisted content is published, distributed, sold, submitted professionally, or used publicly."
@@ -18677,7 +18746,9 @@
       {
         "id": "definitions",
         "title": "4. Definitions",
-        "body": ["For this policy:"],
+        "body": [
+          "For this policy:"
+        ],
         "bullets": [
           "“User Content” means content submitted, uploaded, imported, connected, generated, transformed, published, distributed, or otherwise processed by a user through Aerealith AI.",
           "“Input” means content a user provides to Aerealith AI, including prompts, files, messages, code, data, instructions, images, audio, video, documents, logs, links, integration data, and other materials.",
@@ -19969,7 +20040,9 @@
       {
         "id": "publication-checklist",
         "title": "55. Publication Checklist",
-        "body": ["Before publishing this policy, complete the following:"],
+        "body": [
+          "Before publishing this policy, complete the following:"
+        ],
         "bullets": [
           "Confirm official company name: SinLess Games LLC",
           "Confirm official product name: Aerealith AI",
@@ -20102,7 +20175,7 @@
         "title": "1. Purpose",
         "body": [
           "This Developer Policy explains the rules for building, integrating, publishing, automating, extending, or connecting software with Aerealith AI.",
-          "Aerealith AI is operated by SinLess Games LLC.",
+          "Aerealith is operated under SinLess Industries and provided by SinLess Games LLC. Aerealith AI is the assistant within Aerealith.",
           "Aerealith AI may provide APIs, SDKs, webhooks, plugins, marketplace items, automations, workflows, dashboards, templates, personalities, connectors, developer tools, and third-party integration features. Because these features may access user data, organization data, AI memory, files, integrations, automations, billing systems, and connected services, developers must follow clear safety, security, privacy, and responsible AI requirements.",
           "This policy applies whether you are building for yourself, your organization, your customers, a private deployment, or the Aerealith AI marketplace."
         ]
@@ -20110,7 +20183,10 @@
       {
         "id": "scope",
         "title": "2. Scope",
-        "body": ["This policy applies to:", "This policy applies to:"],
+        "body": [
+          "This policy applies to:",
+          "This policy applies to:"
+        ],
         "bullets": [
           "APIs",
           "SDKs",
@@ -21511,7 +21587,9 @@
       {
         "id": "prohibited-developer-conduct",
         "title": "55. Prohibited Developer Conduct",
-        "body": ["Developers may not:"],
+        "body": [
+          "Developers may not:"
+        ],
         "bullets": [
           "Break the law.",
           "Violate Aerealith AI policies.",
@@ -21704,7 +21782,9 @@
       {
         "id": "publication-checklist",
         "title": "62. Publication Checklist",
-        "body": ["Before publishing this policy, complete the following:"],
+        "body": [
+          "Before publishing this policy, complete the following:"
+        ],
         "bullets": [
           "Confirm official company name: SinLess Games LLC",
           "Confirm official product name: Aerealith AI",

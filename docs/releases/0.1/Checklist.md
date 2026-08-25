@@ -418,17 +418,17 @@ Documentation must exist and be navigable.
 
 ## Required Documentation Structure
 
-- [ ] `docs/README.md`
-- [ ] `docs/vision/`
-- [ ] `docs/product/`
-- [ ] `docs/releases/`
-- [ ] `docs/architecture/`
-- [ ] `docs/engineering/`
+- [x] `docs/README.md`
+- [x] `docs/vision/`
+- [x] `docs/product/`
+- [x] `docs/releases/`
+- [x] `docs/architecture/`
+- [x] `docs/engineering/`
 - [ ] `docs/services/`
-- [ ] `docs/modules/`
+- [x] `docs/modules/`
 - [ ] `docs/integrations/`
 - [ ] `docs/api/`
-- [ ] `docs/operations/`
+- [x] `docs/operations/`
 - [ ] `docs/rfcs/`
 
 ## Required Vision Docs
@@ -836,7 +836,7 @@ When complete, update this section.
 ```text
 Release 0.1 — Foundation & Workspace has been completed.
 
-The Aerealith AI repository can be installed, checked, formatted, typechecked, tested with at least 80% coverage, built, documented, and used as the foundation for release 0.2.
+The Aerealith repository can be installed, checked, formatted, typechecked, tested with at least 80% coverage, built, documented, and used as the foundation for release 0.2.
 ```
 
 ---

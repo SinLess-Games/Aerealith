@@ -1,12 +1,16 @@
 {
   "name": "@aerealith-ai/db",
   "version": "0.0.1",
+  "license": "AGPL-3.0-only",
   "private": true,
   "type": "commonjs",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
   "dependencies": {
+    "@aerealith-ai/authorization": "workspace:*",
     "@aerealith-ai/core": "workspace:*",
+    "drizzle-orm": "0.45.2",
+    "pg": "8.22.0",
     "tslib": "^2.3.0"
   }
 }

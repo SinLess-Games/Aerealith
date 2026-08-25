@@ -9,16 +9,18 @@
 name: 13 · Labeler
 
 on:
-  pull_request_target:
+  pull_request_target: # zizmor: ignore[dangerous-triggers] Required for fork PR labeling; no PR code is checked out or executed.
+    branches:
+      - master
+      - staging
+      - production
     types:
       - opened
       - reopened
       - synchronize
       - ready_for_review
 
-permissions:
-  contents: read
-  pull-requests: write
+permissions: {}
 
 concurrency:
   group: labeler-${{ github.event.pull_request.number }}
@@ -26,9 +28,14 @@ concurrency:
 
 jobs:
   label:
+    if: github.repository == 'SinLess-Games/Aerealith'
     name: Apply pull request labels
     runs-on: ubuntu-latest
     timeout-minutes: 5
+
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
       - name: Apply labels from repository rules
@@ -40,3 +47,14 @@ jobs:
           # Leave manually applied labels alone.
           # Only labels managed by the labeler rules are added automatically.
           sync-labels: false
+
+  assign-milestone:
+    name: Assign milestone after labeling
+    needs: label
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    uses: ./.github/workflows/15-assign-milestones.yaml
+    with:
+      number: ${{ github.event.pull_request.number }}

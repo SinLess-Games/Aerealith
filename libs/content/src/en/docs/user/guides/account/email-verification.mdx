@@ -1,0 +1,24 @@
+---
+title: Email Verification
+description: Confirm an account email through the verification link or request a fresh link when verification is enabled.
+order: 12
+audience: user
+keywords:
+  - email
+  - verification
+  - account security
+---
+
+# Email Verification
+
+After sign-up, the frontend directs an unverified account to `/verify-email`. A verification link opens that route with a token; the auth service verifies the token. The same page can request a replacement link for an email address.
+
+<Warning>
+  Email delivery requires Resend configuration in the deployment. Without it,
+  verification email cannot be delivered even though the verification flow is
+  implemented.
+</Warning>
+
+Open a link only when you expected it and it came from the deployment you used to register. If the link fails, request a fresh one from the verification screen. The interface intentionally gives a non-confirming resend message, so it does not reveal whether an address has an unverified account.
+
+Do not forward verification links. They can be security-sensitive.

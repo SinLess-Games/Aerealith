@@ -1,19 +1,27 @@
 # Engineering Documentation
 
 Status: Active
-Owner: Tim Pierce / SinLess Games
-Last Updated: 2026-07-13
+Implementation State: Index active; individual standards retain their own status
+Owner: SinLess Games LLC
+Last Updated: 2026-07-18
 Security Classification: Internal Engineering
 Primary Audience: Aerealith contributors, maintainers, reviewers, operators, and technical leadership
 Documentation Root: `docs/engineering/`
 
 ---
 
+## Project Context
+
+- [Project Overview](../Project-Overview.md)
+- [Company and Project Structure](../Company-and-Project-Structure.md)
+- [Current State](../CURRENT_STATE.md)
+- [Documentation Index](../README.md)
+
 ## Purpose
 
-This directory contains the engineering standards that govern how Aerealith AI is developed, tested, secured, packaged, documented, deployed, and maintained.
+This directory contains the engineering standards for developing, testing, securing, packaging, documenting, deploying, and maintaining the Aerealith platform.
 
-These documents translate the platform architecture into enforceable engineering rules.
+Each document translates platform architecture into engineering rules at the status shown in that document. Draft standards may describe target configuration rather than current repository behavior.
 
 They define:
 
@@ -1505,3 +1513,5 @@ The Aerealith engineering documentation set should provide one clear, navigable,
 The standard is:
 
 > Every Aerealith contributor must be able to determine which engineering rules apply to a change, where the authoritative rule is documented, how the rule is validated, who owns it, and how it relates to the platform architecture. Engineering standards must remain linked, reviewed, testable, secure, and aligned with implementation. No critical development, dependency, configuration, secret, testing, container, Cloudflare, or documentation practice should depend on tribal knowledge or ephemeral conversation.
+
+- [Frontend Integrations](./Frontend%20Integrations.md)

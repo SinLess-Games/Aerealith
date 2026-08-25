@@ -1,12 +1,92 @@
 {
   "$schema": "https://json-schema.org/schema",
   "type": "object",
-  "cliName": "service",
+  "title": "Aerealith Service Generator",
+  "description": "Generate a production-ready Aerealith backend service.",
+  "additionalProperties": false,
   "properties": {
     "name": {
       "type": "string",
-      "description": "Name of the service (for example: auth)",
-      "x-prompt": "What is the service name?"
+      "title": "Service name",
+      "description": "Name of the service. The value is normalized to kebab-case.",
+      "minLength": 1,
+      "examples": ["auth", "billing", "notification-service"],
+      "x-prompt": {
+        "message": "What is the service name?",
+        "type": "input"
+      }
+    },
+    "description": {
+      "type": "string",
+      "title": "Service description",
+      "description": "Short description of the service's responsibility.",
+      "default": "Aerealith backend service",
+      "x-prompt": {
+        "message": "What does this service do?",
+        "type": "input"
+      }
+    },
+    "nodePort": {
+      "type": "integer",
+      "title": "Node.js port",
+      "description": "TCP port used by the Node.js runtime.",
+      "minimum": 1,
+      "maximum": 65535,
+      "default": 3000,
+      "x-prompt": {
+        "message": "Which port should the Node.js service use?",
+        "type": "input"
+      }
+    },
+    "routePrefix": {
+      "type": "string",
+      "title": "API route prefix",
+      "description": "Optional API route prefix. Leave empty to use /api/V1/services/<service-name>.",
+      "default": "",
+      "x-prompt": {
+        "message": "Custom API route prefix? Leave empty to use the generated default.",
+        "type": "input"
+      }
+    },
+    "frontendUrl": {
+      "type": "string",
+      "title": "Frontend URL",
+      "description": "Frontend origin used by the service configuration.",
+      "default": "https://aerealith.com",
+      "x-prompt": {
+        "message": "What is the production frontend URL?",
+        "type": "input"
+      }
+    },
+    "enableWorker": {
+      "type": "boolean",
+      "title": "Cloudflare Worker",
+      "description": "Whether this service should include Cloudflare Worker support.",
+      "default": true,
+      "x-prompt": {
+        "message": "Enable Cloudflare Workers support?",
+        "type": "confirmation"
+      }
+    },
+    "enableObservability": {
+      "type": "boolean",
+      "title": "Observability",
+      "description": "Whether the generated service should enable Aerealith observability.",
+      "default": true,
+      "x-prompt": {
+        "message": "Enable Aerealith observability?",
+        "type": "confirmation"
+      }
+    },
+    "enableFlagship": {
+      "type": "boolean",
+      "title": "Feature flags",
+      "description": "Whether the Cloudflare Worker should include the Aerealith Flagship binding.",
+      "default": true,
+      "x-prompt": {
+        "message": "Enable Aerealith feature flags?",
+        "type": "confirmation"
+      }
     }
   },
   "required": ["name"]

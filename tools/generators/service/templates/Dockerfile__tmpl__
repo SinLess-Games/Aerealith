@@ -1,0 +1,274 @@
+# syntax=docker/dockerfile:1.25@sha256:0adf442eae370b6087e08edc7c50b552d80ddf261576f4ebd6421006b2461f12
+
+ARG NODE_VERSION=26.5.0
+ARG PNPM_VERSION=11.13.1
+
+
+# =============================================================================
+# Base
+# =============================================================================
+
+FROM node:${NODE_VERSION}-bookworm-slim AS base
+
+ARG PNPM_VERSION
+
+ENV CI=true \
+    NODE_ENV=development
+
+WORKDIR /workspace
+
+# Corepack is no longer bundled with Node.js 25+.
+# Install the exact pnpm version directly.
+RUN npm install \
+      --global \
+      --ignore-scripts \
+      "pnpm@${PNPM_VERSION}" \
+  && pnpm --version \
+  && npm cache clean --force
+
+
+# =============================================================================
+# Build
+# =============================================================================
+
+FROM base AS build
+
+# Native compilation support is isolated to the build stage and is never
+# copied into the production image.
+#
+# This is required by optional native observability/profiling dependencies.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+      g++ \
+      make \
+      python3 \
+  && rm -rf /var/lib/apt/lists/*
+
+
+# =============================================================================
+# Workspace
+# =============================================================================
+
+# Copy the complete workspace because generated services may depend on any
+# Aerealith workspace library through their production dependency graph.
+#
+# .dockerignore should exclude node_modules, dist, caches, local environment
+# files, and other files that are not required for the build.
+COPY . .
+
+
+# =============================================================================
+# Dependencies
+# =============================================================================
+
+# Install without automatically executing arbitrary dependency lifecycle
+# scripts.
+#
+# @datadog/pprof is rebuilt only when it exists in the resolved workspace
+# dependency graph. This allows observability/profiling support without forcing
+# every generated service to depend directly on the profiler.
+#
+# Nx is also rebuilt explicitly because its native helpers may require their
+# trusted installation lifecycle.
+RUN --mount=type=cache,id=aerealith-pnpm-store,target=/pnpm/store,sharing=locked \
+  pnpm install \
+      --frozen-lockfile \
+      --ignore-scripts \
+      --store-dir=/pnpm/store \
+  && if pnpm list --recursive --depth=0 @datadog/pprof 2>/dev/null \
+      | grep -q '@datadog/pprof'; then \
+       pnpm rebuild @datadog/pprof; \
+     fi \
+  && pnpm rebuild nx
+
+
+# =============================================================================
+# Compile
+# =============================================================================
+
+# Build the generated Node service.
+#
+# The generated Nx build target should declare:
+#
+#   "dependsOn": ["^build"]
+#
+# so all buildable Aerealith workspace dependencies are compiled before the
+# service itself.
+#
+# server.ts is the Node runtime entrypoint. main.ts remains the shared,
+# runtime-independent Hono application.
+RUN pnpm exec nx run service-<%= serviceName %>:build \
+  && test -f \
+      "/workspace/dist/apps/services/<%= serviceName %>/server.js"
+
+
+# =============================================================================
+# Production deployment
+# =============================================================================
+
+# The generated service package expects:
+#
+#   ./dist/server.js
+#
+# Copy the Nx build output into the workspace package before producing an
+# isolated pnpm production deployment.
+RUN mkdir -p \
+      "/workspace/apps/services/<%= serviceName %>/dist" \
+  && cp -R \
+      "/workspace/dist/apps/services/<%= serviceName %>/." \
+      "/workspace/apps/services/<%= serviceName %>/dist/"
+
+
+# Create a production-only deployment containing the generated service and its
+# production dependency closure.
+#
+# The monorepo root node_modules directory is intentionally NOT copied into the
+# runtime image.
+RUN pnpm \
+      --filter "@aerealith-ai/service-<%= serviceName %>" \
+      --prod \
+      --legacy \
+      deploy \
+      /deploy
+
+
+# =============================================================================
+# Compiled workspace libraries
+# =============================================================================
+
+# Aerealith workspace package manifests currently resolve JavaScript from their
+# package-local source paths while Nx emits compiled libraries into:
+#
+#   dist/libs/<library>
+#
+# pnpm deploy places workspace packages under:
+#
+#   /deploy/node_modules/@aerealith-ai/<library>
+#
+# Overlay compiled output only for libraries actually present in this generated
+# service's production dependency graph.
+RUN set -eux; \
+    if [ -d /workspace/dist/libs ]; then \
+      for compiled_library in /workspace/dist/libs/*; do \
+        [ -d "${compiled_library}" ] || continue; \
+        library_name="$(basename "${compiled_library}")"; \
+        deployed_library="/deploy/node_modules/@aerealith-ai/${library_name}"; \
+        if [ -d "${deployed_library}" ]; then \
+          cp -R \
+            "${compiled_library}/." \
+            "${deployed_library}/"; \
+        fi; \
+      done; \
+    fi
+
+
+# Verify that the isolated production deployment contains the executable
+# service entrypoint before constructing the runtime image.
+RUN test -f /deploy/dist/server.js
+
+
+# =============================================================================
+# Runtime
+# =============================================================================
+
+FROM node:${NODE_VERSION}-bookworm-slim AS runtime
+
+ARG APP_UID=10001
+ARG APP_GID=10001
+
+ENV NODE_ENV=production \
+    HOST=0.0.0.0 \
+    PORT=3000 \
+    HOME=/tmp
+
+LABEL org.opencontainers.image.title="Aerealith <%= className %> Service" \
+      org.opencontainers.image.description="Production container for the Aerealith <%= serviceName %> service" \
+      org.opencontainers.image.vendor="SinLess Games LLC"
+
+
+# =============================================================================
+# Runtime dependencies
+# =============================================================================
+
+# tini:
+#   Provides correct PID 1 behavior and forwards termination signals to Node.
+#
+# ca-certificates:
+#   Provides trusted system certificate authorities for outbound TLS.
+#
+# libstdc++6:
+#   Provides the runtime C++ standard library required by native Node modules
+#   without shipping the compiler toolchain.
+#
+# npm/npx:
+#   The production service does not need a package manager. Removing npm also
+#   removes its bundled dependency tree from the runtime vulnerability surface.
+#
+# The generated service receives a dedicated non-root UID/GID.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+      ca-certificates \
+      libstdc++6 \
+      tini \
+  && rm -rf /var/lib/apt/lists/* \
+  && groupadd \
+      --gid "${APP_GID}" \
+      aerealith \
+  && useradd \
+      --uid "${APP_UID}" \
+      --gid "${APP_GID}" \
+      --no-create-home \
+      --home-dir /nonexistent \
+      --shell /usr/sbin/nologin \
+      aerealith \
+  && rm -rf \
+      /usr/local/lib/node_modules/npm \
+      /usr/local/bin/npm \
+      /usr/local/bin/npx
+
+
+# =============================================================================
+# Application
+# =============================================================================
+
+WORKDIR /app
+
+# Keep the deployed application and production dependencies root-owned.
+#
+# The service process receives read/execute access but cannot modify its own
+# application or installed dependencies if compromised.
+COPY --from=build --chown=0:0 /deploy ./
+
+RUN chmod -R u=rwX,go=rX /app
+
+
+# =============================================================================
+# Runtime security
+# =============================================================================
+
+USER ${APP_UID}:${APP_GID}
+
+EXPOSE 3000
+
+
+# =============================================================================
+# Health
+# =============================================================================
+
+# Use Node's built-in fetch instead of installing curl/wget solely for the
+# container health check.
+HEALTHCHECK \
+  --interval=30s \
+  --timeout=5s \
+  --start-period=10s \
+  --retries=3 \
+  CMD ["node", "-e", "fetch('http://127.0.0.1:3000/health').then((response) => { if (!response.ok) process.exit(1); }).catch(() => process.exit(1));"]
+
+
+# =============================================================================
+# Entrypoint
+# =============================================================================
+
+ENTRYPOINT ["tini", "--"]
+
+CMD ["node", "dist/server.js"]

@@ -1,0 +1,14 @@
+---
+title: API Versioning
+description: Evolve contracts with explicit compatibility and migration expectations.
+order: 40
+audience: developer
+---
+
+# API Versioning
+
+Prefer additive changes. Introduce a version boundary when consumers cannot safely adopt a breaking contract in place.
+
+Breaking changes include removing fields, changing meaning or type, narrowing accepted input, or changing authorization and retry semantics.
+
+Identify consumers, publish the new contract and migration path, support an overlap window when required, measure old-version use, and remove compatibility only after the documented deprecation threshold.

@@ -1,0 +1,22 @@
+Aerealith Multi-License Repository
+
+Copyright (c) 2026 SinLess Games LLC
+
+Unless a file, package, or directory contains a more specific license notice,
+Aerealith source code in this repository is licensed under the GNU Affero
+General Public License version 3 only (AGPL-3.0-only). The complete terms are in
+LICENSES/AGPL-3.0-only.txt.
+
+This repository contains material governed by other terms. Directory-level and
+package-level notices override this default. In particular, eligible SDKs, API
+clients, CLI tools, plugin-development packages, public integration schemas, and
+examples may use Apache-2.0, while documentation may use CC-BY-4.0.
+
+The default license does not apply to branding, enterprise or internal-only
+components, third-party material, model weights, datasets, generated assets, or
+files carrying separate license notices. Those items retain their stated terms
+or remain unlicensed pending review. Nothing here claims ownership of
+third-party material.
+
+See LICENSE-POLICY.md for the controlling path matrix and instructions for
+determining the license of a file.

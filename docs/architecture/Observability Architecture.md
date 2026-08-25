@@ -1,8 +1,10 @@
 # Observability Architecture
 
 Status: Draft
-Owner: Tim Pierce / SinLess Games
-Last Updated: 2026-07-12
+Implementation State: Target architecture; not current implementation evidence
+Current-State Source: [Current Architecture](./Current%20Architecture.md)
+Owner: SinLess Games LLC
+Last Updated: 2026-07-18
 Security Classification: Internal Architecture
 Foundation Release: `0.5 — API & Service Platform`
 Primary Hardening Release: `0.9 — Observability & Reliability`
@@ -48,7 +50,7 @@ Related Architecture:
 
 ## Purpose
 
-This document defines the observability architecture for Aerealith AI.
+This document defines the intended observability architecture for the Aerealith platform.
 
 The observability architecture governs how Aerealith produces, transports, stores, analyzes, presents, alerts on, and retains operational telemetry across:
 

@@ -5,6 +5,33 @@
   "projectType": "library",
   "tags": ["scope:db", "type:lib"],
   "targets": {
+    "generate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "drizzle-kit generate --config libs/db/drizzle.config.ts"
+      }
+    },
+    "migrate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "drizzle-kit migrate --config libs/db/drizzle.config.ts"
+      }
+    },
+
+    "seed-admin": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsx libs/db/seeds/users/seed-platform-owner.ts"
+      }
+    },
+
+    "seed": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsx libs/db/seeds/seed.ts"
+      }
+    },
+
     "build": {
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],

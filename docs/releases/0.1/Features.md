@@ -2,7 +2,7 @@
 
 Release `0.1 — Foundation & Workspace` does not ship end-user product features.
 
-Instead, this release ships the foundational project features required for every future Aerealith AI release.
+Instead, this release ships the foundational project features required for every future Aerealith release.
 
 These features make the repository installable, buildable, checkable, documented, and ready for serious development.
 

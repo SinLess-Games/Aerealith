@@ -1,0 +1,16 @@
+---
+title: Integration Testing
+description: Verify collaboration between modules, storage, runtimes, and external adapters.
+order: 20
+audience: developer
+---
+
+# Integration Testing
+
+Integration tests prove that independently correct components work together.
+
+Use isolated test resources and explicit setup and teardown. Verify serialization, validation, authorization, persistence, retries, and error translation at real boundaries where practical.
+
+External vendors should usually be represented by deterministic protocol-level fakes, with a smaller set of controlled live checks when appropriate.
+
+Cover partial success, timeout, stale data, duplicate delivery, and cleanup failure. A test must not depend on developer credentials or shared production state.

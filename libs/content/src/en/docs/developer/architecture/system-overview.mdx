@@ -1,0 +1,21 @@
+---
+title: System Overview
+description: A high-level map of Aerealith applications, libraries, and external boundaries.
+order: 10
+audience: developer
+---
+
+# System Overview
+
+Aerealith keeps deployable entry points, shared UI, content, domain logic, and integration tooling in one dependency-aware workspace.
+
+## Major areas
+
+- `apps/` contains runnable or deployable projects.
+- `libs/` contains reusable capabilities and public entry points.
+- workspace configuration defines targets, caching, and dependencies.
+- external platforms provide hosting and connected services.
+
+A typical request enters a frontend or service boundary, is validated and authorized, invokes an owned capability, and returns a typed result. Vendor calls belong behind integration adapters.
+
+Use Nx project inspection and the project graph to validate current relationships.

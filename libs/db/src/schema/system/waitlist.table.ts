@@ -7,7 +7,7 @@ import {
   uniqueIndex,
   uuid,
   varchar,
-} from 'drizzle-orm/pg-core'
+} from 'drizzle-orm/pg-core';
 
 /**
  * Stores email addresses submitted through the public waitlist form.
@@ -23,6 +23,10 @@ export const waitlistTable = pgTable(
     email: varchar('email', {
       length: 320,
     }).notNull(),
+
+    role: varchar('role', {
+      length: 100,
+    }),
 
     createdAt: timestamp('created_at', {
       withTimezone: true,
@@ -47,7 +51,7 @@ export const waitlistTable = pgTable(
     uniqueIndex('waitlist_entries_email_unique').on(table.email),
     index('waitlist_entries_created_at_index').on(table.createdAt),
   ],
-)
+);
 
-export type WaitlistRow = typeof waitlistTable.$inferSelect
-export type NewWaitlistRow = typeof waitlistTable.$inferInsert
+export type WaitlistRow = typeof waitlistTable.$inferSelect;
+export type NewWaitlistRow = typeof waitlistTable.$inferInsert;

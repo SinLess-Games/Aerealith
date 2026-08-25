@@ -1,10 +1,12 @@
 # Discord Architecture
 
 Status: Draft
-Owner: Tim Pierce / SinLess Games
-Last Updated: 2026-07-12
+Implementation State: Target architecture; not current implementation evidence
+Current-State Source: [Current Architecture](./Current%20Architecture.md)
+Owner: SinLess Games LLC
+Last Updated: 2026-07-18
 Security Classification: Internal Architecture
-Primary Integration Status: Flagship First-Party Integration
+Primary Integration Status: Planned Flagship First-Party Integration
 
 Pending Decision Records:
 
@@ -39,9 +41,9 @@ Related Architecture:
 
 ## Purpose
 
-This document defines the Discord architecture for Aerealith AI.
+This document defines the intended Discord architecture for the Aerealith platform.
 
-Discord is Aerealith's first real platform integration and the flagship surface used to prove:
+Discord is planned as Aerealith's first substantial platform integration and the flagship surface used to prove:
 
 ```text
 the integration abstraction
@@ -3581,7 +3583,7 @@ Docker and Kubernetes remain viable
 
 ## Final Standard
 
-Discord is Aerealith's flagship first integration, not the boundary of its vision.
+Discord is Aerealith's planned flagship first integration, not the boundary of its vision.
 
 The standard is:
 

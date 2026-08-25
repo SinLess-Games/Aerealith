@@ -1,8 +1,10 @@
 # Dependency Rules
 
 Status: Draft
-Owner: Tim Pierce / SinLess Games
-Last Updated: 2026-07-13
+Implementation State: Draft standard; examples may describe target configuration
+Current-State Source: [Current Architecture](../architecture/Current%20Architecture.md)
+Owner: SinLess Games LLC
+Last Updated: 2026-07-18
 Security Classification: Internal Engineering
 Workspace Manager: pnpm
 Project Graph: Nx
@@ -58,7 +60,7 @@ Related RFCs:
 
 ## Purpose
 
-This document defines the dependency rules for Aerealith AI.
+This document defines the dependency rules for the Aerealith platform.
 
 It governs which projects, libraries, applications, modules, adapters, frameworks, providers, and infrastructure components may depend on one another.
 

@@ -1,0 +1,23 @@
+---
+title: Signing In
+description: Sign in with a username or email when the deployment has a configured authentication service.
+order: 11
+audience: user
+keywords:
+  - sign in
+  - login
+  - account access
+---
+
+# Signing In
+
+The **Sign in** screen at `/sign-in` accepts a username or email and password. On success, the configured auth service creates a server-side session and the browser receives an opaque HttpOnly session cookie.
+
+<Warning>
+  Sign-in depends on the deployment's auth-service and feature-flag
+  configuration. If it is unavailable, contact the deployment owner.
+</Warning>
+
+Before submitting, check the site address and the intended account. Use a password manager where possible. Never enter a password, recovery code, session link, or one-time code into a prompt, chat, support ticket, or untrusted form.
+
+After successful sign-in, the interface opens the [Dashboard](/documentation/user/guides/dashboard). Select **Forgot password?** to begin [Account Recovery](/documentation/user/guides/account/account-recovery). If you cannot sign in, follow [Troubleshooting](/documentation/user/getting-started/troubleshooting).

@@ -1,0 +1,163 @@
+---
+title: Writing Effective Requests
+description: Give Aerealith clear context, constraints, and acceptance criteria.
+order: 20
+audience: user
+keywords:
+  - prompts
+  - requests
+  - instructions
+  - context
+---
+
+# Writing Effective Requests
+
+An effective request makes the desired outcome easy to understand and the result easy to evaluate. It does not need to be long, but it should contain the information that changes how the work must be done.
+
+## Start with the outcome
+
+Lead with the result you want:
+
+- “Create a migration checklist.”
+- “Explain this error to a new developer.”
+- “Compare these three proposals.”
+- “Turn these notes into a decision record.”
+
+Avoid beginning with a large collection of background information before explaining the task. The outcome gives the context a purpose.
+
+## Identify the audience
+
+The same information should be presented differently for different readers.
+
+Specify whether the result is for:
+
+- a customer
+- a project stakeholder
+- a new team member
+- an experienced engineer
+- an executive reviewer
+- a public documentation audience
+
+You can also describe what the audience already knows and what they need to do after reading.
+
+## Supply relevant context
+
+Context may include:
+
+- the current situation
+- source material
+- earlier decisions
+- definitions specific to your organization
+- technologies or versions in use
+- constraints that cannot change
+- examples of acceptable output
+
+More context is not always better. Unrelated material can distract from the task or introduce conflicting instructions.
+
+## State constraints explicitly
+
+Do not rely on important limits being inferred.
+
+Useful constraints include:
+
+- maximum length
+- required headings
+- allowed sources
+- prohibited assumptions
+- supported technologies
+- tone and reading level
+- privacy or confidentiality requirements
+- actions that require approval
+
+For factual work, say what should happen when information is missing:
+
+> If the source does not identify an owner, use “Unassigned.” Do not infer an owner from earlier projects.
+
+## Define the output format
+
+Ask for a format that matches how the result will be used:
+
+- a short Markdown document
+- a numbered procedure
+- a comparison table
+- JSON with specified fields
+- a checklist
+- an email draft
+- a set of acceptance criteria
+
+When requesting structured data, describe required fields and whether additional fields are allowed.
+
+## Add acceptance criteria
+
+Acceptance criteria turn a subjective request into a reviewable task.
+
+For example:
+
+> The result is complete when it lists every requirement from the source, groups duplicates without losing meaning, marks unresolved conflicts, and includes a traceable source reference for each final requirement.
+
+Acceptance criteria are especially useful for code, research, migration plans, operational procedures, and content intended for publication.
+
+## Separate facts from suggestions
+
+Ask Aerealith to distinguish:
+
+- information stated in the source
+- conclusions derived from the source
+- recommendations based on judgment
+- unanswered questions
+
+This separation makes uncertainty visible and prevents suggestions from being mistaken for established facts.
+
+## Use examples carefully
+
+An example can clarify structure, tone, or level of detail. Make clear whether the example is:
+
+- a template to follow
+- sample content that must not be copied
+- an incomplete illustration
+- an authoritative source
+
+Otherwise, example details may accidentally appear in the final result.
+
+## Improve requests iteratively
+
+If the first result is wrong, identify why:
+
+- Was the outcome ambiguous?
+- Was required context missing?
+- Were two instructions in conflict?
+- Was the format underspecified?
+- Was the quality bar unclear?
+
+Revise the request to correct the cause rather than adding unrelated detail.
+
+## Reusable request template
+
+Use this template when a task has several requirements:
+
+```text
+Outcome:
+[Describe the result.]
+
+Audience:
+[Describe who will use it and what they know.]
+
+Source:
+[Identify the allowed material.]
+
+Requirements:
+- [Required element]
+- [Required element]
+
+Constraints:
+- [Limit or prohibited behavior]
+- [How to handle missing information]
+
+Output format:
+[Describe the structure.]
+
+Acceptance criteria:
+- [How the result will be verified]
+```
+
+After receiving a result, use [Reviewing Results](/documentation/user/getting-started/reviewing-results) to check it before approval.

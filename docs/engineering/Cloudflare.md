@@ -1,8 +1,10 @@
 # Cloudflare
 
 Status: Draft
-Owner: Tim Pierce / SinLess Games
-Last Updated: 2026-07-13
+Implementation State: Draft standard; examples may describe target configuration
+Current-State Source: [Current Architecture](../architecture/Current%20Architecture.md)
+Owner: SinLess Games LLC
+Last Updated: 2026-07-18
 Security Classification: Internal Engineering
 Primary Edge Platform: Cloudflare Developer Platform
 Primary Edge Runtime: Cloudflare Workers
@@ -63,7 +65,7 @@ Related RFCs:
 
 ## Purpose
 
-This document defines the Cloudflare engineering standards for Aerealith AI.
+This document defines the Cloudflare engineering standards for the Aerealith platform.
 
 It governs how contributors design, build, configure, test, deploy, observe, secure, and maintain Aerealith services running on the Cloudflare Developer Platform.
 
@@ -4749,3 +4751,23 @@ Aerealith should use Cloudflare aggressively where Cloudflare provides clear ope
 The standard is:
 
 > Every Aerealith Cloudflare workload runs through a clearly owned Worker or adapter, uses a pinned and tested compatibility date, receives typed bindings and least-privileged secrets through its composition root, keeps PostgreSQL or CockroachDB as the primary relational authority, uses KV only for stale-tolerant read-heavy data, uses R2 through a portable object-storage contract, uses Durable Objects only for narrowly justified coordination, treats Queues as at-least-once delivery, separates Cloudflare durable execution from Aerealith’s workflow domain, deploys through immutable versions and monitored rollouts, emits safe structured telemetry, isolates production resources from development, and preserves a tested Docker or Kubernetes path for every critical capability.
+
+[1]: https://developers.cloudflare.com/workers/wrangler/environments/
+[2]: https://developers.cloudflare.com/workers/configuration/compatibility-dates/
+[3]: https://developers.cloudflare.com/workers/runtime-apis/nodejs/
+[4]: https://developers.cloudflare.com/workers/configuration/secrets/
+[5]: https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/
+[6]: https://developers.cloudflare.com/workers/configuration/routing/routes/
+[7]: https://developers.cloudflare.com/hyperdrive/examples/connect-to-postgres/postgres-drivers-and-libraries/drizzle-orm/
+[8]: https://developers.cloudflare.com/kv/concepts/how-kv-works/
+[9]: https://developers.cloudflare.com/r2/api/workers/workers-api-usage/
+[10]: https://developers.cloudflare.com/durable-objects/concepts/what-are-durable-objects/
+[11]: https://developers.cloudflare.com/queues/
+[12]: https://developers.cloudflare.com/workflows/
+[13]: https://developers.cloudflare.com/workers/runtime-apis/cache/
+[14]: https://developers.cloudflare.com/workers/observability/logs/workers-logs/
+[15]: https://developers.cloudflare.com/workers/observability/logs/real-time-logs/
+[16]: https://developers.cloudflare.com/workers/observability/logs/logpush/
+[17]: https://developers.cloudflare.com/workers/platform/limits/
+[18]: https://developers.cloudflare.com/workers/testing/vitest-integration/
+[19]: https://developers.cloudflare.com/workers/configuration/versions-and-deployments/gradual-deployments/

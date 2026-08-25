@@ -6,6 +6,7 @@
     "ms-playwright.playwright",
     "yzhang.markdown-all-in-one",
     "darkriszty.markdown-table-prettify",
-    "openai.chatgpt"
+    "openai.chatgpt",
+    "mrmlnc.vscode-json5"
   ]
 }

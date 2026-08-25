@@ -1,0 +1,318 @@
+# <%= className %> Service
+
+The `<%= serviceName %>` service is an Aerealith backend service built with
+[Hono](https://hono.dev/) and the shared Aerealith API and observability
+platform.
+
+The service supports both Node.js and Cloudflare Workers runtimes while keeping
+its HTTP application logic runtime-independent.
+
+## Service
+
+| Property           | Value                |
+| ------------------ | -------------------- |
+| Service            | `<%= serviceName %>` |
+| Nx project         | `<%= projectName %>` |
+| API route          | `<%= routePrefix %>` |
+| Node port          | `<%= nodePort %>`    |
+| Node entrypoint    | `src/server.ts`      |
+| Worker entrypoint  | `src/worker.ts`      |
+| Shared application | `src/main.ts`        |
+
+## Architecture
+
+The service separates application behavior from runtime-specific concerns.
+
+```text
+src/
+├── main.ts
+├── server.ts
+├── worker.ts
+└── app.spec.ts
+````
+
+### `main.ts`
+
+Contains the runtime-independent Hono application.
+
+This is where service routes, middleware, request handling, readiness checks,
+and application-level behavior belong.
+
+The application uses the shared Aerealith API platform for:
+
+* request context
+* request IDs
+* structured errors
+* health and readiness endpoints
+* request observation
+* structured logging integration
+
+### `server.ts`
+
+Node.js runtime entrypoint.
+
+It is responsible for:
+
+* loading local environment variables
+* starting Aerealith observability
+* configuring structured logging
+* registering request metrics
+* starting the Hono Node server
+* graceful `SIGINT` and `SIGTERM` shutdown
+* flushing logging and telemetry during shutdown
+
+The compiled production entrypoint is:
+
+```text
+dist/server.js
+```
+
+### `worker.ts`
+
+Cloudflare Workers runtime entrypoint.
+
+It mounts the same Hono application used by the Node runtime while providing
+Worker-specific routing and error handling.
+
+## Endpoints
+
+### Service status
+
+```http
+GET <%= routePrefix %>
+```
+
+Example response:
+
+```json
+{
+  "service": "<%= serviceName %>",
+  "status": "ok"
+}
+```
+
+### Health
+
+```http
+GET /health
+```
+
+Used for lightweight liveness checks.
+
+Example response:
+
+```json
+{
+  "service": "<%= serviceName %>",
+  "status": "ok"
+}
+```
+
+### Readiness
+
+```http
+GET /ready
+```
+
+Used to determine whether the service and its required dependencies are ready
+to accept requests.
+
+Example response:
+
+```json
+{
+  "service": "<%= serviceName %>",
+  "status": "ready"
+}
+```
+
+Services that depend on databases, queues, caches, or other infrastructure
+should provide an appropriate readiness check through `createServiceApp()`.
+
+## Development
+
+Run the Node.js service:
+
+```bash
+pnpm nx run <%= projectName %>:serve
+```
+
+Run the Cloudflare Worker locally:
+
+```bash
+pnpm nx run <%= projectName %>:worker-serve
+```
+
+The Node service listens on port `<%= nodePort %>` by default.
+
+Override the port with:
+
+```bash
+PORT=4000 pnpm nx run <%= projectName %>:serve
+```
+
+## Validation
+
+Type-check the service:
+
+```bash
+pnpm nx run <%= projectName %>:typecheck
+```
+
+Lint the service:
+
+```bash
+pnpm nx run <%= projectName %>:lint
+```
+
+Run tests:
+
+```bash
+pnpm nx run <%= projectName %>:test
+```
+
+Build the service:
+
+```bash
+pnpm nx run <%= projectName %>:build
+```
+
+The compiled Node application is written to:
+
+```text
+dist/apps/services/<%= serviceName %>/
+```
+
+## Observability
+
+The Node runtime uses the shared `@aerealith-ai/observability` package.
+
+Supported service telemetry includes:
+
+* structured application logs
+* request metrics
+* request duration metrics
+* active-request metrics
+* failure metrics
+* OpenTelemetry traces
+* distributed trace correlation
+* optional Loki log export
+* optional profiling
+
+Observability configuration is provided through environment variables rather
+than hard-coded service configuration.
+
+Application code should use the logger supplied through `createServiceApp()`
+rather than creating unrelated logging infrastructure.
+
+## Environment
+
+The service recognizes the following common runtime variables:
+
+| Variable   | Description         | Default           |
+| ---------- | ------------------- | ----------------- |
+| `NODE_ENV` | Runtime environment | `development`     |
+| `HOST`     | HTTP bind host      | `0.0.0.0`         |
+| `PORT`     | Node HTTP port      | `<%= nodePort %>` |
+
+Additional environment variables may be introduced as service capabilities are
+added.
+
+Do not commit secrets or production credentials to the repository.
+
+## Docker
+
+Build the production container from the repository root:
+
+```bash
+docker build \
+  -f apps/services/<%= serviceName %>/Dockerfile \
+  -t aerealith/<%= serviceName %>:local \
+  .
+```
+
+Run it locally:
+
+```bash
+docker run \
+  --rm \
+  -p <%= nodePort %>:<%= nodePort %> \
+  aerealith/<%= serviceName %>:local
+```
+
+The production container:
+
+* runs compiled JavaScript
+* contains production dependencies only
+* runs as a dedicated non-root user
+* keeps application files root-owned
+* uses `tini` as PID 1
+* exposes a container health check
+* does not require pnpm, Nx, TypeScript, or `tsx` at runtime
+
+## Cloudflare Workers
+
+Generate Worker types when bindings change:
+
+```bash
+pnpm nx run <%= projectName %>:typegen
+```
+
+Validate a Worker deployment without publishing:
+
+```bash
+pnpm nx run <%= projectName %>:worker-dry-run
+```
+
+Deploy the Worker:
+
+```bash
+pnpm nx run <%= projectName %>:deploy
+```
+
+Worker-specific bindings and deployment configuration belong in
+`wrangler.toml`.
+
+## Adding Routes
+
+Add service routes to `src/main.ts` so they remain available in both Node.js
+and Cloudflare Workers runtimes.
+
+Keep runtime-specific behavior out of application routes whenever possible.
+
+Use:
+
+```text
+main.ts
+```
+
+for shared HTTP and business behavior,
+
+```text
+server.ts
+```
+
+for Node.js lifecycle and infrastructure concerns, and
+
+```text
+worker.ts
+```
+
+for Cloudflare Workers-specific behavior.
+
+## Testing
+
+Tests live alongside the service source under `src/`.
+
+Use `*.spec.ts` or `*.test.ts` filenames so they are included by the service's
+Vitest configuration.
+
+Prefer testing the Hono application created by `createServiceApp()` directly
+where possible. This keeps tests independent from the Node listener and
+Cloudflare Worker runtime.
+
+## License
+
+Copyright © SinLess Games LLC.
+
+Licensed under the AGPL-3.0-only license.

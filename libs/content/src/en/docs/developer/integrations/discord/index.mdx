@@ -1,0 +1,16 @@
+---
+title: Discord
+description: Build Discord integrations with scoped permissions and idempotent actions.
+order: 20
+audience: developer
+---
+
+# Discord
+
+Discord adapters must resolve exact guild, channel, user, and message targets before acting.
+
+Request the minimum bot permissions and validate incoming interactions. Verify signatures where required, acknowledge within platform deadlines, and move longer work to asynchronous processing.
+
+Outbound operations should handle rate limits and distinguish safe retries from duplicate-visible actions. Never log bot tokens, interaction tokens, private messages, or unrelated member data.
+
+Test missing permissions, removed channels, stale interactions, duplicate delivery, throttling, and content-length limits. Human moderation remains responsible for consequential community decisions.

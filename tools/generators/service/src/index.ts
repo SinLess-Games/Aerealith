@@ -3,12 +3,29 @@ import {
   formatFiles,
   generateFiles,
   installPackagesTask,
-} from '@nx/devkit'
-import * as path from 'node:path'
+} from '@nx/devkit';
+import * as path from 'node:path';
 
 interface ServiceGeneratorSchema {
-  name: string
+  name: string;
+  description?: string;
+  nodePort?: number;
+  routePrefix?: string;
+  frontendUrl?: string;
+  enableWorker?: boolean;
+  enableObservability?: boolean;
+  enableFlagship?: boolean;
 }
+
+interface ValidatedServiceIdentity {
+  serviceName: string;
+  projectName: string;
+  projectRoot: string;
+}
+
+const DEFAULT_NODE_PORT = 3000;
+const DEFAULT_FRONTEND_URL = 'https://aerealith.com';
+const SERVICE_ROOT = 'apps/services';
 
 function toKebabCase(value: string): string {
   return value
@@ -18,213 +35,184 @@ function toKebabCase(value: string): string {
     .split('-')
     .filter(Boolean)
     .join('-')
-    .toLowerCase()
+    .toLowerCase();
 }
 
 function toPascalCase(value: string): string {
-  const kebab = toKebabCase(value)
-  return kebab
+  return toKebabCase(value)
     .split('-')
     .filter(Boolean)
     .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-    .join('')
+    .join('');
+}
+
+function getCompatibilityDate(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function validateServiceName(
+  tree: Tree,
+  rawName: string,
+): ValidatedServiceIdentity {
+  const serviceName = toKebabCase(rawName);
+
+  if (!serviceName) {
+    throw new Error(
+      'Service name must contain at least one alphanumeric character.',
+    );
+  }
+
+  const projectName = `service-${serviceName}`;
+  const projectRoot = `${SERVICE_ROOT}/${serviceName}`;
+
+  if (tree.exists(`${projectRoot}/project.json`)) {
+    throw new Error(
+      `Service "${serviceName}" already exists at ${projectRoot}.`,
+    );
+  }
+
+  if (tree.exists(`${projectRoot}/package.json`)) {
+    throw new Error(`A package already exists at ${projectRoot}.`);
+  }
+
+  return {
+    serviceName,
+    projectName,
+    projectRoot,
+  };
+}
+
+function resolveNodePort(value: number | undefined): number {
+  const port = value ?? DEFAULT_NODE_PORT;
+
+  if (!Number.isInteger(port) || port < 1 || port > 65_535) {
+    throw new Error('nodePort must be a valid TCP port between 1 and 65535.');
+  }
+
+  return port;
+}
+
+function resolveRoutePrefix(
+  value: string | undefined,
+  serviceName: string,
+): string {
+  const defaultRoute = `/api/V1/services/${serviceName}`;
+  const route = value?.trim();
+
+  if (!route) {
+    return defaultRoute;
+  }
+
+  if (!route.startsWith('/')) {
+    return `/${route}`;
+  }
+
+  return route;
+}
+
+function resolveFrontendUrl(value: string | undefined): string {
+  const frontendUrl = value?.trim() || DEFAULT_FRONTEND_URL;
+
+  let parsedUrl: URL;
+
+  try {
+    parsedUrl = new URL(frontendUrl);
+  } catch {
+    throw new Error(
+      `frontendUrl must be a valid absolute URL. Received "${frontendUrl}".`,
+    );
+  }
+
+  if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+    throw new Error('frontendUrl must use the http: or https: protocol.');
+  }
+
+  return parsedUrl.toString().replace(/\/$/, '');
 }
 
 export default async function serviceGenerator(
   tree: Tree,
   schema: ServiceGeneratorSchema,
 ) {
-  const serviceName = toKebabCase(schema.name)
-  const className = toPascalCase(schema.name)
-  const projectName = `service-${serviceName}`
-  const projectRoot = `apps/services/${serviceName}`
-  const routePrefix = `/api/v1/services/${serviceName}`
+  const { serviceName, projectName, projectRoot } = validateServiceName(
+    tree,
+    schema.name,
+  );
 
-  const filesDir = path.join(__dirname, '..', 'templates')
+  /*
+   * Derive deterministic service identity values from the normalized service
+   * name. These should not be independently configurable because Nx, pnpm,
+   * Docker, Cloudflare, logging, and telemetry all rely on a consistent
+   * service identity.
+   */
+  const className = toPascalCase(serviceName);
+
+  /*
+   * Resolve configurable service options.
+   */
+  const description =
+    schema.description?.trim() || `${className} backend service`;
+
+  const nodePort = resolveNodePort(schema.nodePort);
+
+  const routePrefix = resolveRoutePrefix(schema.routePrefix, serviceName);
+
+  const frontendUrl = resolveFrontendUrl(schema.frontendUrl);
+
+  const enableWorker = schema.enableWorker ?? true;
+  const enableObservability = schema.enableObservability ?? true;
+  const enableFlagship = schema.enableFlagship ?? true;
+
+  /*
+   * Pin new Cloudflare Workers services to the compatibility behavior that
+   * exists on the date the service is generated.
+   */
+  const compatibilityDate = getCompatibilityDate();
+
+  /*
+   * Templates are the source of truth for generated service files.
+   *
+   * Files ending in "__tmpl__" are emitted without that suffix because
+   * `tmpl` is supplied as an empty string.
+   *
+   * Example:
+   *
+   *   src/server.ts__tmpl__
+   *
+   * becomes:
+   *
+   *   src/server.ts
+   */
+  const filesDir = path.join(__dirname, '..', 'templates');
+
   generateFiles(tree, filesDir, projectRoot, {
     serviceName,
     projectName,
     className,
+    description,
+    nodePort,
     routePrefix,
+    frontendUrl,
+    enableWorker,
+    enableObservability,
+    enableFlagship,
+    compatibilityDate,
     tmpl: '',
-  })
+  });
 
-  const frontendProjectPath = 'apps/frontend/src/app'
-  const frontendRoutesFile = `${frontendProjectPath}/app.tsx`
-  if (tree.exists(frontendRoutesFile)) {
-    const current = tree.read(frontendRoutesFile, 'utf-8')
+  /*
+   * Format all generated files using the workspace formatting rules.
+   */
+  await formatFiles(tree);
 
-    if (current === null) {
-      throw new Error(`Unable to read ${frontendRoutesFile}`)
-    }
-
-    const marker = "import { Routes, Route } from 'react-router-dom';"
-    const serviceRoute = `import { ${className}Page } from '../services/${serviceName}/routes';`
-    const serviceElement = `      <Route path="${routePrefix}" element={<${className}Page />} />`
-    let updated = current
-
-    if (!updated.includes(serviceRoute)) {
-      updated = updated.replace(marker, `${marker}\n${serviceRoute}`)
-    }
-
-    if (!updated.includes(serviceElement)) {
-      updated = updated.replace(
-        '  return (\n    <Routes>',
-        `  return (\n    <Routes>\n${serviceElement}`,
-      )
-    }
-
-    tree.write(frontendRoutesFile, updated)
-  }
-
-  const workspacePackageJsonPath = 'package.json'
-  const workspacePackageJson = tree.read(workspacePackageJsonPath, 'utf-8')
-
-  if (workspacePackageJson === null) {
-    throw new Error(`Unable to read ${workspacePackageJsonPath}`)
-  }
-
-  const packageJson = JSON.parse(workspacePackageJson)
-  if (!packageJson.scripts?.['services:new']) {
-    packageJson.scripts = {
-      ...packageJson.scripts,
-      'services:new': 'nx g @aerealith-ai/service-generator:service --name',
-    }
-  }
-  tree.write(
-    workspacePackageJsonPath,
-    `${JSON.stringify(packageJson, null, 2)}\n`,
-  )
-
-  const projectJsonPath = `${projectRoot}/project.json`
-  const projectConfig = {
-    name: projectName,
-    $schema: '../../../node_modules/nx/schemas/project-schema.json',
-    sourceRoot: `${projectRoot}/src`,
-    projectType: 'application',
-    tags: ['scope:services', 'type:service'],
-    targets: {
-      build: {
-        executor: '@nx/js:tsc',
-        outputs: ['{options.outputPath}'],
-        options: {
-          outputPath: `dist/${projectRoot}`,
-          main: `${projectRoot}/src/main.ts`,
-          tsConfig: `${projectRoot}/tsconfig.app.json`,
-        },
-      },
-      lint: {
-        executor: '@nx/eslint:lint',
-        options: {
-          lintFilePatterns: [`${projectRoot}/**/*.{ts,tsx,js,jsx}`],
-        },
-      },
-      test: {
-        executor: '@nx/vitest:test',
-        options: {
-          passWithNoTests: true,
-          configFile: `${projectRoot}/vitest.config.mts`,
-        },
-      },
-      serve: {
-        executor: '@nx/js:node',
-        defaultConfiguration: 'development',
-        options: {
-          buildTarget: `${projectName}:build`,
-        },
-      },
-    },
-  }
-
-  tree.write(projectJsonPath, `${JSON.stringify(projectConfig, null, 2)}\n`)
-
-  const appTsConfigPath = `${projectRoot}/tsconfig.app.json`
-  tree.write(
-    appTsConfigPath,
-    JSON.stringify(
-      {
-        extends: '../../../tsconfig.base.json',
-        compilerOptions: {
-          outDir: '../../../dist/out-tsc',
-          rootDir: './src',
-          declaration: true,
-          types: ['node'],
-        },
-        include: ['src/**/*.ts'],
-      },
-      null,
-      2,
-    ),
-  )
-
-  tree.write(
-    `${projectRoot}/tsconfig.json`,
-    JSON.stringify(
-      {
-        extends: '../../../tsconfig.base.json',
-        compilerOptions: {
-          composite: true,
-        },
-        include: [],
-        references: [
-          { path: './tsconfig.app.json' },
-          { path: './tsconfig.spec.json' },
-        ],
-      },
-      null,
-      2,
-    ),
-  )
-
-  tree.write(
-    `${projectRoot}/tsconfig.spec.json`,
-    JSON.stringify(
-      {
-        extends: './tsconfig.json',
-        compilerOptions: {
-          outDir: '../../../dist/out-tsc',
-          rootDir: './src',
-          types: ['vitest/globals', 'node'],
-        },
-        include: ['src/**/*.spec.ts', 'src/**/*.test.ts'],
-      },
-      null,
-      2,
-    ),
-  )
-
-  tree.write(
-    `${projectRoot}/vitest.config.mts`,
-    `import { defineConfig } from 'vitest/config';\n\nexport default defineConfig({\n  test: {\n    environment: 'node',\n    globals: true,\n    include: ['src/**/*.spec.ts'],\n  },\n});\n`,
-  )
-
-  tree.write(
-    `${projectRoot}/eslint.config.mjs`,
-    `import js from '@eslint/js';\nimport tseslint from 'typescript-eslint';\n\nexport default [\n  js.configs.recommended,\n  ...tseslint.configs.recommended,\n  {\n    files: ['**/*.ts'],\n    rules: {},\n  },\n];\n`,
-  )
-
-  tree.write(
-    `${projectRoot}/Dockerfile`,
-    `FROM node:24-alpine\nWORKDIR /app\nCOPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./\nCOPY apps/services/${serviceName} ./apps/services/${serviceName}\nRUN corepack enable && pnpm install --frozen-lockfile\nCMD ["pnpm", "exec", "tsx", "apps/services/${serviceName}/src/main.ts"]\n`,
-  )
-
-  tree.write(
-    `${projectRoot}/src/main.ts`,
-    `import { Hono } from 'hono';\n\nconst app = new Hono();\n\napp.get('${routePrefix}', (c) => {\n  return c.json({ service: '${serviceName}', status: 'ok' });\n});\n\nexport default app;\n`,
-  )
-
-  tree.write(
-    `${projectRoot}/src/app.spec.ts`,
-    `import { describe, expect, it } from 'vitest';\n\ndescribe('${serviceName} service', () => {\n  it('returns ok', () => {\n    expect(true).toBe(true);\n  });\n});\n`,
-  )
-
-  tree.write(
-    `${projectRoot}/README.md`,
-    `# ${className} service\n\nGenerated Hono service scaffold for ${serviceName}.\n`,
-  )
-
-  await formatFiles(tree)
+  /*
+   * Refresh workspace dependencies after generation.
+   *
+   * Generated services have their own package.json and use workspace:*
+   * dependencies, so pnpm must update workspace links and the lockfile after
+   * the generator completes.
+   */
   return () => {
-    installPackagesTask(tree)
-  }
+    installPackagesTask(tree);
+  };
 }

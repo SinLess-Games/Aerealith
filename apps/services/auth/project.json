@@ -1,0 +1,101 @@
+{
+  "name": "service-auth",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/services/auth/src",
+  "projectType": "application",
+  "tags": ["scope:services", "type:service"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "tsc --noEmit --rootDir . -p apps/services/auth/tsconfig.app.json",
+          "tsc --noEmit --composite false --rootDir . -p apps/services/auth/tsconfig.spec.json"
+        ],
+        "parallel": false
+      }
+    },
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/services/auth",
+        "main": "apps/services/auth/src/server.ts",
+        "tsConfig": "apps/services/auth/tsconfig.app.json"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["apps/services/auth/**/*.{ts,tsx,js,jsx}"]
+      }
+    },
+    "test": {
+      "executor": "@nx/vitest:test",
+      "options": {
+        "passWithNoTests": true,
+        "configFile": "apps/services/auth/vitest.config.mts"
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "service-auth:build"
+      }
+    },
+    "worker-serve": {
+      "continuous": true,
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/auth",
+        "command": "wrangler dev"
+      }
+    },
+    "dev": {
+      "continuous": true,
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/auth",
+        "command": "wrangler dev --config wrangler.local.toml --port 8787 --env-file ../../../.env"
+      }
+    },
+    "dev-e2e": {
+      "continuous": true,
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/auth",
+        "command": "wrangler dev --config wrangler.local.toml --port 8787"
+      }
+    },
+    "typegen": {
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/worker-configuration.d.ts"],
+      "options": {
+        "cwd": "apps/services/auth",
+        "command": "wrangler types"
+      }
+    },
+    "worker-dry-run": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/auth",
+        "command": "wrangler deploy --dry-run"
+      }
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/auth",
+        "command": "wrangler deploy"
+      }
+    },
+    "deploy-preview": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/auth",
+        "command": "wrangler deploy --env preview"
+      }
+    }
+  }
+}

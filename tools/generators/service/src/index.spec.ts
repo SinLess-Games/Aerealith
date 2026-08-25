@@ -1,140 +1,149 @@
-import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing'
-import { describe, expect, it } from 'vitest'
+import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
+import { describe, expect, it } from 'vitest';
 
-import serviceGenerator from './index'
+import serviceGenerator from './index';
 
 function readRequired(
   tree: ReturnType<typeof createTreeWithEmptyWorkspace>,
   path: string,
 ) {
-  const value = tree.read(path, 'utf-8')
+  const value = tree.read(path, 'utf-8');
 
   if (value === null) {
-    throw new Error(`Expected generated file: ${path}`)
+    throw new Error(`Expected generated file: ${path}`);
   }
 
-  return value
-}
-
-function countOccurrences(value: string, search: string): number {
-  return value.split(search).length - 1
+  return value;
 }
 
 describe('serviceGenerator', () => {
   it('creates a normalized, runnable Hono service', async () => {
-    const tree = createTreeWithEmptyWorkspace()
-
-    tree.write(
-      'apps/frontend/src/app/app.tsx',
-      [
-        "import { Routes, Route } from 'react-router-dom';",
-        '',
-        'export default function App() {',
-        '  return (',
-        '    <Routes>',
-        '      <Route path="/" element={<div />} />',
-        '    </Routes>',
-        '  )',
-        '}',
-      ].join('\n'),
-    )
+    const tree = createTreeWithEmptyWorkspace();
 
     const installTask = await serviceGenerator(tree, {
       name: 'Billing API',
-    })
+    });
 
-    expect(installTask).toBeTypeOf('function')
-    expect(tree.exists('apps/services/billing-api/project.json')).toBe(true)
+    expect(installTask).toBeTypeOf('function');
+
+    expect(tree.exists('apps/services/billing-api/project.json')).toBe(true);
     expect(tree.exists('apps/services/billing-api/vitest.config.mts')).toBe(
       true,
-    )
-    expect(tree.exists('apps/services/billing-api/Dockerfile')).toBe(true)
+    );
+    expect(tree.exists('apps/services/billing-api/Dockerfile')).toBe(true);
+    expect(tree.exists('apps/services/billing-api/wrangler.toml')).toBe(true);
 
-    expect(
-      JSON.parse(readRequired(tree, 'apps/services/billing-api/project.json')),
-    ).toMatchObject({
+    const project = JSON.parse(
+      readRequired(tree, 'apps/services/billing-api/project.json'),
+    );
+
+    expect(project).toMatchObject({
       name: 'service-billing-api',
       targets: {
         test: {
           executor: '@nx/vitest:test',
         },
+        'worker-serve': {
+          continuous: true,
+          options: {
+            cwd: 'apps/services/billing-api',
+            command: 'wrangler dev',
+          },
+        },
+        typegen: {
+          options: {
+            cwd: 'apps/services/billing-api',
+            command: 'wrangler types',
+          },
+        },
+        'worker-dry-run': {
+          options: {
+            command: 'wrangler deploy --dry-run',
+          },
+        },
+        deploy: {
+          options: {
+            command: 'wrangler deploy',
+          },
+        },
       },
-    })
+    });
 
-    expect(
-      tree.read('apps/services/billing-api/src/main.ts', 'utf-8'),
-    ).toContain("app.get('/api/v1/services/billing-api'")
-    expect(tree.read('apps/frontend/src/app/app.tsx', 'utf-8')).toContain(
-      '<BillingApiPage />',
-    )
+    const wranglerConfig = readRequired(
+      tree,
+      'apps/services/billing-api/wrangler.toml',
+    );
 
-    const packageJson = JSON.parse(readRequired(tree, 'package.json'))
-    expect(packageJson.scripts['services:new']).toBe(
-      'nx g @aerealith-ai/service-generator:service --name',
-    )
-  })
+    expect(wranglerConfig).toContain('name = "aerealith-billing-api"');
+    expect(wranglerConfig).toContain('main = "src/worker.ts"');
+    expect(wranglerConfig).toContain('# [[secrets_store_secrets]]');
+    expect(wranglerConfig).toContain('# store_id = "<STORE_ID>"');
+
+    const mainSource = readRequired(
+      tree,
+      'apps/services/billing-api/src/main.ts',
+    );
+
+    expect(mainSource).toContain(
+      "const SERVICE_ROUTE = '/api/V1/services/billing-api' as const;",
+    );
+    expect(mainSource).toContain('app.get(SERVICE_ROUTE');
+  });
 
   it('preserves an existing generator script without requiring frontend routes', async () => {
-    const tree = createTreeWithEmptyWorkspace()
-    const packageJson = JSON.parse(readRequired(tree, 'package.json'))
+    const tree = createTreeWithEmptyWorkspace();
+
+    const packageJson = JSON.parse(readRequired(tree, 'package.json'));
 
     packageJson.scripts = {
       ...packageJson.scripts,
       'services:new': 'custom-generator-command',
-    }
-    tree.write('package.json', JSON.stringify(packageJson))
+    };
 
-    await serviceGenerator(tree, { name: 'audit_log' })
+    tree.write('package.json', JSON.stringify(packageJson));
 
-    expect(tree.exists('apps/services/audit-log/src/worker.ts')).toBe(true)
+    await serviceGenerator(tree, {
+      name: 'audit_log',
+    });
+
+    expect(tree.exists('apps/services/audit-log/src/worker.ts')).toBe(true);
+
+    expect(
+      tree.read('apps/services/audit-log/wrangler.toml', 'utf-8'),
+    ).toContain('name = "aerealith-audit-log"');
+
     expect(
       JSON.parse(readRequired(tree, 'package.json')).scripts['services:new'],
-    ).toBe('custom-generator-command')
-  })
+    ).toBe('custom-generator-command');
+  });
 
-  it('reports a missing workspace package manifest clearly', async () => {
-    const tree = createTreeWithEmptyWorkspace()
-    tree.delete('package.json')
+  it('does not require the workspace package manifest to generate a service', async () => {
+    const tree = createTreeWithEmptyWorkspace();
 
-    await expect(serviceGenerator(tree, { name: 'broken' })).rejects.toThrow(
-      'Unable to read package.json',
-    )
-  })
+    tree.delete('package.json');
 
-  it('does not duplicate frontend route wiring when rerun for the same service', async () => {
-    const tree = createTreeWithEmptyWorkspace()
+    const installTask = await serviceGenerator(tree, {
+      name: 'standalone',
+    });
 
-    tree.write(
-      'apps/frontend/src/app/app.tsx',
-      [
-        "import { Routes, Route } from 'react-router-dom';",
-        '',
-        'export default function App() {',
-        '  return (',
-        '    <Routes>',
-        '      <Route path="/" element={<div />} />',
-        '    </Routes>',
-        '  )',
-        '}',
-      ].join('\n'),
-    )
+    expect(installTask).toBeTypeOf('function');
+    expect(tree.exists('apps/services/standalone/project.json')).toBe(true);
+    expect(tree.exists('apps/services/standalone/package.json')).toBe(true);
+  });
 
-    await serviceGenerator(tree, { name: 'Billing API' })
-    await serviceGenerator(tree, { name: 'Billing API' })
+  it('refuses to overwrite an existing service', async () => {
+    const tree = createTreeWithEmptyWorkspace();
 
-    const appRoutes = readRequired(tree, 'apps/frontend/src/app/app.tsx')
+    await serviceGenerator(tree, {
+      name: 'Billing API',
+    });
 
-    expect(
-      countOccurrences(
-        appRoutes,
-        "import { BillingApiPage } from '../services/billing-api/routes';",
-      ),
-    ).toBe(1)
-    expect(
-      countOccurrences(
-        appRoutes,
-        '      <Route path="/api/v1/services/billing-api" element={<BillingApiPage />} />',
-      ),
-    ).toBe(1)
-  })
-})
+    await expect(
+      serviceGenerator(tree, {
+        name: 'Billing API',
+      }),
+    ).rejects.toThrow(
+      'Service "billing-api" already exists at apps/services/billing-api.',
+    );
+  });
+});

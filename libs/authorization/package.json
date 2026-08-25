@@ -1,0 +1,12 @@
+{
+  "name": "@aerealith-ai/authorization",
+  "version": "0.0.1",
+  "private": true,
+  "type": "commonjs",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "license": "AGPL-3.0-only",
+  "dependencies": {
+    "tslib": "^2.3.0"
+  }
+}

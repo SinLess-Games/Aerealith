@@ -1,8 +1,10 @@
 # Audit Architecture
 
 Status: Draft
-Owner: Tim Pierce / SinLess Games
-Last Updated: 2026-07-12
+Implementation State: Target architecture; not current implementation evidence
+Current-State Source: [Current Architecture](./Current%20Architecture.md)
+Owner: SinLess Games LLC
+Last Updated: 2026-07-18
 Security Classification: Internal Architecture
 Foundation Release: `0.5 — API & Service Platform`
 Operational Hardening Release: `0.9 — Observability & Reliability`
@@ -47,7 +49,7 @@ Related Architecture:
 
 ## Purpose
 
-This document defines the audit architecture for Aerealith AI.
+This document defines the intended audit architecture for the Aerealith platform.
 
 The audit architecture governs how Aerealith records, stores, protects, retrieves, explains, exports, retains, and monitors meaningful platform actions.
 

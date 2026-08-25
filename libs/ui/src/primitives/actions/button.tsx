@@ -1,10 +1,10 @@
 // libs/ui/src/primitives/actions/button.tsx
 
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentPropsWithoutRef } from 'react';
 
-import { cva, type VariantProps } from 'class-variance-authority'
+import { cva, type VariantProps } from 'class-variance-authority';
 
-import { cn } from '../../lib/cn'
+import { cn } from '../../lib/cn';
 
 export const buttonVariants = cva(
   [
@@ -18,25 +18,25 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         primary: [
-          'bg-[var(--ae-primary)] text-[var(--ae-starlight)]',
-          'hover:bg-[var(--ae-pink-42)]',
+          'bg-[var(--ae-primary)] text-[var(--ae-primary-foreground)]',
+          'hover:bg-[var(--ae-primary-hover)] active:bg-[var(--ae-primary-active)] active:text-[var(--ae-primary-active-foreground)]',
         ],
         secondary: [
-          'bg-[var(--ae-secondary)] text-[var(--ae-starlight)]',
-          'hover:bg-[var(--ae-violet-38)]',
+          'bg-[var(--ae-secondary)] text-[var(--ae-secondary-foreground)]',
+          'hover:bg-[var(--ae-secondary-hover)] active:bg-[var(--ae-secondary-active)] active:text-[var(--ae-secondary-active-foreground)]',
         ],
         outline: [
-          'border border-[var(--ae-border)] bg-transparent',
+          'border border-[var(--ae-control-border)] bg-[var(--ae-control)]',
           'text-[var(--ae-foreground)]',
-          'hover:bg-[var(--ae-starlight-05)]',
+          'hover:bg-[var(--ae-control-hover)] active:bg-[var(--ae-control-active)]',
         ],
         ghost: [
           'bg-transparent text-[var(--ae-foreground)]',
-          'hover:bg-[var(--ae-starlight-05)]',
+          'hover:bg-[var(--ae-control-hover)] active:bg-[var(--ae-control-active)]',
         ],
         danger: [
-          'bg-[var(--ae-danger)] text-[var(--ae-starlight)]',
-          'hover:bg-[var(--ae-pink-42)]',
+          'bg-[var(--ae-danger)] text-[var(--ae-danger-contrast)]',
+          'hover:bg-[var(--ae-danger-hover)]',
         ],
       },
       size: {
@@ -55,10 +55,10 @@ export const buttonVariants = cva(
       fullWidth: false,
     },
   },
-)
+);
 
 export type ButtonProps = Readonly<ComponentPropsWithoutRef<'button'>> &
-  Readonly<VariantProps<typeof buttonVariants>>
+  Readonly<VariantProps<typeof buttonVariants>>;
 
 /**
  * A styled native button for actions throughout the Aerealith interface.
@@ -93,5 +93,5 @@ export function Button({
       )}
       type={type}
     />
-  )
+  );
 }

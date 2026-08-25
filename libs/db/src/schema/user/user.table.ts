@@ -10,19 +10,19 @@ import {
   uniqueIndex,
   uuid,
   varchar,
-} from 'drizzle-orm/pg-core'
+} from 'drizzle-orm/pg-core';
 
 import {
   DefaultUserRole,
   DefaultUserTier,
   UserLifecycleStatus,
-} from '@aerealith-ai/core'
+} from '@aerealith-ai/core';
 
 import {
   userLifecycleStatusDbEnum,
   userRoleDbEnum,
   userTierDbEnum,
-} from '../../enums'
+} from '../../enums';
 
 /**
  * Stores the primary Aerealith user account record.
@@ -61,6 +61,10 @@ export const usersTable = pgTable(
       mode: 'date',
     }),
 
+    /**
+     * @deprecated Compatibility projection only. Normalized principal role
+     * assignments are authoritative for every authorization decision.
+     */
     role: userRoleDbEnum('role').default(DefaultUserRole).notNull(),
 
     tier: userTierDbEnum('tier').default(DefaultUserTier).notNull(),
@@ -95,7 +99,7 @@ export const usersTable = pgTable(
     index('users_status_index').on(table.status),
     index('users_created_at_index').on(table.createdAt),
   ],
-)
+);
 
-export type UserRow = typeof usersTable.$inferSelect
-export type NewUserRow = typeof usersTable.$inferInsert
+export type UserRow = typeof usersTable.$inferSelect;
+export type NewUserRow = typeof usersTable.$inferInsert;

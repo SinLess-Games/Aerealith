@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "paths": {
+      "@aerealith-ai/core": ["../../../dist/libs/core/src/index.d.ts"],
+      "@aerealith-ai/db": ["../../../dist/libs/db/src/index.d.ts"]
+    }
+  }
+}

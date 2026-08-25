@@ -1,0 +1,125 @@
+---
+title: Troubleshooting
+description: Diagnose common Aerealith access, content, integration, and action problems.
+order: 40
+audience: user
+keywords:
+  - troubleshooting
+  - errors
+  - integrations
+  - support
+---
+
+# Troubleshooting
+
+When something fails, reduce the problem to the smallest reproducible action. Record what you expected, what happened, and the exact point where behavior changed.
+
+## The page does not load
+
+1. Confirm that your network connection is working.
+2. Reload the page once.
+3. Verify that the URL begins with the expected Aerealith domain.
+4. Try a private browsing window to identify stale browser state.
+5. Check whether browser extensions are blocking scripts, storage, or authentication.
+
+If the failure persists, record the URL, time, browser name and version, and visible error message.
+
+## You cannot sign in
+
+Check:
+
+- whether you are using the intended identity provider
+- whether your invitation or account is active
+- whether cookies and redirects are permitted
+- whether your system clock is accurate
+- whether another account is already signed in
+
+Do not send passwords, one-time codes, recovery codes, or session links when requesting help.
+
+## A documentation page is missing
+
+Confirm the path and use the nested sidebar to locate the page. Older `/docs/...` links may redirect to `/documentation/...`, but bookmarks should be updated to the current address.
+
+If a newly added documentation file is absent:
+
+- confirm it is inside `user/` or `developer/`
+- confirm it uses the `.md` or `.mdx` extension
+- confirm required frontmatter is valid
+- restart the development server if the new filesystem entry was not detected
+
+## An integration is unavailable
+
+An external tool may be unavailable because:
+
+- it is not enabled for the deployment
+- your account has not connected it
+- required permissions were not granted
+- the connection expired
+- the external service is unavailable
+
+Reconnect only through the approved interface. Review requested permissions before granting access.
+
+## A request produces the wrong result
+
+Check whether the request contains:
+
+- a clear outcome
+- the correct source material
+- an identified audience
+- important constraints
+- a required output format
+- instructions for missing information
+
+Remove unrelated context and retry with a smaller example. See [Writing Effective Requests](/documentation/user/getting-started/writing-effective-requests).
+
+## An action might have run twice
+
+Do not immediately retry an external action.
+
+First inspect the destination system for:
+
+- a sent message
+- a created event
+- a changed record
+- a deployment
+- a payment or transaction
+
+Retry only after confirming the first attempt did not complete.
+
+## Information appears outdated
+
+Ask when the information was last verified and compare it with an authoritative current source. Rules, prices, product features, schedules, software versions, and organizational details can change.
+
+When reporting outdated documentation, include:
+
+- the page URL
+- the outdated statement
+- the current authoritative source
+- the date you checked it
+
+## Capture a useful issue report
+
+A useful report contains:
+
+1. **Summary:** A short description of the failure.
+2. **Environment:** Browser, device, deployment, and account type without secrets.
+3. **Steps:** The smallest sequence that reproduces it.
+4. **Expected result:** What should have happened.
+5. **Actual result:** What happened instead.
+6. **Evidence:** Exact error text and a redacted screenshot when appropriate.
+7. **Frequency:** Whether it happens every time or intermittently.
+
+Remove tokens, credentials, private customer information, and unrelated personal data from screenshots and logs.
+
+## When to stop
+
+Stop retrying and escalate when:
+
+- an action could cause duplicate external effects
+- data may be lost or overwritten
+- account security may be affected
+- a production environment is involved
+- the next step requires permissions you do not have
+- you cannot verify the target of a destructive action
+
+Return to [Getting Started](/documentation/user/getting-started) or review [Your First Workflow](/documentation/user/getting-started/first-workflow) for a safer baseline process.

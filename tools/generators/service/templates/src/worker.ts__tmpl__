@@ -1,0 +1,114 @@
+import { Hono } from 'hono';
+
+import serviceApp from './main';
+
+export type ServiceWorkerBindings = Record<string, unknown>;
+
+export interface ServiceWorkerEnvironment {
+  Bindings: ServiceWorkerBindings;
+}
+
+const SERVICE_NAME = '<%= serviceName %>' as const;
+const SERVICE_ROUTE = '<%= routePrefix %>' as const;
+const SERVICE_HEALTH_ROUTE = `${SERVICE_ROUTE}/health` as const;
+
+/*
+ * Cloudflare Worker adapter.
+ *
+ * The actual service routes remain defined in main.ts so the same Hono
+ * application can be used by both:
+ *
+ *   - the Node server entrypoint
+ *   - the Cloudflare Worker entrypoint
+ *
+ * Worker-specific concerns belong here.
+ */
+const workerApp = new Hono<ServiceWorkerEnvironment>();
+
+/*
+ * Lightweight process/edge health endpoint.
+ *
+ * This endpoint intentionally avoids external dependencies so orchestration,
+ * deployment checks, and Cloudflare probes can determine whether the Worker
+ * itself is responding.
+ */
+workerApp.get('/health', (context) => {
+  return context.json(
+    {
+      service: SERVICE_NAME,
+      status: 'ok',
+    },
+    200,
+  );
+});
+
+/*
+ * Service-scoped health endpoint.
+ *
+ * Unlike a dynamic :serviceName route, this route is tied to the generated
+ * service. A service should never report itself healthy under another
+ * service's name.
+ */
+workerApp.get(SERVICE_HEALTH_ROUTE, (context) => {
+  return context.json(
+    {
+      service: SERVICE_NAME,
+      status: 'ok',
+    },
+    200,
+  );
+});
+
+/*
+ * Mount the actual generated service application after Worker-specific
+ * endpoints.
+ *
+ * Keeping application routes in main.ts prevents the Node and Worker runtimes
+ * from drifting apart.
+ */
+workerApp.route('/', serviceApp);
+
+/*
+ * Explicit fallback response.
+ *
+ * Returning JSON here keeps service error responses predictable instead of
+ * falling back to a generic HTML or runtime-specific 404 response.
+ */
+workerApp.notFound((context) => {
+  return context.json(
+    {
+      error: 'Not Found',
+      service: SERVICE_NAME,
+      path: context.req.path,
+    },
+    404,
+  );
+});
+
+/*
+ * Prevent unexpected failures from exposing stack traces or implementation
+ * details through the public Worker response.
+ */
+workerApp.onError((error, context) => {
+  console.error(
+    JSON.stringify({
+      event: `${SERVICE_NAME}.worker.request.failed`,
+      service: SERVICE_NAME,
+      method: context.req.method,
+      path: context.req.path,
+      error: error instanceof Error ? error.message : String(error),
+    }),
+  );
+
+  return context.json(
+    {
+      error: 'Internal Server Error',
+      service: SERVICE_NAME,
+    },
+    500,
+  );
+});
+
+export { workerApp };
+
+export default workerApp;

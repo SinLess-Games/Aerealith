@@ -63,13 +63,15 @@
   --ae-primary: var(--ae-pink);
   --ae-primary-hover: #ff237f;
   --ae-primary-active: #d70561;
-  --ae-primary-foreground: var(--ae-starlight);
+  --ae-primary-foreground: var(--ae-night-950);
+  --ae-primary-active-foreground: var(--ae-starlight);
   --ae-primary-subtle: var(--ae-pink-12);
 
   --ae-secondary: var(--ae-violet);
   --ae-secondary-hover: #a273ff;
   --ae-secondary-active: #7541dc;
-  --ae-secondary-foreground: var(--ae-starlight);
+  --ae-secondary-foreground: var(--ae-night-950);
+  --ae-secondary-active-foreground: var(--ae-starlight);
   --ae-secondary-subtle: var(--ae-violet-12);
 
   --ae-accent: var(--ae-cyan);
@@ -98,6 +100,7 @@
 
   --ae-danger: var(--ae-pink);
   --ae-danger-hover: #ff237f;
+  --ae-danger-contrast: var(--ae-night-950);
   --ae-danger-foreground: #ffe5ef;
   --ae-danger-subtle: var(--ae-pink-12);
   --ae-danger-border: var(--ae-pink-30);
@@ -197,12 +200,14 @@
   --ae-primary-hover: #b80451;
   --ae-primary-active: #90003f;
   --ae-primary-foreground: var(--ae-starlight);
+  --ae-primary-active-foreground: var(--ae-starlight);
   --ae-primary-subtle: rgb(var(--ae-pink-rgb) / 11%);
 
   --ae-secondary: #7541dc;
   --ae-secondary-hover: #5f2cc1;
   --ae-secondary-active: #482194;
   --ae-secondary-foreground: var(--ae-starlight);
+  --ae-secondary-active-foreground: var(--ae-starlight);
   --ae-secondary-subtle: rgb(var(--ae-violet-rgb) / 10%);
 
   --ae-accent: #008f84;
@@ -231,6 +236,7 @@
 
   --ae-danger: #bd0353;
   --ae-danger-hover: #990043;
+  --ae-danger-contrast: var(--ae-starlight);
   --ae-danger-foreground: #71002e;
   --ae-danger-subtle: rgb(var(--ae-pink-rgb) / 12%);
   --ae-danger-border: rgb(var(--ae-pink-rgb) / 32%);

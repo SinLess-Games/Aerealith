@@ -1,0 +1,763 @@
+---
+title: Research & Development
+description: Explore Aerealith's research, experiments, prototypes, technical investigations, and development findings.
+order: 60
+audience: user
+keywords:
+  - research
+  - development
+  - analysis
+  - decisions
+---
+
+# Research & Development
+
+Welcome to the **Aerealith Research & Development** documentation.
+
+This section contains the research, experiments, prototypes, technical investigations, and engineering findings that guide the continued development of Aerealith.
+
+Aerealith's initial research and concept development began in **2019** under the **Helix** identity. Since then, the project has evolved into a modular artificial intelligence platform designed to support multiple applications, interfaces, integrations, and deployment environments.
+
+Research published here may include early ideas, incomplete experiments, rejected approaches, validated designs, prototype results, performance findings, and production-ready recommendations.
+
+> Research documentation records what was investigated, what was learned, and how those findings influence Aerealith's development.
+
+## Purpose
+
+The purpose of this section is to create a permanent and transparent record of Aerealith's research and development work.
+
+These documents help the Aerealith team:
+
+- Preserve important technical discoveries.
+- Avoid repeating failed experiments.
+- Compare competing technologies and architectures.
+- Document the reasoning behind engineering decisions.
+- Track prototypes from initial concept through implementation.
+- Identify unanswered questions and areas requiring further study.
+- Convert research findings into actionable development work.
+- Provide evidence for architectural and product decisions.
+- Share knowledge between developers, contributors, and future maintainers.
+
+## Research Areas
+
+Research may cover any part of the Aerealith platform, including the following areas.
+
+### Artificial Intelligence
+
+- Large language model integration.
+- Local and hosted model execution.
+- Model routing and orchestration.
+- Prompt management.
+- Retrieval-augmented generation.
+- Embeddings and vector search.
+- Context management.
+- Long-term and short-term memory systems.
+- Tool and function calling.
+- Agent coordination.
+- Model evaluation.
+- Hallucination reduction.
+- AI safety and output validation.
+- Cost, latency, and quality comparisons.
+
+### Platform Architecture
+
+- Modular service architecture.
+- Event-driven systems.
+- Distributed processing.
+- Queueing and messaging systems.
+- Horizontal scaling.
+- High availability.
+- Fault tolerance.
+- Service discovery.
+- Cross-service communication.
+- Caching and cache invalidation.
+- Data synchronization.
+- Multi-tenant architecture.
+- Plugin and module isolation.
+
+### Applications and Integrations
+
+- Discord integration.
+- Web application interfaces.
+- API clients.
+- Developer tools.
+- Administrative interfaces.
+- Notification systems.
+- Webhooks.
+- External platform integrations.
+- Community and collaboration features.
+- Future communication and productivity integrations.
+
+Discord is Aerealith's first major platform integration, but it is only one module within the larger Aerealith ecosystem.
+
+### Data and Storage
+
+- PostgreSQL and CockroachDB.
+- Drizzle ORM.
+- Relational data modeling.
+- Vector databases.
+- Search indexing.
+- Data retention.
+- Audit-log storage.
+- Backup and recovery.
+- Data replication.
+- Migration strategies.
+- Privacy-preserving storage.
+- User memory and knowledge management.
+
+### Security
+
+- Authentication and authorization.
+- OAuth implementation.
+- User permission boundaries.
+- Service-to-service authentication.
+- Secret management.
+- Encryption.
+- Audit logging.
+- Abuse prevention.
+- Rate limiting.
+- Input validation.
+- Prompt injection defenses.
+- Supply-chain security.
+- Dependency scanning.
+- Static analysis.
+- Threat modeling.
+- Incident response.
+
+### Infrastructure and Operations
+
+- Containerized deployment.
+- Kubernetes orchestration.
+- Cloud and self-hosted deployment.
+- Continuous integration and delivery.
+- Observability.
+- Logging and metrics.
+- Distributed tracing.
+- Performance monitoring.
+- Infrastructure automation.
+- Disaster recovery.
+- Network security.
+- Deployment validation.
+- Development, testing, staging, and production environments.
+
+### User Experience
+
+- Conversational interfaces.
+- Accessibility.
+- Responsive design.
+- Human-AI interaction.
+- User onboarding.
+- Feedback systems.
+- Error communication.
+- Trust and transparency.
+- Configuration workflows.
+- Administrative controls.
+- Documentation usability.
+
+### Performance and Reliability
+
+- Load testing.
+- Stress testing.
+- Benchmarking.
+- Gateway performance.
+- Queue throughput.
+- Database performance.
+- Model response latency.
+- Resource utilization.
+- Retry behavior.
+- Failure recovery.
+- Cross-service latency.
+- Cross-shard command execution.
+- Capacity planning.
+
+## Document Types
+
+Research and development documents may use one of the following classifications.
+
+### Research Note
+
+A focused investigation into a question, technology, behavior, or design problem.
+
+Research notes should explain:
+
+- What was investigated.
+- Why the investigation was necessary.
+- What sources or evidence were used.
+- What was discovered.
+- What remains unknown.
+- What action is recommended.
+
+### Experiment
+
+A controlled test used to validate an assumption or compare possible solutions.
+
+Experiment documents should include:
+
+- The hypothesis.
+- The test environment.
+- The procedure.
+- The collected results.
+- Limitations.
+- Conclusions.
+- Recommended next steps.
+
+### Prototype
+
+An implementation created to test whether an idea is technically or practically viable.
+
+Prototype documentation should identify:
+
+- The feature or system being tested.
+- The prototype's intended scope.
+- What is intentionally excluded.
+- How the prototype was implemented.
+- What worked.
+- What failed.
+- Whether the prototype should be continued, redesigned, or abandoned.
+
+### Technical Investigation
+
+An investigation into an existing problem, limitation, failure, or unexpected behavior.
+
+Technical investigations may cover:
+
+- Production incidents.
+- Performance regressions.
+- Integration failures.
+- Security concerns.
+- Dependency behavior.
+- Infrastructure failures.
+- Difficult-to-reproduce defects.
+
+### Benchmark
+
+A repeatable measurement used to compare technologies, implementations, configurations, or system versions.
+
+Benchmarks should record:
+
+- Hardware and software configuration.
+- Dataset or workload.
+- Measurement methodology.
+- Number of test runs.
+- Raw and summarized results.
+- Known sources of measurement error.
+- Interpretation of the results.
+
+### Feasibility Study
+
+An evaluation of whether a proposed feature, integration, architecture, or technology should be pursued.
+
+A feasibility study should consider:
+
+- Technical viability.
+- Security implications.
+- Operational complexity.
+- Development effort.
+- Maintenance burden.
+- Performance requirements.
+- Infrastructure requirements.
+- Financial cost.
+- User value.
+- Long-term compatibility.
+
+### Proof of Concept
+
+A small implementation demonstrating that a specific capability can work.
+
+A proof of concept is not assumed to be:
+
+- Production ready.
+- Secure.
+- Scalable.
+- Fully tested.
+- Optimized.
+- Compatible with the complete platform.
+
+### Research Summary
+
+A consolidated summary of multiple investigations related to the same subject.
+
+Research summaries should identify:
+
+- The documents reviewed.
+- Areas of agreement.
+- Conflicting findings.
+- Important limitations.
+- The current recommended direction.
+
+## Research Lifecycle
+
+A research document should move through a defined lifecycle.
+
+| Status         | Meaning                                                                                    |
+| -------------- | ------------------------------------------------------------------------------------------ |
+| `Proposed`     | The research topic has been identified but work has not started.                           |
+| `In Progress`  | Investigation, testing, or prototyping is actively underway.                               |
+| `Review`       | Initial findings are complete and awaiting technical review.                               |
+| `Validated`    | The findings have been reproduced or supported by sufficient evidence.                     |
+| `Inconclusive` | The investigation did not produce enough evidence for a reliable conclusion.               |
+| `Adopted`      | The findings have been accepted and incorporated into Aerealith's plans or implementation. |
+| `Rejected`     | The investigated approach will not be adopted.                                             |
+| `Superseded`   | A newer document or investigation replaces the findings.                                   |
+| `Archived`     | The research is retained for historical reference but is no longer active.                 |
+
+A document's status describes the maturity of its findings. It does not automatically describe the production readiness of the technology being investigated.
+
+## Confidence Levels
+
+Research conclusions should include a confidence level whenever practical.
+
+| Confidence | Meaning                                                                                      |
+| ---------- | -------------------------------------------------------------------------------------------- |
+| `Low`      | The conclusion is preliminary or based on limited evidence.                                  |
+| `Moderate` | The conclusion is supported by testing but still has meaningful limitations.                 |
+| `High`     | The conclusion is supported by repeatable testing, multiple sources, or production evidence. |
+
+Confidence levels should not be used as a replacement for documenting limitations.
+
+## Evidence Standards
+
+Research conclusions should be based on verifiable evidence whenever possible.
+
+Accepted forms of evidence may include:
+
+- Reproducible test results.
+- Source code.
+- Automated test output.
+- Performance measurements.
+- Logs and traces.
+- Security scan results.
+- Official technical documentation.
+- Published standards.
+- Peer-reviewed research.
+- Issue trackers.
+- Production observations.
+- Controlled user feedback.
+- Comparative implementation results.
+
+Unverified assumptions should be clearly labeled as assumptions.
+
+Personal opinions may be included, but they must be identified as opinions and separated from confirmed findings.
+
+## Recommended Document Structure
+
+Research documents should generally use the following structure:
+
+1. **Summary**
+2. **Status**
+3. **Research question**
+4. **Background**
+5. **Objectives**
+6. **Scope**
+7. **Out of scope**
+8. **Assumptions**
+9. **Methodology**
+10. **Environment**
+11. **Findings**
+12. **Results**
+13. **Limitations**
+14. **Security considerations**
+15. **Operational considerations**
+16. **Alternatives considered**
+17. **Conclusion**
+18. **Recommendation**
+19. **Follow-up work**
+20. **References**
+21. **Revision history**
+
+Not every document requires every section. Authors should include the sections needed to make the investigation understandable and reproducible.
+
+## Suggested Frontmatter
+
+Research documents should use consistent frontmatter.
+
+```yaml
+---
+title: Research Document Title
+description: A concise description of the investigation.
+status: Proposed
+confidence: Low
+researchType: Research Note
+owners:
+  - Name or GitHub username
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+reviewers: []
+related:
+  - /documentation/path/to/related-document
+supersedes: null
+supersededBy: null
+---
+```
+
+Additional metadata may be added when needed, but existing fields should retain consistent meanings across the documentation.
+
+## Suggested Research Template
+
+The following template may be used when creating a new research document.
+
+```mdx
+---
+title: Research Document Title
+description: Briefly describe the research topic.
+status: Proposed
+confidence: Low
+researchType: Research Note
+owners:
+  - GitHub username
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+reviewers: []
+related: []
+supersedes: null
+supersededBy: null
+---
+
+# Research Document Title
+
+## Summary
+
+Provide a concise summary of the investigation and its current conclusion.
+
+## Research Question
+
+State the primary question this research is intended to answer.
+
+## Background
+
+Explain why this investigation is necessary and how it relates to Aerealith.
+
+## Objectives
+
+- Define the first objective.
+- Define the second objective.
+- Define the third objective.
+
+## Scope
+
+Describe what is included in the investigation.
+
+## Out of Scope
+
+Describe what is intentionally excluded.
+
+## Assumptions
+
+List any assumptions that affect the research or its conclusions.
+
+## Methodology
+
+Explain how the investigation, experiment, comparison, or prototype was conducted.
+
+## Environment
+
+Document the relevant environment:
+
+- Hardware.
+- Operating system.
+- Runtime.
+- Dependencies.
+- Services.
+- Configuration.
+- Dataset.
+- Test duration.
+
+## Findings
+
+Document the evidence and observations collected during the investigation.
+
+## Results
+
+Present measurements, comparisons, test output, or other results.
+
+## Limitations
+
+Explain factors that may reduce the accuracy, applicability, or reproducibility of the results.
+
+## Security Considerations
+
+Document security risks, controls, and unresolved concerns.
+
+## Operational Considerations
+
+Document deployment, maintenance, monitoring, scaling, and support requirements.
+
+## Alternatives Considered
+
+### Alternative One
+
+Describe the alternative and explain its advantages and disadvantages.
+
+### Alternative Two
+
+Describe the alternative and explain its advantages and disadvantages.
+
+## Conclusion
+
+State what can reasonably be concluded from the available evidence.
+
+## Recommendation
+
+State the recommended action and explain why it is preferred.
+
+## Follow-Up Work
+
+- [ ] Add the first follow-up task.
+- [ ] Add the second follow-up task.
+- [ ] Create or update the related development issue.
+- [ ] Create an ADR if an architectural decision is required.
+- [ ] Update affected product or engineering documentation.
+
+## References
+
+- Add official documentation, standards, source code, issues, or other evidence.
+
+## Revision History
+
+| Date       | Author   | Change                     |
+| ---------- | -------- | -------------------------- |
+| YYYY-MM-DD | Username | Initial research document. |
+```
+
+## Connecting Research to Development
+
+Research should produce actionable outcomes.
+
+When research affects implementation, the related development work should reference the research document. The research document should also reference the resulting issue, task, pull request, architectural decision record, or product requirement.
+
+A completed investigation may result in:
+
+- A new development task.
+- A technical specification.
+- An architectural decision record.
+- A product requirement.
+- A security requirement.
+- A prototype implementation.
+- A performance improvement.
+- A rejected proposal.
+- Additional research.
+- No immediate action.
+
+Research should not be considered complete merely because a document was written. The findings must either produce an actionable outcome or clearly explain why no further action is currently justified.
+
+## Relationship to Architectural Decisions
+
+Research documents and architectural decision records serve different purposes.
+
+A research document records:
+
+- The question.
+- The investigation.
+- The evidence.
+- The alternatives.
+- The findings.
+- The recommendation.
+
+An architectural decision record documents:
+
+- The final decision.
+- The context of the decision.
+- The chosen approach.
+- The consequences of the decision.
+
+Research may support an architectural decision, but research does not replace the architectural decision record.
+
+## Reproducibility
+
+Experiments and benchmarks should be reproducible whenever practical.
+
+A reproducible investigation should provide:
+
+- The relevant source code.
+- Exact commands.
+- Configuration files.
+- Dependency versions.
+- Environment information.
+- Test data or a description of how it was generated.
+- Expected output.
+- Actual output.
+- Known differences between test and production environments.
+
+Sensitive values such as credentials, secrets, private keys, tokens, and personal data must never be included.
+
+## Security and Privacy
+
+Research must follow Aerealith's security and privacy requirements.
+
+Research documentation must not expose:
+
+- API keys.
+- Access tokens.
+- Private keys.
+- Passwords.
+- Session identifiers.
+- Personally identifiable information.
+- Private user conversations.
+- Confidential business data.
+- Internal infrastructure details that would create unnecessary risk.
+- Unredacted production logs containing sensitive information.
+
+Security findings should be disclosed through the appropriate private process before they are published in general documentation.
+
+## Research Principles
+
+Aerealith research should follow these principles.
+
+### Evidence Over Assumption
+
+Conclusions should be supported by evidence rather than preference, popularity, or intuition.
+
+### Reproduce Before Adopting
+
+Important findings should be reproduced before they become the basis of production decisions.
+
+### Document Failure
+
+Failed experiments are valuable. They should be documented when they provide information that may prevent repeated work.
+
+### Separate Findings From Decisions
+
+Research recommends. Product, engineering, and architecture processes decide.
+
+### State Uncertainty Clearly
+
+Unknowns, assumptions, limitations, and conflicting evidence must be visible.
+
+### Prefer Measurable Outcomes
+
+Research goals should use measurable success criteria whenever possible.
+
+### Protect Users
+
+Security, privacy, accessibility, and user safety must be considered throughout the research process.
+
+### Design for Maintainability
+
+A solution that works today but creates excessive long-term complexity may not be the correct solution for Aerealith.
+
+### Avoid Technology for Technology's Sake
+
+New technologies should be adopted because they solve a demonstrated problem, not merely because they are new or popular.
+
+## Directory Organization
+
+As this section grows, research documents should be organized into subject-specific directories.
+
+A possible structure is:
+
+```text
+research-&-development/
+├── index.mdx
+├── ai/
+│   ├── models/
+│   ├── memory/
+│   ├── orchestration/
+│   ├── prompting/
+│   └── retrieval/
+├── architecture/
+├── benchmarks/
+├── data/
+├── experiments/
+├── infrastructure/
+├── integrations/
+│   └── discord/
+├── performance/
+├── prototypes/
+├── security/
+└── user-experience/
+```
+
+Directories should be added only when there is enough content to justify them. Avoid creating deeply nested structures for a single document.
+
+## Naming Conventions
+
+Research filenames should:
+
+- Use lowercase letters.
+- Use hyphens between words.
+- Describe the investigation clearly.
+- Avoid generic names such as `notes.mdx` or `research.mdx`.
+- Avoid dates in filenames unless the date is essential to the subject.
+- Avoid version numbers when document history can be tracked through source control.
+
+Examples:
+
+```text
+redis-vs-rabbitmq-message-queue-comparison.mdx
+cross-shard-cache-invalidation-strategies.mdx
+local-model-context-window-benchmark.mdx
+discord-gateway-rate-limit-investigation.mdx
+postgresql-vs-cockroachdb-scaling-study.mdx
+ai-assistant-permission-boundary-testing.mdx
+```
+
+## Current Research Priorities
+
+Current and future research areas may include:
+
+- Local and hosted AI model routing.
+- Reliable long-term memory systems.
+- User-level AI permission boundaries.
+- Prompt injection prevention.
+- RabbitMQ, Redis Pub/Sub, and Cloudflare Queues comparisons.
+- Cross-shard cache invalidation.
+- Distributed command execution.
+- Discord gateway sharding.
+- Horizontal scaling.
+- Audit-log retention and archival.
+- Multi-region database behavior.
+- PostgreSQL and CockroachDB compatibility.
+- Model quality, latency, and operating-cost benchmarks.
+- Agent coordination and tool permissions.
+- AI output evaluation.
+- Production observability.
+- Failure recovery and degraded-mode operation.
+
+This list is expected to change as Aerealith's requirements, architecture, integrations, and deployment environments evolve.
+
+## Publication Expectations
+
+Research documents should be written so that another developer can understand:
+
+- Why the research was performed.
+- How the research was performed.
+- What evidence was collected.
+- What conclusions are justified.
+- What limitations remain.
+- What should happen next.
+
+Documents should be updated when:
+
+- New evidence changes the conclusion.
+- An experiment is reproduced.
+- A recommendation is adopted or rejected.
+- A related implementation is completed.
+- A newer investigation supersedes the document.
+- Previously unknown limitations are discovered.
+
+## Historical Research
+
+Older research remains valuable even when its recommendation is no longer current.
+
+Superseded or rejected research should normally remain available with a clear status notice. Retaining historical research provides context for past decisions and helps prevent the same unsuccessful approach from being repeatedly reconsidered without new evidence.
+
+## Contributing Research
+
+Before adding a new document:
+
+1. Search for existing research covering the same question.
+2. Define a clear research question.
+3. Identify the evidence required to answer it.
+4. Select the appropriate document type.
+5. Record assumptions and limitations.
+6. Use repeatable methods whenever practical.
+7. Protect sensitive information.
+8. Link the research to related documentation and development work.
+9. Request review from the appropriate technical owners.
+10. Update the document when the research produces an implementation decision.
+
+Research contributions should prioritize accuracy, clarity, reproducibility, and practical value to the Aerealith project.
+
+---
+
+This section will continue to expand as Aerealith moves from research and prototyping into production development and long-term operation.

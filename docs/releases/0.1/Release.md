@@ -1,6 +1,6 @@
 # 0.1 — Foundation & Workspace Release
 
-Release `0.1 — Foundation & Workspace` establishes the baseline repository, tooling, workspace structure, documentation structure, and development standards for Aerealith AI.
+Release `0.1 — Foundation & Workspace` establishes the baseline repository, tooling, workspace structure, documentation structure, and development standards for Aerealith.
 
 This release does not ship user-facing product features.
 

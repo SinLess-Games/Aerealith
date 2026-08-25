@@ -1,0 +1,130 @@
+"$schema" = "../../../node_modules/wrangler/config-schema.json"
+
+# =============================================================================
+# Worker
+# =============================================================================
+
+name = "aerealith-<%= serviceName %>"
+main = "src/worker.ts"
+
+# Compatibility dates intentionally pin Cloudflare Workers runtime behavior.
+# The service generator should set this to the generation date.
+compatibility_date = "<%= compatibilityDate %>"
+
+# Required by Aerealith packages that depend on supported Node.js APIs.
+compatibility_flags = ["nodejs_compat"]
+
+# Enable workers.dev deployments and Cloudflare Preview URLs.
+workers_dev = true
+preview_urls = true
+
+# Upload source maps so Worker exceptions can be mapped back to TypeScript.
+upload_source_maps = true
+
+
+# =============================================================================
+# Observability
+# =============================================================================
+
+# Cloudflare Workers observability.
+#
+# head_sampling_rate:
+#   1 = 100% of invocations
+#   0.1 = 10%
+#
+# Generated services begin with complete observability. High-volume services
+# may lower these values after traffic and retention requirements are known.
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = true
+head_sampling_rate = 1
+persist = true
+
+
+# =============================================================================
+# Environment
+# =============================================================================
+
+# These values are public Worker configuration.
+#
+# Never place passwords, API tokens, credentials, or other secrets in [vars].
+[vars]
+NODE_ENV = "production"
+FRONTEND_URL = "https://aerealith.com"
+
+
+# =============================================================================
+# Feature flags
+# =============================================================================
+
+# Cloudflare Flagship provides low-latency feature flag evaluation through:
+#
+#   env.FLAGSHIP_FLAGS
+#
+# Keep the app ID centralized unless a service requires its own isolated
+# Flagship application.
+[[flagship]]
+binding = "FLAGSHIP_FLAGS"
+app_id = "2a1ca9ba-b446-4cb8-b8eb-ab0f3985679f"
+
+
+# =============================================================================
+# Secrets
+# =============================================================================
+
+# Declare ordinary Worker secrets consumed by the service.
+#
+# Wrangler validates required secrets during development and deployment and
+# includes them when generating Worker environment types.
+#
+# [secrets]
+# required = [
+#   "EXAMPLE_API_KEY",
+# ]
+
+
+# =============================================================================
+# Secrets Store
+# =============================================================================
+
+# Add only the Cloudflare Secrets Store bindings consumed by this service.
+#
+# [[secrets_store_secrets]]
+# binding = "DATABASE_URL"
+# store_id = "<STORE_ID>"
+# secret_name = "PRODUCTION_POSTGRES_URL"
+
+
+# =============================================================================
+# Additional bindings
+# =============================================================================
+
+# Add service-specific Cloudflare bindings below this section.
+#
+# Examples:
+#
+# [[r2_buckets]]
+# binding = "STORAGE"
+# bucket_name = "aerealith-<%= serviceName %>"
+#
+# [[kv_namespaces]]
+# binding = "CACHE"
+# id = "<KV_NAMESPACE_ID>"
+#
+# [[d1_databases]]
+# binding = "DATABASE"
+# database_name = "aerealith-<%= serviceName %>"
+# database_id = "<DATABASE_ID>"
+#
+# [[services]]
+# binding = "AUTH_SERVICE"
+# service = "aerealith-auth"

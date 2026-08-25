@@ -1,0 +1,76 @@
+.page {
+  color: var(--ae-foreground);
+}
+
+.panel,
+.session {
+  border: 1px solid var(--ae-border);
+  border-radius: 0.8rem;
+  background: var(--ae-glass-panel);
+  box-shadow: var(--ae-shadow-sm);
+}
+
+.session {
+  padding: 1rem;
+}
+
+.sessionCurrent {
+  border-color: var(--ae-accent);
+}
+
+.status {
+  border: 1px solid var(--ae-border);
+  border-radius: 0.75rem;
+  background: var(--ae-surface-muted);
+  color: var(--ae-foreground-muted);
+  padding: 1rem;
+}
+
+.error {
+  border: 1px solid var(--ae-danger-border);
+  border-radius: 0.75rem;
+  background: var(--ae-danger-subtle);
+  color: var(--ae-danger-foreground);
+  padding: 1rem;
+}
+
+.currentBadge {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  border: 1px solid var(--ae-accent);
+  border-radius: 9999px;
+  background: var(--ae-accent-subtle);
+  color: var(--ae-accent);
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.statusBadge {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  border: 1px solid var(--ae-border);
+  border-radius: 9999px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.statusActive {
+  border-color: var(--ae-success-border);
+  background: var(--ae-success-subtle);
+  color: var(--ae-success-foreground);
+}
+
+.statusExpired {
+  background: var(--ae-surface-muted);
+  color: var(--ae-foreground-muted);
+}
+
+.statusRevoked {
+  border-color: var(--ae-danger-border);
+  background: var(--ae-danger-subtle);
+  color: var(--ae-danger-foreground);
+}

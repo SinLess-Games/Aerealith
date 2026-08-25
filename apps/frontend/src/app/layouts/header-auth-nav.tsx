@@ -1,94 +1,68 @@
-import { NavLink } from 'react-router'
+import { FeatureFlag } from '@aerealith-ai/core';
+import { NavLink } from 'react-router';
 
-import { useLogout, useSession } from '../../features/auth/use-session'
+import { useLogout, useSession } from '../../features/auth/use-session';
+import { useFeatureFlag } from '../../features/flags/feature-flags';
 
-const linkClass = 'rounded-md px-3 py-2 text-sm font-medium transition-colors'
+const linkClass = 'rounded-md px-3 py-2 text-sm font-medium transition-colors';
 
 const buttonClass =
-  'rounded-md border border-[var(--ae-border)] px-3 py-2 text-sm font-medium transition-colors'
+  'rounded-md border border-[var(--ae-border)] px-3 py-2 text-sm font-medium transition-colors';
 
-type HeaderAuthNavProps = Readonly<{ mobile?: boolean }>
-
-function responsiveClass(
-  mobile: boolean,
-  mobileClass: string,
-  desktopClass: string,
-) {
-  return mobile ? mobileClass : desktopClass
-}
-
-export function HeaderAuthNav({ mobile = false }: HeaderAuthNavProps) {
-  const { user, isAuthenticated, isLoading } = useSession()
-  const logout = useLogout()
+export function HeaderAuthNav({
+  mobile = false,
+}: Readonly<{ mobile?: boolean }>) {
+  const { user, isAuthenticated, isLoading } = useSession();
+  const logout = useLogout();
+  const authenticationEnabled = useFeatureFlag(FeatureFlag.Authentication);
+  const dashboardEnabled = useFeatureFlag(FeatureFlag.Dashboard);
 
   if (isLoading) {
     return (
       <span
-        aria-busy='true'
-        aria-label='Checking session'
-        className={responsiveClass(
-          mobile,
-          'h-11 w-full',
-          'inline-block h-9 w-16',
-        )}
+        aria-busy="true"
+        aria-label="Checking session"
+        className={mobile ? 'h-11 w-full' : 'inline-block h-9 w-16'}
       />
-    )
+    );
   }
 
   if (isAuthenticated && user) {
     return (
-      <div
-        className={responsiveClass(
-          mobile,
-          'grid gap-2',
-          'flex items-center gap-2',
-        )}
-      >
-        <NavLink
-          to='/app'
-          className={responsiveClass(
-            mobile,
-            linkClass + ' text-center',
-            linkClass,
-          )}
-        >
-          Dashboard
-        </NavLink>
+      <div className={mobile ? 'grid gap-2' : 'flex items-center gap-2'}>
+        {dashboardEnabled ? (
+          <NavLink
+            to="/app"
+            className={mobile ? linkClass + ' text-center' : linkClass}
+          >
+            Dashboard
+          </NavLink>
+        ) : null}
         <span
-          className={responsiveClass(
-            mobile,
-            'text-center text-sm',
-            'hidden text-sm sm:inline',
-          )}
+          className={
+            mobile ? 'text-center text-sm' : 'hidden text-sm sm:inline'
+          }
         >
           {user.username}
         </span>
         <button
-          type='button'
-          className={responsiveClass(
-            mobile,
-            buttonClass + ' w-full',
-            buttonClass,
-          )}
+          type="button"
+          className={mobile ? buttonClass + ' w-full' : buttonClass}
           disabled={logout.isPending}
           onClick={() => logout.mutate()}
         >
           {logout.isPending ? 'Signing out...' : 'Sign out'}
         </button>
       </div>
-    )
+    );
   }
 
-  return (
+  return authenticationEnabled ? (
     <NavLink
-      to='/sign-in'
-      className={responsiveClass(
-        mobile,
-        buttonClass + ' text-center',
-        buttonClass,
-      )}
+      to="/sign-in"
+      className={mobile ? buttonClass + ' text-center' : buttonClass}
     >
       Sign in
     </NavLink>
-  )
+  ) : null;
 }

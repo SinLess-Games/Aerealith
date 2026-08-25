@@ -59,7 +59,7 @@ The `preset` path is relative from the project root to the workspace root. Subdi
 
 #### Core (always needed)
 
-```text
+```bash
 pnpm add -wD jest ts-jest @types/jest @nx/jest
 ```
 
@@ -70,7 +70,7 @@ pnpm add -wD jest ts-jest @types/jest @nx/jest
 
 #### React testing
 
-```text
+```bash
 pnpm add -wD @testing-library/react @testing-library/jest-dom
 ```
 
@@ -78,7 +78,7 @@ pnpm add -wD @testing-library/react @testing-library/jest-dom
 
 Some React projects use Babel instead of ts-jest for JSX transformation:
 
-```text
+```bash
 pnpm add -wD babel-jest @babel/core @babel/preset-env @babel/preset-react @babel/preset-typescript
 ```
 
@@ -86,7 +86,7 @@ pnpm add -wD babel-jest @babel/core @babel/preset-env @babel/preset-react @babel
 
 #### Vue testing
 
-```text
+```bash
 pnpm add -wD @vue/test-utils
 ```
 

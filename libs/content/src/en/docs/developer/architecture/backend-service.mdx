@@ -1,0 +1,18 @@
+---
+title: Backend & Service Boundaries
+description: Understand the implemented auth service and the boundaries that still require deployment infrastructure.
+order: 14
+audience: developer
+keywords:
+  - backend
+  - services
+  - boundaries
+---
+
+# Backend & Service Boundaries
+
+The repository includes an implemented `apps/services/auth` service. It mounts authenticated REST routes below canonical `/api/V1`, plus GraphQL and tRPC transports. The frontend Worker proxies the configured auth service; a deployment must still provide the service binding or URL and its backing configuration.
+
+Do not place backend policy or persistence access in frontend components or Worker transport code. The service owns request validation, authentication, authorization, origin protection, rate limiting, persistence boundaries, and sanitized structured logging. An operation-observer boundary exists, but its audit sink is not durable yet.
+
+The service uses direct PostgreSQL transport. Hyperdrive is not provisioned, and no production migration is applied by this repository. New services still need a clear responsibility, Nx project definition, runtime entry point, typed configuration, health/readiness behavior, tests, and a Dockerfile when independently deployable.

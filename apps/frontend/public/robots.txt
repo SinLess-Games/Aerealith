@@ -5,10 +5,14 @@ Allow: /
 
 # Prevent crawling private or application-only areas.
 Disallow: /admin/
+Disallow: /account/
+Disallow: /billing/
 Disallow: /api/
 Disallow: /auth/
 Disallow: /dashboard/
 Disallow: /internal/
+Disallow: /login/
+Disallow: /register/
 Disallow: /settings/
 
 # Avoid crawling common URL parameters.
@@ -16,4 +20,4 @@ Disallow: /*?token=
 Disallow: /*?session=
 Disallow: /*?preview=
 
-Sitemap: https://aerealith.ai/sitemap.xml
+Sitemap: https://aerealith.com/sitemap.xml

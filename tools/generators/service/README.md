@@ -39,6 +39,8 @@ Before merge, a new service must have:
 - Health and readiness behavior.
 - Logging and correlation.
 - Dockerfile when independently deployable.
+- A service-specific `wrangler.toml` with local development, type generation,
+  deployment, observability, and feature flag configuration.
 - Project-local README.
 - Related architecture and decision links.
 

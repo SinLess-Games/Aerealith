@@ -13,7 +13,9 @@
     ],
     "sharedGlobals": [
       "{workspaceRoot}/.github/workflows/00-ci.yaml",
-      "{workspaceRoot}/.github/workflows/ci.yml"
+      "{workspaceRoot}/.github/workflows/ci.yml",
+      "{workspaceRoot}/source.config.ts",
+      "{workspaceRoot}/libs/content/src/en/docs/**/*"
     ]
   },
   "neverConnectToCloud": true,

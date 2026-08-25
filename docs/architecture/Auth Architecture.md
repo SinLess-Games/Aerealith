@@ -1,8 +1,10 @@
 # Auth Architecture
 
 Status: Draft
-Owner: Tim Pierce / SinLess Games
-Last Updated: 2026-07-12
+Implementation State: Target architecture; not current implementation evidence
+Current-State Source: [Current Architecture](./Current%20Architecture.md)
+Owner: SinLess Games LLC
+Last Updated: 2026-07-18
 Pending Decision Record:
 
 - `docs/rfcs/0009-authentication-session-and-authorization-model.md`
@@ -26,7 +28,7 @@ Related Architecture:
 
 ## Purpose
 
-This document defines the authentication, session, authorization, identity, and access-control architecture for Aerealith AI.
+This document defines the intended authentication, session, authorization, identity, and access-control architecture for the Aerealith platform.
 
 The auth architecture governs how Aerealith:
 

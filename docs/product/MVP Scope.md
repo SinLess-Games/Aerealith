@@ -1,6 +1,12 @@
 # MVP Scope
 
-The Aerealith AI MVP is the smallest useful, trustworthy, expandable version of the platform.
+Status: Target specification
+Document Type: Target MVP Scope Gate
+Implementation State: Delivery target; completion requires repository and release evidence recorded in [Current State](../CURRENT_STATE.md)
+Authority: Target product behavior; [Project Overview](../Project-Overview.md) defines product identity and boundaries
+
+Aerealith is the platform; Aerealith AI is its assistant/application layer.
+The Aerealith MVP is the smallest useful, trustworthy, expandable version of the platform.
 
 It should prove that Aerealith can help individuals and Discord communities manage digital complexity from one secure, intelligent, modular control center.
 
@@ -22,7 +28,7 @@ It should ship enough to prove:
 
 ## Purpose
 
-This document defines the MVP scope for Aerealith AI.
+This document defines the MVP scope target for Aerealith.
 
 It explains:
 
@@ -47,7 +53,7 @@ When product ideas grow too large, this document should help decide whether they
 
 The MVP is:
 
-> The smallest useful, trustworthy, expandable version of Aerealith AI that proves the platform can manage Discord communities and personal digital complexity from one secure, intelligent control center.
+> The smallest useful, trustworthy, expandable version of Aerealith that proves the platform can manage Discord communities and personal digital complexity from one secure, intelligent control center.
 
 The MVP is not:
 

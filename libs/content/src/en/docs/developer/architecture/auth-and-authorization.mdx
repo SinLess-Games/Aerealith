@@ -1,0 +1,20 @@
+---
+title: Authentication & Authorization
+description: Implement and operate the current server-side session, recovery, authorization, and transport protections.
+order: 15
+audience: developer
+keywords:
+  - authentication
+  - authorization
+  - sessions
+---
+
+# Authentication & Authorization
+
+The frontend and `apps/services/auth` implement sign-up, login, logout, current-user, email verification, password reset, account updates, and session management. Browser sessions are opaque server-side records carried in an HttpOnly cookie; tokens are not placed in browser storage or public API responses.
+
+Password creation and reset require at least 12 characters with upper- and lowercase letters plus a number. Password hashes use versioned scrypt with rehash support; Argon2id remains the preferred target and is not yet implemented. Reset requests return a generic response. Reset links carry a random one-hour, single-use token, while persistence stores only its hash. Successful reset revokes all sessions.
+
+Account and session actions require explicit permissions and resource scope. Account reads and writes use separate `account.read` and `account.update` capabilities. Session routes use `sessions.read`, `sessions.revoke`, and `sessions.revoke_all`; an authenticated caller cannot use them for another user's sessions. Unsafe browser writes enforce same-origin `Origin` protection, and credentialed wildcard CORS is not allowed. A Worker rate-limit binding protects sensitive auth transports, including auth mutations in REST, GraphQL, and tRPC.
+
+There is no periodic session rotation, MFA, OAuth, or API-key flow yet. Do not expose passwords, session values, or authorization decisions to browser storage, URLs, logs, or public contracts. Verification and reset tokens belong only in their intended one-time links and must never be logged or persisted in raw form. Structured event logging is sanitized and provider-backed; do not treat it as a durable audit record until a durable sink is configured.

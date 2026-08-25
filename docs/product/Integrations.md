@@ -1,6 +1,12 @@
 # Integrations
 
-Aerealith AI is designed to connect the tools, platforms, services, communities, APIs, and systems users already rely on.
+Status: Target specification
+Document Type: Target Integration Specification
+Implementation State: Intended and phased integration behavior; verify current availability in [Current State](../CURRENT_STATE.md)
+Authority: Target product behavior; [Project Overview](../Project-Overview.md) defines product identity and boundaries
+
+Aerealith is the platform; Aerealith AI is its assistant/application layer.
+Aerealith is designed to connect the tools, platforms, services, communities, APIs, and systems users already rely on.
 
 Integrations are how Aerealith becomes useful across the user’s real digital life.
 
@@ -14,7 +20,7 @@ The goal is to bring scattered tools together through one trusted, permissioned,
 
 ## Purpose
 
-This document defines integrations as a product area inside Aerealith AI.
+This document defines integrations as a product area inside Aerealith.
 
 It explains:
 

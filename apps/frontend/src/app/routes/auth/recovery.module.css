@@ -1,0 +1,21 @@
+.message {
+  border: 1px solid var(--ae-info-border);
+  border-radius: 0.75rem;
+  background: var(--ae-info-subtle);
+  color: var(--ae-info-foreground);
+  padding: 0.875rem 1rem;
+}
+
+.error {
+  border: 1px solid var(--ae-danger-border);
+  border-radius: 0.75rem;
+  background: var(--ae-danger-subtle);
+  color: var(--ae-danger-foreground);
+  padding: 0.875rem 1rem;
+}
+
+.policy {
+  color: var(--ae-foreground-muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}

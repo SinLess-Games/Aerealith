@@ -1,0 +1,16 @@
+---
+title: CI & Delivery Checks
+description: Use repository workflows and Nx targets as the source of truth for current automated validation.
+order: 14
+audience: developer
+keywords:
+  - CI
+  - GitHub Actions
+  - quality
+---
+
+# CI & Delivery Checks
+
+The repository includes CI, security, quality, coverage, and automation workflows. Inspect `.github/workflows/` and the affected projects' `project.json` files for the exact checks; workflow names and required checks can change.
+
+Before a pull request, run focused Nx validation for the files changed, then expand for affected dependencies. Review the final diff for unrelated edits, generated-output drift, secrets, and stale documentation. Use [Pull Requests](/documentation/developer/contributing/pull-requests) for contribution expectations.

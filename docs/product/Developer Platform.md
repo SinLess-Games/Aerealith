@@ -1,6 +1,12 @@
 # Developer Platform
 
-The Aerealith Developer Platform gives developers, builders, module creators, automation users, and future marketplace contributors a clear way to build on top of Aerealith AI.
+Status: Target specification
+Document Type: Target Developer Platform Specification
+Implementation State: Intended and phased developer capabilities; verify current availability in [Current State](../CURRENT_STATE.md)
+Authority: Target product behavior; [Project Overview](../Project-Overview.md) defines product identity and boundaries
+
+Aerealith is the platform; Aerealith AI is its assistant/application layer.
+The Aerealith Developer Platform gives developers, builders, module creators, automation users, and future marketplace contributors a clear way to build on top of Aerealith.
 
 Aerealith should not only be a product people use.
 
@@ -12,7 +18,7 @@ The Developer Platform should make Aerealith programmable, documented, observabl
 
 ## Purpose
 
-This document defines the Developer Platform as a product area inside Aerealith AI.
+This document defines the Developer Platform as a product area inside Aerealith.
 
 It explains:
 
@@ -37,7 +43,7 @@ Those belong in architecture, engineering, API reference, and service documentat
 
 The Developer Platform is:
 
-> The programmable foundation for building with, extending, integrating, and automating Aerealith AI.
+> The programmable foundation for building with, extending, integrating, and automating Aerealith.
 
 It should allow developers to:
 
@@ -338,23 +344,23 @@ Aerealith APIs should be versioned from the beginning.
 Recommended public API path pattern:
 
 ```text
-/api/v1
+/api/V1
 ```
 
 Service-specific routing may follow the platform convention:
 
 ```text
-/api/v1/services/<service-name>
+/api/V1/services/<service-name>
 ```
 
 Examples:
 
 ```text
-/api/v1/services/discord
-/api/v1/services/modules
-/api/v1/services/workflows
-/api/v1/services/integrations
-/api/v1/services/audit
+/api/V1/services/discord
+/api/V1/services/modules
+/api/V1/services/workflows
+/api/V1/services/integrations
+/api/V1/services/audit
 ```
 
 ---

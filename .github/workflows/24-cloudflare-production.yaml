@@ -1,20 +1,25 @@
 # .github/workflows/24-cloudflare-production.yaml
 #
-# Deploys a stable published GitHub release to the existing Aerealith
-# Cloudflare Worker production deployment.
+# Deploys a stable published GitHub release to every tracked Aerealith
+# Cloudflare Worker production configuration.
 #
 # Deployment flow:
 # 1. A stable GitHub release is published.
 # 2. The workflow checks out the exact release tag.
-# 3. Nx builds the production frontend into dist/apps/frontend.
-# 4. Wrangler uploads an undeployed Worker version and static assets.
-# 5. The candidate version is verified through its Cloudflare preview URL.
-# 6. The candidate version receives 100% production traffic.
-# 7. The production custom-domain health endpoint is verified.
-# 8. If production health fails, the prior Worker traffic split is restored.
+# 3. The workflow discovers every tracked production Wrangler config in apps.
+# 4. Nx builds the production frontend into dist/apps/frontend.
+# 5. Wrangler validates every discovered Worker configuration.
+# 6. Non-frontend Workers are deployed before the frontend Worker.
+# 7. Wrangler uploads an undeployed frontend Worker version and static assets.
+# 8. The frontend candidate is verified through its Cloudflare preview URL.
+# 9. The frontend candidate receives 100% production traffic.
+# 10. The production custom-domain health endpoint is verified.
+# 11. If frontend health fails, the prior traffic split is restored.
 #
-# Cloudflare Worker:
+# Cloudflare Workers:
 # - aerealith
+# - aerealith-api
+# - aerealith-auth
 #
 # Production URL:
 # - https://aerealith.com
@@ -23,7 +28,7 @@
 # - CLOUDFLARE_API_TOKEN
 # - CLOUDFLARE_ACCOUNT_ID
 #
-# Optional GitHub repository variable:
+# Optional GitHub repository variable for the frontend config:
 # - CLOUDFLARE_WRANGLER_CONFIG_PATH
 #
 # Important:
@@ -53,21 +58,22 @@ defaults:
     shell: bash
 
 env:
-  CI: "true"
-  FORCE_COLOR: "1"
-  HUSKY: "0"
+  CI: 'true'
+  FORCE_COLOR: '1'
+  HUSKY: '0'
 
-  NODE_VERSION: "25.9.0"
-  PNPM_VERSION: "11.12.0"
+  NODE_VERSION: '26.5.0'
+  PNPM_VERSION: '11.13.1'
 
-  FRONTEND_PROJECT: "frontend"
-  FRONTEND_DIRECTORY: "apps/frontend"
+  FRONTEND_PROJECT: 'frontend'
+  FRONTEND_DIRECTORY: 'apps/frontend'
 
-  WORKER_NAME: "aerealith"
-  WRANGLER_CONFIG_PATH: "apps/frontend/wrangler.toml"
+  WORKER_NAME: 'aerealith'
+  WRANGLER_CONFIG_PATH: >-
+    ${{ vars.CLOUDFLARE_WRANGLER_CONFIG_PATH || 'apps/frontend/wrangler.toml' }}
 
-  PRODUCTION_URL: "https://aerealith.com"
-  HEALTH_PATH: "/__aerealith/health"
+  PRODUCTION_URL: 'https://aerealith.com'
+  HEALTH_PATH: '/__aerealith/health'
 
 jobs:
   deploy:
@@ -83,6 +89,8 @@ jobs:
       url: https://aerealith.com
 
     outputs:
+      worker_config_count: ${{ steps.preflight.outputs.worker_config_count }}
+      service_worker_count: ${{ steps.preflight.outputs.service_worker_count }}
       candidate_version_id: ${{ steps.upload_candidate.outputs.candidate_version_id }}
       candidate_preview_url: ${{ steps.upload_candidate.outputs.candidate_preview_url }}
       production_deployment_id: ${{ steps.deploy_production.outputs.production_deployment_id }}
@@ -111,7 +119,7 @@ jobs:
         run: |
           set -euo pipefail
           corepack enable
-          corepack prepare "pnpm@${PNPM_VERSION:-11.12.0}" --activate
+          corepack prepare "pnpm@${PNPM_VERSION:-11.13.1}" --activate
 
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -150,8 +158,61 @@ jobs:
             exit 1
           fi
 
+          if [[ "$(dirname "$WRANGLER_CONFIG_PATH")" != "$FRONTEND_DIRECTORY" ]]; then
+            echo "::error::The frontend Wrangler configuration must be located in $FRONTEND_DIRECTORY."
+            exit 1
+          fi
+
           if [[ ! -f "$FRONTEND_DIRECTORY/src/worker.ts" ]]; then
             echo "::error::Cloudflare Worker entry file was not found: $FRONTEND_DIRECTORY/src/worker.ts"
+            exit 1
+          fi
+
+          production_config_list="$RUNNER_TEMP/cloudflare-production-wrangler-configs.txt"
+
+          git ls-files -- \
+            ':(glob)apps/**/wrangler.jsonc' \
+            ':(glob)apps/**/wrangler.json' \
+            ':(glob)apps/**/wrangler.toml' \
+            | LC_ALL=C sort \
+            > "$production_config_list"
+
+          if [[ ! -s "$production_config_list" ]]; then
+            echo '::error::No tracked production Wrangler configurations were found under apps.'
+            exit 1
+          fi
+
+          if ! grep -Fxq "$WRANGLER_CONFIG_PATH" "$production_config_list"; then
+            echo "::error::The frontend Wrangler configuration is not a tracked production config: $WRANGLER_CONFIG_PATH"
+            exit 1
+          fi
+
+          duplicate_config_directories="$(
+            sed 's#/[^/]*$##' "$production_config_list" \
+              | uniq -d
+          )"
+
+          if [[ -n "$duplicate_config_directories" ]]; then
+            echo '::error::Each Worker directory must contain exactly one production Wrangler configuration.'
+            while IFS= read -r duplicate_directory; do
+              echo "::error::Multiple production configs found in: $duplicate_directory"
+            done <<< "$duplicate_config_directories"
+            exit 1
+          fi
+
+          worker_config_count="$(
+            wc -l < "$production_config_list" \
+              | tr -d '[:space:]'
+          )"
+          service_worker_count="$(
+            awk -v frontend_config="$WRANGLER_CONFIG_PATH" '
+              $0 != frontend_config { count += 1 }
+              END { print count + 0 }
+            ' "$production_config_list"
+          )"
+
+          if [[ "$service_worker_count" -eq 0 ]]; then
+            echo '::error::Production must include at least one non-frontend Worker configuration.'
             exit 1
           fi
 
@@ -170,11 +231,14 @@ jobs:
             echo "TARGET_SHA=$target_sha"
             echo "TARGET_SHA_SHORT=$target_sha_short"
             echo "RELEASE_DISPLAY_NAME=$release_name"
+            echo "PRODUCTION_WRANGLER_CONFIG_LIST=$production_config_list"
           } >> "$GITHUB_ENV"
 
           {
             echo "target_sha=$target_sha"
             echo "target_sha_short=$target_sha_short"
+            echo "worker_config_count=$worker_config_count"
+            echo "service_worker_count=$service_worker_count"
           } >> "$GITHUB_OUTPUT"
 
           {
@@ -185,11 +249,19 @@ jobs:
             echo "| Release | [$release_name]($RELEASE_URL) |"
             echo "| Release tag | \`$RELEASE_TAG\` |"
             echo "| Target commit | \`$target_sha_short\` |"
-            echo "| Worker service | $WORKER_NAME |"
-            echo "| Wrangler configuration | \`$WRANGLER_CONFIG_PATH\` |"
+            echo "| Frontend Worker service | $WORKER_NAME |"
+            echo "| Frontend Wrangler configuration | \`$WRANGLER_CONFIG_PATH\` |"
+            echo "| Production Worker configurations | $worker_config_count |"
+            echo "| Non-frontend Workers | $service_worker_count |"
             echo "| Production URL | [$PRODUCTION_URL]($PRODUCTION_URL) |"
             echo '| Release type | stable |'
             echo '| Status | ready to build and deploy |'
+            echo
+            echo '### Discovered Production Wrangler Configurations'
+            echo
+            while IFS= read -r wrangler_config; do
+              echo "- \`$wrangler_config\`"
+            done < "$production_config_list"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Install workspace dependencies
@@ -198,7 +270,7 @@ jobs:
 
           pnpm install --frozen-lockfile
 
-      - name: Verify frontend production build target
+      - name: Verify frontend build target
         run: |
           set -euo pipefail
 
@@ -211,14 +283,7 @@ jobs:
             exit 1
           fi
 
-          if ! jq -e '.targets.build.configurations.production != null' \
-            <<< "$project_json" \
-            >/dev/null; then
-            echo "::error::The Nx project '$FRONTEND_PROJECT' does not define a production build configuration."
-            exit 1
-          fi
-
-          echo 'Frontend production build target was found.'
+          echo 'Frontend build target was found.'
 
       - name: Build frontend production bundle
         run: |
@@ -253,13 +318,66 @@ jobs:
             echo '| Build validation | passed |'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Validate Wrangler production deployment configuration
+      - name: Validate all Wrangler production deployment configurations
         run: |
           set -euo pipefail
 
-          pnpm exec wrangler deploy \
-            --config "$WRANGLER_CONFIG_PATH" \
-            --dry-run
+          while IFS= read -r wrangler_config; do
+            echo "::group::Validate $wrangler_config"
+            pnpm exec wrangler deploy \
+              --config "$wrangler_config" \
+              --env "" \
+              --dry-run
+            echo '::endgroup::'
+          done < "$PRODUCTION_WRANGLER_CONFIG_LIST"
+
+      - name: Deploy non-frontend Workers to production
+        id: deploy_service_workers
+        env:
+          EXPECTED_SERVICE_WORKER_COUNT: ${{ steps.preflight.outputs.service_worker_count }}
+        run: |
+          set -euo pipefail
+
+          deployed_service_worker_count='0'
+
+          while IFS= read -r wrangler_config; do
+            if [[ "$wrangler_config" == "$WRANGLER_CONFIG_PATH" ]]; then
+              continue
+            fi
+
+            echo "::group::Deploy $wrangler_config"
+            pnpm exec wrangler deploy \
+              --config "$wrangler_config" \
+              --env "" \
+              --message "Production release ${RELEASE_TAG} (${TARGET_SHA_SHORT})"
+            echo '::endgroup::'
+
+            deployed_service_worker_count="$((deployed_service_worker_count + 1))"
+          done < "$PRODUCTION_WRANGLER_CONFIG_LIST"
+
+          if [[ "$deployed_service_worker_count" -ne "$EXPECTED_SERVICE_WORKER_COUNT" ]]; then
+            echo '::error::The number of deployed service Workers did not match production preflight.'
+            exit 1
+          fi
+
+          echo "deployed_service_worker_count=$deployed_service_worker_count" >> "$GITHUB_OUTPUT"
+
+          {
+            echo '## Production Service Workers Deployed'
+            echo
+            echo '| Setting | Value |'
+            echo '| --- | --- |'
+            echo "| Deployed service Workers | $deployed_service_worker_count |"
+            echo '| Frontend Worker | deployed separately after candidate verification |'
+            echo
+            echo '### Deployed Configurations'
+            echo
+            while IFS= read -r wrangler_config; do
+              if [[ "$wrangler_config" != "$WRANGLER_CONFIG_PATH" ]]; then
+                echo "- \`$wrangler_config\`"
+              fi
+            done < "$PRODUCTION_WRANGLER_CONFIG_LIST"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Snapshot current production deployment
         id: snapshot
@@ -663,6 +781,8 @@ jobs:
       RELEASE_URL: ${{ github.event.release.html_url }}
       IS_PRERELEASE: ${{ github.event.release.prerelease }}
 
+      WORKER_CONFIG_COUNT: ${{ needs.deploy.outputs.worker_config_count }}
+      SERVICE_WORKER_COUNT: ${{ needs.deploy.outputs.service_worker_count }}
       CANDIDATE_VERSION_ID: ${{ needs.deploy.outputs.candidate_version_id }}
       CANDIDATE_PREVIEW_URL: ${{ needs.deploy.outputs.candidate_preview_url }}
       PRODUCTION_DEPLOYMENT_ID: ${{ needs.deploy.outputs.production_deployment_id }}
@@ -683,7 +803,9 @@ jobs:
             echo '| --- | --- |'
             echo "| Release | [$RELEASE_TAG]($RELEASE_URL) |"
             echo "| Release type | $([[ "$IS_PRERELEASE" == 'true' ]] && echo 'pre-release' || echo 'stable') |"
-            echo "| Worker service | $WORKER_NAME |"
+            echo "| Production Worker configurations | ${WORKER_CONFIG_COUNT:-not-discovered} |"
+            echo "| Non-frontend Workers | ${SERVICE_WORKER_COUNT:-not-discovered} |"
+            echo "| Frontend Worker service | $WORKER_NAME |"
             echo "| Deploy job result | ${DEPLOY_RESULT:-skipped} |"
             echo "| Candidate version | ${CANDIDATE_VERSION_ID:-not-created} |"
             echo "| Production deployment ID | ${PRODUCTION_DEPLOYMENT_ID:-not-created} |"

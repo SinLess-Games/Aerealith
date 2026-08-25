@@ -1,8 +1,10 @@
 # API Architecture
 
 Status: Draft
-Owner: Tim Pierce / SinLess Games
-Last Updated: 2026-07-09
+Implementation State: Target architecture; not current implementation evidence
+Current-State Source: [Current Architecture](./Current%20Architecture.md)
+Owner: SinLess Games LLC
+Last Updated: 2026-07-18
 Related RFCs:
 
 - `docs/rfcs/0002-monorepo-library-boundaries.md`
@@ -14,7 +16,7 @@ Related RFCs:
 
 ## Purpose
 
-This document defines the API architecture for Aerealith AI.
+This document defines the intended API architecture for the Aerealith platform.
 
 The API layer is the contract between Aerealith frontend apps, services, integrations, workflows,
 developer tools, and future external clients.

@@ -1,0 +1,25 @@
+---
+title: Security & Sessions
+description: Review active sessions and revoke a device or every other session safely.
+order: 13
+audience: user
+keywords:
+  - security
+  - sessions
+  - sign out
+---
+
+# Security & Sessions
+
+The account screen has a **Sign out** control that revokes the current session and clears its cookie. **Manage security** opens `/app/security`, where you can review active sessions. Session entries show device and activity information, never session credentials.
+
+You can revoke one recognized session or use **Revoke all other sessions** while keeping the current session. These endpoints are permission-scoped to your account; they do not grant access to another user's sessions.
+
+<Warning>
+  There is no periodic session rotation, multi-factor authentication, OAuth
+  sign-in, API-key management, or recovery-code flow yet. Password changes use
+  the reset-link flow described in [Account
+  Recovery](/documentation/user/guides/account/account-recovery).
+</Warning>
+
+On a shared device, sign out when finished and close the browser. If you believe access was compromised, use the identity provider's official recovery path if one exists, then contact the deployment owner. Do not try to solve a security issue by sharing credentials in a support request.

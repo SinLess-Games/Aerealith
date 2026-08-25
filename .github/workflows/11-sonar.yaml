@@ -44,7 +44,7 @@ on:
       - production
 
   schedule:
-    - cron: "0 6 * * 0"
+    - cron: '0 6 * * 0'
 
   workflow_dispatch:
 
@@ -65,22 +65,22 @@ defaults:
     shell: bash
 
 env:
-  CI: "true"
-  FORCE_COLOR: "1"
-  HUSKY: "0"
+  CI: 'true'
+  FORCE_COLOR: '1'
+  HUSKY: '0'
 
-  NODE_VERSION: "25.9.0"
-  PNPM_VERSION: "11.12.0"
+  NODE_VERSION: '25.9.0'
+  PNPM_VERSION: '11.12.0'
 
-  SONAR_API_URL: "https://sonarcloud.io"
+  SONAR_API_URL: 'https://sonarcloud.io'
   SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
   SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION }}
 
-  SONAR_REPORT_DIRECTORY: "sonar-reports"
-  SONAR_ANALYSIS_TIMEOUT_SECONDS: "300"
-  SONAR_ANALYSIS_POLL_SECONDS: "5"
-  SONAR_SUMMARY_MAX_ISSUES: "50"
-  SONAR_DUPLICATION_SUMMARY_MAX_FILES: "50"
+  SONAR_REPORT_DIRECTORY: 'sonar-reports'
+  SONAR_ANALYSIS_TIMEOUT_SECONDS: '300'
+  SONAR_ANALYSIS_POLL_SECONDS: '5'
+  SONAR_SUMMARY_MAX_ISSUES: '50'
+  SONAR_DUPLICATION_SUMMARY_MAX_FILES: '50'
 
 jobs:
   preflight:
@@ -403,9 +403,21 @@ jobs:
             # tsconfigs become valid only after the generator renders them.
             echo 'sonar.typescript.tsconfigPaths=apps/frontend/tsconfig.app.json,libs/core/tsconfig.lib.json,libs/db/tsconfig.lib.json,libs/ui/tsconfig.lib.json,libs/utils/tsconfig.lib.json,tools/generators/service/tsconfig.lib.json'
 
-            echo 'sonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/.nx/**,**/.vite/**,**/out-tsc/**,**/storybook-static/**,**/public/**,**/templates/**,**/*.d.ts,**/*.json,**/*.jsonc,**/*.test.*,**/*.spec.*,**/*.e2e.*,**/*.integration.*,**/*.stories.*,**/test/**,**/tests/**,**/spec/**,**/specs/**,**/e2e/**,**/e2e-tests/**,**/integration/**,**/integration-tests/**,**/__tests__/**,**/__mocks__/**,**/__fixtures__/**'
+            # Legal-policy modules are static content records, not executable
+            # application logic. Excluding them keeps the executable analysis
+            # within the SonarQube Cloud organization LOC allowance.
+            # Drizzle migrations target PostgreSQL. SonarQube Cloud currently
+            # analyzes SQL files with PL/SQL rules (for example, requiring
+            # Oracle VARCHAR2 and constants in generated DDL), so keep those
+            # migration artifacts under migration/tooling validation instead.
+            echo 'sonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/.nx/**,**/.vite/**,**/.wrangler/**,**/.source/**,**/out-tsc/**,**/storybook-static/**,**/playwright-report/**,**/test-results/**,**/public/**,**/templates/**,libs/content/src/en/policies/**,libs/db/migrations/**,**/*.d.ts,**/*.json,**/*.jsonc,**/*.test.*,**/*.spec.*,**/*.e2e.*,**/*.integration.*,**/*.stories.*,**/test/**,**/tests/**,**/spec/**,**/specs/**,**/e2e/**,**/e2e-tests/**,**/integration/**,**/integration-tests/**,**/__tests__/**,**/__mocks__/**,**/__fixtures__/**'
 
-            echo 'sonar.coverage.exclusions=**/*.test.*,**/*.spec.*,**/*.e2e.*,**/*.integration.*,**/*.stories.*,**/test/**,**/tests/**,**/spec/**,**/specs/**,**/e2e/**,**/e2e-tests/**,**/integration/**,**/integration-tests/**,**/__tests__/**,**/__mocks__/**,**/__fixtures__/**,**/*.d.ts'
+            # Unit-coverage metrics apply to executable application and library
+            # logic. Static localized content, declarative configuration,
+            # operational seed catalogs, and process bootstrap entrypoints are
+            # validated by content/config checks, seed integration tests, and
+            # container health checks rather than unit branch coverage.
+            echo 'sonar.coverage.exclusions=**/*.test.*,**/*.spec.*,**/*.e2e.*,**/*.integration.*,**/*.stories.*,**/test/**,**/tests/**,**/spec/**,**/specs/**,**/e2e/**,**/e2e-tests/**,**/integration/**,**/integration-tests/**,**/__tests__/**,**/__mocks__/**,**/__fixtures__/**,**/*.d.ts,**/*.config.*,**/src/main.*,**/src/server.ts,**/seeds/**,libs/content/src/en/**'
 
             if [[ -n "${LCOV_REPORTS:-}" ]]; then
               echo "sonar.javascript.lcov.reportPaths=$LCOV_REPORTS"

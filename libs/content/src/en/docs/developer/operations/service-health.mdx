@@ -1,0 +1,19 @@
+---
+title: Service Health
+description: Define readiness, liveness, dependency, and user-journey health signals.
+order: 30
+audience: developer
+---
+
+# Service Health
+
+Health is more than process availability.
+
+- **Liveness** indicates whether a runtime should be restarted.
+- **Readiness** indicates whether it can accept traffic.
+- **Dependency health** records important downstream status.
+- **Journey health** verifies a representative user outcome.
+
+Health endpoints must be cheap, bounded, and non-sensitive. Do not expose internal topology or credentials.
+
+Document degraded behavior, alert thresholds, owner, and recovery action. A dependency failure should not mark unrelated capabilities unhealthy when they can continue safely.

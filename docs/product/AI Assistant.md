@@ -1,6 +1,12 @@
 # AI Assistant
 
-Aerealith AI includes a trusted assistant experience for understanding, organizing, and safely acting across the user’s digital life.
+Status: Target specification
+Document Type: Target Assistant Specification
+Implementation State: Intended and phased assistant behavior; verify current availability in [Current State](../CURRENT_STATE.md)
+Authority: Target product behavior; [Project Overview](../Project-Overview.md) defines product identity and boundaries
+
+Aerealith is the platform; Aerealith AI is its assistant/application layer.
+Aerealith AI is the trusted assistant/application layer for understanding, organizing, and safely acting across each user's digital life.
 
 The assistant is not the whole product.
 
@@ -12,7 +18,7 @@ It helps users interact with accounts, Discord communities, workflows, automatio
 
 ## Purpose
 
-This document defines the Aerealith AI assistant as a product experience.
+This document defines Aerealith AI as the assistant product experience within Aerealith.
 
 It explains:
 
@@ -84,7 +90,7 @@ This may include:
 - default explanation style
 - preferred response format
 
-The official product and bot identity should remain Aerealith AI.
+The official assistant application and bot identity should remain Aerealith AI.
 
 Custom names and personalities are user experience layers, not separate products.
 

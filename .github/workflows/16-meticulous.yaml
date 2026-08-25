@@ -42,7 +42,7 @@ jobs:
   meticulous:
     name: Meticulous Visual Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
 
     steps:
       - name: Checkout repository
@@ -60,7 +60,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 25.9.0
+          node-version-file: package.json
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
@@ -71,7 +71,7 @@ jobs:
         run: pnpm nx run frontend:build
         env:
           NODE_ENV: production
-          METICULOUS_BUILD: "true"
+          METICULOUS_BUILD: 'true'
 
       - name: Verify static frontend build
         run: |
@@ -80,7 +80,34 @@ jobs:
           test -d dist/apps/frontend
           test -f dist/apps/frontend/index.html
 
-      - name: Upload frontend assets and run Meticulous tests
+      # Newly recorded sessions are intentionally unavailable for replay for
+      # 15 minutes while Meticulous processes them. Preserve the first
+      # attempt's raw outcome, then retry once after that ingestion window.
+      # The final attempt is not ignored, so real visual or configuration
+      # failures still fail this workflow.
+      - name: Upload frontend assets and run Meticulous tests (attempt 1)
+        id: meticulous_attempt_1
+        continue-on-error: true
+        uses: alwaysmeticulous/report-diffs-action/upload-assets@b3c2a025ca3fc594f73c9ebac4a151a7175c1153 # v1.73.0
+        with:
+          api-token: ${{ secrets.METICULOUS_API_TOKEN }}
+          github-token: ${{ github.token }}
+          app-directory: dist/apps/frontend
+          rewrites: |
+            [
+              {
+                "source": "/(.*)",
+                "destination": "/index.html"
+              }
+            ]
+
+      - name: Wait for recently recorded sessions to become replayable
+        if: steps.meticulous_attempt_1.outcome == 'failure'
+        shell: bash
+        run: sleep 900
+
+      - name: Upload frontend assets and run Meticulous tests (attempt 2)
+        if: steps.meticulous_attempt_1.outcome == 'failure'
         uses: alwaysmeticulous/report-diffs-action/upload-assets@b3c2a025ca3fc594f73c9ebac4a151a7175c1153 # v1.73.0
         with:
           api-token: ${{ secrets.METICULOUS_API_TOKEN }}

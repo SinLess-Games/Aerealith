@@ -1,0 +1,89 @@
+"$schema" = "../../../node_modules/wrangler/config-schema.json"
+
+name = "aerealith-api"
+main = "src/worker.ts"
+compatibility_date = "2026-07-28"
+compatibility_flags = ["nodejs_compat"]
+preview_urls = true
+workers_dev = true
+upload_source_maps = true
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = true
+persist = true
+head_sampling_rate = 1
+
+[vars]
+NODE_ENV = "production"
+FRONTEND_URL = "https://aerealith.com"
+OTEL_EXPORTER_OTLP_ENDPOINT = "https://otlp-gateway-prod-us-west-0.grafana.net/otlp"
+OTEL_EXPORTER_OTLP_PROTOCOL = "http/protobuf"
+OTEL_SERVICE_NAMESPACE = "aerealith"
+OTEL_SERVICE_VERSION = "development"
+OTEL_TRACES_SAMPLER = "parentbased_traceidratio"
+OTEL_TRACES_SAMPLER_ARG = "0.25"
+OTEL_METRIC_EXPORT_INTERVAL = "60000"
+PROMETHEUS_METRICS_URL = "https://prometheus-prod-67-prod-us-west-0.grafana.net/api/prom/push"
+PROMETHEUS_USER_ID = "3406144"
+LOKI_LOGGING_URL = "https://logs-prod-021.grafana.net"
+LOKI_NAME = "grafanacloud-sinlessindustries-logs"
+LOKI_USER_ID = "1698747"
+TEMPO_TRACING_URL = "https://tempo-prod-15-prod-us-west-0.grafana.net/tempo"
+TEMPO_NAME = "grafanacloud-sinlessindustries-traces"
+TEMPO_USER_ID = "1693048"
+
+[env.preview.vars]
+NODE_ENV = "development"
+FRONTEND_URL = "http://localhost:4200"
+
+[[flagship]]
+binding = "FLAGSHIP_FLAGS"
+app_id = "2a1ca9ba-b446-4cb8-b8eb-ab0f3985679f"
+remote = true
+
+# Production secrets are account-level Secrets Store bindings. Secret values
+# remain outside source control and are resolved only inside the Worker.
+
+[[secrets_store_secrets]]
+binding = "DATABASE_URL"
+store_id = "ab6f1fdec6a246578177e0577e94f40b"
+secret_name = "DATABASE_URL"
+
+[[secrets_store_secrets]]
+binding = "OTEL_EXPORTER_OTLP_HEADERS"
+store_id = "ab6f1fdec6a246578177e0577e94f40b"
+secret_name = "OTEL_EXPORTER_OTLP_HEADERS"
+
+[[secrets_store_secrets]]
+binding = "PROMETHEUS_TOKEN"
+store_id = "ab6f1fdec6a246578177e0577e94f40b"
+secret_name = "PROMETHEUS_TOKEN"
+
+[[secrets_store_secrets]]
+binding = "LOKI_TOKEN"
+store_id = "ab6f1fdec6a246578177e0577e94f40b"
+secret_name = "LOKI_TOKEN"
+
+[[secrets_store_secrets]]
+binding = "TEMPO_TOKEN"
+store_id = "ab6f1fdec6a246578177e0577e94f40b"
+secret_name = "TEMPO_TOKEN"
+
+[[env.preview.secrets_store_secrets]]
+binding = "DATABASE_URL"
+store_id = "ab6f1fdec6a246578177e0577e94f40b"
+secret_name = "PREVIEW_POSTGRES_URL"
+
+[[r2_buckets]]
+binding = "AEREALITH_AI"
+bucket_name = "aerealith-ai"

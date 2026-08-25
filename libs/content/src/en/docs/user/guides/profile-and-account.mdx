@@ -1,0 +1,21 @@
+---
+title: Profile & Account
+description: Review and update profile fields through the authenticated account service.
+order: 11
+audience: user
+keywords:
+  - profile
+  - account
+  - timezone
+  - locale
+---
+
+# Profile & Account
+
+The current `/app/account` screen displays username, email, role, email-verification status, and account timestamps. Its edit interface contains username, email, avatar URL, timezone, and locale fields.
+
+Changes are saved through the authenticated account service. A deployment still needs its database and auth configuration to be available.
+
+Only use an avatar image that you are permitted to share. The local interface accepts PNG, JPEG, and SVG files up to 2 MB for preview; it does not document a committed upload service.
+
+Changing an email clears the current session, revokes the user's other sessions, and makes the email unverified. Sign in again and complete [Email Verification](/documentation/user/guides/account/email-verification). Confirm displayed changes after saving.

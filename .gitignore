@@ -7,6 +7,8 @@ node_modules/
 # pnpm keeps its global store outside the repository by default, but this
 # covers any local package-manager cache that may be created.
 .pnpm-store/
+**/*cache/
+**/*venv/
 
 # -----------------------------------------------------------------------------
 # Build output and generated artifacts
@@ -24,9 +26,10 @@ node_modules/
 /public/assets/
 
 *.tsbuildinfo
-
+.source/
 # Vite / Vitest generated files.
 .vite/
+.source/
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
 
@@ -101,6 +104,7 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+!.vscode/mcp.json
 
 # -----------------------------------------------------------------------------
 # AI assistant local state
@@ -109,7 +113,6 @@ lerna-debug.log*
 /.claude/worktrees/
 /.claude/settings.local.json
 
-/.codex/
 /.cache/codex/
 
 # -----------------------------------------------------------------------------
@@ -161,5 +164,4 @@ Desktop.ini
 
 .agents/
 .claude/
-.codex/
 .gemini/

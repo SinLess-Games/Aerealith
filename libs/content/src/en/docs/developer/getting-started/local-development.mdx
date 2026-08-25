@@ -1,0 +1,23 @@
+---
+title: Local Development
+description: Start from the implemented Nx workspace and defer target-stack instructions to their authoritative engineering documents.
+order: 11
+audience: developer
+keywords:
+  - local development
+  - nx
+  - pnpm
+---
+
+# Local Development
+
+Work from the repository root with the committed pnpm lockfile and invoke Nx through `pnpm exec nx`. Discover the project and its targets before choosing a command:
+
+```bash
+pnpm exec nx show projects
+pnpm exec nx show project frontend
+```
+
+For the frontend, the content authoring guide uses `pnpm exec nx dev frontend`. Run only the narrow target relevant to your change before expanding validation.
+
+The authoritative engineering guide is [Local Development](https://github.com/SinLess-Games/Aerealith/blob/main/docs/engineering/Local%20Development.md). It is a draft target-state standard in places; [Current Architecture](https://github.com/SinLess-Games/Aerealith/blob/main/docs/architecture/Current%20Architecture.md) and executable project configuration establish current behavior.

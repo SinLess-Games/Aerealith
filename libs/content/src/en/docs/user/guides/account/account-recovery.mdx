@@ -1,0 +1,18 @@
+---
+title: Account Recovery
+description: Reset a password safely using Aerealith's self-service recovery flow.
+order: 13
+audience: user
+keywords:
+  - recovery
+  - password reset
+  - account access
+---
+
+# Account Recovery
+
+Select **Forgot password?** on the sign-in screen, enter the account email, and submit the request. The confirmation is deliberately the same whether or not an account exists. This prevents the page from revealing account membership.
+
+If the account is eligible and email delivery is configured, the deployment sends a reset link. The link contains a random, single-use token that expires after one hour; only its hash is stored by the service. Use the most recent link, choose a new password of at least 12 characters with uppercase and lowercase letters and a number, then sign in again. Completing a reset revokes all existing sessions.
+
+Never disclose your password, reset link, recovery code, or active session to a person claiming to provide support. If you suspect compromise, reset the password and review [Security & Sessions](/documentation/user/guides/security-and-sessions).

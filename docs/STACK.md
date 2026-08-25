@@ -2,13 +2,20 @@
 
 Status: Active
 Owner: SinLess Games LLC
-Last Updated: 2026-07-14
+Last Updated: 2026-07-23
 Document Type: Engineering Reference
 Authority: Canonical for approved technology choices
 
+## Project Context
+
+- [Project Overview](./Project-Overview.md)
+- [Company and Project Structure](./Company-and-Project-Structure.md)
+- [Current State](./CURRENT_STATE.md)
+- [Documentation Index](./README.md)
+
 ## Purpose
 
-This document defines the current and planned technology stack for Aerealith AI.
+This document defines the current and planned technology stack for Aerealith.
 
 It answers:
 
@@ -24,17 +31,19 @@ direction.
 
 ## Status Definitions
 
-| Status           | Meaning                                                   |
-| ---------------- | --------------------------------------------------------- |
-| Implemented      | Present in the repository and actively used.              |
-| Adopted          | Approved for use where applicable.                        |
-| Planned          | Intended for future implementation.                       |
-| Optional         | Approved for limited use cases but not required globally. |
-| Under Evaluation | Not yet approved as a permanent stack choice.             |
-| Deprecated       | Must not be used for new work.                            |
+| Status           | Meaning                                                           |
+| ---------------- | ----------------------------------------------------------------- |
+| Implemented      | Present in the repository and actively used.                      |
+| Installed        | Present as a dependency but not yet wired into an active runtime. |
+| Adopted          | Approved for use where applicable.                                |
+| Planned          | Intended for future implementation.                               |
+| Optional         | Approved for limited use cases but not required globally.         |
+| Under Evaluation | Not yet approved as a permanent stack choice.                     |
+| Deprecated       | Must not be used for new work.                                    |
 
-A technology must not be described as implemented unless the repository contains
-the relevant dependency, configuration, code, or deployment definition.
+A technology must not be described as implemented unless repository code,
+configuration, or a deployment definition actively uses it. Dependency presence
+alone means installed, not implemented.
 
 ## Core Engineering Decisions
 
@@ -59,50 +68,50 @@ the relevant dependency, configuration, code, or deployment definition.
 
 ## Stack Summary
 
-| Area                  | Technology                 | Status      | Primary Role                          |
-| --------------------- | -------------------------- | ----------- | ------------------------------------- |
-| Runtime               | Node.js                    | Implemented | JavaScript and TypeScript runtime     |
-| Language              | TypeScript                 | Implemented | Primary application language          |
-| Package manager       | pnpm                       | Implemented | Workspace dependency management       |
-| Monorepo              | Nx                         | Implemented | Project graph and task orchestration  |
-| Frontend              | React                      | Implemented | User-interface framework              |
-| Build tooling         | Vite                       | Implemented | Development and production builds     |
-| Routing               | React Router               | Implemented | Client-side routing                   |
-| Styling               | Tailwind CSS               | Implemented | Utility-first styling                 |
-| UI primitives         | Base UI                    | Implemented | Accessible unstyled components        |
-| Server state          | TanStack Query             | Implemented | Fetching, caching, and mutations      |
-| API framework         | Hono                       | Implemented | Lightweight and edge-compatible APIs  |
-| Structured backend    | NestJS                     | Adopted     | Larger modular backend services       |
-| Typed API             | tRPC                       | Implemented | Internal end-to-end typed APIs        |
-| Validation            | Zod                        | Implemented | Runtime schema validation             |
-| GraphQL               | GraphQL Yoga               | Optional    | GraphQL APIs where justified          |
-| ORM                   | Drizzle ORM                | Implemented | Typed SQL and schema management       |
-| Database              | PostgreSQL                 | Implemented | Default relational database           |
-| Distributed SQL       | CockroachDB                | Planned     | Scalable PostgreSQL-compatible option |
-| Email                 | Resend                     | Implemented | Transactional email                   |
-| Media                 | Cloudinary                 | Adopted     | Managed media storage and delivery    |
-| Frontend telemetry    | Grafana Faro               | Implemented | Browser telemetry and monitoring      |
-| Managed observability | Datadog                    | Adopted     | Logs, metrics, traces, and alerts     |
-| Logging               | Pino                       | Implemented | Structured application logs           |
-| Unit testing          | Vitest                     | Implemented | Unit and integration tests            |
-| Browser testing       | Playwright                 | Implemented | End-to-end browser tests              |
-| Accessibility         | axe-core                   | Implemented | Automated accessibility checks        |
-| Visual testing        | Meticulous AI              | Adopted     | Visual regression testing             |
-| Coverage              | Codecov                    | Implemented | Coverage reporting                    |
-| Formatting            | Prettier                   | Implemented | Source formatting                     |
-| Linting               | ESLint                     | Implemented | Static analysis                       |
-| Markdown linting      | markdownlint-cli2          | Implemented | Markdown validation                   |
-| Git hooks             | Husky                      | Implemented | Local workflow enforcement            |
-| Security              | Snyk                       | Adopted     | Dependency and code analysis          |
-| Security              | Semgrep                    | Adopted     | Static security rules                 |
-| Dependencies          | Renovate                   | Adopted     | Scheduled dependency maintenance      |
-| Dependencies          | Dependabot                 | Adopted     | GitHub-native security updates        |
-| Deployment            | Cloudflare                 | Implemented | Edge runtime and hosting              |
-| Containers            | Docker                     | Adopted     | Portable service packaging            |
-| Documentation         | Markdown + Mermaid         | Implemented | Docs as code and diagrams             |
-| Documentation UI      | Fumadocs                   | Implemented | Structured documentation rendering    |
-| Platform integration  | Discord                    | Adopted     | First production integration          |
-| AI                    | Provider-agnostic AI layer | Planned     | Assistant and automation enhancement  |
+| Area                  | Technology                 | Status      | Primary Role                              |
+| --------------------- | -------------------------- | ----------- | ----------------------------------------- |
+| Runtime               | Node.js                    | Implemented | JavaScript and TypeScript runtime         |
+| Language              | TypeScript                 | Implemented | Primary application language              |
+| Package manager       | pnpm                       | Implemented | Workspace dependency management           |
+| Monorepo              | Nx                         | Implemented | Project graph and task orchestration      |
+| Frontend              | React                      | Implemented | User-interface framework                  |
+| Build tooling         | Vite                       | Implemented | Development and production builds         |
+| Routing               | React Router               | Implemented | Client-side routing                       |
+| Styling               | Tailwind CSS               | Implemented | Utility-first styling                     |
+| UI primitives         | Base UI                    | Implemented | Accessible unstyled components            |
+| Server state          | TanStack Query             | Implemented | Fetching, caching, and mutations          |
+| API framework         | Hono                       | Installed   | Planned lightweight, edge-compatible APIs |
+| Structured backend    | NestJS                     | Adopted     | Larger modular backend services           |
+| Typed API             | tRPC                       | Installed   | Internal end-to-end typed APIs            |
+| Validation            | Zod                        | Implemented | Runtime schema validation                 |
+| GraphQL               | GraphQL Yoga               | Optional    | GraphQL APIs where justified              |
+| ORM                   | Drizzle ORM                | Implemented | Typed SQL and schema management           |
+| Database              | PostgreSQL                 | Implemented | Default relational database               |
+| Distributed SQL       | CockroachDB                | Planned     | Scalable PostgreSQL-compatible option     |
+| Email                 | Resend                     | Installed   | Transactional email                       |
+| Media                 | Cloudinary                 | Adopted     | Managed media storage and delivery        |
+| Frontend telemetry    | Grafana Faro               | Installed   | Browser telemetry and monitoring          |
+| Managed observability | Datadog                    | Adopted     | Logs, metrics, traces, and alerts         |
+| Logging               | Pino                       | Installed   | Structured application logs               |
+| Unit testing          | Vitest                     | Implemented | Unit and integration tests                |
+| Browser testing       | Playwright                 | Implemented | End-to-end browser tests                  |
+| Accessibility         | axe-core                   | Implemented | Automated accessibility checks            |
+| Visual testing        | Meticulous AI              | Adopted     | Visual regression testing                 |
+| Coverage              | Codecov                    | Implemented | Coverage reporting                        |
+| Formatting            | Prettier                   | Implemented | Source formatting                         |
+| Linting               | ESLint                     | Implemented | Static analysis                           |
+| Markdown linting      | markdownlint-cli2          | Implemented | Markdown validation                       |
+| Git hooks             | Husky                      | Implemented | Local workflow enforcement                |
+| Security              | Snyk                       | Adopted     | Dependency and code analysis              |
+| Security              | Semgrep                    | Adopted     | Static security rules                     |
+| Dependencies          | Renovate                   | Adopted     | Scheduled dependency maintenance          |
+| Dependencies          | Dependabot                 | Adopted     | GitHub-native security updates            |
+| Deployment            | Cloudflare                 | Implemented | Edge runtime and hosting                  |
+| Containers            | Docker                     | Adopted     | Portable service packaging                |
+| Documentation         | Markdown + Mermaid         | Implemented | Docs as code and diagrams                 |
+| Documentation UI      | Fumadocs                   | Installed   | Structured documentation rendering        |
+| Platform integration  | Discord                    | Adopted     | First production integration              |
+| AI                    | Provider-agnostic AI layer | Planned     | Assistant and automation enhancement      |
 
 ## Runtime and Language
 
@@ -112,6 +121,10 @@ the relevant dependency, configuration, code, or deployment definition.
 
 Node.js is the primary runtime for application services, repository tooling,
 scripts, and local development.
+
+> **Configuration conflict:** `package.json` requires Node.js `26.5.0`, while
+> `.node-version` pins `25.9.0`. The repository does not currently provide one
+> consistent runtime pin.
 
 Requirements:
 
@@ -289,10 +302,13 @@ These are supporting packages rather than separate architecture layers.
 
 ### Hono
 
-**Status:** Implemented
+**Status:** Installed
 
 Hono is the default framework for lightweight APIs, middleware, edge services,
 and HTTP entry points.
+
+No current application imports Hono and no API service project exists. This
+section defines the accepted role for future services.
 
 Use Hono when a service benefits from:
 
@@ -331,10 +347,11 @@ root package manifest.
 
 ### tRPC
 
-**Status:** Implemented
+**Status:** Installed
 
-tRPC may be used for end-to-end typed APIs where both client and server are
-TypeScript applications controlled by Aerealith.
+tRPC packages are installed for end-to-end typed APIs where both client and
+server are TypeScript applications controlled by Aerealith. Active client and
+server integration remains planned.
 
 Public or language-neutral APIs must not depend solely on tRPC.
 
@@ -582,9 +599,10 @@ making it unnecessarily impossible.
 
 ### Resend
 
-**Status:** Implemented
+**Status:** Installed
 
-Resend is the transactional email provider for:
+Resend is installed as the approved transactional email provider. Active email
+delivery integration remains planned for:
 
 - account verification
 - security notifications
@@ -615,9 +633,10 @@ stored media.
 
 ### Grafana Faro
 
-**Status:** Implemented
+**Status:** Installed
 
-Grafana Faro provides frontend telemetry and real-user monitoring, including:
+Grafana Faro packages are installed, but active frontend telemetry integration
+remains planned. That integration is intended to provide:
 
 - browser errors
 - performance information
@@ -645,9 +664,10 @@ Instrumentation should remain standards-based where practical.
 
 ### Pino
 
-**Status:** Implemented
+**Status:** Installed
 
-Pino is the primary structured logging library.
+Pino is installed as the approved structured logging library. Active application
+logging integration remains planned.
 
 Logs must be:
 
@@ -820,10 +840,10 @@ sufficient readability.
 
 ### Fumadocs
 
-**Status:** Implemented
+**Status:** Installed
 
-Fumadocs packages are available for building and rendering structured project
-documentation.
+Fumadocs packages are installed for building and rendering structured project
+documentation, but an active documentation UI remains planned.
 
 Published documentation must remain traceable to repository source files.
 
@@ -900,7 +920,7 @@ and cognitive cost.
 
 ## Current Implementation Notes
 
-As of 2026-07-14:
+As of 2026-07-18:
 
 - Nx and pnpm are configured.
 - Node.js and pnpm versions are pinned.
@@ -908,15 +928,18 @@ As of 2026-07-14:
 - TanStack Query is installed.
 - Hono is installed.
 - NestJS is approved but not installed in the root manifest.
-- tRPC, GraphQL Yoga, GraphQL, and Zod are installed.
+- tRPC, GraphQL Yoga, GraphQL, and Zod are installed; tRPC is not yet wired into
+  an active client/server integration.
 - Drizzle ORM, Drizzle Kit, and the PostgreSQL driver are installed.
 - PostgreSQL is the active database target.
 - CockroachDB remains a compatibility goal requiring validation.
-- Resend is installed.
-- Grafana Faro and Pino are installed.
+- Resend is installed but not yet wired into active email delivery.
+- Grafana Faro and Pino are installed but not yet wired into active telemetry or
+  application logging.
 - Vitest, Playwright, Testing Library, axe-core, and MSW are installed.
 - ESLint, Prettier, markdownlint, Husky, lint-staged, and Commitlint are installed.
 - Cloudflare Workers and Vite tooling are installed.
+- Fumadocs is installed, but an active documentation UI remains planned.
 - Docker support remains an approved requirement per deployable service.
 - Discord remains the first first-class integration.
 - AI remains optional for core platform operation.

@@ -1,0 +1,21 @@
+---
+title: API Styles & Availability
+description: Use canonical `/api/V1` REST routes and understand the implemented GraphQL and tRPC auth transports.
+order: 15
+audience: developer
+keywords:
+  - REST
+  - GraphQL
+  - tRPC
+  - webhooks
+---
+
+# API Styles & Availability
+
+The auth service exposes REST below canonical `/api/V1`, including public `POST /auth/sign-up`, `POST /auth/login`, `POST /auth/password-reset/request`, `POST /auth/password-reset/complete`, email-verification, and authenticated session/account routes. The frontend uses these REST endpoints for public sign-up and recovery flows. Do not introduce or document a differently cased prefix.
+
+The auth service also mounts GraphQL at `/graphql` and tRPC at `/trpc`. They are implemented transports, but public sign-up remains REST-only. Rate limiting covers sensitive auth mutations across REST, GraphQL, and tRPC. Browser writes are protected by same-origin `Origin` validation; do not configure credentialed wildcard CORS.
+
+REST conventions, versioning, errors, and webhook guidance in this documentation describe standards for future APIs. Consult [API Architecture](https://github.com/SinLess-Games/Aerealith/blob/main/docs/architecture/API%20Architecture.md), [DEC-001](https://github.com/SinLess-Games/Aerealith/blob/main/docs/decisions/DEC-001-api-route-prefix.md), and [DEC-010](https://github.com/SinLess-Games/Aerealith/blob/main/docs/decisions/DEC-010-api-response-envelope.md) before adding a public surface.
+
+Webhooks remain a future API area unless a service and contract explicitly implement them. Keep route examples aligned with schema validation, permission checks, standardized envelopes, sanitized logs, and the deployment's rate-limit binding.

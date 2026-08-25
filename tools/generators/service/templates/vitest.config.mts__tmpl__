@@ -4,6 +4,25 @@ export default defineConfig({
   test: {
     environment: 'node',
     globals: true,
-    include: ['src/**/*.spec.ts'],
+
+    include: [
+      'src/**/*.spec.ts',
+      'src/**/*.test.ts',
+    ],
+
+    /*
+     * Generated services may initially contain no tests while they are being
+     * developed. Keep direct Vitest execution consistent with the Nx target.
+     */
+    passWithNoTests: true,
+
+    /*
+     * Prevent mocks, spies, globals, and environment changes from leaking
+     * between tests.
+     */
+    clearMocks: true,
+    restoreMocks: true,
+    unstubEnvs: true,
+    unstubGlobals: true,
   },
 });

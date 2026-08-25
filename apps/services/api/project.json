@@ -1,0 +1,89 @@
+{
+  "name": "service-api",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/services/api/src",
+  "projectType": "application",
+  "tags": ["scope:services", "type:service"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit --rootDir . -p apps/services/api/tsconfig.app.json"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "outputs": ["{workspaceRoot}/dist/apps/services/api"],
+      "options": {
+        "command": "tsc -p apps/services/api/tsconfig.build.json --outDir dist/apps/services/api"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["apps/services/api/**/*.{ts,tsx,js,jsx}"]
+      }
+    },
+    "test": {
+      "executor": "@nx/vitest:test",
+      "options": {
+        "passWithNoTests": true,
+        "configFile": "apps/services/api/vitest.config.mts"
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "service-api:build"
+      }
+    },
+    "worker-serve": {
+      "continuous": true,
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/api",
+        "command": "wrangler dev"
+      }
+    },
+    "dev": {
+      "continuous": true,
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/api",
+        "command": "wrangler dev --config wrangler.local.toml --port 8788 --inspector-port 9230 --env-file ../../../.env"
+      }
+    },
+    "dev-e2e": {
+      "continuous": true,
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/api",
+        "command": "wrangler dev --config wrangler.local.toml --port 8788 --inspector-port 9230"
+      }
+    },
+    "typegen": {
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/worker-configuration.d.ts"],
+      "options": {
+        "cwd": "apps/services/api",
+        "command": "wrangler types"
+      }
+    },
+    "worker-dry-run": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/api",
+        "command": "wrangler deploy --dry-run"
+      }
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/api",
+        "command": "wrangler deploy"
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+---
+title: Configuration
+description: Understand configuration ownership, precedence, validation, and environment scope.
+order: 10
+audience: developer
+---
+
+# Configuration
+
+Configuration belongs to the project or capability that consumes it. Validate values at startup or boundary use and fail with an actionable non-secret message.
+
+Document name, purpose, type, default, required environments, and whether a value is sensitive. Keep environment overrides explicit.
+
+Do not use configuration to hide permanent business logic or silently change public contracts. Secrets require approved runtime storage.

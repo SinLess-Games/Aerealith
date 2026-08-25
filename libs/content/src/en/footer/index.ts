@@ -1,7 +1,7 @@
 import type { FooterProps } from '../../types'
 
 export const footerProps = {
-  brandName: 'Aerealith AI',
+  brandName: 'Aerealith',
   tagline: 'Your digital life, intelligently connected.',
   logoHref: '/',
 
@@ -110,7 +110,7 @@ export const footerProps = {
       href: 'https://github.com/SinLess-Games/Aerealith',
       target: '_blank',
       rel: 'noopener noreferrer',
-      ariaLabel: 'View Aerealith AI on GitHub',
+      ariaLabel: 'View Aerealith on GitHub',
     },
     {
       label: 'SinLess Games',

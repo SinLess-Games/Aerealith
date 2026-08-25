@@ -1,20 +1,20 @@
-import { atAGlanceSection } from './at-a-glance.section'
-import { communityFundingSection } from './community-funding.section'
-import { faqCards, faqSection } from './faq.section'
-import { HERO_DATA, INVESTOR_VIDEO } from './hero.section'
+import { atAGlanceSection } from './at-a-glance.section';
+import { communityFundingSection } from './community-funding.section';
+import { faqCards, faqSection } from './faq.section';
+import { HERO_DATA, INVESTOR_VIDEO } from './hero.section';
 import {
   aerealithDifferentiators,
   whyAerealithAiSection,
-} from './why-aerealith-ai.section'
+} from './why-aerealith-ai.section';
 
 export const homeLandingPageContent = {
   hero: {
-    eyebrow: 'Aerealith AI',
+    eyebrow: 'Aerealith',
     title: 'Your Digital Life,',
     highlightedTitle: 'Intelligently Connected.',
     description:
-      'Aerealith AI is a personal digital assistant that unifies your apps, data, and workflows in one intelligent layer. Smarter automation, richer insights, and a life organized the way it is built for you.',
-    primaryAction: { label: 'Get started', href: '/sign-up' },
+      'Aerealith is a modular platform in active development. Aerealith AI is the assistant within it, designed to help connect context and coordinate approved workflows while keeping users in control.',
+    primaryAction: { label: 'Join the waitlist', href: '#waitlist' },
     secondaryAction: { label: 'See updates', href: '/contact' },
     image: {
       src: '/images/brand/mark-no-background.png',
@@ -29,6 +29,7 @@ export const homeLandingPageContent = {
     roleLabel: 'Your role',
     rolePlaceholder: 'Select your role',
     roles: ['Individual', 'Creator', 'Developer', 'Community', 'Team'],
+    newsletterLabel: 'Also join the newsletter',
     submitLabel: 'Join waitlist',
     privacyNote: 'We respect your privacy. No spam, ever.',
   },
@@ -79,7 +80,7 @@ export const homeLandingPageContent = {
     eyebrow: 'Plans & Pricing',
     title: 'Plans for Every Journey',
     description:
-      'Start free. Scale as you grow. All plans include powerful AI and privacy-first design.',
+      'Illustrative plan concepts for a product in development. Prices, features, and limits are not final, and subscriptions are not yet available.',
     action: { label: 'See all plans', href: '/pricing' },
     tiers: [
       {
@@ -128,29 +129,29 @@ export const homeLandingPageContent = {
     ],
   },
   finalCta: {
-    title: 'Ready to Take Control?',
+    title: 'Help Shape Aerealith',
     description:
       'Join early, shape what we build, and be part of the next evolution in intelligent living.',
     primaryAction: { label: 'Join the waitlist', href: '#waitlist' },
     secondaryAction: { label: 'Explore updates', href: '/contact' },
   },
-} as const
+} as const;
 
 // Compatibility exports for existing consumers of the previous home model.
-export const homeSections = atAGlanceSection.carouselSections
-export const homePageContent = { sections: homeSections } as const
-export const crowdfundingMediaItems = [homeLandingPageContent.funding.video]
+export const homeSections = atAGlanceSection.carouselSections;
+export const homePageContent = { sections: homeSections } as const;
+export const crowdfundingMediaItems = [homeLandingPageContent.funding.video];
 export const crowdfundingSection = {
   ...communityFundingSection,
   videos: crowdfundingMediaItems,
-} as const
-export const pricingPreviewImage = homeLandingPageContent.hero.image
+} as const;
+export const pricingPreviewImage = homeLandingPageContent.hero.image;
 export const pricingPreviewSection = {
   id: 'pricing-preview',
   eyebrow: homeLandingPageContent.pricing.eyebrow,
   title: homeLandingPageContent.pricing.title,
   description: homeLandingPageContent.pricing.description,
   image: pricingPreviewImage,
-} as const
-export const infographicCarouselProps = { autoScrollInterval: 6_500 } as const
-export const productPreviewCarouselProps = { maxImages: 5 } as const
+} as const;
+export const infographicCarouselProps = { autoScrollInterval: 6_500 } as const;
+export const productPreviewCarouselProps = { maxImages: 5 } as const;

@@ -3,21 +3,37 @@
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/services/<%= serviceName %>/src",
   "projectType": "application",
-  "tags": ["scope:services", "type:service"],
+  "tags": [
+    "scope:services",
+    "type:service"
+  ],
   "targets": {
     "build": {
       "executor": "@nx/js:tsc",
-      "outputs": ["{options.outputPath}"],
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "{options.outputPath}"
+      ],
       "options": {
         "outputPath": "dist/apps/services/<%= serviceName %>",
-        "main": "apps/services/<%= serviceName %>/src/main.ts",
+        "main": "apps/services/<%= serviceName %>/src/server.ts",
         "tsConfig": "apps/services/<%= serviceName %>/tsconfig.app.json"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc -p apps/services/<%= serviceName %>/tsconfig.app.json --noEmit"
       }
     },
     "lint": {
       "executor": "@nx/eslint:lint",
       "options": {
-        "lintFilePatterns": ["apps/services/<%= serviceName %>/**/*.{ts,tsx,js,jsx}"]
+        "lintFilePatterns": [
+          "apps/services/<%= serviceName %>/**/*.{ts,tsx,js,jsx}"
+        ]
       }
     },
     "test": {
@@ -32,6 +48,38 @@
       "defaultConfiguration": "development",
       "options": {
         "buildTarget": "<%= projectName %>:build"
+      }
+    },
+    "worker-serve": {
+      "continuous": true,
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/<%= serviceName %>",
+        "command": "wrangler dev"
+      }
+    },
+    "typegen": {
+      "executor": "nx:run-commands",
+      "outputs": [
+        "{projectRoot}/worker-configuration.d.ts"
+      ],
+      "options": {
+        "cwd": "apps/services/<%= serviceName %>",
+        "command": "wrangler types"
+      }
+    },
+    "worker-dry-run": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/<%= serviceName %>",
+        "command": "wrangler deploy --dry-run"
+      }
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/<%= serviceName %>",
+        "command": "wrangler deploy"
       }
     }
   }

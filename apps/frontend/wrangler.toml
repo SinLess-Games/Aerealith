@@ -6,9 +6,7 @@ compatibility_date = "2026-07-08"
 compatibility_flags = ["nodejs_compat"]
 preview_urls = true
 upload_source_maps = true
-routes = [
-  { pattern = "aerealith.com", custom_domain = true },
-]
+routes = [{ pattern = "aerealith.com", custom_domain = true }]
 
 # ---------------------------------------------------------------
 # Assets
@@ -47,6 +45,10 @@ head_sampling_rate = 1
 binding = "EVENTBUS"
 queue = "events"
 
+[[queues.producers]]
+binding = "NOTIFICATION_QUEUE"
+queue = "594594d2e54647d2b56fb778e128aa43"
+
 [[kv_namespaces]]
 binding = "AEREALITH_KV"
 id = "9873b606bf1346aca48de61c9bb96968"
@@ -72,3 +74,35 @@ dataset = "Aerealith"
 # ---------------------------------------------------------------
 [cache]
 enabled = true
+
+# Service bindings are the production path. URL fallbacks remain available for
+# environments where the downstream Workers are not connected directly.
+[vars]
+API_SERVICE_URL = "https://aerealith-api-preview.sinless-deploy.workers.dev"
+AUTH_SERVICE_URL = "https://aerealith-auth-preview.sinless-deploy.workers.dev"
+
+# Public frontend integration values mirrored from the root production env.
+# Vite embeds these values in the browser bundle during the production build;
+# keeping them here also makes the deployed Worker configuration explicit.
+VITE_GTM_CONTAINER_ID = ""
+VITE_ADSENSE_CLIENT_ID = ""
+VITE_ADSENSE_TEST_MODE = "false"
+VITE_TURNSTILE_SITE_KEY = ""
+VITE_GOOGLE_SITE_VERIFICATION = ""
+VITE_CLOUDFLARE_WEB_ANALYTICS_ENABLED = "false"
+VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN = ""
+
+
+# ---------------------------------------------------------------
+# Workers
+# ---------------------------------------------------------------
+
+# API Worker
+[[services]]
+binding = "API_WORKER"
+service = "aerealith-api"
+
+# Authentication Worker
+[[services]]
+binding = "AUTH_WORKER"
+service = "aerealith-auth"

@@ -1,6 +1,6 @@
 # .github/milestones.yaml
 #
-# Aerealith AI milestone catalogue.
+# Aerealith milestone catalogue.
 #
 # This file is intended to be the repository source of truth for GitHub
 # milestones. Dates are intentionally omitted until delivery targets are
@@ -17,7 +17,7 @@ milestones:
     state: open
     due_on: null
     description: |
-      Establish the Aerealith AI engineering foundation.
+      Establish the Aerealith engineering foundation.
 
       Scope:
       - Nx monorepo structure and workspace boundaries.
@@ -125,7 +125,7 @@ milestones:
     state: open
     due_on: null
     description: |
-      Establish Aerealith AI as a first-class Discord platform integration.
+      Establish Aerealith as a first-class Discord platform integration.
 
       Scope:
       - Official Discord application and bot architecture.
@@ -179,7 +179,7 @@ milestones:
     state: open
     due_on: null
     description: |
-      Prepare Aerealith AI for controlled external use.
+      Prepare Aerealith for controlled external use.
 
       Scope:
       - End-to-end onboarding for invited users and Discord communities.
@@ -197,7 +197,7 @@ milestones:
     state: open
     due_on: null
     description: |
-      Release the first public Aerealith AI product version.
+      Release the first public Aerealith product version.
 
       Scope:
       - Public availability, production readiness, and launch communications.
@@ -215,7 +215,7 @@ milestones:
     state: open
     due_on: null
     description: |
-      Establish a process for managing dependencies and risks across the Aerealith AI project.
+      Establish a process for managing dependencies and risks across the Aerealith project.
 
       Scope:
       - Identify and document key dependencies between teams, services, and external systems.

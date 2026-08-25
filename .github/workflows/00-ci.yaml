@@ -121,6 +121,10 @@ jobs:
             --store-dir "$PNPM_STORE_DIR" \
             2>&1 | tee artifacts/ci/install.log
 
+      - name: Validate repository licensing
+        if: steps.install.outcome == 'success'
+        run: pnpm license:check
+
       - name: Verify Nx installation
         id: nx_verify
         if: steps.install.outcome == 'success'

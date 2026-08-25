@@ -4,14 +4,16 @@
  * A waitlist entry returned by the API.
  */
 export type WaitlistContract = {
-  id: string
-  email: string
-  createdAt: string
-}
+  id: string;
+  email: string;
+  role: string | null;
+  createdAt: string;
+};
 
 /**
  * Data required to join the waitlist.
  */
 export type JoinWaitlistContract = {
-  email: string
-}
+  email: string;
+  role?: string | null;
+};

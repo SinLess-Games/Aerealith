@@ -1,8 +1,10 @@
 # Integration Architecture
 
 Status: Draft
-Owner: Tim Pierce / SinLess Games
-Last Updated: 2026-07-12
+Implementation State: Target architecture; not current implementation evidence
+Current-State Source: [Current Architecture](./Current%20Architecture.md)
+Owner: SinLess Games LLC
+Last Updated: 2026-07-18
 Security Classification: Internal Architecture
 Initial Integration Release: `0.6 — Developer Portal & Integrations`
 Flagship Integration: Discord
@@ -43,7 +45,7 @@ Related Architecture:
 
 ## Purpose
 
-This document defines the integration architecture for Aerealith AI.
+This document defines the intended integration architecture for the Aerealith platform.
 
 Integrations connect Aerealith to external applications, platforms, services, communities, storage systems, communication providers, developer tools, and user-controlled accounts.
 
@@ -122,7 +124,7 @@ workflow actions
 module contracts
 ```
 
-Discord is the first real integration and the flagship implementation used to prove the architecture.
+Discord is the planned first substantial integration and flagship implementation used to prove the architecture.
 
 Future integrations may include:
 

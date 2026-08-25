@@ -1,0 +1,114 @@
+.overview {
+  position: relative;
+  color: var(--ae-foreground);
+}
+
+.overview::before {
+  position: absolute;
+  z-index: -1;
+  top: -5rem;
+  left: -4rem;
+  width: 34rem;
+  height: 20rem;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    var(--ae-primary-subtle),
+    transparent 68%
+  );
+  content: '';
+}
+
+.onboarding {
+  display: flex;
+  min-height: 8.25rem;
+  align-items: center;
+  gap: 1.5rem;
+  border: 1px solid var(--ae-secondary);
+  border-radius: 0.8rem;
+  background: var(--ae-glass-panel);
+  padding: 1.7rem;
+  box-shadow: var(--ae-shadow-sm);
+}
+
+.accountIcon,
+.cardIcon {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.8rem;
+}
+
+.accountIcon {
+  width: 4.3rem;
+  height: 4.3rem;
+  border: 1px solid var(--ae-secondary);
+  border-radius: 50%;
+  background: var(--ae-secondary-subtle);
+  color: var(--ae-secondary);
+  font-size: 2.25rem;
+}
+
+.questionCard {
+  position: relative;
+  display: flex;
+  min-height: 13rem;
+  gap: 1.25rem;
+  overflow: hidden;
+  border: 1px solid var(--ae-border);
+  border-radius: 0.8rem;
+  background: var(--ae-glass-panel);
+  padding: 1.6rem;
+  box-shadow: var(--ae-shadow-sm);
+}
+
+.questionCard::after {
+  position: absolute;
+  right: -5rem;
+  bottom: -6rem;
+  width: 14rem;
+  height: 12rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--ae-accent-subtle), transparent 68%);
+  content: '';
+}
+
+.cardIcon {
+  width: 3.5rem;
+  height: 3.5rem;
+  border: 1px solid var(--ae-accent);
+  background: var(--ae-accent-subtle);
+  color: var(--ae-accent);
+  font-size: 1.7rem;
+}
+
+.statusBar {
+  display: flex;
+  align-items: center;
+  gap: 1.8rem;
+  flex-wrap: wrap;
+  border: 1px solid var(--ae-border);
+  border-radius: 0.8rem;
+  background: var(--ae-surface);
+  padding: 1.25rem 1.5rem;
+}
+
+@media (max-width: 700px) {
+  .onboarding {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .onboarding a {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overview::before,
+  .questionCard::after {
+    display: none;
+  }
+}

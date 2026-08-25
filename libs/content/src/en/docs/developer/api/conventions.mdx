@@ -1,0 +1,14 @@
+---
+title: API Conventions
+description: Shared transport, naming, validation, and response conventions.
+order: 10
+audience: developer
+---
+
+# API Conventions
+
+Use resource-oriented paths, HTTP methods according to their semantics, specific status codes, and JSON for structured bodies unless a contract says otherwise.
+
+Encode dates as ISO 8601 strings, document time-zone behavior, and use opaque identifiers. Validate malformed input at the boundary with stable field details.
+
+For pagination, document cursor stability, default and maximum size, ordering, and filters. Cursors must not expose database implementation details.

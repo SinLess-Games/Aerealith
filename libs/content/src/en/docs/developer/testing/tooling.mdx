@@ -1,0 +1,18 @@
+---
+title: Testing Tooling
+description: Run Vitest and Playwright through Nx and choose tests that prove the boundary you changed.
+order: 11
+audience: developer
+keywords:
+  - Vitest
+  - Playwright
+  - accessibility
+---
+
+# Testing Tooling
+
+Vitest is the current unit and integration test runner; Playwright is the current frontend end-to-end tool. Run each through its Nx target, not the underlying command directly. Use `pnpm exec nx show project <project>` to discover supported targets.
+
+Test current behavior, failures, and security boundaries—not only happy paths. For UI changes, cover keyboard and accessible-name behavior where applicable; for service work, cover authentication, authorization, malformed input, and duplicate external-effect paths.
+
+The authoritative standards are [Testing](https://github.com/SinLess-Games/Aerealith/blob/main/docs/engineering/Testing.md) and this section's [Testing Strategy](/documentation/developer/testing/testing-strategy). Do not write an end-to-end test that asserts planned product functionality as if it already exists.

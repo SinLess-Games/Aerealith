@@ -1,6 +1,12 @@
 # Module System
 
-Aerealith AI is built to be modular.
+Status: Target specification
+Document Type: Target Module System Specification
+Implementation State: Intended and phased module behavior; verify current availability in [Current State](../CURRENT_STATE.md)
+Authority: Target product behavior; [Project Overview](../Project-Overview.md) defines product identity and boundaries
+
+Aerealith is the platform; Aerealith AI is its assistant/application layer.
+Aerealith is built to be modular.
 
 The Module System defines how Aerealith packages, enables, disables, configures, governs, audits, and extends user-facing product capabilities.
 
