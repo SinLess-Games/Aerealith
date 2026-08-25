@@ -19,6 +19,12 @@ type ApiEnvironment = { Bindings: ApiWorkerBindings };
 
 export type CreateApiServiceAppOptions = {
   waitlist?: WaitlistApplication;
+  /**
+   * Optional readiness check that validates service dependencies.
+   * When provided, a GET /ready endpoint is exposed that returns 200 on
+   * success or 503 when the check fails.
+   */
+  readinessCheck?: () => Promise<void>;
 };
 
 const allowedOrigins = [
@@ -59,6 +65,17 @@ export function createApiServiceApp(options: CreateApiServiceAppOptions = {}) {
   app.get('/api/V1/services/api/health', (context) =>
     context.json({ service: 'api', status: 'ok' }),
   );
+
+  if (options.readinessCheck) {
+    app.get('/ready', async (context) => {
+      try {
+        await options.readinessCheck();
+        return context.json({ service: 'api', status: 'ready' });
+      } catch {
+        return context.json({ service: 'api', status: 'not_ready' }, 503);
+      }
+    });
+  }
 
   app.post('/api/V1/waitlist', async (context) => {
     let body: unknown;
