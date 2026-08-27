@@ -32,6 +32,24 @@
       }
     },
 
+    "seed-discord": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsx libs/db/seeds/discord/seed-discord.ts"
+      }
+    },
+
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "tsc --noEmit -p libs/db/tsconfig.lib.json",
+          "tsc --noEmit -p libs/db/tsconfig.seeds.json"
+        ],
+        "parallel": false
+      }
+    },
+
     "build": {
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],

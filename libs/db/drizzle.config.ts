@@ -13,7 +13,8 @@ export default defineConfig({
 
   schema: [
     './libs/db/src/schema/**/*.table.ts',
-    './libs/db/src/enums/*.db-enum.ts',
+    './libs/db/src/enums/**/*.db-enum.ts',
+    './libs/db/src/enums/**/*.db-enums.ts',
   ],
   out: './libs/db/migrations',
 
