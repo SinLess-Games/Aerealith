@@ -1,20 +1,16 @@
-import { LogLevel, noopLogger, type LogSink } from '@aerealith-ai/core';
+import { LogLevel, noopLogger, type LogRecord } from '@aerealith-ai/core';
 import { describe, expect, it, vi } from 'vitest';
 
 import { createLogger } from './create-logger';
 import { DefaultLogger } from './default-logger';
 import { LogRecordFactory } from './factories/log-record.factory';
 
-function createSink(): LogSink & {
-  write: ReturnType<typeof vi.fn>;
-  flush: ReturnType<typeof vi.fn>;
-  close: ReturnType<typeof vi.fn>;
-} {
+function createSink() {
   return {
     name: 'memory',
-    write: vi.fn(),
-    flush: vi.fn().mockResolvedValue(undefined),
-    close: vi.fn().mockResolvedValue(undefined),
+    write: vi.fn<(record: LogRecord) => void | Promise<void>>(),
+    flush: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+    close: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
   };
 }
 

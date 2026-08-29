@@ -3,13 +3,13 @@
 import {
   LogLevel,
   type LogContext,
-  type Logger,
   type LogInput,
   type LogSink,
 } from '@aerealith-ai/core';
 import { shouldLog } from '@aerealith-ai/utils';
 
 import { LogRecordFactory } from './factories/log-record.factory';
+import type { ObservabilityLogger } from './logger.types';
 
 interface LoggerRuntime {
   readonly sink: LogSink;
@@ -27,7 +27,7 @@ interface LoggerRuntime {
  * Logger instances created through `child()` share the same sink lifecycle and
  * record factory while inheriting additional contextual information.
  */
-export class DefaultLogger implements Logger {
+export class DefaultLogger implements ObservabilityLogger {
   private readonly minimumLevel: LogLevel;
   private readonly context: LogContext;
   private readonly runtime: LoggerRuntime;
@@ -50,28 +50,46 @@ export class DefaultLogger implements Logger {
     };
   }
 
-  public trace(input: LogInput): void {
-    this.write(LogLevel.Trace, input);
+  public trace(input: LogInput): void;
+  public trace(message: string): void;
+  public trace(context: LogContext, message: string): void;
+  public trace(input: LogInput | LogContext | string, message?: string): void {
+    this.write(LogLevel.Trace, normalizeInput(input, message));
   }
 
-  public debug(input: LogInput): void {
-    this.write(LogLevel.Debug, input);
+  public debug(input: LogInput): void;
+  public debug(message: string): void;
+  public debug(context: LogContext, message: string): void;
+  public debug(input: LogInput | LogContext | string, message?: string): void {
+    this.write(LogLevel.Debug, normalizeInput(input, message));
   }
 
-  public info(input: LogInput): void {
-    this.write(LogLevel.Info, input);
+  public info(input: LogInput): void;
+  public info(message: string): void;
+  public info(context: LogContext, message: string): void;
+  public info(input: LogInput | LogContext | string, message?: string): void {
+    this.write(LogLevel.Info, normalizeInput(input, message));
   }
 
-  public warn(input: LogInput): void {
-    this.write(LogLevel.Warn, input);
+  public warn(input: LogInput): void;
+  public warn(message: string): void;
+  public warn(context: LogContext, message: string): void;
+  public warn(input: LogInput | LogContext | string, message?: string): void {
+    this.write(LogLevel.Warn, normalizeInput(input, message));
   }
 
-  public error(input: LogInput): void {
-    this.write(LogLevel.Error, input);
+  public error(input: LogInput): void;
+  public error(message: string): void;
+  public error(context: LogContext, message: string): void;
+  public error(input: LogInput | LogContext | string, message?: string): void {
+    this.write(LogLevel.Error, normalizeInput(input, message));
   }
 
-  public fatal(input: LogInput): void {
-    this.write(LogLevel.Fatal, input);
+  public fatal(input: LogInput): void;
+  public fatal(message: string): void;
+  public fatal(context: LogContext, message: string): void;
+  public fatal(input: LogInput | LogContext | string, message?: string): void {
+    this.write(LogLevel.Fatal, normalizeInput(input, message));
   }
 
   /**
@@ -79,7 +97,7 @@ export class DefaultLogger implements Logger {
    *
    * Values supplied by the child override matching parent values.
    */
-  public child(context: LogContext): Logger {
+  public child(context: LogContext): ObservabilityLogger {
     return new DefaultLogger(
       this.minimumLevel,
       this.runtime.sink,
@@ -218,6 +236,66 @@ export class DefaultLogger implements Logger {
       await Promise.all(pendingWrites);
     }
   }
+}
+
+function normalizeInput(
+  input: LogInput | LogContext | string,
+  message: string | undefined,
+): LogInput {
+  if (typeof input === 'string') {
+    return {
+      event: 'application.log',
+      message: input,
+    };
+  }
+
+  if (message === undefined && isLogInput(input)) {
+    return input as LogInput;
+  }
+
+  const context: Record<string, unknown> = Object.fromEntries(
+    Object.entries(input),
+  );
+  const error = context['err'] ?? context['error'];
+  const event = readString(context['event']) ?? 'application.log';
+  const component = readString(context['component']);
+  const operation = readString(context['operation']);
+  const durationMs = readDuration(context['durationMs']);
+
+  delete context['err'];
+  delete context['error'];
+  delete context['event'];
+  delete context['component'];
+  delete context['operation'];
+  delete context['durationMs'];
+
+  return {
+    event,
+    message: message ?? 'Application log event',
+    ...(component === undefined ? {} : { component }),
+    ...(operation === undefined ? {} : { operation }),
+    ...(durationMs === undefined ? {} : { durationMs }),
+    ...(error === undefined ? {} : { error }),
+    context,
+  };
+}
+
+function isLogInput(value: LogInput | LogContext): boolean {
+  return (
+    typeof value['event'] === 'string' && typeof value['message'] === 'string'
+  );
+}
+
+function readString(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : undefined;
+}
+
+function readDuration(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0
+    ? value
+    : undefined;
 }
 
 function isPromiseLike(value: unknown): value is PromiseLike<void> {

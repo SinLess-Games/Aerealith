@@ -5,6 +5,16 @@
   "projectType": "library",
   "tags": ["scope:observability", "type:lib"],
   "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "tsc --noEmit -p libs/observability/tsconfig.lib.json",
+          "tsc --noEmit -p libs/observability/tsconfig.spec.json"
+        ],
+        "parallel": false
+      }
+    },
     "build": {
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],

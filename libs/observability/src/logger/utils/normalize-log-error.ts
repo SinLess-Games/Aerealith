@@ -1,6 +1,7 @@
 // libs/observability/src/logger/utils/normalize-log-error.ts
 
 import type { LogError, LogRecordContext } from '@aerealith-ai/core';
+import { redactText } from '@aerealith-ai/utils';
 
 import { normalizeLogContext } from './normalize-log-context';
 
@@ -57,9 +58,12 @@ function normalizeErrorValue(
 
   const name =
     readString(value, 'name') ?? getConstructorName(value) ?? 'Error';
-  const message = readString(value, 'message') ?? stringifyThrownValue(value);
+  const message = redactText(
+    readString(value, 'message') ?? stringifyThrownValue(value),
+  );
   const code = readCode(value);
-  const stack = readString(value, 'stack');
+  const stackValue = readString(value, 'stack');
+  const stack = stackValue === undefined ? undefined : redactText(stackValue);
   const context = extractErrorContext(value);
 
   const cause =

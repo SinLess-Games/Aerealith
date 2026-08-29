@@ -6,6 +6,7 @@ export const DEFAULT_MAX_DEPTH_REPLACEMENT = '[MAX_DEPTH]';
 
 export const DEFAULT_SENSITIVE_KEYS = [
   'password',
+  'passwd',
   'passwordHash',
   'passwordConfirmation',
   'currentPassword',
@@ -25,6 +26,10 @@ export const DEFAULT_SENSITIVE_KEYS = [
   'apiKey',
   'authorization',
   'proxyAuthorization',
+  'databaseUrl',
+  'redisUrl',
+  'sentryDsn',
+  'discordToken',
 
   'cookie',
   'setCookie',
@@ -40,6 +45,9 @@ export const DEFAULT_SENSITIVE_KEYS = [
   'otpCode',
   'totpSecret',
 ] as const;
+
+const CREDENTIAL_URL_PATTERN =
+  /([a-z][a-z0-9+.-]*:\/\/)([^\s/:@]+):([^\s/@]+)@/giu;
 
 export interface RedactOptions {
   /**
@@ -137,11 +145,11 @@ function redactError(
 ): Record<string, unknown> {
   const record: Record<string, unknown> = {
     name: error.name,
-    message: error.message,
+    message: redactText(error.message, options.replacement),
   };
 
   if (error.stack !== undefined) {
-    record['stack'] = error.stack;
+    record['stack'] = redactText(error.stack, options.replacement);
   }
 
   if ('cause' in error && error.cause !== undefined) {
@@ -201,6 +209,23 @@ function normalizeMapKey(value: unknown): string {
   return Object.prototype.toString.call(value);
 }
 
+/**
+ * Removes credentials embedded in URL-like text without changing safe URLs.
+ *
+ * Key-based redaction protects structured metadata. This additional pass
+ * protects common connection strings that may appear inside error messages or
+ * other free-form values.
+ */
+export function redactText(
+  value: string,
+  replacement = DEFAULT_REDACTION_REPLACEMENT,
+): string {
+  return value.replace(
+    CREDENTIAL_URL_PATTERN,
+    (_match, protocol: string) => `${protocol}${replacement}:${replacement}@`,
+  );
+}
+
 function redactSet(
   value: ReadonlySet<unknown>,
   options: ResolvedRedactOptions,
@@ -236,7 +261,9 @@ function redactValue(
   depth: number,
 ): unknown {
   if (value === null || value === undefined) return value;
-  if (typeof value === 'string') return value;
+  if (typeof value === 'string') {
+    return redactText(value, options.replacement);
+  }
   if (typeof value === 'number') return value;
   if (typeof value === 'boolean') return value;
   if (typeof value === 'bigint') return value;

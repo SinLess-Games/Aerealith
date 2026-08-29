@@ -28,6 +28,7 @@ export type LogRecordFactoryOptions = Pick<
   | 'version'
   | 'instanceId'
   | 'context'
+  | 'contextProvider'
   | 'createId'
   | 'now'
 >;
@@ -41,6 +42,7 @@ export class LogRecordFactory {
   private readonly version: string | undefined;
   private readonly instanceId: string | undefined;
   private readonly baseContext: LogContext;
+  private readonly contextProvider: () => LogContext | undefined;
   private readonly createId: () => string;
   private readonly now: () => Date;
 
@@ -53,6 +55,7 @@ export class LogRecordFactory {
     this.version = normalizeOptionalString(options.version);
     this.instanceId = normalizeOptionalString(options.instanceId);
     this.baseContext = options.context ?? {};
+    this.contextProvider = options.contextProvider ?? (() => undefined);
     this.createId = options.createId ?? createDefaultId;
     this.now = options.now ?? createCurrentDate;
   }
@@ -67,6 +70,7 @@ export class LogRecordFactory {
   ): LogRecord {
     const context = normalizeLogContext({
       ...this.baseContext,
+      ...this.contextProvider(),
       ...inheritedContext,
       ...input.context,
     });

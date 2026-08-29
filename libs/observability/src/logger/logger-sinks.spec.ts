@@ -1,4 +1,4 @@
-import { LogLevel, type LogRecord, type LogSink } from '@aerealith-ai/core';
+import { LogLevel, type LogRecord } from '@aerealith-ai/core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { CompositeLogSink } from './sinks/composite-log.sink';
@@ -20,16 +20,12 @@ function createRecord(overrides: Partial<LogRecord> = {}): LogRecord {
   };
 }
 
-function createSink(name: string): LogSink & {
-  write: ReturnType<typeof vi.fn>;
-  flush: ReturnType<typeof vi.fn>;
-  close: ReturnType<typeof vi.fn>;
-} {
+function createSink(name: string) {
   return {
     name,
-    write: vi.fn(),
-    flush: vi.fn().mockResolvedValue(undefined),
-    close: vi.fn().mockResolvedValue(undefined),
+    write: vi.fn<(record: LogRecord) => void | Promise<void>>(),
+    flush: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+    close: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
   };
 }
 

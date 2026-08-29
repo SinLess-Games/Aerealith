@@ -1,6 +1,8 @@
-import type { LogLevel, Logger } from '@aerealith-ai/core';
+import type { LogContext, LogLevel } from '@aerealith-ai/core';
 
+import type { ConsoleLoggerOptions } from '../logger/config/console-logger-options.interface';
 import { createLogger } from '../logger/create-logger';
+import type { ObservabilityLogger } from '../logger/logger.types';
 import type { ObservabilityEnvironment } from './node-observability.config';
 
 export interface CreateNodeLoggerOptions {
@@ -8,10 +10,15 @@ export interface CreateNodeLoggerOptions {
   readonly environment?: ObservabilityEnvironment;
   readonly level?: LogLevel;
   readonly version?: string;
+  readonly instanceId?: string;
+  readonly context?: LogContext;
+  readonly console?: ConsoleLoggerOptions;
   readonly onSinkError?: (error: unknown) => void;
 }
 
-export function createNodeLogger(options: CreateNodeLoggerOptions): Logger {
+export function createNodeLogger(
+  options: CreateNodeLoggerOptions,
+): ObservabilityLogger {
   const environment = options.environment ?? process.env;
   const endpoint = environment['LOKI_LOGGING_URL']?.trim();
   const user = environment['LOKI_USER_ID']?.trim();
@@ -28,6 +35,9 @@ export function createNodeLogger(options: CreateNodeLoggerOptions): Logger {
     environment: deploymentEnvironment,
     ...(options.level ? { level: options.level } : {}),
     ...(options.version ? { version: options.version } : {}),
+    ...(options.instanceId ? { instanceId: options.instanceId } : {}),
+    ...(options.context ? { context: options.context } : {}),
+    ...(options.console ? { console: options.console } : {}),
     ...(endpoint && authorization
       ? {
           loki: {
