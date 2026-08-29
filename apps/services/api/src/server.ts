@@ -61,7 +61,7 @@ async function main(): Promise<void> {
    */
   const [{ serve }, { createApiServiceApp }] = await Promise.all([
     import('@hono/node-server'),
-    import('./main'),
+    import('./main.js'),
   ]);
 
   /*

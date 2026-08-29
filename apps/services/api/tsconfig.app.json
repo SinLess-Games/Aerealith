@@ -3,11 +3,11 @@
   "compilerOptions": {
     "outDir": "../../../dist/out-tsc",
     "rootDir": "./src",
-    "module": "commonjs",
-    "moduleResolution": "bundler",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "declaration": false,
     "types": ["node", "../../../worker-configuration.d.ts"],
-    "ignoreDeprecations": "6.0",
+    "ignoreDeprecations": "5.0",
     "paths": {
       "@aerealith-ai/core": ["../../../dist/libs/core/src/index.d.ts"],
       "@aerealith-ai/db": ["../../../dist/libs/db/src/index.d.ts"],
