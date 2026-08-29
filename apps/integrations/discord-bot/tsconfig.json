@@ -1,0 +1,34 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ],
+  "compilerOptions": {
+    "composite": true,
+    "esModuleInterop": true,
+    "ignoreDeprecations": "5.0",
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
+    "noUncheckedSideEffectImports": true,
+    "paths": {
+      "@aerealith-ai/api-platform": [
+        "../../../dist/libs/api-platform/src/index.d.ts"
+      ],
+      "@aerealith-ai/authorization": [
+        "../../../dist/libs/authorization/src/index.d.ts"
+      ],
+      "@aerealith-ai/core": ["../../../dist/libs/core/src/index.d.ts"],
+      "@aerealith-ai/observability": [
+        "../../../dist/libs/observability/src/index.d.ts"
+      ]
+    },
+    "strict": true
+  }
+}
