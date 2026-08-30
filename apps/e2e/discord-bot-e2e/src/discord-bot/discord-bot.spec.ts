@@ -6,7 +6,9 @@ describe('Discord bot process', () => {
   it('fails safely when required Discord credentials are missing', () => {
     const entryPoint = resolve(
       process.cwd(),
-      'dist/apps/integrations/discord-bot/apps/integrations/discord-bot/src/main.js',
+      // Nx's root shim resolves workspace aliases before loading the emitted
+      // application entrypoint, matching the artifact's package.json `main`.
+      'dist/apps/integrations/discord-bot/main.js',
     );
     const secretMarker = 'must-never-appear-in-output';
 
