@@ -1,3 +1,4 @@
+/** Verifies native and arbitrary thrown values become redacted canonical errors. */
 import { describe, expect, it } from 'vitest';
 
 import { normalizeError, toError } from './normalize-error';

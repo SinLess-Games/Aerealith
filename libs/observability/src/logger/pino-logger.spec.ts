@@ -1,3 +1,4 @@
+/** Verifies Pino-compatible calls and JSON output preserve structured context. */
 import { Writable } from 'node:stream';
 
 import { LogLevel, type LogRecord, type LogSink } from '@aerealith-ai/core';

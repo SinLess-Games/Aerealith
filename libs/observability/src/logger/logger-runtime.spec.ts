@@ -1,3 +1,4 @@
+/** Verifies logger level filtering, child context, and shared sink lifecycle. */
 import { LogLevel, noopLogger, type LogRecord } from '@aerealith-ai/core';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -6,6 +7,7 @@ import { DefaultLogger } from './default-logger';
 import { LogRecordFactory } from './factories/log-record.factory';
 
 function createSink() {
+  // A controllable in-memory sink makes write and lifecycle assertions explicit.
   return {
     name: 'memory',
     write: vi.fn<(record: LogRecord) => void | Promise<void>>(),

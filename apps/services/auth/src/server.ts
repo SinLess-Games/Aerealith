@@ -1,3 +1,9 @@
+/**
+ * Direct Node entry point for the authentication service.
+ *
+ * It owns environment loading, observability startup, HTTP security middleware,
+ * server lifecycle, and bounded shutdown around the reusable auth application.
+ */
 import { existsSync } from 'node:fs';
 
 import {
@@ -45,6 +51,8 @@ async function main(): Promise<void> {
 
   const allowedOriginSet = new Set(allowedOrigins);
 
+  // Initialize the unified runtime before importing instrumented server modules.
+  // The returned logger and optional Node meter/tracer share one lifecycle.
   const observability = await initializeObservability(
     resolveObservabilityConfigFromEnv(process.env, {
       service: 'auth',
@@ -85,6 +93,8 @@ async function main(): Promise<void> {
     environment,
     logger,
 
+    // Request/operation observers require Node SDK handles. If exporters failed
+    // to initialize, the auth service still starts without these optional hooks.
     ...(observability.node
       ? {
           operationObserver: createOperationObserver(

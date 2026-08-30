@@ -1,4 +1,4 @@
-// libs/observability/src/logger/default-logger.ts
+/** Implements structured logging with shared child/sink lifecycle state. */
 
 import {
   LogLevel,
@@ -41,6 +41,8 @@ export class DefaultLogger implements ObservabilityLogger {
   ) {
     this.minimumLevel = minimumLevel;
     this.context = context;
+    // Child loggers receive this same runtime so pending writes and close state
+    // remain correct across the entire logger hierarchy.
     this.runtime = runtime ?? {
       sink,
       factory,
@@ -120,6 +122,7 @@ export class DefaultLogger implements ObservabilityLogger {
       return Promise.resolve();
     }
 
+    // Reuse an in-flight flush to avoid racing the sink from multiple callers.
     if (this.runtime.flushPromise !== undefined) {
       return this.runtime.flushPromise;
     }
@@ -153,6 +156,7 @@ export class DefaultLogger implements ObservabilityLogger {
       return this.runtime.closePromise;
     }
 
+    // Stop accepting new records before waiting for pending writes.
     this.runtime.closing = true;
 
     const operation = this.performClose();
@@ -183,6 +187,7 @@ export class DefaultLogger implements ObservabilityLogger {
       const result = this.runtime.sink.write(record);
 
       if (isPromiseLike(result)) {
+        // Track async sinks so flush/close cannot finish before their writes.
         this.trackPendingWrite(Promise.resolve(result).catch(() => undefined));
       }
     } catch {
@@ -230,6 +235,8 @@ export class DefaultLogger implements ObservabilityLogger {
   }
 
   private async waitForPendingWrites(): Promise<void> {
+    // Writes may enqueue more writes while a batch settles, so loop until the
+    // shared set is actually empty.
     while (this.runtime.pendingWrites.size > 0) {
       const pendingWrites = Array.from(this.runtime.pendingWrites);
 
@@ -242,6 +249,7 @@ function normalizeInput(
   input: LogInput | LogContext | string,
   message: string | undefined,
 ): LogInput {
+  // Plain messages receive a stable event name for structured search.
   if (typeof input === 'string') {
     return {
       event: 'application.log',
@@ -253,6 +261,8 @@ function normalizeInput(
     return input as LogInput;
   }
 
+  // Pino-style bindings are promoted into canonical fields when recognized;
+  // remaining values stay nested in context.
   const context: Record<string, unknown> = Object.fromEntries(
     Object.entries(input),
   );

@@ -1,17 +1,23 @@
+/** Provides a bounded, idempotent shutdown path for telemetry resources. */
 import { normalizeError, type NormalizedError } from '../errors';
 
+/** Normalized failure from one named shutdown handler. */
 export interface ShutdownFailure {
   readonly name: string;
   readonly error: NormalizedError;
 }
 
+/** Aggregate outcome returned after handlers finish or the deadline wins. */
 export interface ShutdownResult {
   readonly timedOut: boolean;
   readonly failures: readonly ShutdownFailure[];
 }
 
+/** A subsystem cleanup callback may be synchronous or asynchronous. */
 export type ObservabilityShutdownHandler = () => void | Promise<void>;
 
+// Map keys prevent duplicate subsystem handlers; the cached promise guarantees
+// multiple signal handlers cannot run shutdown more than once.
 const shutdownHandlers = new Map<string, ObservabilityShutdownHandler>();
 let shutdownPromise: Promise<ShutdownResult> | undefined;
 
@@ -22,6 +28,7 @@ export function registerObservabilityShutdownHandler(
   const normalizedName = name.trim();
   if (!normalizedName) throw new Error('A shutdown handler name is required.');
   shutdownHandlers.set(normalizedName, handler);
+  // Owners can unregister resources that are replaced during process lifetime.
   return () => shutdownHandlers.delete(normalizedName);
 }
 
@@ -33,6 +40,7 @@ export function shutdownObservability(
   return shutdownPromise;
 }
 
+/** Clears process globals so shutdown tests remain isolated. */
 export function resetObservabilityShutdownForTesting(): void {
   shutdownHandlers.clear();
   shutdownPromise = undefined;
@@ -53,6 +61,8 @@ async function runShutdown(timeoutMs: number): Promise<ShutdownResult> {
         await handler();
         return undefined;
       } catch (error) {
+        // One exporter failure must not prevent the remaining exporters from
+        // flushing, so failures are returned as data rather than rethrown.
         return { name, error: normalizeError(error) } satisfies ShutdownFailure;
       }
     }),
@@ -65,11 +75,13 @@ async function runShutdown(timeoutMs: number): Promise<ShutdownResult> {
     ),
   }));
 
+  // Whichever finishes first defines the caller-visible result.
   const result = await Promise.race([shutdown, deadline]);
   if (timeout !== undefined) clearTimeout(timeout);
   return result;
 }
 
 function normalizeTimeout(timeoutMs: number): number {
+  // Invalid deadlines fall back to a bounded five seconds.
   return Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : 5_000;
 }

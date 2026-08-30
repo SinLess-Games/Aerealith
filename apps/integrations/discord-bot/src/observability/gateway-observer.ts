@@ -1,3 +1,4 @@
+/** Adds bounded telemetry around Discord gateway event handlers. */
 import {
   captureException,
   logger as defaultLogger,
@@ -12,11 +13,13 @@ import {
 } from './metrics.adapter';
 import { withDiscordTrace } from './traces.adapter';
 
+/** Identifies a gateway handler without including its raw Discord payload. */
 export interface GatewayObservation {
   readonly event: string;
   readonly shardId?: number;
 }
 
+/** Wrapper used by listeners that need measured gateway processing. */
 export interface GatewayObserver {
   observe<T>(
     observation: GatewayObservation,
@@ -24,6 +27,7 @@ export interface GatewayObserver {
   ): Promise<T>;
 }
 
+/** Injectable observer dependencies support isolated tests and custom sinks. */
 export interface GatewayObserverOptions {
   readonly logger?: ObservabilityLogger;
   readonly metrics?: DiscordMetricsAdapter;
@@ -36,6 +40,7 @@ export function createGatewayObserver(
 ): GatewayObserver {
   const logger = options.logger ?? defaultLogger;
   const metrics = options.metrics ?? createDiscordMetricsAdapter();
+  // A monotonic timer avoids negative durations after wall-clock changes.
   const now = options.now ?? performance.now.bind(performance);
 
   return {
@@ -43,6 +48,8 @@ export function createGatewayObserver(
       observation: GatewayObservation,
       execute: () => Promise<T> | T,
     ): Promise<T> {
+      // Context and span names carry only stable event/shard identifiers; raw
+      // payloads may contain user content and are deliberately excluded.
       return runWithObservabilityContext(
         {
           component: 'discord-gateway',
@@ -70,6 +77,8 @@ export function createGatewayObserver(
                 return result;
               } catch (error) {
                 outcome = 'failure';
+                // Sentry receives normalized metadata while the caller still
+                // receives the original error for normal framework handling.
                 captureException(error, {
                   component: 'discord-gateway',
                   operation: observation.event,
@@ -86,6 +95,7 @@ export function createGatewayObserver(
                 });
                 throw error;
               } finally {
+                // Emit exactly one metric observation regardless of outcome.
                 metrics.recordGatewayEvent(
                   observation.event,
                   outcome,
@@ -104,5 +114,6 @@ export function createGatewayObserver(
 }
 
 function elapsed(now: () => number, startedAt: number): number {
+  // Histograms must not receive a negative duration.
   return Math.max(0, now() - startedAt);
 }

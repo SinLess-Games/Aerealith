@@ -1,3 +1,4 @@
+/** Combines operation timing, metrics, tracing, logging, and error capture. */
 import { captureException } from '../sentry';
 import {
   decrementGauge,
@@ -11,6 +12,7 @@ import type { ObservabilityLogger } from '../logger/logger.types';
 import { withSpan } from '../tracing';
 import { startTimer } from './timer';
 
+/** Selects optional telemetry behaviors for one measured operation. */
 export interface MeasureOperationOptions {
   readonly component?: string;
   readonly logger?: ObservabilityLogger;
@@ -29,6 +31,7 @@ export async function measureOperation<T>(
   const operationLogger = options.logger ?? defaultLogger;
   const timer = startTimer();
   const labels = { operation };
+  // Count active work before execution so overlapping operations are visible.
   incrementGauge(instruments?.activeOperations, labels);
 
   const measuredOperation = async (): Promise<T> => {
@@ -37,11 +40,14 @@ export async function measureOperation<T>(
       return await execute();
     } catch (error) {
       outcome = 'failure';
+      // Error reporting is opt-in because some callers already capture errors
+      // at a framework boundary and should not send duplicate events.
       if (options.captureError) {
         captureException(error, { operation, component: options.component });
       }
       throw error;
     } finally {
+      // finally guarantees gauge balance and outcome metrics on every path.
       const durationMs = timer.end();
       const outcomeLabels = { operation, outcome };
       decrementGauge(instruments?.activeOperations, labels);
@@ -67,6 +73,7 @@ export async function measureOperation<T>(
     }
   };
 
+  // Tracing defaults on but can be suppressed for already-traced hot paths.
   return options.trace === false
     ? measuredOperation()
     : withSpan(operation, measuredOperation);

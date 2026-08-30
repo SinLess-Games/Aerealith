@@ -1,3 +1,4 @@
+/** Bridges Sapphire's logger contract to the shared structured logger. */
 import type { ILogger, LogLevel } from '@sapphire/framework';
 import {
   logger as observabilityLogger,
@@ -6,6 +7,8 @@ import {
 
 type LoggerMethod = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 
+// Sapphire uses numeric levels; this table maps them to the shared logger's
+// named methods without coupling the adapter to a concrete sink such as Pino.
 const loggerMethods = new Map<number, LoggerMethod>([
   [10, 'trace'],
   [20, 'debug'],
@@ -23,6 +26,8 @@ export function createDiscordLoggerAdapter(
     const method = loggerMethods.get(Number(level));
     if (method === undefined) return;
 
+    // Preserve an Error object separately so the shared logger can normalize,
+    // redact, and serialize its stack instead of flattening it into a string.
     const error = values.find(
       (value): value is Error => value instanceof Error,
     );
@@ -32,6 +37,7 @@ export function createDiscordLoggerAdapter(
       component: 'discord-framework',
       ...(error === undefined ? {} : { error }),
       context: {
+        // Bound arbitrary framework metadata to prevent runaway log payloads.
         values: values
           .filter((value) => value !== error && typeof value !== 'string')
           .slice(0, 20),
@@ -52,6 +58,8 @@ export function createDiscordLoggerAdapter(
 }
 
 function formatMessage(values: readonly unknown[]): string {
+  // Only primitive values contribute to the message. Objects stay structured
+  // in context and the final length cap protects downstream log backends.
   const parts = values.filter(
     (value): value is string | number | bigint | boolean =>
       typeof value === 'string' ||

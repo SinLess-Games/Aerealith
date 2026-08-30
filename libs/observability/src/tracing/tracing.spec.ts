@@ -1,3 +1,4 @@
+/** Verifies disabled tracing and context fallback preserve application behavior. */
 import { describe, expect, it } from 'vitest';
 
 import { runWithObservabilityContext } from '../context';

@@ -1,17 +1,22 @@
+/** Defines the Discord bot's environment boundary and validation rules. */
 import { existsSync } from 'node:fs';
 
 import { z } from 'zod';
 
 export interface DiscordEnvironmentSource {
+  /** Environment values remain string-based until the schema parses them. */
   readonly [key: string]: string | undefined;
 }
 
+// Discord application, guild, and user IDs are decimal snowflakes. Constraining
+// their length catches common copy/paste mistakes before any network request.
 const discordSnowflake = z
   .string()
   .trim()
   .regex(/^\d{17,20}$/u, 'must be a valid Discord ID.');
 
 const optionalDiscordSnowflake = z.preprocess(
+  // Treat an empty optional value in .env as absent instead of invalid.
   (value) =>
     typeof value === 'string' && value.trim() === '' ? undefined : value,
   discordSnowflake.optional(),
@@ -28,6 +33,7 @@ const discordEnvironmentSchema = z.object({
 
 export type DiscordEnvironment = z.output<typeof discordEnvironmentSchema>;
 
+/** Error raised when the process cannot produce a safe Discord configuration. */
 export class DiscordEnvironmentError extends Error {
   public constructor(issues: readonly string[]) {
     super(`Discord bot environment is invalid. ${issues.join('; ')}`);
@@ -37,7 +43,11 @@ export class DiscordEnvironmentError extends Error {
 
 /** Loads the local environment file and returns a plain environment snapshot. */
 export function loadProcessEnvironment(): DiscordEnvironmentSource {
+  // Node's native loader avoids another dotenv dependency and does not replace
+  // variables already provided by the deployment environment.
   if (existsSync('.env')) process.loadEnvFile('.env');
+  // Zod record schemas require a plain object; process.env is an exotic Node
+  // object, so take a snapshot before validation.
   return { ...process.env };
 }
 
@@ -48,6 +58,7 @@ export function loadDiscordEnvironment(
   const result = discordEnvironmentSchema.safeParse(source);
   if (result.success) return result.data;
 
+  // Report variable names and validation reasons, never their secret values.
   throw new DiscordEnvironmentError(
     result.error.issues.map((issue) => {
       const name = issue.path.join('.') || 'environment';

@@ -1,8 +1,12 @@
+/** Defines and sanitizes the process-wide observability configuration. */
 import { LogLevel } from '@aerealith-ai/core';
 import { z } from 'zod';
 
+// Reuse the same optional-string rule so whitespace-only identifiers never
+// reach log, metric, trace, or Sentry resource metadata.
 const optionalNonEmptyString = z.string().trim().min(1).optional();
 
+/** Runtime schema that applies safe defaults and rejects invalid configuration. */
 export const observabilityConfigSchema = z.object({
   service: z.string().trim().min(1),
   environment: z.string().trim().min(1).default('development'),
@@ -32,6 +36,8 @@ export const observabilityConfigSchema = z.object({
       prefix: z
         .string()
         .trim()
+        // Prometheus names must start with a letter, underscore, or colon and
+        // contain only its supported identifier characters.
         .regex(/^[a-zA-Z_:][a-zA-Z0-9_:]*$/u)
         .default('aerealith_'),
     })
@@ -54,10 +60,12 @@ export const observabilityConfigSchema = z.object({
 });
 
 export type ObservabilityConfig = z.output<typeof observabilityConfigSchema>;
+/** Input permits omitted values that the Zod schema fills with defaults. */
 export type ObservabilityConfigInput = z.input<
   typeof observabilityConfigSchema
 >;
 
+/** Credential-free configuration shape safe to return in runtime diagnostics. */
 export interface SafeObservabilityConfig {
   readonly service: string;
   readonly environment: string;
@@ -76,6 +84,7 @@ export interface SafeObservabilityConfig {
   readonly node: { readonly enabled: boolean };
 }
 
+/** Parses caller input and returns a complete, validated configuration. */
 export function resolveObservabilityConfig(
   input: ObservabilityConfigInput,
 ): ObservabilityConfig {
@@ -96,6 +105,7 @@ export function toSafeObservabilityConfig(
     logging: config.logging,
     sentry: {
       enabled: config.sentry.enabled,
+      // Expose only whether a DSN exists, never the DSN itself.
       configured: config.sentry.dsn !== undefined,
       ...(config.sentry.environment === undefined
         ? {}

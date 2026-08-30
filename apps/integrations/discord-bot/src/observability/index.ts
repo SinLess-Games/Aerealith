@@ -1,3 +1,4 @@
+/** Public barrel for thin Discord-specific adapters over libs/observability. */
 export * from './command-observer';
 export * from './gateway-observer';
 export * from './lavalink-observer';

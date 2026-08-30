@@ -1,3 +1,4 @@
+/** Verifies configuration defaults, environment parsing, and secret-safe diagnostics. */
 import { LogLevel } from '@aerealith-ai/core';
 import { describe, expect, it } from 'vitest';
 

@@ -1,3 +1,4 @@
+/** Owns the process Prometheus registry and reusable metric instruments. */
 import {
   Counter,
   Gauge,
@@ -9,8 +10,10 @@ import {
 
 import { metricsRegistry } from './registry';
 
+/** Primitive label values accepted by the Prometheus client. */
 export type MetricLabels = Readonly<Record<string, string | number>>;
 
+/** Process-wide metrics behavior selected during observability startup. */
 export interface MetricsConfiguration {
   readonly enabled?: boolean;
   readonly service?: string;
@@ -18,6 +21,7 @@ export interface MetricsConfiguration {
   readonly collectProcessMetrics?: boolean;
 }
 
+/** Standard instruments shared by operation observers across services. */
 export interface StandardServiceMetrics {
   readonly errors: Counter<string>;
   readonly operations: Counter<string>;
@@ -26,6 +30,8 @@ export interface StandardServiceMetrics {
   readonly processUp: Gauge<string>;
 }
 
+// Cache instruments by name because Prometheus registries reject duplicate
+// registration and adapters may be constructed from multiple modules.
 const counters = new Map<string, Counter<string>>();
 const gauges = new Map<string, Gauge<string>>();
 const histograms = new Map<string, Histogram<string>>();
@@ -49,10 +55,12 @@ export function configureMetrics(
   configuration: MetricsConfiguration = {},
 ): StandardServiceMetrics | undefined {
   metricsEnabled = configuration.enabled ?? true;
+  // Disabled metrics retain no-op helper behavior for application callers.
   if (!metricsEnabled) return undefined;
 
   const prefix = normalizePrefix(configuration.prefix ?? 'aerealith_');
   if (configuration.service) {
+    // Service is a single process-wide label, not a per-observation dimension.
     metricsRegistry.setDefaultLabels({ service: configuration.service });
   }
 
@@ -88,10 +96,12 @@ export function configureMetrics(
   return standardMetrics;
 }
 
+/** Returns whether metric mutation/export is currently enabled. */
 export function isMetricsEnabled(): boolean {
   return metricsEnabled;
 }
 
+/** Returns standard instruments after configuration, otherwise undefined. */
 export function getStandardServiceMetrics():
   StandardServiceMetrics | undefined {
   return standardMetrics;
@@ -100,10 +110,12 @@ export function getStandardServiceMetrics():
 export function createCounter(
   configuration: CounterConfiguration<string>,
 ): Counter<string> {
+  // Reject dangerous dimensions before touching the registry.
   assertSafeMetricLabelNames(configuration.labelNames);
   const existing = counters.get(configuration.name);
   if (existing) return existing;
 
+  // Reuse a compatible instrument that another adapter already registered.
   const registered = metricsRegistry.getSingleMetric(configuration.name);
   if (registered instanceof Counter) {
     const counter = registered as Counter<string>;
@@ -171,6 +183,8 @@ export function incrementCounter(
   labels: MetricLabels = {},
   value = 1,
 ): void {
+  // Helpers intentionally become no-ops when metrics are disabled, which keeps
+  // feature code free from repeated configuration checks.
   if (!metricsEnabled || counter === undefined) return;
   counter.inc(labels, value);
 }
@@ -211,14 +225,17 @@ export function observeHistogram(
   histogram.observe(labels, value);
 }
 
+/** Serializes every registered metric in Prometheus exposition format. */
 export async function getMetrics(): Promise<string> {
   return metricsEnabled ? metricsRegistry.metrics() : '';
 }
 
+/** Content type required by HTTP responses serving getMetrics(). */
 export function getMetricsContentType(): string {
   return metricsRegistry.contentType;
 }
 
+/** Clears singleton state between tests to prevent duplicate instruments. */
 export function resetMetricsForTesting(): void {
   metricsRegistry.clear();
   counters.clear();
@@ -228,6 +245,7 @@ export function resetMetricsForTesting(): void {
   metricsEnabled = true;
 }
 
+/** Namespace-style facade for consumers that prefer one imported object. */
 export const metrics = {
   configure: configureMetrics,
   createCounter,
@@ -246,6 +264,8 @@ function assertSafeMetricLabelNames(
   labelNames: readonly string[] | undefined,
 ): void {
   for (const labelName of labelNames ?? []) {
+    // Ignore separators and case so aliases such as user_id cannot bypass the
+    // high-cardinality/sensitive label policy.
     const normalized = labelName.replace(/[^a-zA-Z0-9]/gu, '').toLowerCase();
     if (forbiddenLabelNames.has(normalized)) {
       throw new Error(

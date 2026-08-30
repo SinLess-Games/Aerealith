@@ -1,3 +1,4 @@
+/** Creates a Node logger and enables Loki only when credentials are complete. */
 import type { LogContext, LogLevel } from '@aerealith-ai/core';
 
 import type { ConsoleLoggerOptions } from '../logger/config/console-logger-options.interface';
@@ -5,6 +6,7 @@ import { createLogger } from '../logger/create-logger';
 import type { ObservabilityLogger } from '../logger/logger.types';
 import type { ObservabilityEnvironment } from './node-observability.config';
 
+/** Node-specific logger configuration layered over the portable logger API. */
 export interface CreateNodeLoggerOptions {
   readonly service: string;
   readonly environment?: ObservabilityEnvironment;
@@ -19,6 +21,8 @@ export interface CreateNodeLoggerOptions {
 export function createNodeLogger(
   options: CreateNodeLoggerOptions,
 ): ObservabilityLogger {
+  // Read credentials locally and pass only the derived authorization header to
+  // the sink; neither value becomes part of logger context.
   const environment = options.environment ?? process.env;
   const endpoint = environment['LOKI_LOGGING_URL']?.trim();
   const user = environment['LOKI_USER_ID']?.trim();
@@ -38,6 +42,8 @@ export function createNodeLogger(
     ...(options.instanceId ? { instanceId: options.instanceId } : {}),
     ...(options.context ? { context: options.context } : {}),
     ...(options.console ? { console: options.console } : {}),
+    // Partial Loki configuration disables the remote sink instead of emitting
+    // unauthenticated requests or failing application startup.
     ...(endpoint && authorization
       ? {
           loki: {

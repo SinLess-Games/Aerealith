@@ -1,3 +1,4 @@
+/** Supplies a small monotonic timer abstraction for telemetry measurements. */
 export interface PerformanceTimer {
   readonly startedAt: number;
   elapsed(): number;
@@ -15,6 +16,8 @@ export function startTimer(
     startedAt,
     elapsed: () => (endedAt ?? now()) - startedAt,
     end: () => {
+      // Capture the first end time only, making repeated cleanup calls safe and
+      // ensuring every consumer sees the same final duration.
       endedAt ??= now();
       return endedAt - startedAt;
     },

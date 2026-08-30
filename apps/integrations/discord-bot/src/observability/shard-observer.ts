@@ -1,3 +1,4 @@
+/** Converts Discord shard lifecycle events into logs, traces, and metrics. */
 import {
   captureException,
   logger as defaultLogger,
@@ -10,11 +11,13 @@ import {
 } from './metrics.adapter';
 import { withDiscordTrace } from './traces.adapter';
 
+/** Safe subset of disconnect information supplied by Discord. */
 export interface ShardDisconnectDetails {
   readonly code?: number;
   readonly clean?: boolean;
 }
 
+/** Callback-oriented interface suitable for Discord.js shard events. */
 export interface ShardObserver {
   ready(shardId: number, unavailableGuilds?: number): void;
   reconnecting(shardId: number): void;
@@ -23,6 +26,7 @@ export interface ShardObserver {
   error(shardId: number, error: unknown): void;
 }
 
+/** Optional dependencies support child loggers and deterministic tests. */
 export interface ShardObserverOptions {
   readonly logger?: ObservabilityLogger;
   readonly metrics?: DiscordMetricsAdapter;
@@ -41,10 +45,14 @@ export function createShardObserver(
     connected: boolean | undefined,
     log: () => void,
   ): void => {
+    // The shared helper guarantees every lifecycle callback uses the same span
+    // naming, event counter, connection gauge, and log ordering.
     withDiscordTrace(
       `shard.${event}`,
       () => {
         metrics.recordShardEvent(event, shardId);
+        // Some events report activity without changing connectivity; undefined
+        // deliberately leaves the existing gauge value untouched.
         if (connected !== undefined) {
           metrics.setShardConnected(shardId, connected);
         }
@@ -96,6 +104,8 @@ export function createShardObserver(
       );
     },
     error(shardId, error) {
+      // Preserve the actual exception for Sentry and structured logger
+      // normalization; only the bounded shard ID is attached as context.
       captureException(error, {
         component: 'discord-shard',
         operation: 'shard-error',

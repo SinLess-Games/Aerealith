@@ -1,3 +1,4 @@
+/** Verifies Node environment values enable Loki only with complete credentials. */
 import { LogLevel } from '@aerealith-ai/core';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { LoggerOptions } from '../logger/config/logger-options.interface';

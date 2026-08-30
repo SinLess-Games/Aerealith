@@ -1,5 +1,7 @@
+/** Shared logger contracts independent of any concrete sink implementation. */
 import type { LogContext, LogInput } from '@aerealith-ai/core';
 
+/** Supported call shapes for each structured log level. */
 export interface ObservabilityLogMethod {
   (input: LogInput): void;
   (message: string): void;
@@ -19,7 +21,10 @@ export interface ObservabilityLogger {
   readonly warn: ObservabilityLogMethod;
   readonly error: ObservabilityLogMethod;
   readonly fatal: ObservabilityLogMethod;
+  /** Returns a logger that adds the supplied bindings to every record. */
   child(context: LogContext): ObservabilityLogger;
+  /** Waits for pending asynchronous writes and asks sinks to flush. */
   flush(): Promise<void>;
+  /** Flushes and permanently closes the shared sink lifecycle. */
   close(): Promise<void>;
 }

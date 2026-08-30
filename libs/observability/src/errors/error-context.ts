@@ -1,3 +1,4 @@
+/** Normalizes error metadata through the same safe path used by logging. */
 import type { LogRecordContext } from '@aerealith-ai/core';
 
 import { normalizeLogContext } from '../logger/utils/normalize-log-context';

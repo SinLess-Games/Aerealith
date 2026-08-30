@@ -1,3 +1,4 @@
+/** Verifies metric registration, mutation, exposition, and label safety. */
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {

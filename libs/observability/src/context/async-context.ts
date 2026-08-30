@@ -1,7 +1,9 @@
+/** Propagates correlation metadata through Node asynchronous call chains. */
 import { AsyncLocalStorage } from 'node:async_hooks';
 
 import { generateId } from '@aerealith-ai/utils';
 
+/** Metadata automatically attached to logs, traces, and error reports. */
 export interface ObservabilityContext {
   readonly correlationId?: string;
   readonly requestId?: string;
@@ -16,6 +18,8 @@ export interface ObservabilityContext {
   readonly [key: string]: unknown;
 }
 
+// AsyncLocalStorage isolates concurrent requests/jobs while allowing nested
+// promises and callbacks to inherit the current operation's metadata.
 const observabilityContextStorage = new AsyncLocalStorage<
   Readonly<ObservabilityContext>
 >();
@@ -25,6 +29,7 @@ export function getObservabilityContext(): Readonly<ObservabilityContext> {
   return observabilityContextStorage.getStore() ?? {};
 }
 
+/** Returns the current operation's correlation ID, when one exists. */
 export function getCorrelationId(): string | undefined {
   return getObservabilityContext().correlationId;
 }
@@ -43,6 +48,8 @@ export function runWithObservabilityContext<T>(
   operation: () => T,
 ): T {
   const parent = getObservabilityContext();
+  // Child values override parent values. A correlation ID is inherited when
+  // valid, otherwise one is created at the first observable boundary.
   const nextContext = Object.freeze({
     ...parent,
     ...context,
@@ -55,6 +62,7 @@ export function runWithObservabilityContext<T>(
   return observabilityContextStorage.run(nextContext, operation);
 }
 
+/** Readable alias for APIs that describe wrapping rather than running work. */
 export const withObservabilityContext = runWithObservabilityContext;
 
 /**
@@ -74,12 +82,15 @@ export function updateObservabilityContext(
       createCorrelationId(),
   });
 
+  // enterWith updates the remainder of the active chain without introducing a
+  // callback boundary, which is useful after a trace/span ID becomes known.
   observabilityContextStorage.enterWith(nextContext);
 
   return nextContext;
 }
 
 function normalizeIdentifier(value: unknown): string | undefined {
+  // Whitespace-only identifiers should never displace a valid inherited ID.
   if (typeof value !== 'string') return undefined;
   const normalized = value.trim();
   return normalized.length > 0 ? normalized : undefined;

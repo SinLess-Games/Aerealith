@@ -1,9 +1,12 @@
+/** Verifies Sentry remains optional and receives only redacted correlated data. */
 import type * as SentryTypes from '@sentry/node';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { runWithObservabilityContext } from '../context';
 
 const sentryMocks = vi.hoisted(() => {
+  // Hoisting makes the complete fake SDK available before Vitest evaluates the
+  // module-level @sentry/node mock.
   const scope = {
     setContext: vi.fn(),
     setTag: vi.fn(),

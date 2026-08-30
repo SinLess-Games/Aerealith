@@ -1,3 +1,4 @@
+/** Verifies shutdown runs once, contains partial failures, and honors deadlines. */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {

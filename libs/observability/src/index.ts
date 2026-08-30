@@ -1,3 +1,4 @@
+/** Public observability API; implementation details stay behind these modules. */
 export * from './config';
 export * from './context';
 export * from './errors';

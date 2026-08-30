@@ -1,3 +1,4 @@
+/** Defines bounded Prometheus metrics for Discord-specific behavior. */
 import {
   createCounter,
   createGauge,
@@ -9,6 +10,7 @@ import {
 
 export type ObservationOutcome = 'success' | 'failure';
 
+/** Metrics operations exposed to Discord observers and listeners. */
 export interface DiscordMetricsAdapter {
   setBotReady(ready: boolean): void;
   setGuildCount(count: number): void;
@@ -38,6 +40,8 @@ export interface DiscordMetricsAdapter {
 export function createDiscordMetricsAdapter(
   prefix = 'aerealith_discord_',
 ): DiscordMetricsAdapter {
+  // A normalized prefix lets multiple services share one registry without
+  // colliding while still producing valid Prometheus metric names.
   const metricPrefix = normalizePrefix(prefix);
   const botReady = createGauge({
     name: `${metricPrefix}ready`,
@@ -54,6 +58,7 @@ export function createDiscordMetricsAdapter(
   const commandTotal = createCounter({
     name: `${metricPrefix}commands_total`,
     help: 'Discord command executions by command, type, and outcome.',
+    // These labels come from finite command definitions, never user IDs.
     labelNames: ['command', 'type', 'outcome'],
   });
   const commandDuration = createHistogram({
@@ -105,6 +110,8 @@ export function createDiscordMetricsAdapter(
       setGauge(gatewayLatency, normalizeDuration(durationMs) / 1_000);
     },
     recordCommand(command, type, outcome, durationMs) {
+      // Normalize labels at the adapter boundary so callers cannot create
+      // unbounded or invalid series accidentally.
       const labels = {
         command: normalizeLabel(command),
         type: normalizeLabel(type),
@@ -154,6 +161,7 @@ export function createDiscordMetricsAdapter(
 
 function normalizePrefix(prefix: string): string {
   const normalized = prefix.trim();
+  // Fail fast because Prometheus rejects invalid metric names at registration.
   if (!/^[a-zA-Z_:][a-zA-Z0-9_:]*_?$/u.test(normalized)) {
     throw new Error('Discord metrics prefix is invalid.');
   }
@@ -161,6 +169,8 @@ function normalizePrefix(prefix: string): string {
 }
 
 function normalizeLabel(value: string): string {
+  // Length and character bounds protect the metrics backend from arbitrary
+  // event strings while retaining recognizable operational names.
   const normalized = value
     .trim()
     .toLowerCase()
@@ -170,15 +180,18 @@ function normalizeLabel(value: string): string {
 }
 
 function normalizeShardId(shardId: number): string {
+  // Invalid identifiers collapse to one stable series rather than many values.
   return Number.isInteger(shardId) && shardId >= 0
     ? String(shardId)
     : 'unknown';
 }
 
 function normalizeDuration(durationMs: number): number {
+  // Prometheus duration observations must be finite and non-negative.
   return Number.isFinite(durationMs) && durationMs >= 0 ? durationMs : 0;
 }
 
 function normalizeCount(count: number): number {
+  // State gauges cannot represent a negative number of resources.
   return Number.isInteger(count) && count >= 0 ? count : 0;
 }

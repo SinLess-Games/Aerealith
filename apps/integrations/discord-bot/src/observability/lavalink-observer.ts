@@ -1,3 +1,4 @@
+/** Translates Lavalink lifecycle callbacks into shared Discord telemetry. */
 import {
   captureException,
   logger as defaultLogger,
@@ -11,6 +12,7 @@ import {
 } from './metrics.adapter';
 import { withDiscordTrace } from './traces.adapter';
 
+/** Small callback-oriented API consumed by an eventual Lavalink integration. */
 export interface LavalinkObserver {
   connected(node: string): void;
   reconnecting(node: string): void;
@@ -21,6 +23,7 @@ export interface LavalinkObserver {
   trackFailed(error: unknown, node?: string): void;
 }
 
+/** Optional collaborators allow reuse with a child logger or test metrics. */
 export interface LavalinkObserverOptions {
   readonly logger?: ObservabilityLogger;
   readonly metrics?: DiscordMetricsAdapter;
@@ -39,6 +42,7 @@ export function createLavalinkObserver(
     node: string | undefined,
     log: () => void,
   ): void => {
+    // All node events share consistent trace naming and metric dimensions.
     withDiscordTrace(
       `lavalink.${event}`,
       () => {
@@ -51,6 +55,8 @@ export function createLavalinkObserver(
 
   return {
     connected(node) {
+      // Connection state is a gauge; the event counter separately preserves
+      // how often state transitions occur.
       metrics.setLavalinkNodeConnected(node, true);
       observe('connected', 'success', node, () =>
         logger.info({
@@ -84,6 +90,7 @@ export function createLavalinkObserver(
       );
     },
     error(node, error) {
+      // Capture before logging so both reporting paths see the original error.
       captureException(error, {
         component: 'discord-lavalink',
         operation: 'node-error',
@@ -100,6 +107,8 @@ export function createLavalinkObserver(
       );
     },
     trackStarted(node) {
+      // Track metadata is intentionally absent to avoid logging user requests,
+      // titles, URLs, or other high-cardinality media data.
       observe('track_started', 'success', node, () =>
         logger.debug({
           event: 'discord.lavalink.track.started',
@@ -120,6 +129,7 @@ export function createLavalinkObserver(
       );
     },
     trackFailed(error, node) {
+      // Only stable node/operation context accompanies the exception.
       captureException(error, {
         component: 'discord-lavalink',
         operation: 'track-failed',

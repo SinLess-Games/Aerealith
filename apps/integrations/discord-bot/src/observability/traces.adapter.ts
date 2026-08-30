@@ -1,3 +1,4 @@
+/** Adds a stable Discord namespace and safe attributes to shared trace spans. */
 import {
   startSpan,
   withSpan,
@@ -14,6 +15,7 @@ export function withDiscordTrace<T>(
   execute: () => T,
   attributes: DiscordTraceAttributes = {},
 ): T {
+  // Normalization keeps operation names valid and bounded across exporters.
   return withSpan(`discord.${normalizeOperation(operation)}`, execute, {
     attributes: normalizeAttributes(attributes),
   });
@@ -24,6 +26,8 @@ export function startDiscordTrace(
   operation: string,
   attributes: DiscordTraceAttributes = {},
 ): SpanHandle {
+  // Manual handles support event/callback APIs whose work cannot be expressed
+  // as one synchronous or promise-returning wrapper.
   return startSpan(`discord.${normalizeOperation(operation)}`, {
     attributes: normalizeAttributes(attributes),
   });
@@ -34,6 +38,8 @@ function normalizeAttributes(
 ): Record<string, string | number | boolean> {
   const result: Record<string, string | number | boolean> = {};
   for (const [name, value] of Object.entries(attributes)) {
+    // Undefined attributes are omitted because OpenTelemetry does not accept
+    // them; names are scoped to avoid collisions with generic service spans.
     if (value === undefined) continue;
     result[`discord.${normalizeAttributeName(name)}`] = value;
   }

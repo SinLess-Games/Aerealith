@@ -1,3 +1,4 @@
+/** Verifies async context inheritance, concurrency isolation, and ID creation. */
 import { describe, expect, it } from 'vitest';
 
 import {

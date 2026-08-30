@@ -1,4 +1,4 @@
-// libs/observability/src/logger/utils/normalize-log-error.ts
+/** Safely normalizes and redacts every value JavaScript permits throwing. */
 
 import type { LogError, LogRecordContext } from '@aerealith-ai/core';
 import { redactText } from '@aerealith-ai/utils';
@@ -47,6 +47,7 @@ function normalizeErrorValue(
   }
 
   if (seen.has(value)) {
+    // Error causes may form cycles just like arbitrary objects.
     return {
       name: 'Error',
       message: 'Circular error cause detected',
@@ -67,6 +68,8 @@ function normalizeErrorValue(
   const context = extractErrorContext(value);
 
   const cause =
+    // Bound recursive cause traversal to protect logging from pathological
+    // chains while still preserving normal nested failures.
     depth < maxDepth
       ? readCause(value, depth, maxDepth, seen)
       : createTruncatedCause(value);
@@ -113,6 +116,8 @@ function createTruncatedCause(
 function extractErrorContext(
   value: Readonly<Record<string, unknown>>,
 ): LogRecordContext | undefined {
+  // Enumerable custom properties often carry useful codes or subsystem data;
+  // canonical Error fields are already represented elsewhere.
   const contextEntries = Object.entries(value).filter(
     ([key]) => !ERROR_PROPERTY_NAMES.has(key),
   );
@@ -175,6 +180,8 @@ function getConstructorName(
 }
 
 function stringifyThrownValue(value: unknown): string {
+  // Produce a useful message for primitives and unusual thrown values without
+  // assuming they implement Error or safe serialization.
   if (value === null) {
     return 'null was thrown';
   }

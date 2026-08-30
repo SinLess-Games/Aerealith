@@ -1,3 +1,4 @@
+/** Verifies process-wide initialization is safe, optional, and idempotent. */
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {

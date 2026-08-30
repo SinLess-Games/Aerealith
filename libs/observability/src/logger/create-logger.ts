@@ -1,4 +1,4 @@
-// libs/observability/src/logger/create-logger.ts
+/** Builds the structured logger and its configured output sinks. */
 
 import { LogLevel, noopLogger, type LogSink } from '@aerealith-ai/core';
 
@@ -23,10 +23,12 @@ import type { ObservabilityLogger } from './logger.types';
 export function createLogger(options: LoggerOptions): ObservabilityLogger {
   const sinks = createLogSinks(options);
 
+  // A disabled logger still satisfies the contract without allocating sinks.
   if (sinks.length === 0) {
     return noopLogger as ObservabilityLogger;
   }
 
+  // Composite dispatch isolates individual sink failures from the application.
   const compositeSink = new CompositeLogSink(sinks, options.onSinkError);
 
   const recordFactory = new LogRecordFactory({
@@ -53,6 +55,8 @@ function createLogSinks(options: LoggerOptions): readonly LogSink[] {
   if (options.console?.enabled !== false) {
     const pretty =
       options.console?.pretty ?? options.environment !== 'production';
+    // Human-readable console output is useful locally; production defaults to
+    // structured Pino JSON that log collectors can parse efficiently.
     sinks.push(
       pretty
         ? new ConsoleLogSink({ ...options.console, pretty: true })
@@ -61,6 +65,7 @@ function createLogSinks(options: LoggerOptions): readonly LogSink[] {
   }
 
   if (options.loki !== undefined && options.loki.enabled !== false) {
+    // Loki is opt-in because it requires a remote endpoint and credentials.
     sinks.push(new LokiLogSink(options.loki));
   }
 

@@ -1,4 +1,4 @@
-// libs/observability/src/logger/factories/log-record.factory.ts
+/** Creates canonical log records before any sink receives them. */
 
 import type {
   LogContext,
@@ -68,6 +68,8 @@ export class LogRecordFactory {
     input: LogInput,
     inheritedContext: LogContext = {},
   ): LogRecord {
+    // Merge context from broadest to narrowest scope so call-site values can
+    // override service, async-operation, and child-logger defaults.
     const context = normalizeLogContext({
       ...this.baseContext,
       ...this.contextProvider(),
@@ -75,6 +77,7 @@ export class LogRecordFactory {
       ...input.context,
     });
 
+    // Common identifiers become top-level fields for efficient backend queries.
     const promotedContext = promoteRecordContext(context);
     const error = normalizeLogError(input.error);
     const timestamp = normalizeTimestamp(this.now());
@@ -128,6 +131,7 @@ interface PromotedRecordContext {
 function promoteRecordContext(
   context: LogRecordContext,
 ): PromotedRecordContext {
+  // Work on a copy so promotion never mutates the normalized input object.
   const remainingContext: Record<string, LogValue> = { ...context };
 
   const requestId = takeStringValue(remainingContext, 'requestId');
@@ -186,6 +190,7 @@ function normalizeDuration(value: number | undefined): number | undefined {
 }
 
 function normalizeTimestamp(value: Date): string {
+  // A bad injected clock should not create an invalid record timestamp.
   if (Number.isNaN(value.getTime())) {
     return createCurrentDate().toISOString();
   }
@@ -198,6 +203,8 @@ function createCurrentDate(): Date {
 }
 
 function createDefaultId(): string {
+  // Prefer collision-resistant UUIDs; retain a deterministic process-local
+  // fallback for runtimes without Web Crypto.
   if (
     typeof globalThis.crypto === 'object' &&
     typeof globalThis.crypto.randomUUID === 'function'

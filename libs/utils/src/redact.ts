@@ -1,9 +1,11 @@
-// libs/utils/src/redact.ts
+/** Safely copies arbitrary values while removing credentials and secrets. */
 
 export const DEFAULT_REDACTION_REPLACEMENT = '[REDACTED]';
 export const DEFAULT_CIRCULAR_REPLACEMENT = '[CIRCULAR]';
 export const DEFAULT_MAX_DEPTH_REPLACEMENT = '[MAX_DEPTH]';
 
+// These keys cover authentication, infrastructure, and transport credentials.
+// Matching later ignores case and separators such as '-' and '_'.
 export const DEFAULT_SENSITIVE_KEYS = [
   'password',
   'passwd',
@@ -46,6 +48,7 @@ export const DEFAULT_SENSITIVE_KEYS = [
   'totpSecret',
 ] as const;
 
+// Capture the URL protocol but replace both username and password.
 const CREDENTIAL_URL_PATTERN =
   /([a-z][a-z0-9+.-]*:\/\/)([^\s/:@]+):([^\s/@]+)@/giu;
 
@@ -143,6 +146,8 @@ function redactError(
   seen: WeakSet<object>,
   depth: number,
 ): Record<string, unknown> {
+  // Error.message and stack are non-enumerable, so copy them explicitly before
+  // visiting custom enumerable fields.
   const record: Record<string, unknown> = {
     name: error.name,
     message: redactText(error.message, options.replacement),
@@ -180,6 +185,7 @@ function redactMap(
   seen: WeakSet<object>,
   depth: number,
 ): Record<string, unknown> {
+  // Telemetry serializers handle plain records more consistently than Map.
   const result: Record<string, unknown> = {};
 
   for (const [key, item] of value.entries()) {
@@ -260,6 +266,8 @@ function redactValue(
   seen: WeakSet<object>,
   depth: number,
 ): unknown {
+  // Primitive values are already serializable; strings still need credential
+  // URL filtering because secrets can appear inside free-form messages.
   if (value === null || value === undefined) return value;
   if (typeof value === 'string') {
     return redactText(value, options.replacement);
@@ -281,6 +289,7 @@ function redactValue(
   }
 
   if (depth > options.maxDepth) {
+    // Bound traversal before following another nested reference.
     return options.maxDepthReplacement;
   }
 
@@ -293,6 +302,7 @@ function redactValue(
   }
 
   if (seen.has(value)) {
+    // A WeakSet detects cycles without retaining objects after redaction ends.
     return options.circularReplacement;
   }
 

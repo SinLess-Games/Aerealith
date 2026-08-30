@@ -1,3 +1,4 @@
+/** Verifies timers and measured operations record balanced outcome telemetry. */
 import { LogLevel, type LogRecord, type LogSink } from '@aerealith-ai/core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 

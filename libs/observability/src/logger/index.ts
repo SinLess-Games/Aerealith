@@ -1,5 +1,4 @@
-// libs/observability/src/logger/index.ts
-
+/** Structured logger contracts, factories, formatters, and sink exports. */
 export * from './config/console-logger-options.interface';
 export * from './config/logger-options.interface';
 export * from './config/loki-logger-options.interface';

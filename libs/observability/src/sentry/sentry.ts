@@ -1,3 +1,4 @@
+/** Wraps Sentry with redaction, metrics, and shared correlation context. */
 import * as Sentry from '@sentry/node';
 import { redact, redactText } from '@aerealith-ai/utils';
 
@@ -8,6 +9,8 @@ import { getStandardServiceMetrics, incrementCounter } from '../metrics';
 import type { SentryConfig, SentryInitializationResult } from './sentry-config';
 import { applySentryObservabilityContext } from './sentry-context';
 
+// Separate flags distinguish an SDK initialized earlier from reporting that is
+// disabled for the current configuration.
 let sentryInitialized = false;
 let sentryEnabled = false;
 
@@ -18,11 +21,13 @@ export function initializeSentry(
   const dsn = config.dsn?.trim();
 
   if (config.enabled === false || !dsn) {
+    // An empty DSN is a supported disabled state for local development.
     sentryEnabled = false;
     return { enabled: false, initialized: sentryInitialized };
   }
 
   if (sentryInitialized) {
+    // Sentry is process-global; do not initialize integrations twice.
     sentryEnabled = true;
     return { enabled: true, initialized: true };
   }
@@ -40,6 +45,7 @@ export function initializeSentry(
     // The repository already owns the OpenTelemetry SDK and exporters.
     skipOpenTelemetrySetup: true,
     beforeSend(event) {
+      // Final defensive redaction covers data added by Sentry integrations.
       return redact(event) as typeof event;
     },
   });
@@ -49,6 +55,7 @@ export function initializeSentry(
   return { enabled: true, initialized: true };
 }
 
+/** Reports whether calls currently forward events to Sentry. */
 export function isSentryEnabled(): boolean {
   return sentryEnabled;
 }
@@ -58,6 +65,7 @@ export function captureException(
   context?: ErrorContext,
 ): string | undefined {
   const normalized = normalizeError(error);
+  // Error metrics remain useful even when Sentry itself is disabled.
   incrementCounter(getStandardServiceMetrics()?.errors, {
     component: normalizeMetricLabel(context?.['component']),
     code: normalizeMetricLabel(normalized.code ?? normalized.name),
@@ -66,6 +74,7 @@ export function captureException(
   if (!sentryEnabled) return undefined;
 
   return Sentry.withScope((scope) => {
+    // Per-event scope prevents one operation's context leaking into another.
     applySentryObservabilityContext(scope);
     const normalizedContext = normalizeErrorContext(context);
     if (Object.keys(normalizedContext).length > 0) {
@@ -76,11 +85,14 @@ export function captureException(
 }
 
 function normalizeMetricLabel(value: unknown): string {
+  // Restrict labels to bounded stable identifiers; messages and arbitrary user
+  // values collapse to the shared unknown series.
   if (typeof value !== 'string') return 'unknown';
   const normalized = value.trim();
   return /^[a-zA-Z0-9_.-]{1,64}$/u.test(normalized) ? normalized : 'unknown';
 }
 
+/** Captures a redacted diagnostic message when Sentry is enabled. */
 export function captureMessage(
   message: string,
   level: Sentry.SeverityLevel = 'info',
@@ -89,6 +101,7 @@ export function captureMessage(
   return Sentry.captureMessage(redactText(message), level);
 }
 
+/** Sets a redacted global Sentry user for consumers that explicitly need it. */
 export function setSentryUser(
   user: Parameters<typeof Sentry.setUser>[0],
 ): void {
@@ -96,11 +109,13 @@ export function setSentryUser(
   Sentry.setUser(redact(user) as Parameters<typeof Sentry.setUser>[0]);
 }
 
+/** Adds a redacted searchable tag to subsequent Sentry events. */
 export function setSentryTag(key: string, value: string): void {
   if (!sentryEnabled) return;
   Sentry.setTag(key, redactText(value));
 }
 
+/** Sets structured, normalized context on subsequent Sentry events. */
 export function setSentryContext(
   name: string,
   context: ErrorContext | null,
@@ -112,6 +127,7 @@ export function setSentryContext(
   );
 }
 
+/** Runs a callback with an isolated scope, or undefined when disabled. */
 export function withSentryScope<T>(
   callback: (scope: Sentry.Scope | undefined) => T,
 ): T {
@@ -119,6 +135,7 @@ export function withSentryScope<T>(
   return Sentry.withScope((scope) => callback(scope));
 }
 
+/** Flushes queued Sentry events within a bounded deadline. */
 export async function flushSentry(timeoutMs = 2_000): Promise<boolean> {
   if (!sentryEnabled) return true;
   return Sentry.flush(timeoutMs);
@@ -129,6 +146,7 @@ export function getSentrySdk(): typeof Sentry {
   return Sentry;
 }
 
+/** Clears wrapper flags between tests; the SDK remains process-managed. */
 export function resetSentryForTesting(): void {
   sentryInitialized = false;
   sentryEnabled = false;

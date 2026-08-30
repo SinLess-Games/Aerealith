@@ -1,3 +1,4 @@
+/** Guards the package entry point so canonical consumer APIs remain exported. */
 import { describe, expect, it } from 'vitest';
 
 import {

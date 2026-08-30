@@ -1,3 +1,9 @@
+/**
+ * Direct Node entry point for the API service.
+ *
+ * It initializes logging and telemetry before lazily importing Hono so
+ * OpenTelemetry can install instrumentation before supported modules load.
+ */
 import { existsSync } from 'node:fs';
 
 import {

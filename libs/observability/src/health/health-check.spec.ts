@@ -1,3 +1,4 @@
+/** Verifies health aggregation, required/optional semantics, and timeouts. */
 import { describe, expect, it } from 'vitest';
 
 import { HealthRegistry } from './health-check';

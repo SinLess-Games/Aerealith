@@ -1,3 +1,4 @@
+/** Observes Discord command execution without retaining interaction payloads. */
 import {
   captureException,
   logger as defaultLogger,
@@ -12,12 +13,14 @@ import {
 } from './metrics.adapter';
 import { withDiscordTrace } from './traces.adapter';
 
+/** Low-cardinality facts that identify a command execution. */
 export interface CommandObservation {
   readonly name: string;
   readonly type?: string;
   readonly shardId?: number;
 }
 
+/** Wrapper contract used by command pieces to add shared telemetry. */
 export interface CommandObserver {
   observe<T>(
     command: CommandObservation,
@@ -25,6 +28,7 @@ export interface CommandObserver {
   ): Promise<T>;
 }
 
+/** Injectable collaborators keep the adapter deterministic in unit tests. */
 export interface CommandObserverOptions {
   readonly logger?: ObservabilityLogger;
   readonly metrics?: DiscordMetricsAdapter;
@@ -37,6 +41,7 @@ export function createCommandObserver(
 ): CommandObserver {
   const logger = options.logger ?? defaultLogger;
   const metrics = options.metrics ?? createDiscordMetricsAdapter();
+  // performance.now is monotonic, so clock adjustments cannot corrupt duration.
   const now = options.now ?? performance.now.bind(performance);
 
   return {
@@ -45,6 +50,8 @@ export function createCommandObserver(
       execute: () => Promise<T> | T,
     ): Promise<T> {
       const type = command.type ?? 'unknown';
+      // AsyncLocalStorage makes these values available to nested logs and
+      // Sentry scopes without passing metadata through every function call.
       return runWithObservabilityContext(
         {
           component: 'discord-command',
@@ -72,6 +79,8 @@ export function createCommandObserver(
                 return result;
               } catch (error) {
                 outcome = 'failure';
+                // Report the original thrown value, then rethrow it so Sapphire
+                // retains ownership of user-facing command error behavior.
                 captureException(error, {
                   component: 'discord-command',
                   operation: command.name,
@@ -89,6 +98,8 @@ export function createCommandObserver(
                 });
                 throw error;
               } finally {
+                // finally guarantees one duration/count observation for both
+                // successful and failed executions.
                 metrics.recordCommand(
                   command.name,
                   type,
@@ -109,5 +120,6 @@ export function createCommandObserver(
 }
 
 function elapsed(now: () => number, startedAt: number): number {
+  // Clamp invalid clocks to zero instead of emitting an invalid histogram value.
   return Math.max(0, now() - startedAt);
 }

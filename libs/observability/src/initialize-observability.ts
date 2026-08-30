@@ -1,3 +1,4 @@
+/** Coordinates one-time startup for every shared observability subsystem. */
 import {
   resolveObservabilityConfig,
   toSafeObservabilityConfig,
@@ -35,6 +36,7 @@ import {
 } from './sentry';
 import { configureTracing } from './tracing';
 
+/** Safe handles and status flags returned to the initialized application. */
 export interface ObservabilityRuntime {
   readonly config: SafeObservabilityConfig;
   readonly logger: ObservabilityLogger;
@@ -43,6 +45,8 @@ export interface ObservabilityRuntime {
   readonly node?: NodeObservability;
 }
 
+// Caching the promise, rather than only the completed value, also deduplicates
+// concurrent initialization calls made during module startup.
 let initializationPromise: Promise<ObservabilityRuntime> | undefined;
 
 /** Initializes configured observability subsystems once for the process. */
@@ -57,6 +61,8 @@ async function performInitialization(
   input: ObservabilityConfigInput,
 ): Promise<ObservabilityRuntime> {
   const config = resolveObservabilityConfig(input);
+  // Build common logger metadata once so Node and runtime-neutral logger paths
+  // produce the same record shape.
   const loggerOptions = {
     service: config.service,
     level: config.logging.level,
@@ -72,6 +78,8 @@ async function performInitialization(
       pretty: config.logging.pretty ?? config.environment !== 'production',
     },
   } as const;
+  // Node services can add Loki/exporter support; other runtimes receive the
+  // portable logger without importing Node-only infrastructure.
   const configuredLogger = config.node.enabled
     ? createNodeLogger({
         ...loggerOptions,
@@ -83,6 +91,8 @@ async function performInitialization(
       });
   setDefaultLogger(configuredLogger);
 
+  // Metrics are configured before optional exporters so application metrics
+  // remain usable even when external telemetry initialization degrades.
   configureMetrics({
     enabled: config.metrics.enabled,
     service: config.service,
@@ -107,6 +117,8 @@ async function performInitialization(
         },
       });
     } catch (error) {
+      // Exporters are optional infrastructure: preserve local logs and service
+      // startup instead of making telemetry availability a hard dependency.
       configuredLogger.warn({
         event: 'observability.initialization.degraded',
         message: 'Optional Node observability failed to initialize.',
@@ -134,6 +146,7 @@ async function performInitialization(
       tracesSampleRate: config.sentry.tracesSampleRate,
     });
   } catch (error) {
+    // Sentry follows the same fail-open policy as the Node exporters.
     configuredLogger.warn({
       event: 'observability.sentry.initialization.failed',
       message: 'Optional Sentry reporting failed to initialize.',
@@ -141,6 +154,7 @@ async function performInitialization(
     });
   }
 
+  // Central shutdown registration gives services one bounded flush path.
   registerObservabilityShutdownHandler('logger', () =>
     configuredLogger.close(),
   );
@@ -154,6 +168,8 @@ async function performInitialization(
   }
 
   return {
+    // Return only credential-free config; secrets remain inside initialized
+    // clients and are never exposed through diagnostics.
     config: toSafeObservabilityConfig(config),
     logger: configuredLogger,
     metricsEnabled: isMetricsEnabled(),

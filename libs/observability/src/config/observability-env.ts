@@ -1,7 +1,9 @@
+/** Maps deployment environment variables into validated observability config. */
 import type { ObservabilityConfigInput } from './observability-config';
 import { resolveObservabilityConfig } from './observability-config';
 import { LogLevel } from '@aerealith-ai/core';
 
+/** String-only environment abstraction that also supports test snapshots. */
 export interface ObservabilityEnv {
   readonly [key: string]: string | undefined;
 }
@@ -15,6 +17,8 @@ export function resolveObservabilityConfigFromEnv(
     readOptional(environment, 'OBSERVABILITY_SERVICE_NAME') ??
     readOverrideService(overrides);
 
+  // Environment values take precedence over explicit defaults while nested
+  // override objects retain fields that do not have environment variables.
   return resolveObservabilityConfig({
     ...overrides,
     service,
@@ -64,6 +68,8 @@ export function resolveObservabilityConfigFromEnv(
 function readOverrideService(
   overrides: Partial<ObservabilityConfigInput>,
 ): string {
+  // Service identity is mandatory because every backend uses it to partition
+  // telemetry; silently inventing one would mix unrelated applications.
   if (typeof overrides.service !== 'string' || !overrides.service.trim()) {
     throw new Error(
       'OBSERVABILITY_SERVICE_NAME or an explicit service name is required.',
@@ -76,6 +82,7 @@ function readOptional(
   environment: ObservabilityEnv,
   name: string,
 ): string | undefined {
+  // Empty values are treated as absent so optional .env placeholders are safe.
   const value = environment[name]?.trim();
   return value ? value : undefined;
 }
@@ -84,6 +91,7 @@ function readBoolean(
   environment: ObservabilityEnv,
   name: string,
 ): boolean | undefined {
+  // Accept common deployment spellings while rejecting ambiguous typos.
   const value = readOptional(environment, name)?.toLowerCase();
   if (value === undefined) return undefined;
   if (['1', 'true', 'yes', 'on'].includes(value)) return true;
@@ -97,6 +105,7 @@ function readNumber(
 ): number | undefined {
   const value = readOptional(environment, name);
   if (value === undefined) return undefined;
+  // Number() supports integer and decimal sample-rate syntax.
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) throw new Error(`${name} must be a number.`);
   return parsed;
@@ -108,6 +117,7 @@ function readLogLevel(
 ): LogLevel | undefined {
   const value = readOptional(environment, name);
   if (value === undefined) return undefined;
+  // Compare against the repository enum instead of maintaining a second list.
   const level = Object.values(LogLevel).find(
     (candidate) => candidate === value,
   );
@@ -118,5 +128,6 @@ function readLogLevel(
 }
 
 function readObject<T extends object>(value: T | undefined): Partial<T> {
+  // Spreading an empty object keeps nested override merging concise and typed.
   return value ?? {};
 }
