@@ -33,7 +33,7 @@ describe('Discord logger adapter', () => {
       event: 'discord.framework.info',
       message: 'Gateway connected 2',
       component: 'discord-framework',
-      context: { values: [metadata] },
+      context: { values: [metadata, 2] },
     });
   });
 
@@ -68,5 +68,28 @@ describe('Discord logger adapter', () => {
       }),
     );
     expect(logger.info).not.toHaveBeenCalled();
+  });
+
+  it('routes every Sapphire level to the matching shared logger method', () => {
+    const logger = createLoggerMock();
+    const adapter = createDiscordLoggerAdapter(logger);
+
+    adapter.trace('trace');
+    adapter.warn('warn');
+    adapter.fatal('fatal');
+    adapter.write(30 as never, 'written info');
+
+    expect(logger.trace).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'trace' }),
+    );
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'warn' }),
+    );
+    expect(logger.fatal).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'fatal' }),
+    );
+    expect(logger.info).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'written info' }),
+    );
   });
 });

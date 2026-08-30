@@ -39,7 +39,7 @@ describe('Command observer', () => {
     const logger = createLoggerMock();
     const metrics = createMetricsMock();
     const now = jest
-      .fn<() => number>()
+      .fn<number, []>()
       .mockReturnValueOnce(100)
       .mockReturnValueOnce(125)
       .mockReturnValueOnce(125);
@@ -71,7 +71,7 @@ describe('Command observer', () => {
     const logger = createLoggerMock();
     const metrics = createMetricsMock();
     const now = jest
-      .fn<() => number>()
+      .fn<number, []>()
       .mockReturnValueOnce(200)
       .mockReturnValueOnce(240);
     const observer = createCommandObserver({ logger, metrics, now });

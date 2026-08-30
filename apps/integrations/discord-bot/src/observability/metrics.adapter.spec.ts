@@ -20,6 +20,7 @@ describe('Discord metrics adapter', () => {
     metrics.setGuildCount(3);
     metrics.setGatewayLatency(125);
     metrics.recordCommand('Play Song', 'Chat Input', 'success', 250);
+    metrics.recordGatewayEvent('Interaction Create', 'success', 50);
     metrics.recordShardEvent('Shard Ready', 2);
     metrics.setShardConnected(2, true);
     metrics.recordLavalinkEvent('Node Ready', 'success', 'Primary Node');
@@ -38,6 +39,9 @@ describe('Discord metrics adapter', () => {
     );
     expect(output).toContain(
       'test_discord_shard_events_total{event="shard_ready",shard="2"} 1',
+    );
+    expect(output).toContain(
+      'test_discord_gateway_events_total{event="interaction_create",outcome="success"} 1',
     );
     expect(output).toContain(
       'test_discord_lavalink_node_connected{node="primary_node"} 1',
