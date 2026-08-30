@@ -7,10 +7,9 @@
     "e2e": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{e2eProjectRoot}"],
-      "dependsOn": ["discord-bot:build", "discord-bot:serve"],
+      "dependsOn": ["discord-bot:build"],
       "options": {
-        "jestConfig": "apps/integrations/discord-bot-e2e/jest.config.cts",
-        "passWithNoTests": true
+        "jestConfig": "apps/e2e/discord-bot-e2e/jest.config.cts"
       }
     }
   }

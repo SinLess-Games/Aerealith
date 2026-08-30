@@ -1,4 +1,5 @@
-export default {
+// CommonJS matches the .cts extension and lets Nx load this config directly.
+module.exports = {
   displayName: 'discord-bot-e2e',
   preset: '../../../jest.preset.js',
   setupFiles: ['<rootDir>/src/test-setup.ts'],
