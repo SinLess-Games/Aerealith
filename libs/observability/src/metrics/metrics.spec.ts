@@ -1,4 +1,5 @@
 /** Verifies metric registration, mutation, exposition, and label safety. */
+import { Counter, Gauge, Histogram } from '@prometheus-io/client';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
@@ -7,12 +8,16 @@ import {
   createGauge,
   createHistogram,
   getMetrics,
+  getMetricsContentType,
+  incrementGauge,
   incrementCounter,
+  decrementGauge,
   observeHistogram,
   resetMetricsForTesting,
   setGauge,
 } from './metrics';
 import { resetProcessMetricsForTesting } from './process-metrics';
+import { metricsRegistry } from './registry';
 
 describe('Prometheus metrics', () => {
   afterEach(() => {
@@ -74,5 +79,58 @@ describe('Prometheus metrics', () => {
     });
     incrementCounter(counter);
     await expect(getMetrics()).resolves.toBe('');
+  });
+
+  it('reuses compatible externally registered instruments', () => {
+    const counter = new Counter({
+      name: 'external_total',
+      help: 'External counter.',
+      registers: [metricsRegistry],
+    });
+    const gauge = new Gauge({
+      name: 'external_gauge',
+      help: 'External gauge.',
+      registers: [metricsRegistry],
+    });
+    const histogram = new Histogram({
+      name: 'external_duration_seconds',
+      help: 'External duration.',
+      registers: [metricsRegistry],
+    });
+
+    expect(createCounter({ name: 'external_total', help: 'Reused.' })).toBe(
+      counter,
+    );
+    expect(createGauge({ name: 'external_gauge', help: 'Reused.' })).toBe(
+      gauge,
+    );
+    expect(
+      createHistogram({
+        name: 'external_duration_seconds',
+        help: 'Reused.',
+      }),
+    ).toBe(histogram);
+  });
+
+  it('rejects every incompatible metric type and safely ignores missing handles', () => {
+    createGauge({ name: 'gauge_conflict', help: 'Gauge.' });
+    createHistogram({ name: 'histogram_conflict', help: 'Histogram.' });
+
+    expect(() =>
+      createCounter({ name: 'gauge_conflict', help: 'Counter.' }),
+    ).toThrow('other than counter');
+    expect(() =>
+      createGauge({ name: 'histogram_conflict', help: 'Gauge.' }),
+    ).toThrow('other than gauge');
+    expect(() =>
+      createHistogram({ name: 'gauge_conflict', help: 'Histogram.' }),
+    ).toThrow('other than histogram');
+
+    incrementCounter(undefined);
+    setGauge(undefined, 1);
+    incrementGauge(undefined);
+    decrementGauge(undefined);
+    observeHistogram(undefined, 1);
+    expect(getMetricsContentType()).toContain('text/plain');
   });
 });

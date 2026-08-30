@@ -65,4 +65,29 @@ describe('performance measurement', () => {
     expect(output).toContain('operation="job.execute",outcome="success"');
     expect(output).toContain('operation="job.fail",outcome="failure"');
   });
+
+  it('supports traced defaults, error capture, disabled logs, and elapsed time', async () => {
+    const now = vi
+      .fn<() => number>()
+      .mockReturnValueOnce(5)
+      .mockReturnValueOnce(9)
+      .mockReturnValueOnce(12);
+    const timer = startTimer(now);
+    expect(timer.elapsed()).toBe(4);
+    expect(timer.end()).toBe(7);
+    expect(timer.elapsed()).toBe(7);
+
+    await expect(measureOperation('job.default', () => 'done')).resolves.toBe(
+      'done',
+    );
+    await expect(
+      measureOperation(
+        'job.captured-failure',
+        () => {
+          throw new Error('failed');
+        },
+        { captureError: true, component: 'worker', log: false },
+      ),
+    ).rejects.toThrow('failed');
+  });
 });

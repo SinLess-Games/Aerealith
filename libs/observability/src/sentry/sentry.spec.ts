@@ -32,11 +32,14 @@ import {
   captureException,
   captureMessage,
   flushSentry,
+  getSentrySdk,
   initializeSentry,
+  isSentryEnabled,
   resetSentryForTesting,
   setSentryContext,
   setSentryTag,
   setSentryUser,
+  withSentryScope,
 } from './sentry';
 
 describe('Sentry boundary', () => {
@@ -51,6 +54,12 @@ describe('Sentry boundary', () => {
       initialized: false,
     });
     expect(captureException(new Error('ignored'))).toBeUndefined();
+    expect(captureMessage('ignored')).toBeUndefined();
+    expect(setSentryUser({ id: 'ignored' })).toBeUndefined();
+    expect(setSentryTag('component', 'ignored')).toBeUndefined();
+    expect(setSentryContext('test', {})).toBeUndefined();
+    expect(withSentryScope((scope) => scope)).toBeUndefined();
+    expect(isSentryEnabled()).toBe(false);
     await expect(flushSentry()).resolves.toBe(true);
     expect(sentryMocks.init).not.toHaveBeenCalled();
   });
@@ -123,5 +132,27 @@ describe('Sentry boundary', () => {
     expect(sentryMocks.setUser).toHaveBeenCalledWith(
       expect.objectContaining({ accessToken: '[REDACTED]' }),
     );
+  });
+
+  it('supports enabled scope, null context, SDK access, and flushing', async () => {
+    initializeSentry({
+      service: 'jobs',
+      dsn: 'https://public@sentry.example/1',
+    });
+
+    expect(isSentryEnabled()).toBe(true);
+    expect(withSentryScope((scope) => scope)).toBe(sentryMocks.scope);
+    setSentryContext('optional', null);
+    captureException('non-error', {});
+    expect(getSentrySdk()).toBeDefined();
+    await expect(flushSentry(500)).resolves.toBe(true);
+
+    expect(sentryMocks.setContext).toHaveBeenCalledWith('optional', null);
+    expect(sentryMocks.flush).toHaveBeenCalledWith(500);
+
+    expect(initializeSentry({ service: 'jobs', enabled: false })).toEqual({
+      enabled: false,
+      initialized: true,
+    });
   });
 });

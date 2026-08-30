@@ -73,9 +73,48 @@ describe('Pino-backed logging', () => {
       message: 'Started',
     });
   });
+
+  it('routes every severity and stops writing after an idempotent close', async () => {
+    let output = '';
+    const destination = new Writable({
+      write(chunk, _encoding, callback) {
+        output += String(chunk);
+        callback();
+      },
+    });
+    // Omitting process metadata exercises the production hostname/pid defaults.
+    const sink = new PinoLogSink({ destination });
+
+    for (const level of [
+      LogLevel.Trace,
+      LogLevel.Debug,
+      LogLevel.Warn,
+      LogLevel.Error,
+      LogLevel.Fatal,
+    ]) {
+      sink.write(createRecord({ level }));
+    }
+    await sink.flush();
+    await sink.close();
+    await sink.close();
+    await sink.flush();
+    sink.write(createRecord());
+
+    const records = output
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line) as { level: string });
+    expect(records.map(({ level }) => level)).toEqual([
+      'trace',
+      'debug',
+      'warn',
+      'error',
+      'fatal',
+    ]);
+  });
 });
 
-function createRecord(): LogRecord {
+function createRecord(overrides: Partial<LogRecord> = {}): LogRecord {
   return {
     schemaVersion: 1,
     id: 'record-1',
@@ -86,5 +125,6 @@ function createRecord(): LogRecord {
     service: 'auth',
     environment: 'production',
     context: {},
+    ...overrides,
   };
 }

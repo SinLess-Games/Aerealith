@@ -27,4 +27,40 @@ describe('initializeObservability', () => {
       sentryEnabled: false,
     });
   });
+
+  it('initializes the Node path with complete service metadata', async () => {
+    const runtime = await initializeObservability({
+      service: 'discord-bot',
+      environment: 'production',
+      version: '1.0.0',
+      instanceId: 'bot-1',
+      logging: {
+        enabled: false,
+        component: 'gateway',
+      },
+      metrics: {
+        enabled: false,
+        collectProcessMetrics: false,
+      },
+      sentry: { enabled: false },
+      tracing: { enabled: true },
+      node: { enabled: true, environment: {} },
+    });
+
+    expect(runtime).toMatchObject({
+      config: {
+        service: 'discord-bot',
+        environment: 'production',
+        version: '1.0.0',
+        instanceId: 'bot-1',
+        node: { enabled: true },
+      },
+      metricsEnabled: false,
+      sentryEnabled: false,
+      node: {
+        enabled: false,
+        profilingEnabled: false,
+      },
+    });
+  });
 });

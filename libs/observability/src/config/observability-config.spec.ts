@@ -61,4 +61,29 @@ describe('observability configuration', () => {
       }),
     ).toThrow('OBSERVABILITY_LOG_LEVEL');
   });
+
+  it('retains every credential-free optional diagnostic field', () => {
+    const safe = toSafeObservabilityConfig(
+      resolveObservabilityConfig({
+        service: 'api',
+        version: '1.0.0',
+        instanceId: 'api-1',
+        sentry: {
+          dsn: 'https://public@sentry.example/1',
+          environment: 'staging',
+          release: 'release-1',
+        },
+      }),
+    );
+
+    expect(safe).toMatchObject({
+      version: '1.0.0',
+      instanceId: 'api-1',
+      sentry: {
+        configured: true,
+        environment: 'staging',
+        release: 'release-1',
+      },
+    });
+  });
 });
