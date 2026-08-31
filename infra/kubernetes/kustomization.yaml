@@ -7,3 +7,4 @@ resources:
   - ./kubelet-serving-cert-approver
   - ./cert-manager
   - ./istio-system
+  - ./observability
