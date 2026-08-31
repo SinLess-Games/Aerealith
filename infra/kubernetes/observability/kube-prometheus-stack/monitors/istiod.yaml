@@ -1,0 +1,25 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: aerealith-istiod
+  namespace: observability
+  labels:
+    release: kube-prometheus-stack
+    app.kubernetes.io/name: istiod
+    app.kubernetes.io/component: service-mesh
+    app.kubernetes.io/part-of: aerealith-platform
+    app.kubernetes.io/managed-by: flux
+spec:
+  namespaceSelector:
+    matchNames:
+      - istio-system
+
+  selector:
+    matchLabels:
+      app: istiod
+
+  endpoints:
+    - port: http-monitoring
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
