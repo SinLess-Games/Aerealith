@@ -1,0 +1,53 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: istiod
+  namespace: istio-system
+  labels:
+    app.kubernetes.io/name: istiod
+    app.kubernetes.io/instance: istiod
+    app.kubernetes.io/component: service-mesh-control-plane
+    app.kubernetes.io/part-of: aerealith-platform
+    app.kubernetes.io/managed-by: flux
+spec:
+  interval: 30m
+
+  dependsOn:
+    - name: istio-base
+      namespace: istio-system
+
+  releaseName: istiod
+  targetNamespace: istio-system
+  storageNamespace: istio-system
+
+  chart:
+    spec:
+      chart: istiod
+      version: '1.30.4'
+      sourceRef:
+        kind: HelmRepository
+        name: istio
+        namespace: flux-system
+      interval: 12h
+
+  valuesFrom:
+    - kind: ConfigMap
+      name: istiod-values
+      valuesKey: values.yaml
+
+  install:
+    createNamespace: false
+    remediation:
+      retries: 3
+
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+      strategy: rollback
+
+  rollback:
+    cleanupOnFail: true
+    timeout: 10m
+
+  timeout: 10m
