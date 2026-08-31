@@ -1,0 +1,20 @@
+# cert-manager manages its CRDs through the Helm release.
+crds:
+  enabled: true
+
+# Run multiple replicas for the long-running control-plane components.
+replicaCount: 2
+
+webhook:
+  replicaCount: 2
+
+cainjector:
+  replicaCount: 2
+
+# Expose Prometheus-format metrics.
+# ServiceMonitor will be enabled later after Prometheus Operator exists.
+prometheus:
+  enabled: true
+
+  servicemonitor:
+    enabled: false
