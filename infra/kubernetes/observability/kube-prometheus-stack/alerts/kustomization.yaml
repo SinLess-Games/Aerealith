@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: observability
+
+resources:
+  - ./kubernetes.yaml
+  - ./embedded-exporter.yaml
+  - ./flux.yaml
+  - ./cert-manager.yaml
+  - ./cilium.yaml
+  - ./istio.yaml
+
+labels:
+  - pairs:
+      aerealith.com/prometheus-rule: 'true'
+      app.kubernetes.io/part-of: aerealith-platform
+      app.kubernetes.io/managed-by: flux
