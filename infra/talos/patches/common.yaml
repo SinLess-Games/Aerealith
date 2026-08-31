@@ -20,6 +20,6 @@ machine:
     nodeIP:
       validSubnets:
         - 10.42.0.0/24
-
+        
     extraArgs:
       rotate-server-certificates: 'true'

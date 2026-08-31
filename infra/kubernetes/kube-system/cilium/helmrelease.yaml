@@ -13,7 +13,6 @@ spec:
   interval: 30m
 
   releaseName: cilium
-  suspend: true
 
   targetNamespace: kube-system
   storageNamespace: kube-system
