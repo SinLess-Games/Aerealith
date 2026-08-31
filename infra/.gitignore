@@ -1,0 +1,7 @@
+generated/
+recovery/
+secrets.yaml
+talosconfig
+kubeconfig
+*.key
+*.crt
