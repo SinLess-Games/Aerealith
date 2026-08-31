@@ -169,6 +169,8 @@ LABEL org.opencontainers.image.title="Aerealith Auth Service" \
 #
 # The service runs under a dedicated non-root UID/GID.
 RUN apk add --no-cache \
+  'libcrypto3>=3.5.8-r0' \
+  'libssl3>=3.5.8-r0' \
   libstdc++ \
   tini \
   && addgroup \

@@ -11,7 +11,23 @@
 
 vulnerabilities: []
 
-misconfigurations: []
+misconfigurations:
+  - id: KSV-0041
+    paths:
+      - infra/kubernetes/flux-system/flux/rbac.yaml
+    statement: >-
+      Flux controllers must read Kubernetes Secrets for source credentials and
+      reconciliation inputs; this generated RBAC is pinned to Flux v2.9.4.
+    expired_at: 2026-11-28
+
+  - id: KSV-0046
+    paths:
+      - infra/kubernetes/flux-system/flux/rbac.yaml
+    statement: >-
+      Flux uses wildcard permissions for its own CRDs and aggregated user roles
+      so new Flux API resources remain reconcilable; this generated RBAC is
+      pinned to Flux v2.9.4.
+    expired_at: 2026-11-28
 
 secrets: []
 

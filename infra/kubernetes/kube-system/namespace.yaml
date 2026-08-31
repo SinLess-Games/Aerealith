@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kube-system
+  labels:
+    app.kubernetes.io/part-of: aerealith-platform
+    app.kubernetes.io/managed-by: flux
+  annotations:
+    aerealith.com/description: Kubernetes system services and cluster networking
+
+    kustomize.toolkit.fluxcd.io/prune: Disabled
+    kustomize.toolkit.fluxcd.io/ssa: Merge

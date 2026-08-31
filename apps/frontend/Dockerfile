@@ -87,6 +87,10 @@ LABEL org.opencontainers.image.title="Aerealith Frontend" \
 RUN <<'SETUP'
 set -eu
 
+apk add --no-cache \
+  'libcrypto3>=3.5.8-r0' \
+  'libssl3>=3.5.8-r0'
+
 addgroup \
   --system \
   --gid "${APP_GID}" \
