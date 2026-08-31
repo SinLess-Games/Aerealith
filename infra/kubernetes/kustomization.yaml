@@ -6,3 +6,4 @@ resources:
   - ./kube-system
   - ./kubelet-serving-cert-approver
   - ./cert-manager
+  - ./istio-system
