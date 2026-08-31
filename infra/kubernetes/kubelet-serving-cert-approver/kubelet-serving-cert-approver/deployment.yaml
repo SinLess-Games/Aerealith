@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubelet-serving-cert-approver
+  namespace: kubelet-serving-cert-approver
+  labels:
+    app.kubernetes.io/name: kubelet-serving-cert-approver
+    app.kubernetes.io/instance: kubelet-serving-cert-approver
+    app.kubernetes.io/component: certificates
+    app.kubernetes.io/part-of: aerealith-platform
+    app.kubernetes.io/managed-by: flux
+    app.kubernetes.io/version: '0.11.0'
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kubelet-serving-cert-approver
+      app.kubernetes.io/instance: kubelet-serving-cert-approver
+
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kubelet-serving-cert-approver
+        app.kubernetes.io/instance: kubelet-serving-cert-approver
+        app.kubernetes.io/component: certificates
+        app.kubernetes.io/part-of: aerealith-platform
+        app.kubernetes.io/managed-by: flux
+        app.kubernetes.io/version: '0.11.0'
+
+    spec:
+      serviceAccountName: kubelet-serving-cert-approver
+      priorityClassName: system-cluster-critical
+
+      securityContext:
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: DoesNotExist
+
+      containers:
+        - name: cert-approver
+          image: ghcr.io/alex1989hu/kubelet-serving-cert-approver:0.11.0
+          imagePullPolicy: Always
+
+          args:
+            - serve
+
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+
+          ports:
+            - name: health
+              containerPort: 8080
+              protocol: TCP
+
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            initialDelaySeconds: 6
+
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: health
+            initialDelaySeconds: 3
+
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 250m
+              memory: 32Mi
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+
+      tolerations:
+        - key: node.cloudprovider.kubernetes.io/uninitialized
+          operator: Exists
+          effect: NoSchedule
+
+        - key: node-role.kubernetes.io/master
+          operator: Exists
+          effect: NoSchedule
+
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule

@@ -1,8 +1,5 @@
 replicas: 2
 
-args:
-  - --kubelet-preferred-address-types=InternalIP,Hostname
-
 podDisruptionBudget:
   enabled: true
   minAvailable: 1
