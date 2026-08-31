@@ -7,3 +7,4 @@ resources:
   - ./istio-base
   - ./istiod
   - ./istio-cni
+  - ./ztunnel
