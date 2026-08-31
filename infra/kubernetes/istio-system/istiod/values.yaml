@@ -1,7 +1,21 @@
 profile: ambient
 
-pilot:
-  replicaCount: 2
+# Keep Istiod highly available.
+autoscaleEnabled: true
+autoscaleMin: 2
+autoscaleMax: 5
+
+# Never place both Istiod replicas on the same node.
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+            - key: app
+              operator: In
+              values:
+                - istiod
+        topologyKey: kubernetes.io/hostname
 
 global:
   logAsJson: true
