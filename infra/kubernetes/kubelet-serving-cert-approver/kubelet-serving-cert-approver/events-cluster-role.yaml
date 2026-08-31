@@ -1,0 +1,18 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: events:kubelet-serving-cert-approver
+  labels:
+    app.kubernetes.io/name: kubelet-serving-cert-approver
+    app.kubernetes.io/instance: kubelet-serving-cert-approver
+    app.kubernetes.io/component: certificates
+    app.kubernetes.io/part-of: aerealith-platform
+    app.kubernetes.io/managed-by: flux
+rules:
+  - apiGroups:
+      - ''
+    resources:
+      - events
+    verbs:
+      - create
+      - patch

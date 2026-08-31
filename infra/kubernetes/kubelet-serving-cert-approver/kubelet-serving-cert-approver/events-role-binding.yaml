@@ -1,0 +1,19 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: events:kubelet-serving-cert-approver
+  namespace: default
+  labels:
+    app.kubernetes.io/name: kubelet-serving-cert-approver
+    app.kubernetes.io/instance: kubelet-serving-cert-approver
+    app.kubernetes.io/component: certificates
+    app.kubernetes.io/part-of: aerealith-platform
+    app.kubernetes.io/managed-by: flux
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: events:kubelet-serving-cert-approver
+subjects:
+  - kind: ServiceAccount
+    name: kubelet-serving-cert-approver
+    namespace: kubelet-serving-cert-approver
