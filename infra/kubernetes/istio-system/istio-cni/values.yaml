@@ -1,0 +1,4 @@
+profile: ambient
+
+global:
+  logAsJson: true

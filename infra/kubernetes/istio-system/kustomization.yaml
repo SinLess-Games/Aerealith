@@ -6,3 +6,4 @@ resources:
   - ./gateway-api
   - ./istio-base
   - ./istiod
+  - ./istio-cni

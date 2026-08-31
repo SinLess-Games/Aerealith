@@ -1,0 +1,54 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: istio-cni
+  namespace: istio-system
+  labels:
+    app.kubernetes.io/name: istio-cni
+    app.kubernetes.io/instance: istio-cni
+    app.kubernetes.io/component: service-mesh-cni
+    app.kubernetes.io/part-of: aerealith-platform
+    app.kubernetes.io/managed-by: flux
+
+spec:
+  interval: 30m
+
+  dependsOn:
+    - name: istiod
+      namespace: istio-system
+
+  releaseName: istio-cni
+  targetNamespace: istio-system
+  storageNamespace: istio-system
+
+  chart:
+    spec:
+      chart: cni
+      version: '1.30.4'
+      sourceRef:
+        kind: HelmRepository
+        name: istio
+        namespace: flux-system
+      interval: 12h
+
+  valuesFrom:
+    - kind: ConfigMap
+      name: istio-cni-values
+      valuesKey: values.yaml
+
+  install:
+    createNamespace: false
+    remediation:
+      retries: 3
+
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+      strategy: rollback
+
+  rollback:
+    cleanupOnFail: true
+    timeout: 10m
+
+  timeout: 10m
