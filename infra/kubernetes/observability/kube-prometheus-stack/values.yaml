@@ -1,0 +1,75 @@
+crds:
+  enabled: true
+
+# Grafana will be managed as its own Flux release.
+grafana:
+  enabled: false
+
+# Keep Alertmanager because it is part of the production
+# monitoring foundation.
+alertmanager:
+  enabled: true
+
+  alertmanagerSpec:
+    replicas: 3
+
+# Do not deploy node-exporter into the Restricted
+# observability namespace.
+nodeExporter:
+  enabled: false
+
+# These rules depend on node-exporter.
+defaultRules:
+  rules:
+    node: false
+    nodeExporterAlerting: false
+    nodeExporterRecording: false
+
+# Talos control-plane metrics need their own deliberate
+# scraping configuration. Avoid false-down targets for now.
+kubeControllerManager:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+kubeEtcd:
+  enabled: false
+
+# We'll inspect kube-proxy separately before enabling its monitor.
+kubeProxy:
+  enabled: false
+
+prometheusOperator:
+  replicas: 2
+
+prometheus:
+  enabled: true
+
+  prometheusSpec:
+    replicas: 2
+
+    retention: 7d
+
+    scrapeInterval: 30s
+    evaluationInterval: 30s
+
+    # Only load Aerealith-managed PrometheusRule objects.
+    ruleSelectorNilUsesHelmValues: false
+
+    ruleSelector:
+      matchLabels:
+        aerealith.com/prometheus-rule: 'true'
+
+    # Custom rules live in the observability namespace.
+    ruleNamespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: observability
+
+    resources:
+      requests:
+        cpu: 250m
+        memory: 1Gi
+      limits:
+        cpu: '2'
+        memory: 4Gi
