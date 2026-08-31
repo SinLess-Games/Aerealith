@@ -1,0 +1,78 @@
+# Cilium configuration for the Aerealith Kubernetes cluster.
+#
+# Keep this aligned with the known-good manually installed Helm release
+# while ownership is transferred to Flux.
+#
+# Cluster:
+#   Kubernetes: v1.36.3
+#   Cilium:     v1.20.1
+#   Pod CIDR:   10.200.0.0/16
+#   Service:    10.201.0.0/16
+
+ipam:
+  mode: kubernetes
+
+# Aerealith intentionally keeps kube-proxy.
+#
+# Cilium handles:
+#   - CNI
+#   - L3/L4 policy
+#   - network observability
+#
+# Istio Ambient will later handle:
+#   - workload identity
+#   - mTLS
+#   - L7 authorization
+#   - traffic management
+kubeProxyReplacement: false
+
+cni:
+  # Required for coexistence with the Istio CNI that will be added later.
+  exclusive: false
+
+# Keep the initial cluster networking simple and predictable.
+routingMode: tunnel
+tunnelProtocol: vxlan
+
+# Talos already mounts cgroup v2.
+cgroup:
+  autoMount:
+    enabled: false
+
+  hostRoot: /sys/fs/cgroup
+
+bpf:
+  # Required for the selected Talos/Cilium networking configuration.
+  hostLegacyRouting: true
+
+operator:
+  # Provides HA for the Cilium operator.
+  replicas: 2
+
+hubble:
+  relay:
+    enabled: true
+
+  # Grafana will provide the primary observability interface.
+  ui:
+    enabled: false
+
+securityContext:
+  capabilities:
+    ciliumAgent:
+      - CHOWN
+      - KILL
+      - NET_ADMIN
+      - NET_RAW
+      - IPC_LOCK
+      - SYS_ADMIN
+      - SYS_RESOURCE
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+
+    cleanCiliumState:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - SYS_RESOURCE
