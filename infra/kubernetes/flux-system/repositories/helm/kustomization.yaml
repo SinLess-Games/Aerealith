@@ -10,3 +10,4 @@ resources:
   - openbao.yaml
   - prometheus-community.yaml
   - metrics-server.yaml
+  - istio.yaml

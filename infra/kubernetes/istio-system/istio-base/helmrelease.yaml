@@ -1,0 +1,44 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: istio-base
+  namespace: istio-system
+  labels:
+    app.kubernetes.io/name: istio-base
+    app.kubernetes.io/instance: istio-base
+    app.kubernetes.io/component: service-mesh
+    app.kubernetes.io/part-of: aerealith-platform
+    app.kubernetes.io/managed-by: flux
+spec:
+  interval: 30m
+
+  releaseName: istio-base
+  targetNamespace: istio-system
+  storageNamespace: istio-system
+
+  chart:
+    spec:
+      chart: base
+      version: '1.30.4'
+      sourceRef:
+        kind: HelmRepository
+        name: istio
+        namespace: flux-system
+      interval: 12h
+
+  install:
+    createNamespace: false
+    remediation:
+      retries: 3
+
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+      strategy: rollback
+
+  rollback:
+    cleanupOnFail: true
+    timeout: 10m
+
+  timeout: 10m

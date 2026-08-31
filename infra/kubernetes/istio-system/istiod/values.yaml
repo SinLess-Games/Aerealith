@@ -1,0 +1,7 @@
+profile: ambient
+
+pilot:
+  replicaCount: 2
+
+global:
+  logAsJson: true
