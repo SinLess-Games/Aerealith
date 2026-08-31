@@ -9,3 +9,4 @@ resources:
   - opentelemetry.yaml
   - openbao.yaml
   - prometheus-community.yaml
+  - metrics-server.yaml

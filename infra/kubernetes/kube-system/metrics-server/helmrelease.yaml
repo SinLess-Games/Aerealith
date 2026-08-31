@@ -1,0 +1,49 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: metrics-server
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/name: metrics-server
+    app.kubernetes.io/instance: metrics-server
+    app.kubernetes.io/component: metrics
+    app.kubernetes.io/part-of: aerealith-platform
+    app.kubernetes.io/managed-by: flux
+spec:
+  interval: 30m
+
+  releaseName: metrics-server
+  targetNamespace: kube-system
+  storageNamespace: kube-system
+
+  chart:
+    spec:
+      chart: metrics-server
+      version: '3.13.0'
+      sourceRef:
+        kind: HelmRepository
+        name: metrics-server
+        namespace: flux-system
+      interval: 12h
+
+  valuesFrom:
+    - kind: ConfigMap
+      name: metrics-server-values
+      valuesKey: values.yaml
+
+  install:
+    createNamespace: false
+    remediation:
+      retries: 3
+
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+      strategy: rollback
+
+  rollback:
+    cleanupOnFail: true
+    timeout: 5m
+
+  timeout: 5m
