@@ -1,0 +1,13 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: kiali
+  namespace: flux-system
+  labels:
+    app.kubernetes.io/name: kiali
+    app.kubernetes.io/component: repository
+    app.kubernetes.io/part-of: aerealith-platform
+    app.kubernetes.io/managed-by: flux
+spec:
+  interval: 12h
+  url: https://kiali.org/helm-charts

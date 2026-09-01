@@ -11,3 +11,4 @@ resources:
   - prometheus-community.yaml
   - metrics-server.yaml
   - istio.yaml
+  - kiali.yaml
