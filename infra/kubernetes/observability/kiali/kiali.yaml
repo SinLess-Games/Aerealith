@@ -1,0 +1,62 @@
+apiVersion: kiali.io/v1alpha1
+kind: Kiali
+metadata:
+  name: kiali
+  namespace: observability
+  labels:
+    app.kubernetes.io/name: kiali
+    app.kubernetes.io/instance: kiali
+    app.kubernetes.io/component: service-mesh-observability
+    app.kubernetes.io/part-of: aerealith-platform
+    app.kubernetes.io/managed-by: flux
+
+spec:
+  installation_tag: Aerealith
+
+  auth:
+    strategy: token
+
+  deployment:
+    namespace: observability
+
+    cluster_wide_access: true
+
+    # Kiali is an observability interface in Aerealith.
+    # Mesh configuration remains GitOps-managed.
+    view_only_mode: true
+
+    service_type: ClusterIP
+
+    replicas: 2
+
+    pod_disruption_budget:
+      spec:
+        minAvailable: 1
+
+    logger:
+      log_level: info
+      log_format: json
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: '1'
+        memory: 1Gi
+
+  external_services:
+    prometheus:
+      url: http://kube-prometheus-stack-prometheus.observability.svc:9090
+
+      auth:
+        type: none
+
+      is_core: true
+
+    # Enable these explicitly when their backends are installed.
+    grafana:
+      enabled: false
+
+    tracing:
+      enabled: false
