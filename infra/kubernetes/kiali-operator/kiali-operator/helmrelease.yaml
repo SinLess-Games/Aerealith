@@ -1,0 +1,52 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kiali-operator
+  namespace: kiali-operator
+  labels:
+    app.kubernetes.io/name: kiali-operator
+    app.kubernetes.io/instance: kiali-operator
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/part-of: aerealith-platform
+    app.kubernetes.io/managed-by: flux
+
+spec:
+  interval: 30m
+
+  releaseName: kiali-operator
+  targetNamespace: kiali-operator
+  storageNamespace: kiali-operator
+
+  chart:
+    spec:
+      chart: kiali-operator
+      version: '2.31.0'
+      sourceRef:
+        kind: HelmRepository
+        name: kiali
+        namespace: flux-system
+      interval: 12h
+
+  valuesFrom:
+    - kind: ConfigMap
+      name: kiali-operator-values
+      valuesKey: values.yaml
+
+  install:
+    createNamespace: false
+    crds: Create
+    remediation:
+      retries: 3
+
+  upgrade:
+    crds: CreateReplace
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+      strategy: rollback
+
+  rollback:
+    cleanupOnFail: true
+    timeout: 10m
+
+  timeout: 10m

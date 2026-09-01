@@ -1,0 +1,43 @@
+replicaCount: 1
+
+metrics:
+  enabled: true
+
+debug:
+  enabled: false
+  verbosity: '1'
+  enableProfiler: false
+
+# Watch for Kiali CRs cluster-wide.
+watchNamespace: ''
+
+# Kiali will eventually need cluster-wide read access so it can
+# observe the complete Aerealith service mesh.
+clusterRoleCreator: true
+allowAllAccessibleNamespaces: true
+
+# Not OpenShift and we do not need impersonation.
+supportImpersonation: false
+
+# Kiali is being deployed as an observability interface.
+# Do not allow it to mutate mesh configuration.
+onlyViewOnlyMode: true
+
+# Reduce what Kiali CR authors are allowed to override.
+allowAdHocKialiNamespace: false
+allowAdHocKialiImage: false
+allowAdHocOSSMConsoleImage: false
+allowAdHocContainers: false
+allowSecurityContextOverride: false
+
+# Install the operator only during this phase.
+cr:
+  create: false
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi

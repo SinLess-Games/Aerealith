@@ -8,3 +8,4 @@ resources:
   - ./cert-manager
   - ./istio-system
   - ./observability
+  - ./kiali-operator
