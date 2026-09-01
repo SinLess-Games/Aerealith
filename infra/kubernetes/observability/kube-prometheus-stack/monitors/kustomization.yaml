@@ -5,3 +5,4 @@ resources:
   - istiod.yaml
   - ztunnel.yaml
   - cert-manager.yaml
+  - flux.yaml
