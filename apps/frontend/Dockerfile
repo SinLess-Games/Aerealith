@@ -89,6 +89,7 @@ set -eu
 
 apk add --no-cache \
   'libcrypto3>=3.5.8-r0' \
+  'libexpat>=2.8.4-r0' \
   'libssl3>=3.5.8-r0'
 
 addgroup \
