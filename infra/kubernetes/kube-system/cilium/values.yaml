@@ -45,13 +45,62 @@ bpf:
   # Required for the selected Talos/Cilium networking configuration.
   hostLegacyRouting: true
 
+prometheus:
+  enabled: true
+
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+
+    labels:
+      release: kube-prometheus-stack
+
 operator:
-  # Provides HA for the Cilium operator.
   replicas: 2
 
+  prometheus:
+    enabled: true
+
+    serviceMonitor:
+      enabled: true
+      interval: 30s
+
+      labels:
+        release: kube-prometheus-stack
+
 hubble:
+  enabled: true
+
+  metrics:
+    enableOpenMetrics: true
+
+    enabled:
+      - dns
+      - drop
+      - tcp
+      - flow
+      - port-distribution
+      - icmp
+
+    serviceMonitor:
+      enabled: true
+      interval: 30s
+
+      labels:
+        release: kube-prometheus-stack
+
   relay:
     enabled: true
+
+    prometheus:
+      enabled: true
+
+      serviceMonitor:
+        enabled: true
+        interval: 30s
+
+        labels:
+          release: kube-prometheus-stack
 
   # Grafana will provide the primary observability interface.
   ui:
