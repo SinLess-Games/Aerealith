@@ -1,4 +1,4 @@
-import type { UserConfig } from '@commitlint/types'
+import type { UserConfig } from '@commitlint/types';
 
 const commitTypes = [
   'feat',
@@ -17,10 +17,14 @@ const commitTypes = [
   'release',
   'wip',
   'hotfix',
-] as const
+] as const;
 
 const config: UserConfig = {
   extends: ['@commitlint/config-conventional'],
+  ignores: [
+    (message) =>
+      /^Potential fix for pull request finding(?:\n|$)/.test(message),
+  ],
 
   // Ignore Git-generated merge and revert messages.
   defaultIgnores: true,
@@ -51,6 +55,6 @@ const config: UserConfig = {
     // Support either `!` or a BREAKING CHANGE footer independently.
     'breaking-change-exclamation-mark': [0],
   },
-}
+};
 
-export default config
+export default config;

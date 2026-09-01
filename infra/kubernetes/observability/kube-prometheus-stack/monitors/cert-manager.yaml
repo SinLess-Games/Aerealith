@@ -1,0 +1,85 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: aerealith-cert-manager-controller
+  namespace: observability
+  labels:
+    release: kube-prometheus-stack
+    app.kubernetes.io/name: cert-manager
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/part-of: aerealith-platform
+    app.kubernetes.io/managed-by: flux
+spec:
+  namespaceSelector:
+    matchNames:
+      - cert-manager
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cert-manager
+      app.kubernetes.io/instance: cert-manager
+      app.kubernetes.io/component: controller
+
+  endpoints:
+    - port: http-metrics
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: aerealith-cert-manager-cainjector
+  namespace: observability
+  labels:
+    release: kube-prometheus-stack
+    app.kubernetes.io/name: cert-manager
+    app.kubernetes.io/component: cainjector
+    app.kubernetes.io/part-of: aerealith-platform
+    app.kubernetes.io/managed-by: flux
+spec:
+  namespaceSelector:
+    matchNames:
+      - cert-manager
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cainjector
+      app.kubernetes.io/instance: cert-manager
+      app.kubernetes.io/component: cainjector
+
+  endpoints:
+    - port: http-metrics
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: aerealith-cert-manager-webhook
+  namespace: observability
+  labels:
+    release: kube-prometheus-stack
+    app.kubernetes.io/name: cert-manager
+    app.kubernetes.io/component: webhook
+    app.kubernetes.io/part-of: aerealith-platform
+    app.kubernetes.io/managed-by: flux
+spec:
+  namespaceSelector:
+    matchNames:
+      - cert-manager
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: webhook
+      app.kubernetes.io/instance: cert-manager
+      app.kubernetes.io/component: webhook
+
+  endpoints:
+    - port: http-metrics
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
