@@ -1,0 +1,25 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: aerealith-ztunnel
+  namespace: observability
+  labels:
+    release: kube-prometheus-stack
+    app.kubernetes.io/name: ztunnel
+    app.kubernetes.io/component: ambient-node-proxy
+    app.kubernetes.io/part-of: aerealith-platform
+    app.kubernetes.io/managed-by: flux
+spec:
+  namespaceSelector:
+    matchNames:
+      - istio-system
+
+  selector:
+    matchLabels:
+      app: ztunnel
+
+  podMetricsEndpoints:
+    - port: ztunnel-stats
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
