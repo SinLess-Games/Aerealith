@@ -17,6 +17,8 @@ on:
       - master
       - staging
       - production
+    paths-ignore:
+      - 'infra/**'
 
   workflow_dispatch:
 
@@ -30,8 +32,8 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  NX_DAEMON: "false"
-  NX_TASKS_RUNNER_DYNAMIC_OUTPUT: "false"
+  NX_DAEMON: 'false'
+  NX_TASKS_RUNNER_DYNAMIC_OUTPUT: 'false'
   PNPM_STORE_DIR: ${{ github.workspace }}/.pnpm-store
 
 jobs:
@@ -212,7 +214,7 @@ jobs:
         continue-on-error: true
         shell: bash
         env:
-          NX_VERBOSE_LOGGING: "true"
+          NX_VERBOSE_LOGGING: 'true'
         run: |
           set -o pipefail
 

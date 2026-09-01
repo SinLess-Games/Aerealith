@@ -34,6 +34,8 @@ on:
       - master
       - staging
       - production
+    paths-ignore:
+      - 'infra/**'
     types:
       - opened
       - reopened
@@ -48,7 +50,7 @@ on:
 
   schedule:
     # Weekly repository scan every Sunday at 04:30 UTC.
-    - cron: "30 4 * * 0"
+    - cron: '30 4 * * 0'
 
   workflow_dispatch:
 
@@ -353,7 +355,7 @@ jobs:
         uses: graphql-hive/graphql-inspector@8733c10560f98b868d3eb4db1325c8edf64936b3 # release-1781692943029
         with:
           name: GraphQL Schema - ${{ matrix.name }}
-          schema: "${{ needs.discover.outputs.base_sha }}:${{ matrix.schema }}"
+          schema: '${{ needs.discover.outputs.base_sha }}:${{ matrix.schema }}'
           annotations: false
           fail-on-breaking: true
 

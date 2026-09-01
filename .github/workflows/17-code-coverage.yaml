@@ -23,6 +23,8 @@ on:
   pull_request:
     branches:
       - master
+    paths-ignore:
+      - 'infra/**'
     types:
       - opened
       - reopened
@@ -43,10 +45,10 @@ defaults:
     shell: bash
 
 env:
-  CI: "true"
-  NX_DAEMON: "false"
-  NODE_VERSION: "25.9.0"
-  PNPM_VERSION: "11.12.0"
+  CI: 'true'
+  NX_DAEMON: 'false'
+  NODE_VERSION: '25.9.0'
+  PNPM_VERSION: '11.12.0'
   COVERAGE_DIRECTORY: coverage/code-quality
   COBERTURA_REPORT: coverage/code-quality/cobertura.xml
 

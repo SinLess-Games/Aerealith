@@ -20,7 +20,9 @@ on:
     branches:
       - master
 
-  pull_request: {}
+  pull_request:
+    paths-ignore:
+      - 'infra/**'
 
   # Required so Meticulous can request a run for a missing base commit.
   workflow_dispatch: {}

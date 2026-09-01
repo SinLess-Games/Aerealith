@@ -26,6 +26,8 @@ on:
       - master
       - staging
       - production
+    paths-ignore:
+      - 'infra/**'
     types:
       - opened
       - reopened
@@ -41,7 +43,7 @@ on:
   schedule:
     # Weekly scan catches vulnerabilities disclosed after the most recent code
     # or dependency change.
-    - cron: "0 5 * * 0"
+    - cron: '0 5 * * 0'
 
   workflow_dispatch:
 
@@ -63,10 +65,10 @@ defaults:
     shell: bash
 
 env:
-  CI: "true"
-  FORCE_COLOR: "1"
-  NODE_VERSION: "25.9.0"
-  PNPM_VERSION: "11.12.0"
+  CI: 'true'
+  FORCE_COLOR: '1'
+  NODE_VERSION: '25.9.0'
+  PNPM_VERSION: '11.12.0'
   SNYK_VERSION: latest
   SNYK_SEVERITY_THRESHOLD: high
   SNYK_POLICY_FILE: .snyk
@@ -79,7 +81,7 @@ env:
 
   # Limits GitHub Step Summary output while still showing enough actionable
   # findings for triage.
-  SNYK_SUMMARY_MAX_FINDINGS: "50"
+  SNYK_SUMMARY_MAX_FINDINGS: '50'
 
 jobs:
   preflight:
