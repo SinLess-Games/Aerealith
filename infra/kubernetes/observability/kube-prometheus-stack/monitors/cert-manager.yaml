@@ -21,7 +21,7 @@ spec:
       app.kubernetes.io/component: controller
 
   endpoints:
-    - port: metrics
+    - port: http-metrics
       path: /metrics
       interval: 30s
       scrapeTimeout: 10s
@@ -79,7 +79,7 @@ spec:
       app.kubernetes.io/component: webhook
 
   endpoints:
-    - port: http-metrics
+    - port: metrics
       path: /metrics
       interval: 30s
       scrapeTimeout: 10s
