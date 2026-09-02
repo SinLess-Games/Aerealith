@@ -41,10 +41,9 @@ spec:
 
       affinity:
         nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              preference:
-                matchExpressions:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
                   - key: node-role.kubernetes.io/control-plane
                     operator: DoesNotExist
 
@@ -102,13 +101,5 @@ spec:
 
       tolerations:
         - key: node.cloudprovider.kubernetes.io/uninitialized
-          operator: Exists
-          effect: NoSchedule
-
-        - key: node-role.kubernetes.io/master
-          operator: Exists
-          effect: NoSchedule
-
-        - key: node-role.kubernetes.io/control-plane
           operator: Exists
           effect: NoSchedule
