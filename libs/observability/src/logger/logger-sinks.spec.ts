@@ -1,4 +1,5 @@
-import { LogLevel, type LogRecord, type LogSink } from '@aerealith-ai/core';
+/** Verifies console, Loki, and composite sinks isolate output and failures. */
+import { LogLevel, type LogRecord } from '@aerealith-ai/core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { CompositeLogSink } from './sinks/composite-log.sink';
@@ -6,6 +7,7 @@ import { ConsoleLogSink } from './sinks/console-log.sink';
 import { LokiLogSink } from './sinks/loki-log.sink';
 
 function createRecord(overrides: Partial<LogRecord> = {}): LogRecord {
+  // Start with one valid canonical record and override only fields under test.
   return {
     schemaVersion: 1,
     id: 'record-1',
@@ -20,16 +22,13 @@ function createRecord(overrides: Partial<LogRecord> = {}): LogRecord {
   };
 }
 
-function createSink(name: string): LogSink & {
-  write: ReturnType<typeof vi.fn>;
-  flush: ReturnType<typeof vi.fn>;
-  close: ReturnType<typeof vi.fn>;
-} {
+function createSink(name: string) {
+  // Each mock exposes the complete sink lifecycle used by CompositeLogSink.
   return {
     name,
-    write: vi.fn(),
-    flush: vi.fn().mockResolvedValue(undefined),
-    close: vi.fn().mockResolvedValue(undefined),
+    write: vi.fn<(record: LogRecord) => void | Promise<void>>(),
+    flush: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+    close: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
   };
 }
 

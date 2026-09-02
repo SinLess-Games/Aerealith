@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "outDir": "../../../dist/out-tsc",
+    "module": "CommonJS",
+    "moduleResolution": "Node10",
+    "types": ["jest", "node"]
+  },
+  "include": ["jest.config.cts", "src/**/*.ts"]
+}

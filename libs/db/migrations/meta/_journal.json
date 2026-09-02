@@ -50,6 +50,13 @@
       "when": 1786469556041,
       "tag": "0006_brave_vargas",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787790971821,
+      "tag": "0007_same_unicorn",
+      "breakpoints": true
     }
   ]
 }

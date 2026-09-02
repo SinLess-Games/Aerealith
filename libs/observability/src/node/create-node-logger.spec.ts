@@ -1,7 +1,13 @@
+/** Verifies Node environment values enable Loki only with complete credentials. */
 import { LogLevel } from '@aerealith-ai/core';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { LoggerOptions } from '../logger/config/logger-options.interface';
 
-const createLoggerMock = vi.hoisted(() => vi.fn(() => ({ logger: true })));
+const createLoggerMock = vi.hoisted(() =>
+  vi.fn<(options: LoggerOptions) => { logger: boolean }>(() => ({
+    logger: true,
+  })),
+);
 
 vi.mock('../logger/create-logger', () => ({
   createLogger: createLoggerMock,

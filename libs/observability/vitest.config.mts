@@ -16,6 +16,17 @@ export default defineConfig(() => ({
     coverage: {
       reportsDirectory: '../../coverage/libs/observability',
       provider: 'v8' as const,
+      // Measure every production module, including files no test imports yet.
+      include: ['src/**/*.ts'],
+      exclude: ['src/**/*.{spec,test}.ts', 'src/**/*.d.ts'],
+      reporter: ['text', 'json-summary', 'json', 'lcov', 'html'],
+      // CI must retain at least 80% across every standard coverage measure.
+      thresholds: {
+        statements: 80,
+        branches: 80,
+        functions: 80,
+        lines: 80,
+      },
     },
   },
 }));

@@ -1,15 +1,15 @@
-// libs/observability/src/logger/default-logger.ts
+/** Implements structured logging with shared child/sink lifecycle state. */
 
 import {
   LogLevel,
   type LogContext,
-  type Logger,
   type LogInput,
   type LogSink,
 } from '@aerealith-ai/core';
 import { shouldLog } from '@aerealith-ai/utils';
 
 import { LogRecordFactory } from './factories/log-record.factory';
+import type { ObservabilityLogger } from './logger.types';
 
 interface LoggerRuntime {
   readonly sink: LogSink;
@@ -27,7 +27,7 @@ interface LoggerRuntime {
  * Logger instances created through `child()` share the same sink lifecycle and
  * record factory while inheriting additional contextual information.
  */
-export class DefaultLogger implements Logger {
+export class DefaultLogger implements ObservabilityLogger {
   private readonly minimumLevel: LogLevel;
   private readonly context: LogContext;
   private readonly runtime: LoggerRuntime;
@@ -41,6 +41,8 @@ export class DefaultLogger implements Logger {
   ) {
     this.minimumLevel = minimumLevel;
     this.context = context;
+    // Child loggers receive this same runtime so pending writes and close state
+    // remain correct across the entire logger hierarchy.
     this.runtime = runtime ?? {
       sink,
       factory,
@@ -50,28 +52,46 @@ export class DefaultLogger implements Logger {
     };
   }
 
-  public trace(input: LogInput): void {
-    this.write(LogLevel.Trace, input);
+  public trace(input: LogInput): void;
+  public trace(message: string): void;
+  public trace(context: LogContext, message: string): void;
+  public trace(input: LogInput | LogContext | string, message?: string): void {
+    this.write(LogLevel.Trace, normalizeInput(input, message));
   }
 
-  public debug(input: LogInput): void {
-    this.write(LogLevel.Debug, input);
+  public debug(input: LogInput): void;
+  public debug(message: string): void;
+  public debug(context: LogContext, message: string): void;
+  public debug(input: LogInput | LogContext | string, message?: string): void {
+    this.write(LogLevel.Debug, normalizeInput(input, message));
   }
 
-  public info(input: LogInput): void {
-    this.write(LogLevel.Info, input);
+  public info(input: LogInput): void;
+  public info(message: string): void;
+  public info(context: LogContext, message: string): void;
+  public info(input: LogInput | LogContext | string, message?: string): void {
+    this.write(LogLevel.Info, normalizeInput(input, message));
   }
 
-  public warn(input: LogInput): void {
-    this.write(LogLevel.Warn, input);
+  public warn(input: LogInput): void;
+  public warn(message: string): void;
+  public warn(context: LogContext, message: string): void;
+  public warn(input: LogInput | LogContext | string, message?: string): void {
+    this.write(LogLevel.Warn, normalizeInput(input, message));
   }
 
-  public error(input: LogInput): void {
-    this.write(LogLevel.Error, input);
+  public error(input: LogInput): void;
+  public error(message: string): void;
+  public error(context: LogContext, message: string): void;
+  public error(input: LogInput | LogContext | string, message?: string): void {
+    this.write(LogLevel.Error, normalizeInput(input, message));
   }
 
-  public fatal(input: LogInput): void {
-    this.write(LogLevel.Fatal, input);
+  public fatal(input: LogInput): void;
+  public fatal(message: string): void;
+  public fatal(context: LogContext, message: string): void;
+  public fatal(input: LogInput | LogContext | string, message?: string): void {
+    this.write(LogLevel.Fatal, normalizeInput(input, message));
   }
 
   /**
@@ -79,7 +99,7 @@ export class DefaultLogger implements Logger {
    *
    * Values supplied by the child override matching parent values.
    */
-  public child(context: LogContext): Logger {
+  public child(context: LogContext): ObservabilityLogger {
     return new DefaultLogger(
       this.minimumLevel,
       this.runtime.sink,
@@ -102,6 +122,7 @@ export class DefaultLogger implements Logger {
       return Promise.resolve();
     }
 
+    // Reuse an in-flight flush to avoid racing the sink from multiple callers.
     if (this.runtime.flushPromise !== undefined) {
       return this.runtime.flushPromise;
     }
@@ -135,6 +156,7 @@ export class DefaultLogger implements Logger {
       return this.runtime.closePromise;
     }
 
+    // Stop accepting new records before waiting for pending writes.
     this.runtime.closing = true;
 
     const operation = this.performClose();
@@ -165,6 +187,7 @@ export class DefaultLogger implements Logger {
       const result = this.runtime.sink.write(record);
 
       if (isPromiseLike(result)) {
+        // Track async sinks so flush/close cannot finish before their writes.
         this.trackPendingWrite(Promise.resolve(result).catch(() => undefined));
       }
     } catch {
@@ -212,12 +235,77 @@ export class DefaultLogger implements Logger {
   }
 
   private async waitForPendingWrites(): Promise<void> {
+    // Writes may enqueue more writes while a batch settles, so loop until the
+    // shared set is actually empty.
     while (this.runtime.pendingWrites.size > 0) {
       const pendingWrites = Array.from(this.runtime.pendingWrites);
 
       await Promise.all(pendingWrites);
     }
   }
+}
+
+function normalizeInput(
+  input: LogInput | LogContext | string,
+  message: string | undefined,
+): LogInput {
+  // Plain messages receive a stable event name for structured search.
+  if (typeof input === 'string') {
+    return {
+      event: 'application.log',
+      message: input,
+    };
+  }
+
+  if (message === undefined && isLogInput(input)) {
+    return input as LogInput;
+  }
+
+  // Pino-style bindings are promoted into canonical fields when recognized;
+  // remaining values stay nested in context.
+  const context: Record<string, unknown> = Object.fromEntries(
+    Object.entries(input),
+  );
+  const error = context['err'] ?? context['error'];
+  const event = readString(context['event']) ?? 'application.log';
+  const component = readString(context['component']);
+  const operation = readString(context['operation']);
+  const durationMs = readDuration(context['durationMs']);
+
+  delete context['err'];
+  delete context['error'];
+  delete context['event'];
+  delete context['component'];
+  delete context['operation'];
+  delete context['durationMs'];
+
+  return {
+    event,
+    message: message ?? 'Application log event',
+    ...(component === undefined ? {} : { component }),
+    ...(operation === undefined ? {} : { operation }),
+    ...(durationMs === undefined ? {} : { durationMs }),
+    ...(error === undefined ? {} : { error }),
+    context,
+  };
+}
+
+function isLogInput(value: LogInput | LogContext): boolean {
+  return (
+    typeof value['event'] === 'string' && typeof value['message'] === 'string'
+  );
+}
+
+function readString(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : undefined;
+}
+
+function readDuration(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0
+    ? value
+    : undefined;
 }
 
 function isPromiseLike(value: unknown): value is PromiseLike<void> {

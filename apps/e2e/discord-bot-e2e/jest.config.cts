@@ -1,0 +1,17 @@
+// CommonJS matches the .cts extension and lets Nx load this config directly.
+module.exports = {
+  displayName: 'discord-bot-e2e',
+  preset: '../../../jest.preset.js',
+  setupFiles: ['<rootDir>/src/test-setup.ts'],
+  testEnvironment: 'node',
+  transform: {
+    '^.+\\.[tj]s$': [
+      'ts-jest',
+      {
+        tsconfig: '<rootDir>/tsconfig.spec.json',
+      },
+    ],
+  },
+  moduleFileExtensions: ['ts', 'js', 'html'],
+  coverageDirectory: '../../../coverage/discord-bot-e2e',
+};

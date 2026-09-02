@@ -1,10 +1,17 @@
+/**
+ * Direct Node entry point for the authentication service.
+ *
+ * It owns environment loading, observability startup, HTTP security middleware,
+ * server lifecycle, and bounded shutdown around the reusable auth application.
+ */
 import { existsSync } from 'node:fs';
 
 import {
   createApiRequestObserver,
-  createNodeLogger,
   createOperationObserver,
-  startNodeObservability,
+  initializeObservability,
+  resolveObservabilityConfigFromEnv,
+  shutdownObservability,
 } from '@aerealith-ai/observability';
 
 const DEFAULT_ALLOWED_ORIGINS = [
@@ -44,28 +51,16 @@ async function main(): Promise<void> {
 
   const allowedOriginSet = new Set(allowedOrigins);
 
-  const logger = createNodeLogger({
-    service: 'auth',
-    environment: process.env,
-
-    onSinkError(error) {
-      console.error('An observability exporter failed.', error);
-    },
-  });
-
-  const observability = await startNodeObservability({
-    service: 'auth',
-    environment: process.env,
-
-    onError(error) {
-      logger.warn({
-        event: 'auth.observability.exporter.failed',
-        message: 'An observability exporter failed.',
-        component: 'auth-service',
-        error,
-      });
-    },
-  });
+  // Initialize the unified runtime before importing instrumented server modules.
+  // The returned logger and optional Node meter/tracer share one lifecycle.
+  const observability = await initializeObservability(
+    resolveObservabilityConfigFromEnv(process.env, {
+      service: 'auth',
+      version: process.env['OTEL_SERVICE_VERSION'],
+      node: { enabled: true, environment: process.env },
+    }),
+  );
+  const logger = observability.logger;
 
   /*
    * Load Hono, the Node adapter, middleware, and the
@@ -98,13 +93,18 @@ async function main(): Promise<void> {
     environment,
     logger,
 
-    operationObserver: createOperationObserver(
-      'auth',
-      observability.meter,
-      observability.tracer,
-    ),
-
-    requestObserver: createApiRequestObserver(observability.meter),
+    // Request/operation observers require Node SDK handles. If exporters failed
+    // to initialize, the auth service still starts without these optional hooks.
+    ...(observability.node
+      ? {
+          operationObserver: createOperationObserver(
+            'auth',
+            observability.node.meter,
+            observability.node.tracer,
+          ),
+          requestObserver: createApiRequestObserver(observability.node.meter),
+        }
+      : {}),
 
     readinessCheck: () => application.ready(),
   });
@@ -274,8 +274,8 @@ async function main(): Promise<void> {
 
         context: {
           port: listeningPort,
-          telemetryEnabled: observability.enabled,
-          profilingEnabled: observability.profilingEnabled,
+          telemetryEnabled: observability.node?.enabled ?? false,
+          profilingEnabled: observability.node?.profilingEnabled ?? false,
         },
       });
     },
@@ -298,8 +298,7 @@ async function main(): Promise<void> {
 
     server.close(() => {
       void Promise.allSettled([
-        observability.shutdown(),
-        logger.close(),
+        shutdownObservability(),
         application.close(),
       ]).finally(() => {
         process.exit(0);

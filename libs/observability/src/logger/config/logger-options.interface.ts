@@ -91,6 +91,14 @@ export interface LoggerOptions {
   readonly context?: LogContext;
 
   /**
+   * Supplies async operation context at write time.
+   *
+   * The default provider reads the shared observability AsyncLocalStorage
+   * context. Tests and non-Node runtimes may supply a different provider.
+   */
+  readonly contextProvider?: () => LogContext | undefined;
+
+  /**
    * Console sink configuration.
    *
    * When omitted, console logging is enabled with its default settings.

@@ -1,20 +1,18 @@
-import { LogLevel, noopLogger, type LogSink } from '@aerealith-ai/core';
+/** Verifies logger level filtering, child context, and shared sink lifecycle. */
+import { LogLevel, noopLogger, type LogRecord } from '@aerealith-ai/core';
 import { describe, expect, it, vi } from 'vitest';
 
 import { createLogger } from './create-logger';
 import { DefaultLogger } from './default-logger';
 import { LogRecordFactory } from './factories/log-record.factory';
 
-function createSink(): LogSink & {
-  write: ReturnType<typeof vi.fn>;
-  flush: ReturnType<typeof vi.fn>;
-  close: ReturnType<typeof vi.fn>;
-} {
+function createSink() {
+  // A controllable in-memory sink makes write and lifecycle assertions explicit.
   return {
     name: 'memory',
-    write: vi.fn(),
-    flush: vi.fn().mockResolvedValue(undefined),
-    close: vi.fn().mockResolvedValue(undefined),
+    write: vi.fn<(record: LogRecord) => void | Promise<void>>(),
+    flush: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+    close: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
   };
 }
 
@@ -112,5 +110,68 @@ describe('logger runtime', () => {
     expect(() =>
       realLogger.info({ event: 'failure', message: 'Failure' }),
     ).not.toThrow();
+  });
+
+  it('supports every level and canonical input overload', () => {
+    const sink = createSink();
+    const logger = new DefaultLogger(
+      LogLevel.Trace,
+      sink,
+      new LogRecordFactory({ service: 'test', environment: 'test' }),
+    );
+
+    logger.trace('trace message');
+    logger.debug({ component: 'worker' }, 'debug message');
+    logger.info({ event: 'info.event', message: 'info message' });
+    logger.warn({ operation: 'work', durationMs: 12 }, 'warn message');
+    logger.error({ err: new Error('failed') }, 'error message');
+    logger.fatal({ event: 'fatal.event', message: 'fatal message' });
+
+    expect(sink.write).toHaveBeenCalledTimes(6);
+    expect(sink.write.mock.calls.map(([record]) => record.level)).toEqual([
+      LogLevel.Trace,
+      LogLevel.Debug,
+      LogLevel.Info,
+      LogLevel.Warn,
+      LogLevel.Error,
+      LogLevel.Fatal,
+    ]);
+    expect(sink.write.mock.calls[1]?.[0]).toMatchObject({
+      event: 'application.log',
+      message: 'debug message',
+      component: 'worker',
+    });
+    expect(sink.write.mock.calls[4]?.[0]).toMatchObject({
+      message: 'error message',
+      error: { message: 'failed' },
+    });
+  });
+
+  it('deduplicates concurrent flush and close operations', async () => {
+    const sink = createSink();
+    let resolveFlush: (() => void) | undefined;
+    sink.flush.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveFlush = resolve;
+      }),
+    );
+    const logger = new DefaultLogger(
+      LogLevel.Info,
+      sink,
+      new LogRecordFactory({ service: 'test', environment: 'test' }),
+    );
+
+    const firstFlush = logger.flush();
+    const secondFlush = logger.flush();
+    expect(secondFlush).toBe(firstFlush);
+    resolveFlush?.();
+    await firstFlush;
+
+    const firstClose = logger.close();
+    const secondClose = logger.close();
+    expect(secondClose).toBe(firstClose);
+    await firstClose;
+    await expect(logger.flush()).resolves.toBeUndefined();
+    await expect(logger.close()).resolves.toBeUndefined();
   });
 });

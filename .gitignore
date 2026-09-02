@@ -9,6 +9,7 @@ node_modules/
 .pnpm-store/
 **/*cache/
 **/*venv/
+!apps/services/discord-bot/discord_bot/cache/
 
 # -----------------------------------------------------------------------------
 # Build output and generated artifacts
@@ -24,6 +25,12 @@ node_modules/
 /build/
 /public/build/
 /public/assets/
+
+# Python service build/test/runtime artifacts.
+**/__pycache__/
+*.py[cod]
+**/.coverage
+/apps/services/discord-bot/dist/
 
 *.tsbuildinfo
 .source/

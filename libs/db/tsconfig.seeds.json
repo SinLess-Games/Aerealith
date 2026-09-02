@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node"],
+    "module": "nodenext"
+  },
+  "include": ["seeds/**/*.ts"],
+  "exclude": ["src/**/*.spec.ts", "src/**/*.test.ts"]
+}

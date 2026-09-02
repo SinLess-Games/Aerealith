@@ -1,11 +1,14 @@
-// libs/utils/src/redact.ts
+/** Safely copies arbitrary values while removing credentials and secrets. */
 
 export const DEFAULT_REDACTION_REPLACEMENT = '[REDACTED]';
 export const DEFAULT_CIRCULAR_REPLACEMENT = '[CIRCULAR]';
 export const DEFAULT_MAX_DEPTH_REPLACEMENT = '[MAX_DEPTH]';
 
+// These keys cover authentication, infrastructure, and transport credentials.
+// Matching later ignores case and separators such as '-' and '_'.
 export const DEFAULT_SENSITIVE_KEYS = [
   'password',
+  'passwd',
   'passwordHash',
   'passwordConfirmation',
   'currentPassword',
@@ -25,6 +28,10 @@ export const DEFAULT_SENSITIVE_KEYS = [
   'apiKey',
   'authorization',
   'proxyAuthorization',
+  'databaseUrl',
+  'redisUrl',
+  'sentryDsn',
+  'discordToken',
 
   'cookie',
   'setCookie',
@@ -40,6 +47,10 @@ export const DEFAULT_SENSITIVE_KEYS = [
   'otpCode',
   'totpSecret',
 ] as const;
+
+// Capture the URL protocol but replace both username and password.
+const CREDENTIAL_URL_PATTERN =
+  /([a-z][a-z0-9+.-]*:\/\/)([^\s/:@]+):([^\s/@]+)@/giu;
 
 export interface RedactOptions {
   /**
@@ -135,13 +146,15 @@ function redactError(
   seen: WeakSet<object>,
   depth: number,
 ): Record<string, unknown> {
+  // Error.message and stack are non-enumerable, so copy them explicitly before
+  // visiting custom enumerable fields.
   const record: Record<string, unknown> = {
     name: error.name,
-    message: error.message,
+    message: redactText(error.message, options.replacement),
   };
 
   if (error.stack !== undefined) {
-    record['stack'] = error.stack;
+    record['stack'] = redactText(error.stack, options.replacement);
   }
 
   if ('cause' in error && error.cause !== undefined) {
@@ -172,6 +185,7 @@ function redactMap(
   seen: WeakSet<object>,
   depth: number,
 ): Record<string, unknown> {
+  // Telemetry serializers handle plain records more consistently than Map.
   const result: Record<string, unknown> = {};
 
   for (const [key, item] of value.entries()) {
@@ -199,6 +213,23 @@ function normalizeMapKey(value: unknown): string {
   if (value === undefined) return 'undefined';
   if (value instanceof Date) return value.toISOString();
   return Object.prototype.toString.call(value);
+}
+
+/**
+ * Removes credentials embedded in URL-like text without changing safe URLs.
+ *
+ * Key-based redaction protects structured metadata. This additional pass
+ * protects common connection strings that may appear inside error messages or
+ * other free-form values.
+ */
+export function redactText(
+  value: string,
+  replacement = DEFAULT_REDACTION_REPLACEMENT,
+): string {
+  return value.replace(
+    CREDENTIAL_URL_PATTERN,
+    (_match, protocol: string) => `${protocol}${replacement}:${replacement}@`,
+  );
 }
 
 function redactSet(
@@ -235,8 +266,12 @@ function redactValue(
   seen: WeakSet<object>,
   depth: number,
 ): unknown {
+  // Primitive values are already serializable; strings still need credential
+  // URL filtering because secrets can appear inside free-form messages.
   if (value === null || value === undefined) return value;
-  if (typeof value === 'string') return value;
+  if (typeof value === 'string') {
+    return redactText(value, options.replacement);
+  }
   if (typeof value === 'number') return value;
   if (typeof value === 'boolean') return value;
   if (typeof value === 'bigint') return value;
@@ -254,6 +289,7 @@ function redactValue(
   }
 
   if (depth > options.maxDepth) {
+    // Bound traversal before following another nested reference.
     return options.maxDepthReplacement;
   }
 
@@ -266,6 +302,7 @@ function redactValue(
   }
 
   if (seen.has(value)) {
+    // A WeakSet detects cycles without retaining objects after redaction ends.
     return options.circularReplacement;
   }
 

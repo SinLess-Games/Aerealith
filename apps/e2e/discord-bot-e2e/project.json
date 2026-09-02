@@ -1,0 +1,16 @@
+{
+  "name": "discord-bot-e2e",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "implicitDependencies": ["discord-bot"],
+  "targets": {
+    "e2e": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{e2eProjectRoot}"],
+      "dependsOn": ["discord-bot:build"],
+      "options": {
+        "jestConfig": "apps/e2e/discord-bot-e2e/jest.config.cts"
+      }
+    }
+  }
+}
