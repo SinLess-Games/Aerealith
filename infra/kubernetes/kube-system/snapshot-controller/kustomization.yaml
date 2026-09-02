@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ./upstream/volumesnapshotclasses.yaml
+  - ./upstream/volumesnapshotcontents.yaml
+  - ./upstream/volumesnapshots.yaml
+  - ./upstream/rbac.yaml
+  - ./upstream/deployment.yaml
+
+patches:
+  - path: deployment-patch.yaml
