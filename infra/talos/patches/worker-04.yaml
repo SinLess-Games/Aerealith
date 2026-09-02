@@ -1,5 +1,6 @@
 apiVersion: v1alpha1
 kind: HostnameConfig
+auto: off
 hostname: k8s-worker-04.local.sinlessindustries.com
 
 ---
