@@ -6,7 +6,4 @@ resources:
   - ./upstream/volumesnapshotcontents.yaml
   - ./upstream/volumesnapshots.yaml
   - ./upstream/rbac.yaml
-  - ./upstream/deployment.yaml
-
-patches:
-  - path: deployment-patch.yaml
+  - deployment.yaml
