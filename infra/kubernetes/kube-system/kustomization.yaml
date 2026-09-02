@@ -5,3 +5,4 @@ resources:
   - namespace.yaml
   - ./cilium
   - ./metrics-server
+  - ./snapshot-controller
