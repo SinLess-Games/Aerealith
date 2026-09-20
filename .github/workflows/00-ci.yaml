@@ -68,14 +68,14 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 24
+          node-version: 26.5.0
           package-manager-cache: false
 
       - name: Set up pnpm
         shell: bash
         run: |
           set -euo pipefail
-          npm install --global "pnpm@${PNPM_VERSION:-11.12.0}"
+          npm install --global "pnpm@${PNPM_VERSION:-11.13.1}"
 
       - name: Prepare CI directories
         shell: bash
@@ -91,9 +91,9 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ env.PNPM_STORE_DIR }}
-          key: pnpm-store-${{ runner.os }}-node-24-pnpm-10-${{ hashFiles('pnpm-lock.yaml') }}
+          key: pnpm-store-${{ runner.os }}-node-26.5.0-pnpm-11-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: |
-            pnpm-store-${{ runner.os }}-node-24-pnpm-10-
+            pnpm-store-${{ runner.os }}-node-26.5.0-pnpm-11-
 
       - name: Verify Node.js and pnpm
         shell: bash
@@ -338,14 +338,14 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 24
+          node-version: 26.5.0
           package-manager-cache: false
 
       - name: Set up pnpm
         shell: bash
         run: |
           set -euo pipefail
-          npm install --global "pnpm@${PNPM_VERSION:-11.12.0}"
+          npm install --global "pnpm@${PNPM_VERSION:-11.13.1}"
 
       - name: Install MegaLinter workspace dependencies
         shell: bash
