@@ -124,8 +124,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          corepack enable
-          corepack prepare "pnpm@${PNPM_VERSION:-11.13.1}" --activate
+          npm install --global "pnpm@${PNPM_VERSION:-11.13.1}"
 
       - name: Validate release event and deployment inputs
         id: preflight
