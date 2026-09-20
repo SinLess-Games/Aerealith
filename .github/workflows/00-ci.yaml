@@ -19,6 +19,11 @@ on:
       - production
     paths-ignore:
       - 'infra/**'
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
 
   workflow_dispatch:
 
