@@ -73,7 +73,7 @@ defaults:
 jobs:
   discover:
     name: Discover GraphQL references
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 10
 
     outputs:
@@ -333,7 +333,7 @@ jobs:
         github.event_name != 'pull_request' ||
         github.event.pull_request.head.repo.full_name == github.repository
       )
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 15
 
     permissions:
@@ -365,7 +365,7 @@ jobs:
       - discover
       - inspect
     if: always()
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 5
 
     steps:
