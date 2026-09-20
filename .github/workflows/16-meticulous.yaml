@@ -67,7 +67,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npm install --global "pnpm@${PNPM_VERSION:-11.12.0}"
+          npm install --global "pnpm@${PNPM_VERSION:-11.13.1}"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
