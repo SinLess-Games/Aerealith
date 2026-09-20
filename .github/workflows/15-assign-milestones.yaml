@@ -138,6 +138,19 @@ jobs:
         }}
 
     steps:
+      - name: Install runner CLI dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends gh jq
+          rm -rf /var/lib/apt/lists/*
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
       - name: Validate assignment context
         run: |
           set -euo pipefail
@@ -157,11 +170,6 @@ jobs:
 
           gh --version
           ruby --version
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.3'
 
       - name: Resolve and assign milestone
         id: assignment
