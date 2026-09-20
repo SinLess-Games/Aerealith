@@ -60,6 +60,19 @@ jobs:
       DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && 'true' || 'false' }}
 
     steps:
+      - name: Install runner CLI dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends gh jq
+          rm -rf /var/lib/apt/lists/*
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
       - name: Check out milestone catalogue
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -118,11 +131,6 @@ jobs:
 
           echo 'Existing repository milestones:'
           jq -r '.[] | "- #\(.number): \(.title) [\(.state)]"' "$existing_file"
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.3'
 
       - name: Synchronize milestones from catalogue
         id: sync
