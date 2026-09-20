@@ -75,6 +75,11 @@ jobs:
             .github/project
           sparse-checkout-cone-mode: true
 
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
       - name: Process status automation
         shell: bash
         env:
