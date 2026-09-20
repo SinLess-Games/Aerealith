@@ -30,7 +30,7 @@ jobs:
   label:
     if: github.repository == 'SinLess-Games/Aerealith'
     name: Apply pull request labels
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 5
 
     permissions:
