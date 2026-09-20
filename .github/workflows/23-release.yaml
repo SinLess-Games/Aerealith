@@ -81,8 +81,8 @@ env:
   FORCE_COLOR: "1"
   HUSKY: "0"
 
-  NODE_VERSION: "25.9.0"
-  PNPM_VERSION: "11.12.0"
+  NODE_VERSION: "26.5.0"
+  PNPM_VERSION: "11.13.1"
 
   CHANGELOG_TEMPLATE_PATH: ".github/templates/CHANGELOG.template.md"
 
@@ -125,7 +125,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npm install --global "pnpm@${PNPM_VERSION:-11.12.0}"
+          npm install --global "pnpm@${PNPM_VERSION:-11.13.1}"
 
       - name: Validate release inputs and credentials
         id: preflight
