@@ -44,7 +44,7 @@ permissions:
 jobs:
   sync:
     name: Validate and Sync Project Configuration
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 15
 
     env:
