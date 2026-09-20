@@ -1,0 +1,51 @@
+name: 98 · Temporary PR Validation Dispatch
+
+on:
+  pull_request_target:
+    types:
+      - reopened
+      - ready_for_review
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    if: github.event.pull_request.number == 168 && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
+    timeout-minutes: 10
+
+    steps:
+      - name: Dispatch validation workflows
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const workflows = [
+              '00-ci.yaml',
+              '01-commitlint.yaml',
+              '02-vitest.yaml',
+              '03-coverage.yaml',
+              '04-graphql-schema.yaml',
+              '05-repository-quality.yaml',
+              '07-gitleaks.yaml',
+              '08-codeql.yaml',
+              '09-container-security.yaml',
+              '10-snyk.yaml',
+              '11-sonar.yaml',
+              '16-meticulous.yaml',
+              '17-code-coverage.yaml',
+            ];
+
+            const ref = context.payload.pull_request.head.ref;
+
+            for (const workflow_id of workflows) {
+              core.info(`Dispatching ${workflow_id} on ${ref}`);
+
+              await github.rest.actions.createWorkflowDispatch({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id,
+                ref,
+              });
+            }
