@@ -239,7 +239,7 @@ defaults:
 jobs:
   notify:
     name: Send high-signal Discord notification
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 5
 
     outputs:
