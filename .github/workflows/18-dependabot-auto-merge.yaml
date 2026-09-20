@@ -43,7 +43,7 @@ env:
 jobs:
   reconcile:
     name: Reconcile Dependabot Auto-Merge
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 10
 
     if: >-
