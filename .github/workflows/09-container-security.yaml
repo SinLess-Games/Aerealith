@@ -82,7 +82,7 @@ env:
 jobs:
   discover:
     name: Discover container definitions
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, aerealith]
     timeout-minutes: 10
 
     outputs:
@@ -195,7 +195,7 @@ jobs:
 
   configuration:
     name: Scan container configuration
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, aerealith]
     timeout-minutes: 15
 
     permissions:
@@ -300,7 +300,7 @@ jobs:
     name: Scan ${{ matrix.slug }} image
     needs: discover
     if: needs.discover.outputs.dockerfiles_found == 'true'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, aerealith]
     timeout-minutes: 35
 
     permissions:
