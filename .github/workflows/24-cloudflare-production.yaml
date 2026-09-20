@@ -81,7 +81,7 @@ jobs:
     if: >-
       github.event.release.draft == false &&
       github.event.release.prerelease == false
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 45
 
     environment:
@@ -773,7 +773,7 @@ jobs:
     needs:
       - deploy
     if: always()
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 5
 
     env:
