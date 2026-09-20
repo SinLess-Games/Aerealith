@@ -52,19 +52,19 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up pnpm
-        shell: bash
-        run: |
-          set -euo pipefail
-          corepack enable
-          corepack prepare "pnpm@${PNPM_VERSION:-11.12.0}" --activate
-
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: package.json
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
+
+      - name: Set up pnpm
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare "pnpm@${PNPM_VERSION:-11.12.0}" --activate
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
