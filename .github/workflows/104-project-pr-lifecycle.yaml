@@ -47,7 +47,7 @@ permissions:
 jobs:
   lifecycle:
     name: Update Pull Request Lifecycle
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 15
 
     env:
