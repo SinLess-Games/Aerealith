@@ -38,8 +38,8 @@ defaults:
 
 env:
   CI: true
-  NODE_VERSION: 25.9.0
-  PNPM_VERSION: 11.12.0
+  NODE_VERSION: 26.5.0
+  PNPM_VERSION: 11.13.1
 
 jobs:
   commitlint:
@@ -65,7 +65,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npm install --global "pnpm@${PNPM_VERSION:-11.12.0}"
+          npm install --global "pnpm@${PNPM_VERSION:-11.13.1}"
 
       - name: Install workspace dependencies
         run: |
