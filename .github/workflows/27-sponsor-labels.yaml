@@ -35,7 +35,7 @@ concurrency:
 jobs:
   label-sponsor:
     name: Label Sponsor
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 5
 
     permissions:
