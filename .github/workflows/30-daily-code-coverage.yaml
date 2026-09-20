@@ -57,8 +57,7 @@ jobs:
       - name: Set up pnpm
         run: |
           set -euo pipefail
-          corepack enable
-          corepack prepare "pnpm@${PNPM_VERSION}" --activate
+          npm install --global "pnpm@${PNPM_VERSION}"
 
       - name: Install workspace dependencies
         id: install
