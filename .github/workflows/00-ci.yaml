@@ -39,7 +39,7 @@ env:
 jobs:
   validate:
     name: Validate workspace
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 35
 
     outputs:
@@ -317,7 +317,7 @@ jobs:
 
   megalinter:
     name: MegaLinter
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 30
 
     outputs:
@@ -381,7 +381,7 @@ jobs:
       - validate
       - megalinter
     if: always() && github.event_name == 'pull_request'
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 5
 
     permissions:
