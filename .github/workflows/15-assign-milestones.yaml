@@ -146,10 +146,18 @@ jobs:
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends gh jq
           rm -rf /var/lib/apt/lists/*
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.3'
+      - name: Ensure Ruby is available
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if ! command -v ruby >/dev/null 2>&1; then
+            apt-get update
+            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ruby-full
+            rm -rf /var/lib/apt/lists/*
+          fi
+
+          ruby --version
 
       - name: Validate assignment context
         run: |
