@@ -86,7 +86,7 @@ env:
 jobs:
   preflight:
     name: Detect Snyk scan targets
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 10
 
     outputs:
@@ -232,7 +232,7 @@ jobs:
     name: Scan dependencies and production source
     needs: preflight
     if: needs.preflight.outputs.scan_enabled == 'true'
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 40
 
     permissions:
@@ -1018,7 +1018,7 @@ jobs:
       - preflight
       - scan
     if: always()
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 5
 
     steps:
