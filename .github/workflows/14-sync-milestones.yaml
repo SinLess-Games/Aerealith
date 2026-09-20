@@ -119,6 +119,11 @@ jobs:
           echo 'Existing repository milestones:'
           jq -r '.[] | "- #\(.number): \(.title) [\(.state)]"' "$existing_file"
 
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
       - name: Synchronize milestones from catalogue
         id: sync
         env:
