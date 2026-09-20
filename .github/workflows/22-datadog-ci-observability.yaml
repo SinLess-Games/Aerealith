@@ -216,7 +216,7 @@ jobs:
   validate_workflow_run:
     name: Validate observed workflow run
     if: github.event_name == 'workflow_run'
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 5
 
     outputs:
@@ -376,7 +376,7 @@ jobs:
         github.event_name != 'workflow_run' ||
         needs.validate_workflow_run.outputs.trusted == 'true'
       )
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 10
 
     env:
