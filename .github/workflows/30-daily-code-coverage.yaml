@@ -34,7 +34,7 @@ env:
 jobs:
   coverage:
     name: Test and publish coverage
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 50
 
     permissions:
