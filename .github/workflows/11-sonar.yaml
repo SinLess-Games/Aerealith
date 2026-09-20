@@ -87,7 +87,7 @@ env:
 jobs:
   preflight:
     name: Validate SonarQube Cloud configuration
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 10
 
     outputs:
@@ -152,7 +152,7 @@ jobs:
     name: Test, cover, analyze, and diagnose
     needs: preflight
     if: needs.preflight.outputs.scan_enabled == 'true'
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 50
 
     outputs:
@@ -978,7 +978,7 @@ jobs:
       - preflight
       - analyze
     if: always()
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 5
 
     steps:
