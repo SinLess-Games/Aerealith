@@ -68,8 +68,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          corepack enable
-          corepack prepare "pnpm@${PNPM_VERSION:-11.12.0}" --activate
+          npm install --global "pnpm@${PNPM_VERSION:-11.12.0}"
 
       - name: Restore Nx cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
