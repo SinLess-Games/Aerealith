@@ -158,6 +158,11 @@ jobs:
           gh --version
           ruby --version
 
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
       - name: Resolve and assign milestone
         id: assignment
         env:
