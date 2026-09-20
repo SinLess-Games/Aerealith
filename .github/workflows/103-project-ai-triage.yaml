@@ -96,6 +96,11 @@ jobs:
       GEMINI_MODEL: ${{ vars.AEREALITH_GEMINI_MODEL }}
 
     steps:
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
       - name: Decide whether AI triage may run
         id: gate
         shell: bash
