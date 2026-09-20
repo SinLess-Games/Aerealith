@@ -53,7 +53,7 @@ env:
 jobs:
   discover:
     name: Discover application Dockerfiles
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, aerealith]
     timeout-minutes: 10
 
     outputs:
@@ -228,7 +228,7 @@ jobs:
     name: Publish ${{ matrix.service_name }}
     needs: discover
     if: needs.discover.outputs.has_dockerfiles == 'true'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, aerealith]
     timeout-minutes: 45
 
     permissions:
@@ -326,7 +326,7 @@ jobs:
       - discover
       - publish
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, aerealith]
     timeout-minutes: 5
 
     steps:
