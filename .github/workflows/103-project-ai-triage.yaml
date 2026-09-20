@@ -84,7 +84,7 @@ permissions:
 jobs:
   triage:
     name: Analyze Project Item
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 20
 
     env:
