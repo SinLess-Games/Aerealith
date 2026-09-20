@@ -46,7 +46,7 @@ env:
 jobs:
   vitest:
     name: Vitest code coverage
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 30
 
     permissions:
@@ -519,7 +519,7 @@ jobs:
 
   e2e:
     name: Playwright E2E coverage
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 45
 
     permissions:
