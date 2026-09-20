@@ -119,8 +119,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          corepack enable
-          corepack prepare "pnpm@${PNPM_VERSION:-11.12.0}" --activate
+          npm install --global "pnpm@${PNPM_VERSION:-11.12.0}"
 
       - name: Verify toolchain
         run: |
