@@ -60,6 +60,11 @@ jobs:
             .github/labeler.yaml
           sparse-checkout-cone-mode: true
 
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
       - name: Audit Project drift
         id: audit
         shell: bash
