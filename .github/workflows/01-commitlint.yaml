@@ -44,7 +44,7 @@ env:
 jobs:
   commitlint:
     name: Validate commit messages
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 10
 
     steps:
