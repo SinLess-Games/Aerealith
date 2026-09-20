@@ -55,7 +55,7 @@ env:
 jobs:
   coverage:
     name: Vitest Coverage
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 30
 
     permissions:
@@ -365,7 +365,7 @@ jobs:
   upload-code-quality:
     name: Upload Code Quality Coverage
     needs: coverage
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 10
 
     if: >-
