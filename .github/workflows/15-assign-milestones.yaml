@@ -111,7 +111,7 @@ defaults:
 jobs:
   assign:
     name: Assign matching milestone
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 5
 
     env:
