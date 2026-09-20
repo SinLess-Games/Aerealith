@@ -94,7 +94,7 @@ env:
 jobs:
   release:
     name: Build changelog and create release
-    runs-on: [self-hosted, linux, x64, aerealith]
+    runs-on: [self-hosted, linux, x64, aerealith, docker]
     timeout-minutes: 45
 
     env:
