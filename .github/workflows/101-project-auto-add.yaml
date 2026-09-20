@@ -66,6 +66,11 @@ jobs:
       PROJECT_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
 
     steps:
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
       - name: Decide whether Project mutation is allowed
         id: gate
         shell: bash
