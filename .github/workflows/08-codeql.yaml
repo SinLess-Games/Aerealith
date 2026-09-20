@@ -70,7 +70,7 @@ defaults:
 jobs:
   detect-languages:
     name: Detect CodeQL languages
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, aerealith]
     timeout-minutes: 10
 
     outputs:
@@ -222,7 +222,7 @@ jobs:
   analyze:
     name: Analyze ${{ matrix.language }}
     needs: detect-languages
-    runs-on: ${{ matrix.runner }}
+    runs-on: [self-hosted, linux, x64, aerealith]
     timeout-minutes: 30
 
     permissions:
