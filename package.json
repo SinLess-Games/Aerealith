@@ -43,7 +43,7 @@
     "services:new": "nx g @aerealith-ai/service-generator:service --name"
   },
   "devDependencies": {
-    "@alwaysmeticulous/recorder-plugin": "^2.293.0",
+    "@alwaysmeticulous/recorder-plugin": "2.293.0",
     "@axe-core/playwright": "4.12.1",
     "@babel/core": "8.0.1",
     "@babel/preset-react": "8.0.1",
@@ -67,7 +67,7 @@
     "@nx/vitest": "23.1.1",
     "@nx/web": "23.1.1",
     "@nx/workspace": "23.1.1",
-    "@nxlv/python": "^23.0.0",
+    "@nxlv/python": "23.0.0",
     "@playwright/test": "1.61.1",
     "@swc-node/register": "1.11.1",
     "@swc/cli": "0.8.1",
