@@ -90,8 +90,21 @@ deployment.
 - `GET /api/V1/ai/runs/:runId/events`
 - `POST /api/V1/ai/runs`
 - `DELETE /api/V1/ai/runs/:runId`
+- `POST /api/V1/ai/stream`
 - `GET /api/V1/ai/artifacts/:artifactId`
 - `DELETE /api/V1/ai/artifacts/:artifactId`
+- `GET /api/V1/ai/conversations`
+- `POST /api/V1/ai/conversations`
+- `GET /api/V1/ai/conversations/:conversationId`
+- `POST /api/V1/ai/conversations/:conversationId/messages`
+- `DELETE /api/V1/ai/conversations/:conversationId`
+- `GET /api/V1/ai/knowledge-bases`
+- `POST /api/V1/ai/knowledge-bases`
+- `GET /api/V1/ai/knowledge-bases/:knowledgeBaseId`
+- `GET /api/V1/ai/knowledge-bases/:knowledgeBaseId/documents`
+- `POST /api/V1/ai/knowledge-bases/:knowledgeBaseId/documents`
+- `DELETE /api/V1/ai/knowledge-bases/:knowledgeBaseId/documents/:documentId`
+- `DELETE /api/V1/ai/knowledge-bases/:knowledgeBaseId`
 
 Run creation, status, and cancellation are authenticated. A caller cannot read
 or cancel another user's run even if the run UUID is known.
@@ -183,6 +196,11 @@ The runtime:
 
 Retrieval embeds the query first and then searches Qdrant with a mandatory
 server-derived tenant filter.
+
+Individual knowledge documents can be removed without deleting the whole
+knowledge base. Deletion uses the trusted ingestion `documentId` metadata plus
+the server-derived tenant namespace, so the Qdrant operation cannot cross a
+knowledge-base or tenant boundary.
 
 ## Qdrant Cloud
 
