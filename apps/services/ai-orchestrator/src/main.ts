@@ -1256,6 +1256,9 @@ async function enforceDailyUsageLimits(
             dailyCostBudgetUsd,
           },
         },
+        headers: {
+          'retry-after': String(secondsUntilNextUtcDay()),
+        },
       },
     );
   }
@@ -1295,8 +1298,21 @@ async function enforceRunRateLimit(
         remaining: decision.remaining,
         retryAfterSeconds: decision.retryAfterSeconds,
       },
+      headers: {
+        'retry-after': String(decision.retryAfterSeconds),
+      },
     });
   }
+}
+
+function secondsUntilNextUtcDay(now = new Date()): number {
+  const next = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate() + 1,
+  );
+
+  return Math.max(1, Math.ceil((next - now.getTime()) / 1_000));
 }
 
 function parsePositiveInteger(
