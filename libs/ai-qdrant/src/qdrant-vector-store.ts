@@ -33,6 +33,20 @@ type QdrantQueryResponse = {
   };
 };
 
+type QdrantCollectionResponse = {
+  result?: {
+    config?: {
+      params?: {
+        vectors?: {
+          size?: number;
+          distance?: string;
+        };
+      };
+    };
+    payload_schema?: Record<string, unknown>;
+  };
+};
+
 export class QdrantVectorStoreError extends Error {
   constructor(message: string) {
     super(message);
@@ -84,9 +98,23 @@ export class QdrantVectorStore implements VectorStore, VectorIndexManager {
     }
 
     const collectionUrl = this.collectionPath();
+    const desiredDistance = toQdrantDistance(
+      configuration.distance ?? 'cosine',
+    );
     const existing = await this.fetch(collectionUrl, { method: 'GET' });
 
     if (existing.ok) {
+      const details = (await existing.json()) as QdrantCollectionResponse;
+      this.assertCompatibleCollection(
+        details,
+        configuration.dimensions,
+        desiredDistance,
+      );
+
+      if (!details.result?.payload_schema?.[NAMESPACE_FIELD]) {
+        await this.ensureTenantPayloadIndex();
+      }
+
       return;
     }
 
@@ -101,21 +129,12 @@ export class QdrantVectorStore implements VectorStore, VectorIndexManager {
       body: JSON.stringify({
         vectors: {
           size: configuration.dimensions,
-          distance: toQdrantDistance(configuration.distance ?? 'cosine'),
+          distance: desiredDistance,
         },
       }),
     });
 
-    await this.request(this.collectionPath('/index?wait=true'), {
-      method: 'PUT',
-      body: JSON.stringify({
-        field_name: NAMESPACE_FIELD,
-        field_schema: {
-          type: 'keyword',
-          is_tenant: true,
-        },
-      }),
-    });
+    await this.ensureTenantPayloadIndex();
   }
 
   /**
@@ -222,6 +241,44 @@ export class QdrantVectorStore implements VectorStore, VectorIndexManager {
     await this.request(this.collectionPath('/points/delete?wait=true'), {
       method: 'POST',
       body: JSON.stringify({ points: pointIds }),
+    });
+  }
+
+  private assertCompatibleCollection(
+    details: QdrantCollectionResponse,
+    dimensions: number,
+    distance: 'Cosine' | 'Dot' | 'Euclid' | 'Manhattan',
+  ): void {
+    const vectors = details.result?.config?.params?.vectors;
+    const existingDimensions = vectors?.size;
+    const existingDistance = vectors?.distance;
+
+    if (existingDimensions !== dimensions) {
+      throw new QdrantVectorStoreError(
+        `Qdrant collection "${this.collectionName}" uses ${existingDimensions ?? 'unknown'} dimensions; the active embedding model requires ${dimensions}.`,
+      );
+    }
+
+    if (
+      existingDistance &&
+      existingDistance.toLowerCase() !== distance.toLowerCase()
+    ) {
+      throw new QdrantVectorStoreError(
+        `Qdrant collection "${this.collectionName}" uses ${existingDistance} distance; ${distance} is required.`,
+      );
+    }
+  }
+
+  private async ensureTenantPayloadIndex(): Promise<void> {
+    await this.request(this.collectionPath('/index?wait=true'), {
+      method: 'PUT',
+      body: JSON.stringify({
+        field_name: NAMESPACE_FIELD,
+        field_schema: {
+          type: 'keyword',
+          is_tenant: true,
+        },
+      }),
     });
   }
 
