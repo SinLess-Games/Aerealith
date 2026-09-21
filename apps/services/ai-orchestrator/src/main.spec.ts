@@ -228,7 +228,10 @@ describe('AI orchestrator service', () => {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         capability: 'code',
-        input: { prompt: 'Write a TypeScript function.' },
+        input: {
+          mode: 'generate',
+          instruction: 'Write a TypeScript function.',
+        },
         priority: 'interactive',
         preferences: {
           provider: 'example-provider',
