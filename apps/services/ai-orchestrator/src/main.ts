@@ -26,6 +26,7 @@ import {
 } from './orchestrator';
 import { providerRuntimeStatus } from './provider-runtime';
 import { orchestrationRequestSchema } from './request-schema';
+import { AiRunController } from './run-controller';
 import { createRunStore } from './run-store';
 import { vectorStoreStatus } from './vector-store';
 
@@ -191,6 +192,45 @@ app.get('/api/V1/ai/runs/:runId', async (c) => {
       status: HttpStatus.NotFound,
     });
   }
+
+  return c.json({
+    ok: true,
+    data: run,
+    meta: responseMeta(c.get('apiContext')),
+  });
+});
+
+app.delete('/api/V1/ai/runs/:runId', async (c) => {
+  const principal = await requirePrincipal(c.req.raw, c.env);
+  const parsedRunId = runIdSchema.safeParse(c.req.param('runId'));
+
+  if (!parsedRunId.success) {
+    throw new ApiError('The AI run id is invalid.', {
+      code: ApiErrorCode.ValidationFailed,
+      status: HttpStatus.UnprocessableEntity,
+    });
+  }
+
+  const runs = createRunStore(c.env);
+  const workflow = c.env.AI_ORCHESTRATION_WORKFLOW;
+
+  if (!runs || !workflow) {
+    throw new ApiError('AI run cancellation is not configured.', {
+      code: ApiErrorCode.InternalError,
+      status: HttpStatus.ServiceUnavailable,
+    });
+  }
+
+  const existing = await runs.get(parsedRunId.data);
+  if (!existing || existing.tenantId !== principal.id) {
+    throw new ApiError('The AI run was not found.', {
+      code: ApiErrorCode.NotFound,
+      status: HttpStatus.NotFound,
+    });
+  }
+
+  const controller = new AiRunController(workflow, runs);
+  const run = await controller.cancel(parsedRunId.data);
 
   return c.json({
     ok: true,
