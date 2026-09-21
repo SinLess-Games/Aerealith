@@ -460,6 +460,64 @@ app.post(
 );
 
 app.delete(
+  '/api/V1/ai/knowledge-bases/:knowledgeBaseId/documents/:documentId',
+  async (c) => {
+    const principal = await requirePrincipal(c.req.raw, c.env);
+    const knowledgeBaseId = parseUuid(
+      c.req.param('knowledgeBaseId'),
+      'knowledge-base',
+    );
+    const documentId = c.req.param('documentId');
+    if (!documentId || documentId.length > 512) {
+      throw new ApiError('The AI knowledge document id is invalid.', {
+        code: ApiErrorCode.ValidationFailed,
+        status: HttpStatus.UnprocessableEntity,
+      });
+    }
+
+    const catalog = requireKnowledgeCatalog(c.env, principal.id);
+    const knowledgeBase = await catalog.getKnowledgeBase(knowledgeBaseId);
+
+    if (!knowledgeBase || knowledgeBase.tenantId !== principal.id) {
+      throw new ApiError('The AI knowledge base was not found.', {
+        code: ApiErrorCode.NotFound,
+        status: HttpStatus.NotFound,
+      });
+    }
+
+    if (!knowledgeBase.documents.some((document) => document.id === documentId)) {
+      throw new ApiError('The AI knowledge document was not found.', {
+        code: ApiErrorCode.NotFound,
+        status: HttpStatus.NotFound,
+      });
+    }
+
+    const vectorStore = await createVectorStore(c.env);
+    if (!vectorStore) {
+      throw new ApiError('AI vector storage is not configured.', {
+        code: ApiErrorCode.InternalError,
+        status: HttpStatus.ServiceUnavailable,
+      });
+    }
+
+    await vectorStore.deleteByFilter(
+      `user:${principal.id}:knowledge:${knowledgeBaseId}`,
+      {
+        must: [
+          {
+            key: 'metadata.documentId',
+            match: { value: documentId },
+          },
+        ],
+      },
+    );
+    await catalog.deleteDocument(knowledgeBaseId, documentId);
+
+    return new Response(null, { status: HttpStatus.NoContent });
+  },
+);
+
+app.delete(
   '/api/V1/ai/knowledge-bases/:knowledgeBaseId',
   async (c) => {
     const principal = await requirePrincipal(c.req.raw, c.env);
