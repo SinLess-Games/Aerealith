@@ -49,6 +49,7 @@ export type RunRecord = {
   tenantId?: string;
   actorId?: string;
   requestFingerprint?: string;
+  executionMode?: 'workflow' | 'streaming';
   status: RunStatus;
   capability: CapabilityKind;
   createdAt: string;
