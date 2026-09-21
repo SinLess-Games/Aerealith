@@ -79,10 +79,16 @@ deployment.
 - `GET /api/V1/services/ai-orchestrator`
 - `GET /api/V1/ai/capabilities`
 - `GET /api/V1/ai/providers`
+- `GET /api/V1/ai/models`
 - `GET /api/V1/ai/vector-store`
+- `GET /api/V1/ai/usage`
+- `GET /api/V1/ai/runs`
 - `GET /api/V1/ai/runs/:runId`
+- `GET /api/V1/ai/runs/:runId/events`
 - `POST /api/V1/ai/runs`
 - `DELETE /api/V1/ai/runs/:runId`
+- `GET /api/V1/ai/artifacts/:artifactId`
+- `DELETE /api/V1/ai/artifacts/:artifactId`
 
 Run creation, status, and cancellation are authenticated. A caller cannot read
 or cancel another user's run even if the run UUID is known.
@@ -202,31 +208,29 @@ rather than large binary payloads.
 
 Production credentials use the account-level Secrets Store.
 
-The orchestrator currently binds:
+The orchestrator currently binds only `QDRANT_API_KEY` from Secrets Store,
+because that is the only account secret needed by the Worker runtime.
 
-- `QDRANT_API_KEY`
-- `OTEL_EXPORTER_OTLP_HEADERS`
-- `PROMETHEUS_TOKEN`
-- `LOKI_TOKEN`
-- `TEMPO_TOKEN`
-- `PYROSCOPE_TOKEN`
+Grafana credentials remain in the account Secrets Store but are not exposed to
+the Worker. Cloudflare Workers Observability destinations own Grafana OTLP
+authentication instead. This keeps the runtime least-privileged.
 
-The store ID is referenced by Wrangler configuration, while secret values stay
-outside the repository.
-
-`ADMIN_PASSWORD`, `DATABASE_URL`, and `RESEND_API_KEY` remain available
-in the account store but are not bound to the AI orchestrator because this
-service does not need them.
+`ADMIN_PASSWORD`, `DATABASE_URL`, `RESEND_API_KEY`, and unrelated
+Grafana credentials are not bound to this service.
 
 ## Grafana Cloud
 
-Cloudflare Worker invocation logs and traces are enabled.
+Cloudflare Worker invocation logs and traces are enabled. The service emits
+structured AI lifecycle logs containing safe operational fields such as
+capability, provider, model, duration, usage, estimated cost, artifact count,
+and failure code.
 
-The supplied Grafana Cloud metrics, OTLP, Loki, Tempo, and Pyroscope endpoints
-are non-secret Wrangler variables. Their authentication material remains in
-Secrets Store.
+For Grafana Cloud, create account-level Cloudflare Workers Observability
+destinations for logs and traces and point them at the Grafana OTLP endpoints.
+The Grafana authentication header belongs to the destination configuration,
+not the Worker environment.
 
-The next observability pass will add AI-specific telemetry such as:
+Current AI-specific telemetry includes:
 
 - capability and model selection;
 - provider latency;
@@ -237,16 +241,30 @@ The next observability pass will add AI-specific telemetry such as:
 - Workflow failures and retries;
 - artifact size and generation time.
 
-## Next runtime work
+## Current production controls
 
-1. Add direct Workers AI reranking into the retrieval pipeline.
-2. Add AI-specific Grafana metrics, traces, and cost attribution.
-3. Add server-enforced quotas, per-tenant rate limits, and cost budgets.
-4. Add tool execution workers and the code-sandbox implementation.
-5. Add organization/workspace ownership above current user-scoped tenancy.
-6. Add preview/staging resource isolation and production deployment validation.
-7. Add video/music providers only when a suitable Cloudflare-native or
-   explicitly configured provider is available.
+The API now includes:
+
+- per-tenant fixed-window run rate limiting;
+- daily run quotas;
+- daily estimated-cost budgets;
+- authenticated daily usage reporting;
+- per-tenant run history;
+- SSE run lifecycle events for responsive UIs;
+- model/capability discovery;
+- authenticated artifact retrieval and deletion;
+- Workflow cancellation.
+
+Daily run and cost limits default to unlimited until product-tier limits are
+configured, while the per-minute limiter defaults to 60 runs/minute.
+
+## Remaining runtime work
+
+1. Implement the Cloudflare Sandbox-backed coding-agent execution service.
+2. Configure Grafana Cloud account-level log/trace destinations.
+3. Add organization/workspace ownership above current user-scoped tenancy.
+4. Add preview/staging resource isolation and production deployment validation.
+5. Add video/music providers only when a suitable runtime provider is selected.
 
 Secrets, Grafana tokens, and Qdrant credentials must remain outside source
 control.
