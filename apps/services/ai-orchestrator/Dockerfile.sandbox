@@ -16,10 +16,13 @@ RUN apt-get update \
 RUN corepack enable \
   && corepack prepare pnpm@11.13.1 --activate
 
-RUN mkdir -p /workspace /workspace/home
+RUN mkdir -p /workspace /workspace/home \
+  && chown -R node:node /workspace
 
 WORKDIR /workspace
 ENV HOME=/workspace/home
 ENV CI=1
+
+USER node
 
 CMD ["sleep", "infinity"]
