@@ -10,6 +10,12 @@ export default defineConfig({
   resolve: {
     alias: [
       {
+        find: /^@aerealith-ai\/ai-openai-compatible$/,
+        replacement: workspaceFile(
+          '../../../libs/ai-openai-compatible/src/index.ts',
+        ),
+      },
+      {
         find: /^@aerealith-ai\/ai-qdrant$/,
         replacement: workspaceFile('../../../libs/ai-qdrant/src/index.ts'),
       },
