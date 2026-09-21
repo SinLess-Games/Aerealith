@@ -46,68 +46,6 @@ function createUnauthorizedAuthWorker() {
   };
 }
 
-function createArtifactBucket() {
-  const objects = new Map<
-    string,
-    {
-      body: ArrayBuffer;
-      contentType: string;
-      uploaded: Date;
-    }
-  >();
-
-  const bucket = {
-    async put(
-      key: string,
-      value: ArrayBuffer | ReadableStream,
-      options?: {
-        httpMetadata?: { contentType?: string };
-      },
-    ) {
-      const body =
-        value instanceof ArrayBuffer
-          ? value
-          : await new Response(value).arrayBuffer();
-
-      objects.set(key, {
-        body,
-        contentType:
-          options?.httpMetadata?.contentType ??
-          'application/octet-stream',
-        uploaded: new Date('2026-09-21T00:00:00.000Z'),
-      });
-
-      return {
-        uploaded: new Date('2026-09-21T00:00:00.000Z'),
-        size: body.byteLength,
-      };
-    },
-    async get(key: string) {
-      const object = objects.get(key);
-      if (!object) return null;
-
-      return {
-        body: new ReadableStream<Uint8Array>({
-          start(controller) {
-            controller.enqueue(new Uint8Array(object.body));
-            controller.close();
-          },
-        }),
-        size: object.body.byteLength,
-        httpEtag: '"test-etag"',
-        writeHttpMetadata(headers: Headers) {
-          headers.set('content-type', object.contentType);
-        },
-      };
-    },
-    async delete(key: string) {
-      objects.delete(key);
-    },
-  } as unknown as R2Bucket;
-
-  return { bucket, objects };
-}
-
 function createRunStateNamespace() {
   const records = new Map<string, RunRecord>();
 
