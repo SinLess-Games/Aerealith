@@ -174,7 +174,7 @@ describe('AI orchestrator service', () => {
             id: 'primary',
             configured: true,
             modelCount: 1,
-            capabilities: ['code', 'text'],
+            capabilities: ['text', 'code'],
           },
         ],
       },
