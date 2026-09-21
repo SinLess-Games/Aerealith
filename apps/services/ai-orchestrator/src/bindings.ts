@@ -1,3 +1,4 @@
+import type { WorkersAiBinding } from '@aerealith-ai/ai-cloudflare-workers';
 import type {
   OrchestrationRequest,
   RunRecord,
@@ -11,6 +12,10 @@ export type WorkflowRunParams = {
 
 export interface WorkerFetcher {
   fetch(request: Request): Promise<Response>;
+}
+
+export interface SecretStoreBinding {
+  get(): Promise<string>;
 }
 
 export interface WorkflowInstance {
@@ -40,15 +45,18 @@ export interface RunStateNamespace {
 
 export type AiOrchestratorBindings = {
   [binding: string]: unknown;
+
   ENVIRONMENT?: string;
+
+  AI?: WorkersAiBinding;
   AUTH_WORKER?: WorkerFetcher;
   AI_ORCHESTRATION_WORKFLOW?: WorkflowBinding<WorkflowRunParams>;
   AI_RUN_STATE?: RunStateNamespace;
   AI_ARTIFACTS?: R2Bucket;
 
   /**
-   * Public JSON catalog describing provider endpoints and model capabilities.
-   * Provider API keys are referenced by binding name and remain secrets.
+   * Optional JSON catalog for non-Cloudflare OpenAI-compatible providers.
+   * Cloudflare Workers AI is registered directly through the AI binding.
    */
   AI_PROVIDER_CATALOG?: string;
 
@@ -58,12 +66,21 @@ export type AiOrchestratorBindings = {
   QDRANT_URL?: string;
 
   /**
-   * Qdrant API key. Configure this as a Cloudflare secret.
+   * Qdrant API key from Cloudflare Secrets Store.
    */
-  QDRANT_API_KEY?: string;
+  QDRANT_API_KEY?: SecretStoreBinding | string;
 
   /**
    * Shared Qdrant collection used for Aerealith knowledge vectors.
    */
   QDRANT_COLLECTION?: string;
+
+  /**
+   * Grafana Cloud credentials are account-level Secrets Store bindings.
+   */
+  OTEL_EXPORTER_OTLP_HEADERS?: SecretStoreBinding | string;
+  PROMETHEUS_TOKEN?: SecretStoreBinding | string;
+  LOKI_TOKEN?: SecretStoreBinding | string;
+  TEMPO_TOKEN?: SecretStoreBinding | string;
+  PYROSCOPE_TOKEN?: SecretStoreBinding | string;
 };
