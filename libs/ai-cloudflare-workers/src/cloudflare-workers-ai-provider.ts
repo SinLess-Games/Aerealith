@@ -8,6 +8,7 @@ import type {
   ImageGenerationInput,
   ModelDescriptor,
   ModelProvider,
+  MusicGenerationInput,
   OrchestrationOutput,
   OrchestrationRequest,
   PredictionInput,
@@ -16,6 +17,7 @@ import type {
   RerankOutput,
   TextGenerationInput,
   TextGenerationOutput,
+  VideoGenerationInput,
 } from '@aerealith-ai/ai-orchestration';
 
 import {
@@ -35,11 +37,19 @@ export type CloudflareWorkersAiProviderOptions = {
   models?: readonly ModelDescriptor[];
 };
 
-export type GeneratedBinary = {
-  kind: 'image' | 'audio';
-  contentType: string;
-  data: ArrayBuffer | ReadableStream<Uint8Array>;
-};
+export type GeneratedBinary =
+  | {
+      kind: 'image' | 'audio' | 'video' | 'music';
+      contentType: string;
+      data: ArrayBuffer | ReadableStream<Uint8Array>;
+      url?: never;
+    }
+  | {
+      kind: 'video' | 'music';
+      contentType: string;
+      url: string;
+      data?: never;
+    };
 
 export class CloudflareWorkersAiProviderError extends Error {
   constructor(message: string) {
@@ -83,6 +93,10 @@ export class CloudflareWorkersAiProvider implements ModelProvider {
         return this.executeImage(request, model);
       case 'audio':
         return this.executeAudio(request, model);
+      case 'video':
+        return this.executeVideo(request, model);
+      case 'music':
+        return this.executeMusic(request, model);
       case 'analytics':
         return this.executeAnalytics(request, model);
       case 'prediction':
@@ -309,6 +323,103 @@ export class CloudflareWorkersAiProvider implements ModelProvider {
     };
   }
 
+  private async executeVideo(
+    request: OrchestrationRequest,
+    model: ModelDescriptor,
+  ): Promise<OrchestrationOutput> {
+    const input = request.input as VideoGenerationInput;
+
+    if (
+      input.negativePrompt !== undefined ||
+      (input.referenceArtifactIds?.length ?? 0) > 0
+    ) {
+      throw new CloudflareWorkersAiProviderError(
+        'The selected Cloudflare video model currently supports text-to-video only through the Aerealith API.',
+      );
+    }
+
+    if (
+      input.fps !== undefined &&
+      input.fps !== 24
+    ) {
+      throw new CloudflareWorkersAiProviderError(
+        'The selected Cloudflare video model currently supports 24 FPS only.',
+      );
+    }
+
+    if (
+      input.durationSeconds !== undefined &&
+      (
+        !Number.isInteger(input.durationSeconds) ||
+        input.durationSeconds < 4 ||
+        input.durationSeconds > 12
+      )
+    ) {
+      throw new CloudflareWorkersAiProviderError(
+        'The selected Cloudflare video model supports durations from 4 to 12 seconds.',
+      );
+    }
+
+    const response = await this.binding.run(model.id, {
+      prompt: input.prompt,
+      duration: input.durationSeconds ?? 5,
+      resolution: videoResolution(input.width, input.height),
+      aspect_ratio: videoAspectRatio(input.width, input.height),
+      fps: 24,
+      ...(input.seed === undefined ? {} : { seed: input.seed }),
+      generate_audio: true,
+      watermark: false,
+    });
+    const url = normalizeUnifiedMediaUrl(response, 'video');
+
+    return {
+      content: {
+        kind: 'video',
+        contentType: 'video/mp4',
+        url,
+      } satisfies GeneratedBinary,
+      providerId: this.id,
+      modelId: model.id,
+    };
+  }
+
+  private async executeMusic(
+    request: OrchestrationRequest,
+    model: ModelDescriptor,
+  ): Promise<OrchestrationOutput> {
+    const input = request.input as MusicGenerationInput;
+
+    if (
+      input.durationSeconds !== undefined ||
+      input.seed !== undefined ||
+      input.format === 'flac'
+    ) {
+      throw new CloudflareWorkersAiProviderError(
+        'The selected Cloudflare music model currently supports prompt, optional lyrics, instrumental mode, and mp3/wav output.',
+      );
+    }
+
+    const format = input.format ?? 'mp3';
+    const response = await this.binding.run(model.id, {
+      prompt: input.prompt,
+      is_instrumental: input.instrumental ?? false,
+      lyrics_optimizer: !input.instrumental && !input.lyrics,
+      ...(input.lyrics ? { lyrics: input.lyrics } : {}),
+      format,
+    });
+    const url = normalizeUnifiedMediaUrl(response, 'audio');
+
+    return {
+      content: {
+        kind: 'music',
+        contentType: format === 'wav' ? 'audio/wav' : 'audio/mpeg',
+        url,
+      } satisfies GeneratedBinary,
+      providerId: this.id,
+      modelId: model.id,
+    };
+  }
+
   private async executeAnalytics(
     request: OrchestrationRequest,
     model: ModelDescriptor,
@@ -389,6 +500,62 @@ export class CloudflareWorkersAiProvider implements ModelProvider {
       );
     }
   }
+}
+
+function normalizeUnifiedMediaUrl(
+  response: unknown,
+  field: 'video' | 'audio',
+): string {
+  if (!isRecord(response)) {
+    throw new CloudflareWorkersAiProviderError(
+      'Cloudflare unified AI returned an invalid media response.',
+    );
+  }
+
+  const result = isRecord(response['result'])
+    ? response['result']
+    : response;
+  const url = result[field];
+
+  if (typeof url !== 'string' || !url.startsWith('https://')) {
+    throw new CloudflareWorkersAiProviderError(
+      `Cloudflare unified AI returned no secure ${field} URL.`,
+    );
+  }
+
+  return url;
+}
+
+function videoResolution(
+  width: number | undefined,
+  height: number | undefined,
+): '480p' | '720p' {
+  const largest = Math.max(width ?? 0, height ?? 0);
+  return largest > 854 ? '720p' : '480p';
+}
+
+function videoAspectRatio(
+  width: number | undefined,
+  height: number | undefined,
+): '16:9' | '4:3' | '1:1' | '3:4' | '9:16' | '21:9' | '9:21' {
+  if (!width || !height) return '16:9';
+
+  const ratio = width / height;
+  const choices = [
+    ['16:9', 16 / 9],
+    ['4:3', 4 / 3],
+    ['1:1', 1],
+    ['3:4', 3 / 4],
+    ['9:16', 9 / 16],
+    ['21:9', 21 / 9],
+    ['9:21', 9 / 21],
+  ] as const;
+
+  return choices.reduce((best, candidate) =>
+    Math.abs(candidate[1] - ratio) < Math.abs(best[1] - ratio)
+      ? candidate
+      : best,
+  )[0];
 }
 
 function normalizeTextResponse(response: unknown): {
