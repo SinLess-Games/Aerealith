@@ -17,6 +17,7 @@ import {
   BasicOrchestrationEngine,
   type OrchestrationEngine,
 } from './orchestrator';
+import { providerRuntimeStatus } from './provider-runtime';
 import { createRunStore } from './run-store';
 import { vectorStoreStatus } from './vector-store';
 
@@ -75,10 +76,12 @@ app.get('/ready', (c) => {
   const workflowConfigured = Boolean(c.env.AI_ORCHESTRATION_WORKFLOW);
   const runStateConfigured = Boolean(c.env.AI_RUN_STATE);
   const vectorStore = vectorStoreStatus(c.env);
+  const providers = providerRuntimeStatus(c.env);
 
   const missingProductionDependencies = [
     ...(workflowConfigured ? [] : ['AI_ORCHESTRATION_WORKFLOW']),
     ...(runStateConfigured ? [] : ['AI_RUN_STATE']),
+    ...(providers.configuredProviders > 0 ? [] : ['AI_PROVIDER_CATALOG']),
   ];
 
   if (
@@ -98,6 +101,10 @@ app.get('/ready', (c) => {
             provider: vectorStore.provider,
             configured: vectorStore.configured,
           },
+          providers: {
+            configured: providers.configuredProviders,
+            total: providers.totalProviders,
+          },
         },
         meta: responseMeta(c.get('apiContext')),
       },
@@ -115,6 +122,10 @@ app.get('/ready', (c) => {
         provider: vectorStore.provider,
         configured: vectorStore.configured,
       },
+      providers: {
+        configured: providers.configuredProviders,
+        total: providers.totalProviders,
+      },
     },
     meta: responseMeta(c.get('apiContext')),
   });
@@ -128,6 +139,16 @@ app.get('/api/V1/services/ai-orchestrator', (c) =>
     meta: responseMeta(c.get('apiContext')),
   }),
 );
+
+app.get('/api/V1/ai/providers', (c) => {
+  const status = providerRuntimeStatus(c.env);
+
+  return c.json({
+    ok: true,
+    data: status,
+    meta: responseMeta(c.get('apiContext')),
+  });
+});
 
 app.get('/api/V1/ai/vector-store', (c) => {
   const status = vectorStoreStatus(c.env);
