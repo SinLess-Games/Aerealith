@@ -95,6 +95,7 @@ export async function startStreamingTextRun(
     id: crypto.randomUUID(),
     ...(request.tenantId ? { tenantId: request.tenantId } : {}),
     ...(request.actorId ? { actorId: request.actorId } : {}),
+    executionMode: 'streaming',
     status: 'running',
     capability: 'text',
     createdAt: timestamp,
@@ -110,7 +111,12 @@ export async function startStreamingTextRun(
     capability: 'text',
   });
 
-  const [clientStream, trackingStream] = raw.tee();
+  const cancellationAwareStream = createCancellationAwareStream(
+    raw,
+    runs,
+    run.id,
+  );
+  const [clientStream, trackingStream] = cancellationAwareStream.tee();
   const completion = trackStreamingResponse(
     trackingStream,
     bindings,
@@ -199,6 +205,9 @@ async function trackStreamingResponse(
       }
     }
 
+    const current = await runs.get(run.id);
+    if (current?.status === 'cancelled') return;
+
     const completedAt = new Date().toISOString();
     const output: OrchestrationOutput = {
       providerId: model.providerId,
@@ -210,13 +219,6 @@ async function trackStreamingResponse(
       },
       ...(usage ? { usage } : {}),
     };
-
-    await runs.updateStatus(run.id, 'succeeded', {
-      providerId: model.providerId,
-      modelId: model.id,
-      output,
-      completedAt,
-    });
 
     if (bindings.AI_USAGE && request.tenantId) {
       await new AiUsageStore(bindings.AI_USAGE).recordUsage(
@@ -247,6 +249,16 @@ async function trackStreamingResponse(
       );
     }
 
+    const beforeCommit = await runs.get(run.id);
+    if (beforeCommit?.status === 'cancelled') return;
+
+    await runs.updateStatus(run.id, 'succeeded', {
+      providerId: model.providerId,
+      modelId: model.id,
+      output,
+      completedAt,
+    });
+
     recordAiRunSucceeded({
       runId: run.id,
       capability: 'text',
@@ -254,6 +266,9 @@ async function trackStreamingResponse(
       output,
     });
   } catch (error) {
+    const current = await runs.get(run.id).catch(() => undefined);
+    if (current?.status === 'cancelled') return;
+
     const completedAt = new Date().toISOString();
     await runs.updateStatus(run.id, 'failed', {
       errorCode: 'STREAMING_EXECUTION_FAILED',
@@ -271,6 +286,50 @@ async function trackStreamingResponse(
   } finally {
     reader.releaseLock();
   }
+}
+
+function createCancellationAwareStream(
+  source: ReadableStream<Uint8Array>,
+  runs: DurableObjectRunStore,
+  runId: string,
+): ReadableStream<Uint8Array> {
+  const reader = source.getReader();
+  let finished = false;
+
+  return new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      if (finished) return;
+
+      const current = await runs.get(runId);
+      if (current?.status === 'cancelled') {
+        finished = true;
+        await reader.cancel('AI stream cancelled by user').catch(() => undefined);
+        controller.close();
+        return;
+      }
+
+      try {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          finished = true;
+          controller.close();
+          return;
+        }
+
+        controller.enqueue(value);
+      } catch (error) {
+        finished = true;
+        controller.error(error);
+      }
+    },
+
+    async cancel(reason) {
+      if (finished) return;
+      finished = true;
+      await reader.cancel(reason).catch(() => undefined);
+    },
+  });
 }
 
 function parseSseData(line: string): Record<string, unknown> | undefined {
