@@ -30,6 +30,7 @@ export function initializeDatadogRum(): Promise<boolean> {
         trackLongTasks: true,
         trackUserInteractions: true,
         trackViewsManually: true,
+        enableExperimentalFeatures: ['feature_flags'],
         defaultPrivacyLevel: 'mask-user-input',
         trackingConsent: trackingAllowed ? 'granted' : 'not-granted',
         beforeSend: (event) => {
@@ -77,6 +78,14 @@ export function setDatadogSessionReplayAllowed(allowed: boolean) {
     rum.stopSessionReplayRecording();
     replayRunning = false;
   }
+}
+
+export function trackDatadogFeatureFlag(
+  key: string,
+  value: boolean,
+) {
+  if (!rum || !initialized || !trackingAllowed) return;
+  rum.addFeatureFlagEvaluation(key, value);
 }
 
 export function trackDatadogView(path: string) {
