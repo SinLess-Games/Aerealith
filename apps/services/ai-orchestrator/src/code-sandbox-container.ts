@@ -8,6 +8,7 @@ const MAX_FILE_BYTES = 2 * 1024 * 1024;
 const MAX_COMMAND_OUTPUT_BYTES = 4 * 1024 * 1024;
 const DEFAULT_TIMEOUT_MS = 120_000;
 const MAX_TIMEOUT_MS = 15 * 60 * 1000;
+const IDLE_TIMEOUT_MS = 20 * 60 * 1000;
 const NETWORK_STATE_KEY = 'network-enabled';
 
 type ContainerExecOutput = {
@@ -61,6 +62,7 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
   } = {}): Promise<{ root: string }> {
     const networkAccess = options.networkAccess ?? Boolean(options.repositoryUrl);
     await this.ensureStarted(networkAccess);
+    await this.touch();
 
     if (!options.repositoryUrl) {
       await this.run(['mkdir', '-p', WORKSPACE_ROOT], {
@@ -102,6 +104,7 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
   }
 
   async readFile(path: string): Promise<string> {
+    await this.touch();
     const safePath = resolveWorkspacePath(path);
     const result = await this.run(['cat', safePath], {
       timeoutMs: 30_000,
@@ -117,10 +120,12 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
       throw new Error('Sandbox file exceeds the 2 MiB read limit.');
     }
 
+    await this.touch();
     return result.stdout;
   }
 
   async writeFile(path: string, content: string): Promise<void> {
+    await this.touch();
     const bytes = new TextEncoder().encode(content);
     if (bytes.byteLength > MAX_FILE_BYTES) {
       throw new Error('Sandbox file exceeds the 2 MiB write limit.');
@@ -151,9 +156,12 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
         `Failed to write file: ${decode(output.stderr)}`,
       );
     }
+
+    await this.touch();
   }
 
   async listFiles(path = '.'): Promise<readonly string[]> {
+    await this.touch();
     const safePath = resolveWorkspacePath(path);
     const result = await this.run(
       [
@@ -180,18 +188,23 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
       );
     }
 
-    return result.stdout
+    const files = result.stdout
       .split('\n')
       .map((value) => value.trim())
       .filter(Boolean)
       .slice(0, 2_000)
       .map(toWorkspaceRelativePath);
+
+    await this.touch();
+    return files;
   }
 
   async search(
     pattern: string,
     path = '.',
   ): Promise<readonly string[]> {
+    await this.touch();
+
     if (!pattern || pattern.length > 1_024 || pattern.includes('\0')) {
       throw new Error('Sandbox search pattern is invalid.');
     }
@@ -219,12 +232,15 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
       );
     }
 
-    return result.stdout
+    const matches = result.stdout
       .split('\n')
       .map((value) => value.trim())
       .filter(Boolean)
       .slice(0, 1_000)
       .map(toWorkspaceRelativePath);
+
+    await this.touch();
+    return matches;
   }
 
   async execute(request: {
@@ -240,8 +256,9 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
     }
 
     await this.ensureStarted(request.networkAccess ?? this.internetEnabled);
+    await this.touch();
 
-    return this.run(
+    const result = await this.run(
       [request.command, ...(request.args ?? [])],
       {
         cwd: request.cwd
@@ -251,15 +268,36 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
         timeoutMs: request.timeoutMs,
       },
     );
+
+    await this.touch();
+    return result;
   }
 
   async close(): Promise<void> {
+    await this.ctx.storage.deleteAlarm();
+
     const container = await this.container();
     if (container.running) {
       await container.destroy('Aerealith sandbox session closed');
     }
+
     this.internetEnabled = false;
     this.ctx.storage.kv.put(NETWORK_STATE_KEY, false);
+  }
+
+  async alarm(): Promise<void> {
+    const container = await this.container();
+
+    if (container.running) {
+      await container.destroy('Aerealith sandbox idle timeout');
+    }
+
+    this.internetEnabled = false;
+    this.ctx.storage.kv.put(NETWORK_STATE_KEY, false);
+  }
+
+  private async touch(): Promise<void> {
+    await this.ctx.storage.setAlarm(Date.now() + IDLE_TIMEOUT_MS);
   }
 
   private async ensureStarted(enableInternet: boolean): Promise<void> {
