@@ -1,6 +1,9 @@
 import { QdrantVectorStore } from '@aerealith-ai/ai-qdrant';
 
-import type { AiOrchestratorBindings } from './bindings';
+import type {
+  AiOrchestratorBindings,
+  SecretStoreBinding,
+} from './bindings';
 
 const DEFAULT_COLLECTION = 'aerealith-knowledge-v1';
 
@@ -12,9 +15,11 @@ export type VectorStoreRuntimeStatus = {
   collection: string;
 };
 
-export function createVectorStore(bindings: AiOrchestratorBindings) {
+export async function createVectorStore(
+  bindings: AiOrchestratorBindings,
+): Promise<QdrantVectorStore | undefined> {
   const baseUrl = bindings.QDRANT_URL?.trim();
-  const apiKey = bindings.QDRANT_API_KEY?.trim();
+  const apiKey = await resolveSecret(bindings.QDRANT_API_KEY);
 
   if (!baseUrl || !apiKey) {
     return undefined;
@@ -31,7 +36,7 @@ export function vectorStoreStatus(
   bindings: AiOrchestratorBindings,
 ): VectorStoreRuntimeStatus {
   const endpointConfigured = Boolean(bindings.QDRANT_URL?.trim());
-  const credentialsConfigured = Boolean(bindings.QDRANT_API_KEY?.trim());
+  const credentialsConfigured = Boolean(bindings.QDRANT_API_KEY);
 
   return {
     provider: 'qdrant',
@@ -40,6 +45,19 @@ export function vectorStoreStatus(
     credentialsConfigured,
     collection: resolveCollection(bindings),
   };
+}
+
+async function resolveSecret(
+  binding: SecretStoreBinding | string | undefined,
+): Promise<string | undefined> {
+  if (typeof binding === 'string') {
+    return binding.trim() || undefined;
+  }
+
+  if (!binding) return undefined;
+
+  const value = await binding.get();
+  return value.trim() || undefined;
 }
 
 function resolveCollection(bindings: AiOrchestratorBindings): string {
