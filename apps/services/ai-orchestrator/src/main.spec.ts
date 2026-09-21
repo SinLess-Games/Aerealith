@@ -303,7 +303,9 @@ describe('AI orchestrator service', () => {
     );
 
     expect(response.headers.get('access-control-allow-origin')).toBeNull();
-    expect(response.headers.get('access-control-allow-credentials')).toBeNull();
+    expect(
+      response.headers.get('access-control-allow-credentials'),
+    ).toBeNull();
   });
 
   it('reports health with a request id', async () => {
