@@ -97,6 +97,10 @@ export interface KnowledgeCatalogStub {
   listKnowledgeBases(): Promise<
     readonly import('./knowledge-catalog').KnowledgeBaseSummary[]
   >;
+  assertCanRecordDocuments(
+    knowledgeBaseId: string,
+    documentIds: readonly string[],
+  ): Promise<void>;
   recordDocuments(
     knowledgeBaseId: string,
     documentIds: readonly string[],
