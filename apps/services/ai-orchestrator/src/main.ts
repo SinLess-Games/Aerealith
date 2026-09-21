@@ -1125,7 +1125,15 @@ async function submitDurableRun(
   const engine = resolveEngine(bindings);
 
   try {
-    return await engine.submit(request, submissionOptions);
+    const submission = await engine.submit(request, submissionOptions);
+
+    if (!submission.created && usageReserved && bindings.AI_USAGE) {
+      await new AiUsageStore(bindings.AI_USAGE)
+        .releaseRun(principal.id)
+        .catch(() => undefined);
+    }
+
+    return submission.run;
   } catch (error) {
     if (usageReserved && bindings.AI_USAGE) {
       await new AiUsageStore(bindings.AI_USAGE)
