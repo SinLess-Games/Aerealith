@@ -5,6 +5,38 @@ import {
 } from './provider-runtime';
 
 describe('AI provider runtime', () => {
+  it('registers Cloudflare Workers AI as the built-in provider', () => {
+    const AI = {
+      run: vi.fn(async () => ({ response: 'ok' })),
+    };
+
+    const registry = createProviderRegistry({ AI });
+    const status = providerRuntimeStatus({ AI });
+
+    expect(registry.get('cloudflare-workers-ai')).toBeDefined();
+    expect(status).toMatchObject({
+      configuredProviders: 1,
+      totalProviders: 1,
+      providers: [
+        {
+          id: 'cloudflare-workers-ai',
+          kind: 'cloudflare-workers-ai',
+          configured: true,
+        },
+      ],
+    });
+    expect(status.capabilities).toEqual([
+      'text',
+      'code',
+      'embedding',
+      'rerank',
+      'image',
+      'audio',
+      'analytics',
+      'prediction',
+    ]);
+  });
+
   it('registers configured OpenAI-compatible providers', () => {
     const bindings = {
       AI_PROVIDER_CATALOG: JSON.stringify([
