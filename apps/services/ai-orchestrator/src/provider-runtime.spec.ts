@@ -45,7 +45,7 @@ describe('AI provider runtime', () => {
           kind: 'openai-compatible',
           configured: true,
           modelCount: 2,
-          capabilities: ['code', 'embedding', 'text'],
+          capabilities: ['text', 'code', 'embedding'],
         },
       ],
     });
