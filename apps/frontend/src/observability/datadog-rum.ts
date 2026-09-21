@@ -6,6 +6,7 @@ let rum: DatadogRum | null = null;
 let initializing: Promise<boolean> | null = null;
 let initialized = false;
 let replayRunning = false;
+let trackingAllowed = false;
 
 export function initializeDatadogRum(): Promise<boolean> {
   const config = integrationConfig.datadog;
@@ -30,6 +31,7 @@ export function initializeDatadogRum(): Promise<boolean> {
         trackUserInteractions: true,
         trackViewsManually: true,
         defaultPrivacyLevel: 'mask-user-input',
+        trackingConsent: trackingAllowed ? 'granted' : 'not-granted',
         beforeSend: (event) => {
           const viewUrl = event.view?.url;
           if (viewUrl) event.view.url = sanitizeUrl(viewUrl);
@@ -55,6 +57,7 @@ export function initializeDatadogRum(): Promise<boolean> {
 }
 
 export function setDatadogTrackingAllowed(allowed: boolean) {
+  trackingAllowed = allowed;
   if (!rum || !initialized) return;
   rum.setTrackingConsent(allowed ? 'granted' : 'not-granted');
 
@@ -101,4 +104,5 @@ export function resetDatadogForTests() {
   initializing = null;
   initialized = false;
   replayRunning = false;
+  trackingAllowed = false;
 }
