@@ -246,6 +246,55 @@ export class QdrantVectorStore implements VectorStore, VectorIndexManager {
    * logical namespace boundary. Callers cannot use this method to delete data
    * belonging to another tenant or knowledge base.
    */
+  async replaceByFilter(
+    namespace: string,
+    filter: Record<string, unknown>,
+    records: readonly {
+      id: string;
+      vector: readonly number[];
+      text?: string;
+      metadata?: Record<string, unknown>;
+    }[],
+  ): Promise<void> {
+    const normalizedNamespace = normalizeNamespace(namespace);
+    const points = await Promise.all(
+      records.map(async (record) => ({
+        id: await deterministicPointId(normalizedNamespace, record.id),
+        vector: [...record.vector],
+        payload: {
+          [NAMESPACE_FIELD]: normalizedNamespace,
+          [RECORD_ID_FIELD]: record.id,
+          ...(record.text ? { [TEXT_FIELD]: record.text } : {}),
+          ...(record.metadata ? { [METADATA_FIELD]: record.metadata } : {}),
+        },
+      })),
+    );
+
+    await this.request(
+      this.collectionPath('/points/batch?wait=true&ordering=strong'),
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          operations: [
+            {
+              delete: {
+                filter: mergeNamespaceFilter(
+                  normalizedNamespace,
+                  filter,
+                ),
+              },
+            },
+            {
+              upsert: {
+                points,
+              },
+            },
+          ],
+        }),
+      },
+    );
+  }
+
   async deleteByFilter(
     namespace: string,
     filter: Record<string, unknown>,
