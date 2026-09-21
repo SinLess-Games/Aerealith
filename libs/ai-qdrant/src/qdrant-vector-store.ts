@@ -8,13 +8,16 @@ import type {
 } from '@aerealith-ai/ai-orchestration';
 
 const DEFAULT_LIMIT = 10;
+const DEFAULT_COLLECTION = 'aerealith-knowledge';
 const TEXT_FIELD = 'text';
 const METADATA_FIELD = 'metadata';
+const RECORD_ID_FIELD = 'record_id';
+const NAMESPACE_FIELD = 'namespace';
 
 export type QdrantVectorStoreOptions = {
   baseUrl: string;
   apiKey?: string;
-  collectionPrefix?: string;
+  collectionName?: string;
   fetchImplementation?: typeof globalThis.fetch;
 };
 
@@ -37,21 +40,31 @@ export class QdrantVectorStoreError extends Error {
   }
 }
 
+/**
+ * Qdrant-backed vector storage using one shared collection and payload-based
+ * namespace partitioning. This avoids creating a collection for every tenant
+ * or knowledge base while still enforcing namespace filters on every query.
+ */
 export class QdrantVectorStore implements VectorStore, VectorIndexManager {
   private readonly baseUrl: string;
   private readonly apiKey?: string;
-  private readonly collectionPrefix: string;
+  private readonly collectionName: string;
   private readonly fetchImplementation: typeof globalThis.fetch;
 
   constructor(options: QdrantVectorStoreOptions) {
     this.baseUrl = trimTrailingSlashes(options.baseUrl.trim());
     this.apiKey = options.apiKey?.trim() || undefined;
-    this.collectionPrefix = options.collectionPrefix?.trim() || '';
+    this.collectionName =
+      options.collectionName?.trim() || DEFAULT_COLLECTION;
     this.fetchImplementation =
       options.fetchImplementation ?? globalThis.fetch.bind(globalThis);
 
     if (!this.baseUrl) {
       throw new QdrantVectorStoreError('A Qdrant base URL is required.');
+    }
+
+    if (!this.collectionName) {
+      throw new QdrantVectorStoreError('A Qdrant collection name is required.');
     }
   }
 
@@ -59,6 +72,8 @@ export class QdrantVectorStore implements VectorStore, VectorIndexManager {
     namespace: string,
     configuration: VectorIndexConfiguration,
   ): Promise<void> {
+    normalizeNamespace(namespace);
+
     if (
       !Number.isInteger(configuration.dimensions) ||
       configuration.dimensions <= 0
@@ -68,7 +83,7 @@ export class QdrantVectorStore implements VectorStore, VectorIndexManager {
       );
     }
 
-    const collectionUrl = this.collectionPath(namespace);
+    const collectionUrl = this.collectionPath();
     const existing = await this.fetch(collectionUrl, { method: 'GET' });
 
     if (existing.ok) {
@@ -90,15 +105,37 @@ export class QdrantVectorStore implements VectorStore, VectorIndexManager {
         },
       }),
     });
+
+    await this.request(this.collectionPath('/index?wait=true'), {
+      method: 'PUT',
+      body: JSON.stringify({
+        field_name: NAMESPACE_FIELD,
+        field_schema: {
+          type: 'keyword',
+          is_tenant: true,
+        },
+      }),
+    });
   }
 
+  /**
+   * Deletes every point in the logical namespace while preserving the shared
+   * collection and the data belonging to other namespaces.
+   */
   async deleteIndex(namespace: string): Promise<void> {
-    await this.request(this.collectionPath(namespace), {
-      method: 'DELETE',
+    const normalizedNamespace = normalizeNamespace(namespace);
+
+    await this.request(this.collectionPath('/points/delete?wait=true'), {
+      method: 'POST',
+      body: JSON.stringify({
+        filter: namespaceFilter(normalizedNamespace),
+      }),
     });
   }
 
   async search(query: RetrievalQuery): Promise<readonly RetrievalMatch[]> {
+    const namespace = normalizeNamespace(query.namespace);
+
     if (!query.vector || query.vector.length === 0) {
       throw new QdrantVectorStoreError(
         'Qdrant vector search requires a non-empty query.vector. Generate embeddings before calling the vector store.',
@@ -106,7 +143,7 @@ export class QdrantVectorStore implements VectorStore, VectorIndexManager {
     }
 
     const response = await this.request<QdrantQueryResponse>(
-      this.collectionPath(query.namespace, '/points/query'),
+      this.collectionPath('/points/query'),
       {
         method: 'POST',
         body: JSON.stringify({
@@ -114,7 +151,7 @@ export class QdrantVectorStore implements VectorStore, VectorIndexManager {
           limit: query.limit ?? DEFAULT_LIMIT,
           with_payload: true,
           with_vector: false,
-          ...(query.filter ? { filter: query.filter } : {}),
+          filter: mergeNamespaceFilter(namespace, query.filter),
         }),
       },
     );
@@ -125,11 +162,15 @@ export class QdrantVectorStore implements VectorStore, VectorIndexManager {
         typeof payload[TEXT_FIELD] === 'string'
           ? (payload[TEXT_FIELD] as string)
           : undefined;
+      const recordId =
+        typeof payload[RECORD_ID_FIELD] === 'string'
+          ? (payload[RECORD_ID_FIELD] as string)
+          : String(point.id);
       const metadataValue = payload[METADATA_FIELD];
       const metadata = isRecord(metadataValue) ? metadataValue : undefined;
 
       return {
-        id: String(point.id),
+        id: recordId,
         score: point.score ?? 0,
         ...(text ? { text } : {}),
         ...(metadata ? { metadata } : {}),
@@ -148,43 +189,46 @@ export class QdrantVectorStore implements VectorStore, VectorIndexManager {
   ): Promise<void> {
     if (records.length === 0) return;
 
-    await this.request(this.collectionPath(namespace, '/points?wait=true'), {
+    const normalizedNamespace = normalizeNamespace(namespace);
+    const points = await Promise.all(
+      records.map(async (record) => ({
+        id: await deterministicPointId(normalizedNamespace, record.id),
+        vector: [...record.vector],
+        payload: {
+          [NAMESPACE_FIELD]: normalizedNamespace,
+          [RECORD_ID_FIELD]: record.id,
+          ...(record.text ? { [TEXT_FIELD]: record.text } : {}),
+          ...(record.metadata
+            ? { [METADATA_FIELD]: record.metadata }
+            : {}),
+        },
+      })),
+    );
+
+    await this.request(this.collectionPath('/points?wait=true'), {
       method: 'PUT',
-      body: JSON.stringify({
-        points: records.map((record) => ({
-          id: record.id,
-          vector: [...record.vector],
-          payload: {
-            ...(record.text ? { [TEXT_FIELD]: record.text } : {}),
-            ...(record.metadata
-              ? { [METADATA_FIELD]: record.metadata }
-              : {}),
-          },
-        })),
-      }),
+      body: JSON.stringify({ points }),
     });
   }
 
   async delete(namespace: string, ids: readonly string[]): Promise<void> {
     if (ids.length === 0) return;
 
-    await this.request(
-      this.collectionPath(namespace, '/points/delete?wait=true'),
-      {
-        method: 'POST',
-        body: JSON.stringify({ points: [...ids] }),
-      },
+    const normalizedNamespace = normalizeNamespace(namespace);
+    const pointIds = await Promise.all(
+      ids.map((id) => deterministicPointId(normalizedNamespace, id)),
     );
+
+    await this.request(this.collectionPath('/points/delete?wait=true'), {
+      method: 'POST',
+      body: JSON.stringify({ points: pointIds }),
+    });
   }
 
-  private collectionPath(namespace: string, suffix = ''): string {
-    const normalized = namespace.trim();
-    if (!normalized) {
-      throw new QdrantVectorStoreError('A Qdrant namespace is required.');
-    }
-
-    const collection = `${this.collectionPrefix}${normalized}`;
-    return `${this.baseUrl}/collections/${encodeURIComponent(collection)}${suffix}`;
+  private collectionPath(suffix = ''): string {
+    return `${this.baseUrl}/collections/${encodeURIComponent(
+      this.collectionName,
+    )}${suffix}`;
   }
 
   private async request<T = unknown>(
@@ -224,11 +268,80 @@ export class QdrantVectorStore implements VectorStore, VectorIndexManager {
   }
 }
 
-function toQdrantDistance(distance: VectorDistance):
-  | 'Cosine'
-  | 'Dot'
-  | 'Euclid'
-  | 'Manhattan' {
+function namespaceFilter(namespace: string) {
+  return {
+    must: [
+      {
+        key: NAMESPACE_FIELD,
+        match: { value: namespace },
+      },
+    ],
+  };
+}
+
+function mergeNamespaceFilter(
+  namespace: string,
+  filter: Record<string, unknown> | undefined,
+): Record<string, unknown> {
+  const existingMust =
+    filter && Array.isArray(filter['must']) ? filter['must'] : [];
+
+  return {
+    ...(filter ?? {}),
+    must: [
+      {
+        key: NAMESPACE_FIELD,
+        match: { value: namespace },
+      },
+      ...existingMust,
+    ],
+  };
+}
+
+function normalizeNamespace(namespace: string): string {
+  const normalized = namespace.trim();
+
+  if (!normalized) {
+    throw new QdrantVectorStoreError('A Qdrant namespace is required.');
+  }
+
+  if (normalized.length > 256) {
+    throw new QdrantVectorStoreError(
+      'A Qdrant namespace may contain at most 256 characters.',
+    );
+  }
+
+  return normalized;
+}
+
+async function deterministicPointId(
+  namespace: string,
+  recordId: string,
+): Promise<string> {
+  const input = new TextEncoder().encode(`${namespace}\u0000${recordId}`);
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', input));
+  const bytes = digest.slice(0, 16);
+
+  // RFC 4122-compatible deterministic UUID shape.
+  bytes[6] = ((bytes[6] ?? 0) & 0x0f) | 0x50;
+  bytes[8] = ((bytes[8] ?? 0) & 0x3f) | 0x80;
+
+  const hex = [...bytes]
+    .map((value) => value.toString(16).padStart(2, '0'))
+    .join('');
+
+  return [
+    hex.slice(0, 8),
+    hex.slice(8, 12),
+    hex.slice(12, 16),
+    hex.slice(16, 20),
+    hex.slice(20, 32),
+  ].join('-');
+}
+
+function toQdrantDistance(
+  distance: VectorDistance,
+): 'Cosine' | 'Dot' | 'Euclid' | 'Manhattan' {
   switch (distance) {
     case 'cosine':
       return 'Cosine';
