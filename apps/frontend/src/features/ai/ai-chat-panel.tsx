@@ -210,8 +210,11 @@ export function AiChatPanel({
   }
 
   return (
-    <div className="grid min-h-[42rem] overflow-hidden rounded-[28px] border border-[var(--ae-border)] bg-[var(--ae-glass-panel)] shadow-[var(--ae-shadow-lg)] lg:grid-cols-[minmax(0,1fr)_290px]">
-      <div className="relative flex min-h-[42rem] min-w-0 flex-col">
+    <div
+      className="grid min-h-[36rem] overflow-hidden rounded-[28px] border border-[var(--ae-border)] bg-[var(--ae-glass-panel)] shadow-[var(--ae-shadow-lg)] sm:min-h-[40rem] lg:grid-cols-[minmax(0,1fr)_290px]"
+      aria-busy={isSending}
+    >
+      <div className="relative flex min-h-[36rem] min-w-0 flex-col sm:min-h-[40rem] lg:min-h-[42rem]">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute left-1/2 top-0 h-52 w-3/4 -translate-x-1/2 bg-[radial-gradient(ellipse_at_top,var(--ae-primary-subtle),transparent_68%)]"
@@ -353,6 +356,7 @@ export function AiChatPanel({
               value={prompt}
               disabled={isSending}
               rows={3}
+              enterKeyHint="send"
               placeholder="Message Aerealith…"
               aria-label="Message Aerealith"
               className="max-h-48 min-h-[72px] w-full resize-none border-0 bg-transparent px-3 py-2.5 text-sm leading-6 outline-none placeholder:text-[var(--ae-foreground-muted)]"
@@ -407,7 +411,7 @@ export function AiChatPanel({
         </div>
       </div>
 
-      <aside className="border-t border-[var(--ae-border)] bg-[var(--ae-background-elevated)]/80 p-5 lg:border-l lg:border-t-0">
+      <aside className="border-t border-[var(--ae-border)] bg-[var(--ae-background-elevated)]/80 p-4 sm:p-5 lg:border-l lg:border-t-0">
         <div className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--ae-border)] bg-[var(--ae-surface-muted)] text-[var(--ae-accent)]">
             <FiCpu aria-hidden="true" />
