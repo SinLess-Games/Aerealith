@@ -48,6 +48,7 @@ export type RunRecord = {
   id: string;
   tenantId?: string;
   actorId?: string;
+  requestFingerprint?: string;
   status: RunStatus;
   capability: CapabilityKind;
   createdAt: string;
