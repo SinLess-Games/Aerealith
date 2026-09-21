@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@aerealith-ai/ai-orchestration": "workspace:*",
+    "@aerealith-ai/api-platform": "workspace:*",
+    "@aerealith-ai/core": "workspace:*",
     "@aerealith-ai/observability": "workspace:*",
     "hono": "4.13.8",
     "zod": "4.4.3"
