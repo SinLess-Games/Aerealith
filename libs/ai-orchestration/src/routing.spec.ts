@@ -48,6 +48,50 @@ describe('CapabilityRoutingPolicy', () => {
     });
   });
 
+  it('keeps alternate providers as fallbacks when fallback is enabled', () => {
+    const request: OrchestrationRequest = {
+      capability: 'text',
+      input: 'hello',
+      preferences: {
+        provider: 'provider-b',
+        allowFallback: true,
+      },
+    };
+
+    expect(policy.rank(request, candidates)).toEqual([
+      expect.objectContaining({
+        providerId: 'provider-b',
+        modelId: 'fast',
+      }),
+      expect.objectContaining({
+        providerId: 'provider-a',
+        modelId: 'balanced',
+      }),
+    ]);
+  });
+
+  it('keeps a preferred model first while preserving fallback routes', () => {
+    const request: OrchestrationRequest = {
+      capability: 'text',
+      input: 'hello',
+      preferences: {
+        model: 'fast',
+        allowFallback: true,
+      },
+    };
+
+    expect(policy.rank(request, candidates)).toEqual([
+      expect.objectContaining({
+        providerId: 'provider-b',
+        modelId: 'fast',
+      }),
+      expect.objectContaining({
+        providerId: 'provider-a',
+        modelId: 'balanced',
+      }),
+    ]);
+  });
+
   it('throws when a strict preference has no route', () => {
     const request: OrchestrationRequest = {
       capability: 'text',
