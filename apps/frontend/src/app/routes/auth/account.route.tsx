@@ -1,3 +1,4 @@
+import { FeatureFlag } from '@aerealith-ai/core';
 import { useState, type ChangeEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -24,6 +25,7 @@ import {
 } from '../../../features/auth/account-api';
 import styles from './account.module.css';
 import { ApiError } from '../../../lib/api-client';
+import { useFeatureFlag } from '../../../features/flags/feature-flags';
 
 type Draft = {
   username: string;
@@ -35,6 +37,7 @@ type Draft = {
 
 export function AccountRoute() {
   const { user } = useSession();
+  const securityEnabled = useFeatureFlag(FeatureFlag.Security);
   const logout = useLogout();
   const queryClient = useQueryClient();
   const account = useQuery({
@@ -209,25 +212,27 @@ export function AccountRoute() {
             </button>
           </section>
 
-          <section
-            className={`${styles.panel} flex flex-wrap items-center gap-4 p-6`}
-          >
-            <div className={styles.icon}>
-              <FiShield />
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold">Security</h2>
-              <p className="mt-1 text-sm text-[var(--ae-foreground-muted)]">
-                Password and two-factor authentication controls are protected.
-              </p>
-            </div>
-            <Link
-              to="/app/security"
-              className={`${styles.outlineButton} ml-auto`}
+          {securityEnabled ? (
+            <section
+              className={`${styles.panel} flex flex-wrap items-center gap-4 p-6`}
             >
-              Manage security
-            </Link>
-          </section>
+              <div className={styles.icon}>
+                <FiShield />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold">Security</h2>
+                <p className="mt-1 text-sm text-[var(--ae-foreground-muted)]">
+                  Password and two-factor authentication controls are protected.
+                </p>
+              </div>
+              <Link
+                to="/app/security"
+                className={`${styles.outlineButton} ml-auto`}
+              >
+                Manage security
+              </Link>
+            </section>
+          ) : null}
         </div>
 
         {editing ? (
