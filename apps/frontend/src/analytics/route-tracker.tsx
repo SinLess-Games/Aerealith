@@ -1,7 +1,9 @@
+import { FeatureFlag } from '@aerealith-ai/core';
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router';
 
 import { useConsent } from '../consent/consent-context';
+import { useFeatureFlag } from '../features/flags/feature-flags';
 import { trackDatadogView } from '../observability/datadog-rum';
 import { trackEvent } from './google-tag-manager';
 
@@ -29,6 +31,7 @@ export function sanitizedPath(pathname: string, search: string): string {
 export function RouteTracker() {
   const location = useLocation();
   const { preferences } = useConsent();
+  const observabilityEnabled = useFeatureFlag(FeatureFlag.Observability);
   const previous = useRef('');
 
   useEffect(() => {
@@ -41,8 +44,13 @@ export function RouteTracker() {
       page_path: path,
       page_title: document.title,
     });
-    trackDatadogView(path);
-  }, [location.pathname, location.search, preferences.analytics]);
+    if (observabilityEnabled) trackDatadogView(path);
+  }, [
+    location.pathname,
+    location.search,
+    observabilityEnabled,
+    preferences.analytics,
+  ]);
 
   return null;
 }
