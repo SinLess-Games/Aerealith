@@ -10,6 +10,8 @@ import {
   FiUploadCloud,
 } from 'react-icons/fi';
 
+import { recordBrowserEvent } from '../../lib/browser-observability';
+
 import {
   aiApi,
   runOutputJson,
@@ -67,7 +69,7 @@ export function AiKnowledgePanel() {
     const value = name.trim();
     if (!value || pending) return;
 
-    await runAction(async () => {
+    await runAction('knowledge-base-create', async () => {
       const created = await aiApi.createKnowledgeBase({
         name: value,
       });
@@ -87,7 +89,7 @@ export function AiKnowledgePanel() {
       return;
     }
 
-    await runAction(async () => {
+    await runAction('knowledge-ingest', async () => {
       const accepted = await aiApi.ingestKnowledgeDocuments(
         selectedId,
         [
@@ -121,7 +123,7 @@ export function AiKnowledgePanel() {
   async function deleteDocument(id: string) {
     if (!selectedId || pending) return;
 
-    await runAction(async () => {
+    await runAction('knowledge-document-delete', async () => {
       await aiApi.deleteKnowledgeDocument(selectedId, id);
       await refreshKnowledge();
     });
@@ -131,7 +133,7 @@ export function AiKnowledgePanel() {
     const query = searchQuery.trim();
     if (!selectedId || !query || pending) return;
 
-    await runAction(async () => {
+    await runAction('knowledge-search', async () => {
       const accepted = await aiApi.createRun(
         {
           capability: 'retrieval',
@@ -157,7 +159,7 @@ export function AiKnowledgePanel() {
     if (!selectedId || pending) return;
 
     const id = selectedId;
-    await runAction(async () => {
+    await runAction('knowledge-base-delete', async () => {
       await aiApi.deleteKnowledgeBase(id);
       setSelectedId('');
       setLastRun(undefined);
@@ -165,13 +167,19 @@ export function AiKnowledgePanel() {
     });
   }
 
-  async function runAction(action: () => Promise<void>) {
+  async function runAction(
+    actionName: string,
+    action: () => Promise<void>,
+  ) {
     setPending(true);
     setError(undefined);
+    recordBrowserEvent('ai_knowledge_started', { action: actionName }, 'ai');
 
     try {
       await action();
+      recordBrowserEvent('ai_knowledge_completed', { action: actionName }, 'ai');
     } catch (caught) {
+      recordBrowserEvent('ai_knowledge_failed', { action: actionName }, 'ai');
       setError(
         caught instanceof Error
           ? caught.message
