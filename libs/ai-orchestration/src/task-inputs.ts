@@ -119,6 +119,7 @@ export type RetrievalInput = {
   namespace: string;
   query: string;
   limit?: number;
+  rerank?: boolean;
   filter?: Record<string, unknown>;
 };
 
