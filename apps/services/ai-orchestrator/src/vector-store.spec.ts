@@ -37,7 +37,7 @@ describe('AI orchestrator vector-store runtime', () => {
       configured: true,
       endpointConfigured: true,
       credentialsConfigured: true,
-      collectionPrefix: 'aerealith-test-knowledge',
+      collection: 'aerealith-test-knowledge',
     });
   });
 });
