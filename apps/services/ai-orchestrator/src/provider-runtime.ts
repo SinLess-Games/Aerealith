@@ -100,6 +100,61 @@ export function createProviderRegistry(
   return registry;
 }
 
+export async function modelRuntimeCatalog(
+  bindings: AiOrchestratorBindings,
+): Promise<
+  readonly {
+    id: string;
+    providerId: string;
+    capabilities: readonly CapabilityKind[];
+    priority?: number;
+    supportsStreaming?: boolean;
+    contextWindow?: number;
+    embeddingDimensions?: number;
+    inputCostPerMillionUnitsUsd?: number;
+    outputCostPerMillionUnitsUsd?: number;
+  }[]
+> {
+  const registry = createProviderRegistry(bindings);
+  const models = await Promise.all(
+    registry.list().map(async (provider) => provider.listModels()),
+  );
+
+  return models
+    .flat()
+    .map((model) => ({
+      id: model.id,
+      providerId: model.providerId,
+      capabilities: model.capabilities,
+      ...(model.priority === undefined ? {} : { priority: model.priority }),
+      ...(model.supportsStreaming === undefined
+        ? {}
+        : { supportsStreaming: model.supportsStreaming }),
+      ...(model.contextWindow === undefined
+        ? {}
+        : { contextWindow: model.contextWindow }),
+      ...(model.embeddingDimensions === undefined
+        ? {}
+        : { embeddingDimensions: model.embeddingDimensions }),
+      ...(model.inputCostPerMillionUnitsUsd === undefined
+        ? {}
+        : {
+            inputCostPerMillionUnitsUsd:
+              model.inputCostPerMillionUnitsUsd,
+          }),
+      ...(model.outputCostPerMillionUnitsUsd === undefined
+        ? {}
+        : {
+            outputCostPerMillionUnitsUsd:
+              model.outputCostPerMillionUnitsUsd,
+          }),
+    }))
+    .sort((left, right) => {
+      const provider = left.providerId.localeCompare(right.providerId);
+      return provider !== 0 ? provider : left.id.localeCompare(right.id);
+    });
+}
+
 export function providerRuntimeStatus(
   bindings: AiOrchestratorBindings,
 ): ProviderRuntimeStatus {
