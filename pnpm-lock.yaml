@@ -24,6 +24,79 @@ overrides:
 
 importers:
 
+  apps/services/ai-orchestrator:
+    dependencies:
+      '@aerealith-ai/ai-cloudflare-workers':
+        specifier: workspace:*
+        version: link:../../../libs/ai-cloudflare-workers
+      '@aerealith-ai/ai-qdrant':
+        specifier: workspace:*
+        version: link:../../../libs/ai-qdrant
+      '@aerealith-ai/ai-openai-compatible':
+        specifier: workspace:*
+        version: link:../../../libs/ai-openai-compatible
+      '@aerealith-ai/ai-orchestration':
+        specifier: workspace:*
+        version: link:../../../libs/ai-orchestration
+      '@aerealith-ai/api-platform':
+        specifier: workspace:*
+        version: link:../../../libs/api-platform
+      '@aerealith-ai/core':
+        specifier: workspace:*
+        version: link:../../../libs/core
+      '@aerealith-ai/observability':
+        specifier: workspace:*
+        version: link:../../../libs/observability
+      hono:
+        specifier: 4.13.8
+        version: 4.13.8
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
+
+  libs/ai-orchestration:
+    dependencies:
+      tslib:
+        specifier: ^2.3.0
+        version: 2.8.1
+
+  libs/ai-openai-compatible:
+    dependencies:
+      '@aerealith-ai/ai-orchestration':
+        specifier: workspace:*
+        version: link:../ai-orchestration
+      tslib:
+        specifier: ^2.3.0
+        version: 2.8.1
+
+  libs/ai-cloudflare-workers:
+    dependencies:
+      '@aerealith-ai/ai-orchestration':
+        specifier: workspace:*
+        version: link:../ai-orchestration
+      tslib:
+        specifier: ^2.3.0
+        version: 2.8.1
+
+  libs/ai-client:
+    dependencies:
+      '@aerealith-ai/ai-orchestration':
+        specifier: workspace:*
+        version: link:../ai-orchestration
+      tslib:
+        specifier: ^2.3.0
+        version: 2.8.1
+
+  libs/ai-qdrant:
+    dependencies:
+      '@aerealith-ai/ai-orchestration':
+        specifier: workspace:*
+        version: link:../ai-orchestration
+      tslib:
+        specifier: ^2.3.0
+        version: 2.8.1
+
+
   .:
     dependencies:
       '@base-ui/react':

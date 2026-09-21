@@ -6,12 +6,16 @@ import { IntegrationRuntime } from './integration-runtime';
 
 const mocks = vi.hoisted(() => ({
   config: { datadog: { enabled: true } },
+  featureFlags: { observability: true, dashboard: true },
   initializeDatadogRum: vi.fn<() => Promise<boolean>>(),
   loadCloudflareWebAnalytics: vi.fn(),
   loadGoogleTagManager: vi.fn(),
+  observabilityEnabled: true,
   preferences: { analytics: false, sessionReplay: false },
   reportGlobalError: vi.fn(),
   setDatadogSessionReplayAllowed: vi.fn(),
+  setDatadogTrackingAllowed: vi.fn(),
+  trackDatadogFeatureFlag: vi.fn(),
 }));
 
 vi.mock('../analytics/cloudflare-web-analytics', () => ({
@@ -23,10 +27,16 @@ vi.mock('../analytics/google-tag-manager', () => ({
 vi.mock('../consent/consent-context', () => ({
   useConsent: () => ({ preferences: mocks.preferences }),
 }));
+vi.mock('../features/flags/feature-flags', () => ({
+  useFeatureFlag: () => mocks.observabilityEnabled,
+  useFeatureFlags: () => mocks.featureFlags,
+}));
 vi.mock('../observability/datadog-rum', () => ({
   initializeDatadogRum: mocks.initializeDatadogRum,
   reportGlobalError: mocks.reportGlobalError,
   setDatadogSessionReplayAllowed: mocks.setDatadogSessionReplayAllowed,
+  setDatadogTrackingAllowed: mocks.setDatadogTrackingAllowed,
+  trackDatadogFeatureFlag: mocks.trackDatadogFeatureFlag,
 }));
 vi.mock('./integration-config', () => ({ integrationConfig: mocks.config }));
 
@@ -34,12 +44,15 @@ describe('IntegrationRuntime', () => {
   beforeEach(() => {
     mocks.preferences.analytics = false;
     mocks.preferences.sessionReplay = false;
+    mocks.observabilityEnabled = true;
     mocks.config.datadog.enabled = true;
     mocks.initializeDatadogRum.mockReset().mockResolvedValue(true);
     mocks.loadCloudflareWebAnalytics.mockReset();
     mocks.loadGoogleTagManager.mockReset();
     mocks.reportGlobalError.mockReset();
     mocks.setDatadogSessionReplayAllowed.mockReset();
+    mocks.setDatadogTrackingAllowed.mockReset();
+    mocks.trackDatadogFeatureFlag.mockReset();
   });
 
   it('keeps optional integrations disabled without analytics consent', () => {
@@ -49,6 +62,7 @@ describe('IntegrationRuntime', () => {
     expect(mocks.loadGoogleTagManager).not.toHaveBeenCalled();
     expect(mocks.loadCloudflareWebAnalytics).not.toHaveBeenCalled();
     expect(mocks.initializeDatadogRum).not.toHaveBeenCalled();
+    expect(mocks.setDatadogTrackingAllowed).toHaveBeenCalledWith(false);
     expect(mocks.setDatadogSessionReplayAllowed).toHaveBeenCalledWith(false);
   });
 
@@ -62,6 +76,14 @@ describe('IntegrationRuntime', () => {
     expect(mocks.initializeDatadogRum).toHaveBeenCalled();
     await waitFor(() =>
       expect(mocks.setDatadogSessionReplayAllowed).toHaveBeenCalledWith(true),
+    );
+    expect(mocks.trackDatadogFeatureFlag).toHaveBeenCalledWith(
+      'observability',
+      true,
+    );
+    expect(mocks.trackDatadogFeatureFlag).toHaveBeenCalledWith(
+      'dashboard',
+      true,
     );
   });
 
@@ -108,6 +130,24 @@ describe('IntegrationRuntime', () => {
       'unhandledrejection',
       expect.any(Function),
     );
+  });
+
+  it('keeps Datadog disabled when the observability rollout is off', () => {
+    mocks.preferences.analytics = true;
+    mocks.preferences.sessionReplay = true;
+    mocks.observabilityEnabled = false;
+    const addEventListener = vi.spyOn(window, 'addEventListener');
+
+    render(<IntegrationRuntime />);
+
+    expect(mocks.loadGoogleTagManager).toHaveBeenCalled();
+    expect(mocks.loadCloudflareWebAnalytics).toHaveBeenCalled();
+    expect(mocks.initializeDatadogRum).not.toHaveBeenCalled();
+    expect(mocks.setDatadogTrackingAllowed).toHaveBeenCalledWith(false);
+    expect(mocks.setDatadogSessionReplayAllowed).toHaveBeenCalledWith(false);
+    expect(
+      addEventListener.mock.calls.some(([event]) => event === 'error'),
+    ).toBe(false);
   });
 
   it('does not register global handlers when Datadog is disabled', () => {

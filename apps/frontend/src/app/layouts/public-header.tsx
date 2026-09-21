@@ -59,9 +59,12 @@ export function PublicHeader() {
   const headerRef = useRef<HTMLDivElement>(null);
   const menuTriggerRef = useRef<HTMLButtonElement>(null);
   const pricingEnabled = useFeatureFlag(FeatureFlag.Pricing);
+  const documentationEnabled = useFeatureFlag(FeatureFlag.Documentation);
   const waitlistEnabled = useFeatureFlag(FeatureFlag.Waitlist);
   const visibleNavigation = navigation.filter(
-    (item) => item.to !== '/pricing' || pricingEnabled,
+    (item) =>
+      (item.to !== '/pricing' || pricingEnabled) &&
+      (item.to !== '/documentation' || documentationEnabled),
   );
 
   const closeMenuAndRestoreFocus = () => {

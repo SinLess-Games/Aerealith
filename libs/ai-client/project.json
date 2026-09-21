@@ -1,0 +1,34 @@
+{
+  "name": "ai-client",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/ai-client/src",
+  "projectType": "library",
+  "tags": ["scope:ai", "type:lib", "platform:client"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "tsc --noEmit -p libs/ai-client/tsconfig.lib.json",
+          "tsc --noEmit -p libs/ai-client/tsconfig.spec.json"
+        ],
+        "parallel": false
+      }
+    },
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/ai-client",
+        "main": "libs/ai-client/src/index.ts",
+        "tsConfig": "libs/ai-client/tsconfig.lib.json"
+      }
+    },
+    "test": {
+      "executor": "@nx/vitest:test",
+      "options": {
+        "configFile": "libs/ai-client/vitest.config.mts"
+      }
+    }
+  }
+}

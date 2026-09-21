@@ -7,6 +7,8 @@ import {
   resetDatadogForTests,
   sanitizeUrl,
   setDatadogSessionReplayAllowed,
+  setDatadogTrackingAllowed,
+  trackDatadogFeatureFlag,
   trackDatadogView,
 } from './datadog-rum';
 
@@ -26,7 +28,9 @@ const mocks = vi.hoisted(() => ({
   },
   rum: {
     addError: vi.fn(),
+    addFeatureFlagEvaluation: vi.fn(),
     init: vi.fn(),
+    setTrackingConsent: vi.fn(),
     startSessionReplayRecording: vi.fn(),
     startView: vi.fn(),
     stopSessionReplayRecording: vi.fn(),
@@ -63,6 +67,8 @@ describe('Datadog RUM integration', () => {
         applicationId: 'application-id',
         clientToken: 'client-token',
         defaultPrivacyLevel: 'mask-user-input',
+        enableExperimentalFeatures: ['feature_flags'],
+        trackingConsent: 'not-granted',
         service: 'frontend',
         trackLongTasks: true,
         trackResources: true,
@@ -81,11 +87,30 @@ describe('Datadog RUM integration', () => {
     expect(options.beforeSend({})).toBe(true);
   });
 
+  it('applies tracking consent before and after initialization', async () => {
+    setDatadogTrackingAllowed(true);
+    await initializeDatadogRum();
+
+    expect(mocks.rum.init).toHaveBeenCalledWith(
+      expect.objectContaining({ trackingConsent: 'granted' }),
+    );
+
+    setDatadogTrackingAllowed(false);
+    expect(mocks.rum.setTrackingConsent).toHaveBeenCalledWith('not-granted');
+
+    setDatadogTrackingAllowed(true);
+    expect(mocks.rum.setTrackingConsent).toHaveBeenCalledWith('granted');
+  });
+
   it('starts and stops replay only when state changes', async () => {
     setDatadogSessionReplayAllowed(true);
     expect(mocks.rum.startSessionReplayRecording).not.toHaveBeenCalled();
 
     await initializeDatadogRum();
+    setDatadogSessionReplayAllowed(true);
+    expect(mocks.rum.startSessionReplayRecording).not.toHaveBeenCalled();
+
+    setDatadogTrackingAllowed(true);
     setDatadogSessionReplayAllowed(true);
     setDatadogSessionReplayAllowed(true);
     expect(mocks.rum.startSessionReplayRecording).toHaveBeenCalledTimes(1);
@@ -93,6 +118,21 @@ describe('Datadog RUM integration', () => {
     setDatadogSessionReplayAllowed(false);
     setDatadogSessionReplayAllowed(false);
     expect(mocks.rum.stopSessionReplayRecording).toHaveBeenCalledTimes(1);
+  });
+
+  it('tracks feature flag evaluations only with tracking consent', async () => {
+    await initializeDatadogRum();
+
+    trackDatadogFeatureFlag('ai-studio', true);
+    expect(mocks.rum.addFeatureFlagEvaluation).not.toHaveBeenCalled();
+
+    setDatadogTrackingAllowed(true);
+    trackDatadogFeatureFlag('ai-studio', true);
+
+    expect(mocks.rum.addFeatureFlagEvaluation).toHaveBeenCalledWith(
+      'ai-studio',
+      true,
+    );
   });
 
   it('tracks views and global errors only after initialization', async () => {
@@ -103,6 +143,12 @@ describe('Datadog RUM integration', () => {
     expect(mocks.rum.addError).not.toHaveBeenCalled();
 
     await initializeDatadogRum();
+    trackDatadogView('/account');
+    reportGlobalError(error);
+    expect(mocks.rum.startView).not.toHaveBeenCalled();
+    expect(mocks.rum.addError).not.toHaveBeenCalled();
+
+    setDatadogTrackingAllowed(true);
     trackDatadogView('/account');
     reportGlobalError(error);
     expect(mocks.rum.startView).toHaveBeenCalledWith({

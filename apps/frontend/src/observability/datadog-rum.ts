@@ -6,6 +6,7 @@ let rum: DatadogRum | null = null;
 let initializing: Promise<boolean> | null = null;
 let initialized = false;
 let replayRunning = false;
+let trackingAllowed = false;
 
 export function initializeDatadogRum(): Promise<boolean> {
   const config = integrationConfig.datadog;
@@ -29,7 +30,9 @@ export function initializeDatadogRum(): Promise<boolean> {
         trackLongTasks: true,
         trackUserInteractions: true,
         trackViewsManually: true,
+        enableExperimentalFeatures: ['feature_flags'],
         defaultPrivacyLevel: 'mask-user-input',
+        trackingConsent: trackingAllowed ? 'granted' : 'not-granted',
         beforeSend: (event) => {
           const viewUrl = event.view?.url;
           if (viewUrl) event.view.url = sanitizeUrl(viewUrl);
@@ -54,8 +57,20 @@ export function initializeDatadogRum(): Promise<boolean> {
   return initializing;
 }
 
+export function setDatadogTrackingAllowed(allowed: boolean) {
+  trackingAllowed = allowed;
+  if (!rum || !initialized) return;
+  rum.setTrackingConsent(allowed ? 'granted' : 'not-granted');
+
+  if (!allowed && replayRunning) {
+    rum.stopSessionReplayRecording();
+    replayRunning = false;
+  }
+}
+
 export function setDatadogSessionReplayAllowed(allowed: boolean) {
   if (!rum || !initialized) return;
+  if (allowed && !trackingAllowed) return;
   if (allowed && !replayRunning) {
     rum.startSessionReplayRecording();
     replayRunning = true;
@@ -65,13 +80,21 @@ export function setDatadogSessionReplayAllowed(allowed: boolean) {
   }
 }
 
+export function trackDatadogFeatureFlag(
+  key: string,
+  value: boolean,
+) {
+  if (!rum || !initialized || !trackingAllowed) return;
+  rum.addFeatureFlagEvaluation(key, value);
+}
+
 export function trackDatadogView(path: string) {
-  if (!rum || !initialized) return;
+  if (!rum || !initialized || !trackingAllowed) return;
   rum.startView({ name: path, service: integrationConfig.datadog.service });
 }
 
 export function reportGlobalError(error: Error) {
-  if (!rum || !initialized) return;
+  if (!rum || !initialized || !trackingAllowed) return;
   rum.addError(error);
 }
 
@@ -91,4 +114,5 @@ export function resetDatadogForTests() {
   initializing = null;
   initialized = false;
   replayRunning = false;
+  trackingAllowed = false;
 }

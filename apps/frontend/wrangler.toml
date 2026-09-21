@@ -80,6 +80,7 @@ enabled = true
 [vars]
 API_SERVICE_URL = "https://aerealith-api-preview.sinless-deploy.workers.dev"
 AUTH_SERVICE_URL = "https://aerealith-auth-preview.sinless-deploy.workers.dev"
+AI_ORCHESTRATOR_SERVICE_URL = "https://aerealith-ai-orchestrator-preview.sinless-deploy.workers.dev"
 
 # Public frontend integration values mirrored from the root production env.
 # Vite embeds these values in the browser bundle during the production build;
@@ -92,6 +93,11 @@ VITE_GOOGLE_SITE_VERIFICATION = ""
 VITE_CLOUDFLARE_WEB_ANALYTICS_ENABLED = "false"
 VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN = ""
 
+
+# AI provider credentials are intentionally not bound to this Worker.
+# The browser calls the AI orchestrator through a private service binding.
+# QDRANT_API_KEY remains in Cloudflare Secrets Store on
+# aerealith-ai-orchestrator, preserving least privilege.
 
 # ---------------------------------------------------------------
 # Workers
@@ -106,3 +112,8 @@ service = "aerealith-api"
 [[services]]
 binding = "AUTH_WORKER"
 service = "aerealith-auth"
+
+# AI Orchestrator Worker
+[[services]]
+binding = "AI_ORCHESTRATOR_WORKER"
+service = "aerealith-ai-orchestrator"

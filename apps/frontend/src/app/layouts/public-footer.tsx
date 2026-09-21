@@ -618,6 +618,12 @@ function FooterLink({
   mobile?: boolean;
   to?: string;
 }>) {
+  const pricingEnabled = useFeatureFlag(FeatureFlag.Pricing);
+  const documentationEnabled = useFeatureFlag(FeatureFlag.Documentation);
+
+  if (to === '/pricing' && !pricingEnabled) return null;
+  if (to === '/documentation' && !documentationEnabled) return null;
+
   const className = [
     'footer-link inline-flex max-w-full items-center gap-2 text-sm leading-5',
     'transition-colors focus-visible:rounded-sm focus-visible:outline-2',

@@ -1,35 +1,81 @@
+import { FeatureFlag } from '@aerealith-ai/core';
 import { useEffect } from 'react';
 
 import { loadCloudflareWebAnalytics } from '../analytics/cloudflare-web-analytics';
 import { loadGoogleTagManager } from '../analytics/google-tag-manager';
 import { useConsent } from '../consent/consent-context';
 import {
+  useFeatureFlag,
+  useFeatureFlags,
+} from '../features/flags/feature-flags';
+import {
   initializeDatadogRum,
   reportGlobalError,
   setDatadogSessionReplayAllowed,
+  setDatadogTrackingAllowed,
+  trackDatadogFeatureFlag,
 } from '../observability/datadog-rum';
 import { integrationConfig } from './integration-config';
 
 export function IntegrationRuntime() {
   const { preferences } = useConsent();
+  const observabilityEnabled = useFeatureFlag(FeatureFlag.Observability);
+  const featureFlags = useFeatureFlags();
 
   useEffect(() => {
     if (!preferences.analytics) return;
     loadGoogleTagManager();
     loadCloudflareWebAnalytics();
+
+    if (!observabilityEnabled) return;
+
+    let current = true;
+    setDatadogTrackingAllowed(true);
+
     void initializeDatadogRum().then(() => {
+      if (!current) {
+        setDatadogTrackingAllowed(false);
+        setDatadogSessionReplayAllowed(false);
+        return;
+      }
+
+      setDatadogTrackingAllowed(true);
       setDatadogSessionReplayAllowed(preferences.sessionReplay);
+      for (const [key, value] of Object.entries(featureFlags)) {
+        trackDatadogFeatureFlag(key, value);
+      }
     });
-  }, [preferences.analytics, preferences.sessionReplay]);
+
+    return () => {
+      current = false;
+    };
+  }, [
+    observabilityEnabled,
+    featureFlags,
+    preferences.analytics,
+    preferences.sessionReplay,
+  ]);
 
   useEffect(() => {
+    const trackingAllowed = observabilityEnabled && preferences.analytics;
+    setDatadogTrackingAllowed(trackingAllowed);
     setDatadogSessionReplayAllowed(
-      preferences.analytics && preferences.sessionReplay,
+      trackingAllowed && preferences.sessionReplay,
     );
-  }, [preferences.analytics, preferences.sessionReplay]);
+  }, [
+    observabilityEnabled,
+    preferences.analytics,
+    preferences.sessionReplay,
+  ]);
 
   useEffect(() => {
-    if (!integrationConfig.datadog.enabled || !preferences.analytics) return;
+    if (
+      !observabilityEnabled ||
+      !integrationConfig.datadog.enabled ||
+      !preferences.analytics
+    ) {
+      return;
+    }
     const onError = (event: ErrorEvent) => {
       reportGlobalError(
         event.error instanceof Error
@@ -50,7 +96,7 @@ export function IntegrationRuntime() {
       window.removeEventListener('error', onError);
       window.removeEventListener('unhandledrejection', onRejection);
     };
-  }, [preferences.analytics]);
+  }, [observabilityEnabled, preferences.analytics]);
 
   return null;
 }
