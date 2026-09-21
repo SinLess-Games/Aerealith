@@ -21,6 +21,7 @@ const modelSchema = z.object({
   priority: z.number().int().optional(),
   supportsStreaming: z.boolean().optional(),
   contextWindow: z.number().int().positive().optional(),
+  embeddingDimensions: z.number().int().positive().max(100_000).optional(),
   inputCostPerMillionUnitsUsd: z.number().nonnegative().optional(),
   outputCostPerMillionUnitsUsd: z.number().nonnegative().optional(),
 });
