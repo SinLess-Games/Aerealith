@@ -76,6 +76,9 @@
       ],
       "@aerealith-ai/ai-cloudflare-workers": [
         "./libs/ai-cloudflare-workers/src/index.ts"
+      ],
+      "@aerealith-ai/ai-client": [
+        "./libs/ai-client/src/index.ts"
       ]
     },
     "strict": false,
