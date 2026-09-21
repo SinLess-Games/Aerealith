@@ -3,20 +3,12 @@
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/services/ai-orchestrator/src",
   "projectType": "application",
-  "tags": [
-    "scope:services",
-    "type:service",
-    "domain:ai"
-  ],
+  "tags": ["scope:services", "type:service", "domain:ai"],
   "targets": {
     "build": {
       "executor": "@nx/js:tsc",
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "{options.outputPath}"
-      ],
+      "dependsOn": ["^build"],
+      "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "dist/apps/services/ai-orchestrator",
         "main": "apps/services/ai-orchestrator/src/main.ts",
@@ -35,6 +27,14 @@
         "lintFilePatterns": [
           "apps/services/ai-orchestrator/**/*.{ts,tsx,js,jsx}"
         ]
+      }
+    },
+    "dev": {
+      "continuous": true,
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/services/ai-orchestrator",
+        "command": "wrangler dev --port 8789 --inspector-port 9231 --env-file ../../../.env"
       }
     },
     "worker-serve": {
@@ -68,9 +68,7 @@
     },
     "typegen": {
       "executor": "nx:run-commands",
-      "outputs": [
-        "{projectRoot}/worker-configuration.d.ts"
-      ],
+      "outputs": ["{projectRoot}/worker-configuration.d.ts"],
       "options": {
         "cwd": "apps/services/ai-orchestrator",
         "command": "wrangler types"
