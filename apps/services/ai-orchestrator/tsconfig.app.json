@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../../dist/out-tsc",
+    "tsBuildInfoFile": "../../../dist/out-tsc/ai-orchestrator.tsbuildinfo"
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}

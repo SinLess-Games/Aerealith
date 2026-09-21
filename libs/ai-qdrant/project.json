@@ -1,0 +1,35 @@
+{
+  "name": "ai-qdrant",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/ai-qdrant/src",
+  "projectType": "library",
+  "tags": ["scope:ai", "type:lib", "integration:qdrant"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "tsc --noEmit -p libs/ai-qdrant/tsconfig.lib.json",
+          "tsc --noEmit -p libs/ai-qdrant/tsconfig.spec.json"
+        ],
+        "parallel": false
+      }
+    },
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/ai-qdrant",
+        "main": "libs/ai-qdrant/src/index.ts",
+        "tsConfig": "libs/ai-qdrant/tsconfig.lib.json",
+        "assets": ["libs/ai-qdrant/*.md"]
+      }
+    },
+    "test": {
+      "executor": "@nx/vitest:test",
+      "options": {
+        "configFile": "libs/ai-qdrant/vitest.config.mts"
+      }
+    }
+  }
+}

@@ -21,6 +21,19 @@ describe('feature flags', () => {
       'authentication',
       'registration',
       'waitlist',
+      'ai-studio',
+      'ai-chat',
+      'ai-streaming',
+      'ai-model-selector',
+      'ai-code',
+      'ai-image',
+      'ai-audio',
+      'ai-video',
+      'ai-music',
+      'ai-analytics',
+      'ai-prediction',
+      'ai-knowledge',
+      'ai-tools',
     ]);
   });
 

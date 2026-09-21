@@ -16,4 +16,5 @@ required = ["DATABASE_URL"]
 
 [[r2_buckets]]
 binding = "AEREALITH_AI"
-bucket_name = "aerealith-ai-local"
+bucket_name = "aerealith-ai"
+remote = true

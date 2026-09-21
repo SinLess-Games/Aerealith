@@ -14,6 +14,7 @@ import { DocsLayout } from './layouts/docs-layout';
 import { PublicLayout } from './layouts/public-layout';
 import { ErrorRoute, GlobalErrorBoundary } from './routes/[error].route';
 import { AccountRoute } from './routes/auth/account.route';
+import { AiStudioRoute } from './routes/auth/ai-studio.route';
 import { AdminDashboardRoute } from './routes/auth/admin-dashboard.route';
 import { AuthModal } from './routes/auth/auth-modal';
 import { DashboardRoute } from './routes/auth/dashboard.route';
@@ -103,6 +104,14 @@ export function AppRoutes() {
           }
         >
           <Route index element={<DashboardRoute />} />
+          <Route
+            path="ai"
+            element={
+              <FlaggedRoute flag={FeatureFlag.AiStudio} redirect="/app">
+                <AiStudioRoute />
+              </FlaggedRoute>
+            }
+          />
           <Route path="account" element={<AccountRoute />} />
           <Route path="profile" element={<ProfileRoute />} />
           <Route path="security" element={<SecurityRoute />} />

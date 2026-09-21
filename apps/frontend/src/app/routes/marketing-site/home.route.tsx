@@ -725,24 +725,25 @@ export function HomeRoute() {
             </div>
           </div>
 
-          <article className="home-video-card relative grid min-h-72 place-items-center overflow-hidden rounded-xl border backdrop-blur-xl">
-            <img
-              src={content.funding.video.image}
-              alt=""
-              width={144}
-              height={144}
-              className="h-36 w-36 object-contain opacity-90 drop-shadow-[0_0_25px_#7c3aed]"
-            />
-
-            <button
-              type="button"
+          <article className="home-video-card overflow-hidden rounded-xl border backdrop-blur-xl">
+            <video
+              src={content.funding.video.src}
+              poster={content.funding.video.image}
               aria-label={content.funding.video.title}
-              className="absolute grid h-16 w-16 place-items-center rounded-full border border-white/20 bg-black/45 text-2xl text-white shadow-[0_0_28px_rgba(0,0,0,.45)] backdrop-blur-md transition hover:scale-105 hover:bg-black/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400"
+              controls
+              playsInline
+              preload="metadata"
+              className="aspect-video w-full bg-black object-contain"
             >
-              ▶
-            </button>
+              <track
+                kind="captions"
+                src="/captions/aerealith-investor-video.vtt"
+                srcLang="en"
+                label="English"
+              />
+            </video>
 
-            <div className="absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-black/75 via-black/30 to-transparent p-5 text-white">
+            <div className="flex items-end justify-between bg-black/75 p-5 text-white">
               <div>
                 <p className="text-xs text-cyan-300">
                   {content.funding.video.label}

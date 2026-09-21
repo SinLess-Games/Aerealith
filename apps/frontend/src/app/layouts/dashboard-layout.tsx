@@ -1,8 +1,10 @@
+import { FeatureFlag } from '@aerealith-ai/core';
 import { Avatar, ThemeToggle } from '@aerealith-ai/ui';
 import { useQuery } from '@tanstack/react-query';
 import {
   FiActivity,
   FiBookOpen,
+  FiCpu,
   FiDatabase,
   FiGrid,
   FiLogOut,
@@ -20,6 +22,7 @@ import {
   fetchAdminOverview,
 } from '../../features/admin/admin-api';
 import { useLogout, useSession } from '../../features/auth/use-session';
+import { useFeatureFlag } from '../../features/flags/feature-flags';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
@@ -42,6 +45,7 @@ export function DashboardLayout() {
     staleTime: 60_000,
   });
   const isSuperAdmin = adminAccess.isSuccess;
+  const aiStudioEnabled = useFeatureFlag(FeatureFlag.AiStudio);
   const account = useQuery({
     queryKey: ['account'],
     queryFn: fetchAccount,
@@ -133,6 +137,12 @@ export function DashboardLayout() {
               <FiGrid aria-hidden="true" className="text-xl" />
               Overview
             </NavLink>
+            {aiStudioEnabled ? (
+              <NavLink to="/app/ai" className={navLinkClass}>
+                <FiCpu aria-hidden="true" className="text-xl" />
+                AI Studio
+              </NavLink>
+            ) : null}
             <NavLink to="/app/account" className={navLinkClass}>
               <FiSettings aria-hidden="true" className="text-xl" />
               Account

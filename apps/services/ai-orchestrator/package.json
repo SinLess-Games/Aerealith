@@ -1,0 +1,22 @@
+{
+  "name": "@aerealith-ai/service-ai-orchestrator",
+  "version": "0.0.1",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "engines": {
+    "node": "26.5.0",
+    "pnpm": "11.13.1"
+  },
+  "dependencies": {
+    "@aerealith-ai/ai-cloudflare-workers": "workspace:*",
+    "@aerealith-ai/ai-openai-compatible": "workspace:*",
+    "@aerealith-ai/ai-orchestration": "workspace:*",
+    "@aerealith-ai/ai-qdrant": "workspace:*",
+    "@aerealith-ai/api-platform": "workspace:*",
+    "@aerealith-ai/core": "workspace:*",
+    "@aerealith-ai/observability": "workspace:*",
+    "hono": "4.13.8",
+    "zod": "4.4.3"
+  }
+}
