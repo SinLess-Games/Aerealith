@@ -440,19 +440,29 @@ async function executeRetrieval(
     ...(input.filter === undefined ? {} : { filter: input.filter }),
   });
 
-  const matches = input.rerank
-    ? await rerankMatches(bindings, request, input.query, vectorMatches, requestedLimit)
-    : vectorMatches.slice(0, requestedLimit);
+  const reranked = input.rerank
+    ? await rerankMatches(
+        bindings,
+        request,
+        input.query,
+        vectorMatches,
+        requestedLimit,
+      )
+    : {
+        matches: vectorMatches.slice(0, requestedLimit),
+        usage: undefined,
+      };
 
   const content: RetrievalOutput = {
-    matches,
+    matches: reranked.matches,
   };
+  const usage = mergeUsage(embeddings.usage, reranked.usage);
 
   return {
     content,
     providerId: embeddings.providerId,
     modelId: embeddings.modelId,
-    ...(embeddings.usage ? { usage: embeddings.usage } : {}),
+    ...(usage ? { usage } : {}),
   };
 }
 
@@ -462,7 +472,10 @@ async function rerankMatches(
   query: string,
   matches: readonly RetrievalMatch[],
   limit: number,
-): Promise<readonly RetrievalMatch[]> {
+): Promise<{
+  matches: readonly RetrievalMatch[];
+  usage?: Usage;
+}> {
   const documents = matches
     .filter((match): match is RetrievalMatch & { text: string } =>
       typeof match.text === 'string' && match.text.length > 0,
@@ -473,12 +486,9 @@ async function rerankMatches(
     }));
 
   if (documents.length === 0) {
-    return matches.slice(0, limit);
+    return { matches: matches.slice(0, limit) };
   }
 
-  const providers = createProviderRegistry(bindings);
-  const routing = new CapabilityRoutingPolicy();
-  const rerankModels = await providers.modelsFor('rerank');
   const rerankRequest: OrchestrationRequest = {
     ...request,
     capability: 'rerank',
@@ -488,36 +498,28 @@ async function rerankMatches(
       limit,
     },
   };
-  const route = routing.select(rerankRequest, rerankModels);
-  const provider = providers.get(route.providerId);
-
-  if (!provider) {
-    return matches.slice(0, limit);
-  }
-
-  const models = await provider.listModels();
-  const model = models.find((candidate) => candidate.id === route.modelId);
-
-  if (!model) {
-    return matches.slice(0, limit);
-  }
-
-  const reranked = await provider.execute(rerankRequest, model);
+  const reranked = await new OrchestrationExecutor(
+    createProviderRegistry(bindings),
+    new CapabilityRoutingPolicy(),
+  ).execute(rerankRequest);
   const output = reranked.content as RerankOutput;
   const byId = new Map(matches.map((match) => [match.id, match]));
 
-  return output.results
-    .map((result) => {
-      const match = byId.get(result.id);
-      return match
-        ? {
-            ...match,
-            score: result.score,
-          }
-        : undefined;
-    })
-    .filter((match): match is RetrievalMatch => Boolean(match))
-    .slice(0, limit);
+  return {
+    matches: output.results
+      .map((result) => {
+        const match = byId.get(result.id);
+        return match
+          ? {
+              ...match,
+              score: result.score,
+            }
+          : undefined;
+      })
+      .filter((match): match is RetrievalMatch => Boolean(match))
+      .slice(0, limit),
+    ...(reranked.usage ? { usage: reranked.usage } : {}),
+  };
 }
 
 class RoutingEmbeddingGenerator implements EmbeddingGenerator {
@@ -681,6 +683,38 @@ async function createRoutingEmbeddingGenerator(
     dimensions,
     embeddingRequest,
   );
+}
+
+function mergeUsage(
+  left: Usage | undefined,
+  right: Usage | undefined,
+): Usage | undefined {
+  if (!left && !right) return undefined;
+
+  const sum = (
+    first: number | undefined,
+    second: number | undefined,
+  ): number | undefined =>
+    first === undefined && second === undefined
+      ? undefined
+      : (first ?? 0) + (second ?? 0);
+
+  const inputUnits = sum(left?.inputUnits, right?.inputUnits);
+  const outputUnits = sum(left?.outputUnits, right?.outputUnits);
+  const totalUnits = sum(left?.totalUnits, right?.totalUnits);
+  const estimatedCostUsd = sum(
+    left?.estimatedCostUsd,
+    right?.estimatedCostUsd,
+  );
+
+  return {
+    ...(inputUnits === undefined ? {} : { inputUnits }),
+    ...(outputUnits === undefined ? {} : { outputUnits }),
+    ...(totalUnits === undefined ? {} : { totalUnits }),
+    ...(estimatedCostUsd === undefined
+      ? {}
+      : { estimatedCostUsd }),
+  };
 }
 
 function embeddingPreferences(
