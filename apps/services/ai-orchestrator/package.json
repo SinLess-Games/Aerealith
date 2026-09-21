@@ -9,6 +9,7 @@
     "pnpm": "11.13.1"
   },
   "dependencies": {
+    "@aerealith-ai/ai-cloudflare-workers": "workspace:*",
     "@aerealith-ai/ai-openai-compatible": "workspace:*",
     "@aerealith-ai/ai-orchestration": "workspace:*",
     "@aerealith-ai/ai-qdrant": "workspace:*",
