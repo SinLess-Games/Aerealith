@@ -13,6 +13,8 @@ export class BasicOrchestrationEngine implements OrchestrationEngine {
 
     return {
       id: crypto.randomUUID(),
+      ...(request.tenantId ? { tenantId: request.tenantId } : {}),
+      ...(request.actorId ? { actorId: request.actorId } : {}),
       status: 'accepted',
       capability: request.capability,
       createdAt: timestamp,
