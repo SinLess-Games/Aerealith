@@ -103,7 +103,9 @@ describe('AI orchestrator service', () => {
   });
 
   it('dispatches production runs to the Workflow binding', async () => {
-    const create = vi.fn(async () => undefined);
+    const create = vi.fn(
+      async (_options: { id?: string; params: WorkflowRunParams }) => undefined,
+    );
     const response = await app.request(
       'http://localhost/api/V1/ai/runs',
       {
