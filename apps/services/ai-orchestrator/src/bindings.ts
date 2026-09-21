@@ -9,6 +9,10 @@ export type WorkflowRunParams = {
   request: OrchestrationRequest;
 };
 
+export interface WorkerFetcher {
+  fetch(request: Request): Promise<Response>;
+}
+
 export interface WorkflowBinding<TParams> {
   create(options: { id?: string; params: TParams }): Promise<unknown>;
 }
@@ -31,6 +35,7 @@ export interface RunStateNamespace {
 export type AiOrchestratorBindings = {
   [binding: string]: unknown;
   ENVIRONMENT?: string;
+  AUTH_WORKER?: WorkerFetcher;
   AI_ORCHESTRATION_WORKFLOW?: WorkflowBinding<WorkflowRunParams>;
   AI_RUN_STATE?: RunStateNamespace;
 
