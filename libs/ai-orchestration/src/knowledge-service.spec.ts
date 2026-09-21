@@ -72,7 +72,10 @@ describe('KnowledgeIngestionService', () => {
         {
           id: 'doc-1',
           text: 'hello',
-          metadata: { source: 'manual' },
+          metadata: {
+            source: 'manual',
+            documentId: 'attacker-controlled-id',
+          },
         },
       ],
     });
