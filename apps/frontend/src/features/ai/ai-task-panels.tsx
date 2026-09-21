@@ -19,6 +19,8 @@ import {
   FiTool,
 } from 'react-icons/fi';
 
+import { recordBrowserEvent } from '../../lib/browser-observability';
+
 import {
   aiApi,
   modelsForCapability,
@@ -622,6 +624,11 @@ function useAiTask() {
     setPending(true);
     setError(undefined);
     setRun(undefined);
+    recordBrowserEvent(
+      'ai_task_started',
+      { capability: request.capability },
+      'ai',
+    );
 
     try {
       const accepted = await aiApi.createRun(request, {
@@ -631,6 +638,14 @@ function useAiTask() {
 
       const completed = await waitForAiRun(accepted);
       setRun(completed);
+      recordBrowserEvent(
+        'ai_task_completed',
+        {
+          capability: request.capability,
+          status: completed.status,
+        },
+        'ai',
+      );
 
       await queryClient.invalidateQueries({
         queryKey: ['ai'],
@@ -638,6 +653,11 @@ function useAiTask() {
 
       return completed;
     } catch (caught) {
+      recordBrowserEvent(
+        'ai_task_failed',
+        { capability: request.capability },
+        'ai',
+      );
       setError(
         caught instanceof Error
           ? caught.message
