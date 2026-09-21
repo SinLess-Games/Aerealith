@@ -574,6 +574,7 @@ function responseMeta(context: ApiRequestContext) {
   };
 }
 
+export { AiRateLimit } from './rate-limit';
 export { AiRunIndex } from './run-index';
 export { AiRunState } from './run-state';
 export { AiOrchestrationWorkflow } from './workflow';
