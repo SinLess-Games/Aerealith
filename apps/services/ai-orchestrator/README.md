@@ -39,7 +39,31 @@ available.
 - `GET /ready`
 - `GET /api/V1/services/ai-orchestrator`
 - `GET /api/V1/ai/capabilities`
+- `GET /api/V1/ai/vector-store`
 - `POST /api/V1/ai/runs`
+
+## Qdrant Cloud
+
+The orchestrator is configured to use the Aerealith Qdrant Cloud endpoint:
+
+`https://6f069294-5f27-4777-9c34-128b132ab175.australia-southeast1-0.gcp.cloud.qdrant.io`
+
+The endpoint and collection prefix are ordinary Wrangler variables. The API key
+must remain a Cloudflare secret:
+
+```bash
+cd apps/services/ai-orchestrator
+pnpm exec wrangler secret put QDRANT_API_KEY
+```
+
+Current runtime variables:
+
+- `QDRANT_URL` — Qdrant Cloud cluster URL.
+- `QDRANT_API_KEY` — secret used for Qdrant authentication.
+- `QDRANT_COLLECTION_PREFIX` — defaults to `aerealith-`.
+
+The service only reports whether Qdrant is configured; it never returns the
+endpoint or API key through its status API.
 
 ## Grafana Cloud
 
@@ -60,8 +84,8 @@ created.
 1. Authenticated tenant and actor context.
 2. Provider/model catalog and provider adapters.
 3. Durable run persistence.
-4. Qdrant vector-store adapter.
-5. Tool approval and execution policies.
+4. Embedding provider integration for Qdrant knowledge ingestion/retrieval.
+5. Durable run persistence.
 6. Server-enforced quotas, cost budgets, and rate limits.
 7. Grafana Cloud OTLP destination wiring and AI-specific telemetry.
 8. Artifact storage for generated image, audio, video, and other binary output.
