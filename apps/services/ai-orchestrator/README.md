@@ -93,6 +93,19 @@ deployment.
 Run creation, status, and cancellation are authenticated. A caller cannot read
 or cancel another user's run even if the run UUID is known.
 
+## Idempotent run creation
+
+`POST /api/V1/ai/runs` accepts an optional `Idempotency-Key` header.
+
+The server derives a deterministic tenant-scoped run UUID from that key and
+stores a canonical request fingerprint. Retrying the same request with the same
+key returns the existing run without consuming another daily quota reservation
+or dispatching another Workflow. Reusing the key for a different request
+returns HTTP 409.
+
+This is the preferred UI submission pattern for retry-safe chat, code, media,
+analytics, and knowledge operations.
+
 ## Durable run lifecycle
 
 Production submissions are persisted before Workflow dispatch.
@@ -241,12 +254,28 @@ Current AI-specific telemetry includes:
 - Workflow failures and retries;
 - artifact size and generation time.
 
+## Typed UI client
+
+`libs/ai-client` provides the stable frontend/server client for the AI API.
+It currently wraps:
+
+- capability, provider, and model discovery;
+- usage reporting;
+- retry-safe run creation with `Idempotency-Key`;
+- run history and status;
+- run cancellation;
+- lifecycle event streams;
+- authenticated artifact retrieval/deletion.
+
+The client strips `tenantId` and `actorId` from outbound requests so UI
+code cannot accidentally attempt to override trusted identity context.
+
 ## Current production controls
 
 The API now includes:
 
 - per-tenant fixed-window run rate limiting;
-- daily run quotas;
+- daily run quotas with failed-dispatch rollback;
 - daily estimated-cost budgets;
 - authenticated daily usage reporting;
 - per-tenant run history;
