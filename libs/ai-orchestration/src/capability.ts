@@ -9,6 +9,7 @@ export const capabilityKinds = [
   'music',
   'analytics',
   'prediction',
+  'knowledge-ingest',
   'retrieval',
   'tool',
 ] as const;
