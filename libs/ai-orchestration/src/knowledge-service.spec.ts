@@ -10,6 +10,8 @@ import {
 import type {
   RetrievalMatch,
   RetrievalQuery,
+  VectorIndexConfiguration,
+  VectorIndexManager,
   VectorStore,
 } from './retrieval';
 
@@ -35,6 +37,14 @@ class TestEmbeddings implements EmbeddingGenerator {
   }
 }
 
+class TestIndexManager implements VectorIndexManager {
+  readonly ensureIndex = vi.fn(
+    async (_namespace: string, _configuration: VectorIndexConfiguration) =>
+      undefined,
+  );
+  readonly deleteIndex = vi.fn(async (_namespace: string) => undefined);
+}
+
 class TestVectorStore implements VectorStore {
   readonly upsert = vi.fn(async () => undefined);
   readonly search = vi.fn(
@@ -48,10 +58,12 @@ class TestVectorStore implements VectorStore {
 describe('KnowledgeIngestionService', () => {
   it('chunks, embeds, and writes documents to the vector store', async () => {
     const vectorStore = new TestVectorStore();
+    const indexManager = new TestIndexManager();
     const service = new KnowledgeIngestionService(
       new TestChunker(),
       new TestEmbeddings(),
       vectorStore,
+      indexManager,
     );
 
     const result = await service.ingest({
@@ -70,6 +82,10 @@ describe('KnowledgeIngestionService', () => {
       documentsProcessed: 1,
       chunksWritten: 1,
       embeddingModelId: 'test-embedding',
+    });
+    expect(indexManager.ensureIndex).toHaveBeenCalledWith('tenant-a', {
+      dimensions: 2,
+      distance: 'cosine',
     });
     expect(vectorStore.upsert).toHaveBeenCalledWith('tenant-a', [
       {
