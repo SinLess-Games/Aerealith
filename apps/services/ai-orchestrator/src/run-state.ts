@@ -1,5 +1,7 @@
 import {
   assertRunStatusTransition,
+  isTerminalRunStatus,
+  type OrchestrationOutput,
   type RunRecord,
   type RunStatus,
 } from '@aerealith-ai/ai-orchestration';
@@ -8,6 +10,16 @@ import { DurableObject } from 'cloudflare:workers';
 import type { AiOrchestratorBindings } from './bindings';
 
 const RUN_KEY = 'run';
+const MAX_INLINE_OUTPUT_BYTES = 512 * 1024;
+
+export class RunOutputTooLargeError extends Error {
+  constructor(sizeBytes: number) {
+    super(
+      `AI run output is ${sizeBytes} bytes; inline durable output is limited to ${MAX_INLINE_OUTPUT_BYTES} bytes.`,
+    );
+    this.name = 'RunOutputTooLargeError';
+  }
+}
 
 export class AiRunState extends DurableObject<AiOrchestratorBindings> {
   async createRun(run: RunRecord): Promise<RunRecord> {
@@ -17,6 +29,7 @@ export class AiRunState extends DurableObject<AiOrchestratorBindings> {
       return existing;
     }
 
+    validateInlineOutput(run.output);
     this.ctx.storage.kv.put(RUN_KEY, run);
     return run;
   }
@@ -30,16 +43,27 @@ export class AiRunState extends DurableObject<AiOrchestratorBindings> {
     patch: Partial<Omit<RunRecord, 'id' | 'status' | 'createdAt'>> = {},
   ): Promise<RunRecord> {
     const current = this.requireRun();
-
     assertRunStatusTransition(current.status, status);
+    validateInlineOutput(patch.output);
+
+    const timestamp = new Date().toISOString();
+    const lifecyclePatch: Partial<RunRecord> = {
+      ...(status === 'running' && !current.startedAt && !patch.startedAt
+        ? { startedAt: timestamp }
+        : {}),
+      ...(isTerminalRunStatus(status) && !patch.completedAt
+        ? { completedAt: timestamp }
+        : {}),
+    };
 
     const updated: RunRecord = {
       ...current,
+      ...lifecyclePatch,
       ...patch,
       id: current.id,
       status,
       createdAt: current.createdAt,
-      updatedAt: new Date().toISOString(),
+      updatedAt: timestamp,
     };
 
     this.ctx.storage.kv.put(RUN_KEY, updated);
@@ -49,11 +73,7 @@ export class AiRunState extends DurableObject<AiOrchestratorBindings> {
   async cancelRun(): Promise<RunRecord> {
     const current = this.requireRun();
 
-    if (
-      current.status === 'succeeded' ||
-      current.status === 'failed' ||
-      current.status === 'cancelled'
-    ) {
+    if (isTerminalRunStatus(current.status)) {
       return current;
     }
 
@@ -68,5 +88,16 @@ export class AiRunState extends DurableObject<AiOrchestratorBindings> {
     }
 
     return run;
+  }
+}
+
+function validateInlineOutput(output: OrchestrationOutput | undefined): void {
+  if (output === undefined) return;
+
+  const serialized = JSON.stringify(output);
+  const sizeBytes = new TextEncoder().encode(serialized).byteLength;
+
+  if (sizeBytes > MAX_INLINE_OUTPUT_BYTES) {
+    throw new RunOutputTooLargeError(sizeBytes);
   }
 }
