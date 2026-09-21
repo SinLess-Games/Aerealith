@@ -21,6 +21,13 @@ export class VectorStoreUnavailableError extends Error {
   }
 }
 
+export class TenantContextRequiredError extends Error {
+  constructor() {
+    super('A trusted tenant context is required for knowledge retrieval.');
+    this.name = 'TenantContextRequiredError';
+  }
+}
+
 export function executableCapabilities(
   bindings: AiOrchestratorBindings,
 ): readonly CapabilityKind[] {
@@ -76,7 +83,15 @@ async function executeRetrieval(
     throw new VectorStoreUnavailableError();
   }
 
+  if (!request.tenantId) {
+    throw new TenantContextRequiredError();
+  }
+
   const input = request.input as RetrievalInput;
+  const namespace = createTenantKnowledgeNamespace(
+    request.tenantId,
+    input.namespace,
+  );
   const providers = createProviderRegistry(bindings);
   const routing = new CapabilityRoutingPolicy();
   const embeddingModels = await providers.modelsFor('embedding');
@@ -117,7 +132,7 @@ async function executeRetrieval(
   }
 
   const matches = await vectorStore.search({
-    namespace: input.namespace,
+    namespace,
     vector,
     ...(input.limit === undefined ? {} : { limit: input.limit }),
     ...(input.filter === undefined ? {} : { filter: input.filter }),
@@ -133,4 +148,11 @@ async function executeRetrieval(
     modelId: embeddingResult.modelId,
     ...(embeddingResult.usage ? { usage: embeddingResult.usage } : {}),
   };
+}
+
+function createTenantKnowledgeNamespace(
+  tenantId: string,
+  namespace: string,
+): string {
+  return `user:${tenantId}:knowledge:${namespace.trim()}`;
 }
