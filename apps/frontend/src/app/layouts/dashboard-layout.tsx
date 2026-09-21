@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   FiActivity,
   FiBookOpen,
+  FiCpu,
   FiDatabase,
   FiGrid,
   FiLogOut,
