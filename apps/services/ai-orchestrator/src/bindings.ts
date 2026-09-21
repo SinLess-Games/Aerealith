@@ -29,6 +29,7 @@ export interface RunStateNamespace {
 }
 
 export type AiOrchestratorBindings = {
+  [binding: string]: unknown;
   ENVIRONMENT?: string;
   AI_ORCHESTRATION_WORKFLOW?: WorkflowBinding<WorkflowRunParams>;
   AI_RUN_STATE?: RunStateNamespace;
