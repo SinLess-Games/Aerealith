@@ -65,6 +65,14 @@ class_name = "AiUsageLedger"
 name = "AI_CODE_SANDBOX"
 class_name = "AiCodeSandbox"
 
+[[durable_objects.bindings]]
+name = "AI_CONVERSATION_STATE"
+class_name = "AiConversationState"
+
+[[durable_objects.bindings]]
+name = "AI_CONVERSATION_INDEX"
+class_name = "AiConversationIndex"
+
 [[containers]]
 class_name = "AiCodeSandbox"
 image = "./Dockerfile.sandbox"
@@ -90,6 +98,14 @@ new_sqlite_classes = ["AiUsageLedger"]
 [[migrations]]
 tag = "v5"
 new_sqlite_classes = ["AiCodeSandbox"]
+
+[[migrations]]
+tag = "v6"
+new_sqlite_classes = ["AiConversationState"]
+
+[[migrations]]
+tag = "v7"
+new_sqlite_classes = ["AiConversationIndex"]
 
 [[services]]
 binding = "AUTH_WORKER"
