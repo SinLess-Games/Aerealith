@@ -8,11 +8,28 @@ const workspaceFile = (relativePath: string) =>
 export default defineConfig({
   root: import.meta.dirname,
   resolve: {
-    alias: {
-      '@aerealith-ai/ai-orchestration': workspaceFile(
-        '../../../libs/ai-orchestration/src/index.ts',
-      ),
-    },
+    alias: [
+      {
+        find: /^@aerealith-ai\/observability\/logger$/,
+        replacement: workspaceFile(
+          '../../../libs/observability/src/logger/index.ts',
+        ),
+      },
+      {
+        find: /^@aerealith-ai\/api-platform$/,
+        replacement: workspaceFile('../../../libs/api-platform/src/index.ts'),
+      },
+      {
+        find: /^@aerealith-ai\/ai-orchestration$/,
+        replacement: workspaceFile(
+          '../../../libs/ai-orchestration/src/index.ts',
+        ),
+      },
+      {
+        find: /^@aerealith-ai\/core$/,
+        replacement: workspaceFile('../../../libs/core/src/index.ts'),
+      },
+    ],
     tsconfigPaths: true,
   },
   test: {
