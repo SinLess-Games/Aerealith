@@ -122,6 +122,10 @@ export class AiOrchestrationWorkflow extends WorkflowEntrypoint<
         event.payload.runId,
         output,
       );
+      await persistKnowledgeCatalogDocuments(
+        this.env,
+        event.payload.request,
+      );
 
       recordAiRunSucceeded({
         runId: event.payload.runId,
@@ -159,6 +163,36 @@ export class AiOrchestrationWorkflow extends WorkflowEntrypoint<
       throw error;
     }
   }
+}
+
+async function persistKnowledgeCatalogDocuments(
+  bindings: AiOrchestratorBindings,
+  request: OrchestrationRequest,
+): Promise<void> {
+  if (
+    request.capability !== 'knowledge-ingest' ||
+    !request.tenantId ||
+    !request.metadata?.knowledgeBaseId ||
+    !bindings.AI_KNOWLEDGE_CATALOG
+  ) {
+    return;
+  }
+
+  const input = request.input as {
+    documents?: readonly { id: string }[];
+  };
+  const documentIds = input.documents?.map((document) => document.id) ?? [];
+  if (documentIds.length === 0) return;
+
+  const id = bindings.AI_KNOWLEDGE_CATALOG.idFromName(
+    request.tenantId,
+  );
+  await bindings.AI_KNOWLEDGE_CATALOG
+    .get(id)
+    .recordDocuments(
+      request.metadata.knowledgeBaseId,
+      documentIds,
+    );
 }
 
 async function persistConversationAssistantMessage(
