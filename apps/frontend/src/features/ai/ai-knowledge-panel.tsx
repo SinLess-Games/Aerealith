@@ -183,13 +183,17 @@ export function AiKnowledgePanel() {
   }
 
   return (
-    <section className="rounded-2xl border border-[var(--ae-border)] bg-[var(--ae-surface)] p-5 shadow-[var(--ae-shadow-sm)] sm:p-6">
-      <header className="flex flex-wrap items-start gap-4">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--ae-primary)] bg-[var(--ae-primary-subtle)] text-xl text-[var(--ae-primary)]">
+    <section className="relative overflow-hidden rounded-[28px] border border-[var(--ae-border)] bg-[var(--ae-surface)] p-5 shadow-[var(--ae-shadow-sm)] sm:p-6">
+      <div className="pointer-events-none absolute -right-24 -top-28 h-72 w-72 rounded-full bg-[var(--ae-primary-subtle)] blur-3xl opacity-70" />
+      <header className="relative flex flex-wrap items-start gap-4">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--ae-primary)] bg-[var(--ae-primary-subtle)] text-xl text-[var(--ae-primary)] shadow-[var(--ae-shadow-sm)]">
           <FiBookOpen aria-hidden="true" />
         </div>
-        <div>
-          <h2 className="text-xl font-semibold">Knowledge bases</h2>
+        <div className="min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--ae-primary)]">
+            Retrieval workspace
+          </p>
+          <h2 className="mt-1 text-xl font-semibold sm:text-2xl">Knowledge bases</h2>
           <p className="mt-1 max-w-3xl text-sm leading-relaxed text-[var(--ae-foreground-muted)]">
             Store tenant-isolated documents in Qdrant, then retrieve and
             rerank them through the same AI orchestration API.
@@ -197,7 +201,7 @@ export function AiKnowledgePanel() {
         </div>
         <button
           type="button"
-          className="ml-auto inline-flex min-h-10 items-center gap-2 rounded-lg border border-[var(--ae-border)] px-3 text-sm font-semibold text-[var(--ae-foreground-muted)]"
+          className="ml-auto inline-flex min-h-11 items-center gap-2 rounded-xl border border-[var(--ae-border)] bg-[var(--ae-background-elevated)] px-4 text-sm font-semibold text-[var(--ae-foreground-muted)] transition-all hover:-translate-y-0.5 hover:border-[var(--ae-primary)] hover:text-[var(--ae-foreground)]"
           onClick={() => void refreshKnowledge()}
         >
           <FiRefreshCw aria-hidden="true" />
@@ -214,9 +218,9 @@ export function AiKnowledgePanel() {
         </div>
       ) : null}
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
+      <div className="relative mt-7 grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)]">
         <aside className="space-y-4">
-          <div className="rounded-xl border border-[var(--ae-border)] bg-[var(--ae-background-elevated)] p-4">
+          <div className="rounded-[22px] border border-[var(--ae-border)] bg-[var(--ae-background-elevated)] p-4 shadow-[var(--ae-shadow-sm)]">
             <label className="block">
               <span className={labelClass}>New knowledge base</span>
               <input
@@ -253,10 +257,10 @@ export function AiKnowledgePanel() {
                   key={base.id}
                   type="button"
                   className={[
-                    'w-full rounded-xl border p-3 text-left transition-colors',
+                    'w-full rounded-2xl border p-4 text-left transition-all duration-200',
                     base.id === selectedId
-                      ? 'border-[var(--ae-primary)] bg-[var(--ae-primary-subtle)]'
-                      : 'border-[var(--ae-border)] bg-[var(--ae-background-elevated)] hover:border-[var(--ae-primary)]',
+                      ? 'border-[var(--ae-primary)] bg-[var(--ae-primary-subtle)] shadow-[var(--ae-shadow-sm)]'
+                      : 'border-[var(--ae-border)] bg-[var(--ae-background-elevated)] hover:-translate-y-0.5 hover:border-[var(--ae-primary)] hover:shadow-[var(--ae-shadow-sm)]',
                   ].join(' ')}
                   onClick={() => {
                     setSelectedId(base.id);
@@ -278,7 +282,7 @@ export function AiKnowledgePanel() {
         <div className="min-w-0 space-y-6">
           {selectedBase ? (
             <>
-              <section className="rounded-xl border border-[var(--ae-border)] bg-[var(--ae-background-elevated)] p-5">
+              <section className="rounded-[22px] border border-[var(--ae-border)] bg-[var(--ae-background-elevated)] p-5 shadow-[var(--ae-shadow-sm)]">
                 <div className="flex flex-wrap items-center gap-3">
                   <div>
                     <h3 className="text-lg font-semibold">
@@ -342,7 +346,7 @@ export function AiKnowledgePanel() {
                 </button>
               </section>
 
-              <section className="rounded-xl border border-[var(--ae-border)] bg-[var(--ae-background-elevated)] p-5">
+              <section className="rounded-[22px] border border-[var(--ae-border)] bg-[var(--ae-background-elevated)] p-5 shadow-[var(--ae-shadow-sm)]">
                 <h3 className="font-semibold">Documents</h3>
                 <div className="mt-3 space-y-2">
                   {selectedQuery.isPending ? (
@@ -357,7 +361,7 @@ export function AiKnowledgePanel() {
                     selectedQuery.data?.documents.map((document) => (
                       <div
                         key={document.id}
-                        className="flex items-center gap-3 rounded-lg border border-[var(--ae-border)] bg-[var(--ae-surface)] px-3 py-2"
+                        className="flex items-center gap-3 rounded-xl border border-[var(--ae-border)] bg-[var(--ae-surface)] px-4 py-3 transition-colors hover:border-[var(--ae-primary)]"
                       >
                         <span className="min-w-0 flex-1 truncate font-mono text-xs">
                           {document.id}
@@ -379,7 +383,7 @@ export function AiKnowledgePanel() {
                 </div>
               </section>
 
-              <section className="rounded-xl border border-[var(--ae-border)] bg-[var(--ae-background-elevated)] p-5">
+              <section className="rounded-[22px] border border-[var(--ae-border)] bg-[var(--ae-background-elevated)] p-5 shadow-[var(--ae-shadow-sm)]">
                 <h3 className="font-semibold">Search this knowledge base</h3>
                 <div className="mt-3 flex flex-col gap-3 sm:flex-row">
                   <input
@@ -410,8 +414,17 @@ export function AiKnowledgePanel() {
               </section>
             </>
           ) : (
-            <div className="flex min-h-72 items-center justify-center rounded-xl border border-dashed border-[var(--ae-border)] bg-[var(--ae-background-elevated)] p-8 text-center text-sm text-[var(--ae-foreground-muted)]">
-              Create or select a knowledge base to begin.
+            <div className="relative flex min-h-80 overflow-hidden rounded-[24px] border border-dashed border-[var(--ae-border)] bg-[var(--ae-background-elevated)] p-8">
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,var(--ae-primary-subtle),transparent_52%)] opacity-70" />
+              <div className="relative m-auto max-w-sm text-center">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--ae-border)] bg-[var(--ae-surface)] text-xl text-[var(--ae-primary)]">
+                  <FiBookOpen aria-hidden="true" />
+                </div>
+                <p className="mt-4 font-semibold text-[var(--ae-foreground)]">Build a private knowledge layer</p>
+                <p className="mt-1 text-sm leading-relaxed text-[var(--ae-foreground-muted)]">
+                  Create or select a knowledge base, ingest documents, then search them with retrieval and reranking.
+                </p>
+              </div>
             </div>
           )}
         </div>
@@ -424,10 +437,10 @@ const labelClass =
   'text-xs font-semibold uppercase tracking-[0.12em] text-[var(--ae-foreground-muted)]';
 
 const inputClass =
-  'mt-2 min-h-11 w-full rounded-lg border border-[var(--ae-border)] bg-[var(--ae-surface)] px-3 text-sm outline-none focus:border-[var(--ae-primary)] focus:ring-2 focus:ring-[var(--ae-primary-subtle)] disabled:opacity-60';
+  'mt-2 min-h-12 w-full rounded-xl border border-[var(--ae-border)] bg-[var(--ae-surface)] px-4 text-sm outline-none transition-all placeholder:text-[var(--ae-foreground-muted)] focus:border-[var(--ae-primary)] focus:ring-4 focus:ring-[var(--ae-primary-subtle)] disabled:opacity-60';
 
 const textareaClass =
-  'mt-2 w-full resize-y rounded-lg border border-[var(--ae-border)] bg-[var(--ae-surface)] px-3 py-3 text-sm leading-relaxed outline-none focus:border-[var(--ae-primary)] focus:ring-2 focus:ring-[var(--ae-primary-subtle)] disabled:opacity-60';
+  'mt-2 w-full resize-y rounded-2xl border border-[var(--ae-border)] bg-[var(--ae-surface)] px-4 py-3.5 text-sm leading-relaxed outline-none transition-all placeholder:text-[var(--ae-foreground-muted)] focus:border-[var(--ae-primary)] focus:ring-4 focus:ring-[var(--ae-primary-subtle)] disabled:opacity-60';
 
 const primaryButtonClass =
-  'mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg bg-[var(--ae-primary)] px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40';
+  'mt-4 inline-flex min-h-12 items-center gap-2 rounded-xl bg-[var(--ae-primary)] px-4 py-2 text-sm font-semibold text-white shadow-[var(--ae-shadow-sm)] transition-all hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-40';
