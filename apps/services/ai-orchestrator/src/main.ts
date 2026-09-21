@@ -26,6 +26,7 @@ import {
   type OrchestrationEngine,
 } from './orchestrator';
 import { providerRuntimeStatus } from './provider-runtime';
+import { AiRateLimiter } from './rate-limit';
 import { orchestrationRequestSchema } from './request-schema';
 import { AiRunController } from './run-controller';
 import { createRunEventStream } from './run-events';
@@ -77,6 +78,7 @@ app.get('/ready', (c) => {
   const authConfigured = Boolean(c.env.AUTH_WORKER);
   const runStateConfigured = Boolean(c.env.AI_RUN_STATE);
   const runIndexConfigured = Boolean(c.env.AI_RUN_INDEX);
+  const rateLimitConfigured = Boolean(c.env.AI_RATE_LIMIT);
   const vectorStore = vectorStoreStatus(c.env);
   const providers = providerRuntimeStatus(c.env);
   const executable = executableCapabilities(c.env);
@@ -86,6 +88,7 @@ app.get('/ready', (c) => {
     ...(workflowConfigured ? [] : ['AI_ORCHESTRATION_WORKFLOW']),
     ...(runStateConfigured ? [] : ['AI_RUN_STATE']),
     ...(runIndexConfigured ? [] : ['AI_RUN_INDEX']),
+    ...(rateLimitConfigured ? [] : ['AI_RATE_LIMIT']),
     ...(providers.configuredProviders > 0 ? [] : ['AI']),
   ];
 
@@ -104,6 +107,7 @@ app.get('/ready', (c) => {
           workflowConfigured,
           runStateConfigured,
           runIndexConfigured,
+          rateLimitConfigured,
           vectorStore: {
             provider: vectorStore.provider,
             configured: vectorStore.configured,
@@ -128,6 +132,7 @@ app.get('/ready', (c) => {
       workflowConfigured,
       runStateConfigured,
       runIndexConfigured,
+      rateLimitConfigured,
       vectorStore: {
         provider: vectorStore.provider,
         configured: vectorStore.configured,
@@ -417,6 +422,7 @@ app.post('/api/V1/ai/runs', async (c) => {
   }
 
   assertRunSubmissionReady(c.env, parsed.data.capability);
+  await enforceRunRateLimit(c.env, principal.id);
 
   const engine = resolveEngine(c.env);
   const result = await engine.submit({
@@ -461,6 +467,52 @@ async function requirePrincipal(
   }
 }
 
+async function enforceRunRateLimit(
+  bindings: AiOrchestratorBindings,
+  tenantId: string,
+): Promise<void> {
+  if (!bindings.AI_RATE_LIMIT) {
+    if ((bindings.ENVIRONMENT ?? 'development') === 'production') {
+      throw new ApiError('AI rate limiting is not configured.', {
+        code: ApiErrorCode.InternalError,
+        status: HttpStatus.ServiceUnavailable,
+      });
+    }
+
+    return;
+  }
+
+  const limiter = new AiRateLimiter(bindings.AI_RATE_LIMIT);
+  const limit = parsePositiveInteger(bindings.AI_RUNS_PER_MINUTE, 60);
+  const windowMs = parsePositiveInteger(
+    bindings.AI_RATE_LIMIT_WINDOW_MS,
+    60_000,
+  );
+  const decision = await limiter.consume(tenantId, limit, windowMs);
+
+  if (!decision.allowed) {
+    throw new ApiError('AI run rate limit exceeded.', {
+      code: ApiErrorCode.RateLimited,
+      status: HttpStatus.TooManyRequests,
+      metadata: {
+        limit: decision.limit,
+        remaining: decision.remaining,
+        retryAfterSeconds: decision.retryAfterSeconds,
+      },
+    });
+  }
+}
+
+function parsePositiveInteger(
+  value: string | undefined,
+  fallback: number,
+): number {
+  if (!value) return fallback;
+
+  const parsed = Number.parseInt(value, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
 function assertRunSubmissionReady(
   bindings: AiOrchestratorBindings,
   capability: (typeof capabilityKinds)[number],
@@ -476,6 +528,7 @@ function assertRunSubmissionReady(
       : ['AI_ORCHESTRATION_WORKFLOW']),
     ...(bindings.AI_RUN_STATE ? [] : ['AI_RUN_STATE']),
     ...(bindings.AI_RUN_INDEX ? [] : ['AI_RUN_INDEX']),
+    ...(bindings.AI_RATE_LIMIT ? [] : ['AI_RATE_LIMIT']),
   ];
 
   if (missing.length > 0) {
