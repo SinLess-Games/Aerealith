@@ -1,3 +1,4 @@
+export * from './provider-embedding-generator';
 export * from './run-state-machine';
 export * from './tool-execution-service';
 export * from './task-outputs';
