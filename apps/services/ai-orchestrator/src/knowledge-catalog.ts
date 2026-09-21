@@ -66,6 +66,27 @@ export class AiKnowledgeCatalog extends DurableObject<AiOrchestratorBindings> {
       .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
   }
 
+  async assertCanRecordDocuments(
+    knowledgeBaseId: string,
+    documentIds: readonly string[],
+  ): Promise<void> {
+    const current = this.catalog().find(
+      (item) => item.id === knowledgeBaseId,
+    );
+    if (!current) {
+      throw new Error('Knowledge base does not exist.');
+    }
+
+    const ids = new Set(current.documents.map((document) => document.id));
+    for (const id of documentIds) ids.add(id);
+
+    if (ids.size > MAX_DOCUMENTS_PER_BASE) {
+      throw new Error(
+        `Knowledge base may contain at most ${MAX_DOCUMENTS_PER_BASE} documents.`,
+      );
+    }
+  }
+
   async recordDocuments(
     knowledgeBaseId: string,
     documentIds: readonly string[],
