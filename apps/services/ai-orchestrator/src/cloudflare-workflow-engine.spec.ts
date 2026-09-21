@@ -65,9 +65,12 @@ describe('CloudflareWorkflowOrchestrationEngine', () => {
       input: 'hello',
     };
 
-    const run = await engine.submit(request);
+    const submission = await engine.submit(request);
+    const run = submission.run;
 
+    expect(submission.created).toBe(true);
     expect(run.status).toBe('accepted');
+    expect(run.executionMode).toBe('workflow');
     expect(run.capability).toBe('text');
     await expect(runs.get(run.id)).resolves.toEqual(run);
     expect(create).toHaveBeenCalledTimes(1);
@@ -103,7 +106,11 @@ describe('CloudflareWorkflowOrchestrationEngine', () => {
     const first = await engine.submit(request, options);
     const second = await engine.submit(request, options);
 
-    expect(second).toEqual(first);
+    expect(first.created).toBe(true);
+    expect(second).toEqual({
+      run: first.run,
+      created: false,
+    });
     expect(create).toHaveBeenCalledTimes(1);
     expect(runs.records).toHaveProperty('size', 1);
   });
