@@ -22,6 +22,10 @@ import {
 } from '@aerealith-ai/ai-orchestration';
 
 import { createArtifactStore } from './artifact-runtime';
+import {
+  codeRequestNeedsSandbox,
+  executeCodeAgent,
+} from './code-agent-runtime';
 import type { AiOrchestratorBindings } from './bindings';
 import { createProviderRegistry } from './provider-runtime';
 import {
@@ -111,32 +115,47 @@ export function executableCapabilities(
 export async function executeOrchestrationRequest(
   bindings: AiOrchestratorBindings,
   request: OrchestrationRequest,
+  context: { runId?: string } = {},
 ): Promise<OrchestrationOutput> {
   switch (request.capability) {
+    case 'code':
+      if (
+        codeRequestNeedsSandbox(
+          request.input as import('@aerealith-ai/ai-orchestration').CodeGenerationInput,
+        )
+      ) {
+        return executeCodeAgent(
+          bindings,
+          request,
+          context.runId ?? crypto.randomUUID(),
+        );
+      }
+      break;
     case 'knowledge-ingest':
       return executeKnowledgeIngestion(bindings, request);
     case 'retrieval':
       return executeRetrieval(bindings, request);
-    default: {
-      const providers = createProviderRegistry(bindings);
-      const executor = new OrchestrationExecutor(
-        providers,
-        new CapabilityRoutingPolicy(),
-      );
-      const output = await executor.execute(request);
-
-      if (
-        request.capability === 'image' ||
-        request.capability === 'audio' ||
-        request.capability === 'video' ||
-        request.capability === 'music'
-      ) {
-        return materializeGeneratedBinary(bindings, request, output);
-      }
-
-      return output;
-    }
+    default:
+      break;
   }
+
+  const providers = createProviderRegistry(bindings);
+  const executor = new OrchestrationExecutor(
+    providers,
+    new CapabilityRoutingPolicy(),
+  );
+  const output = await executor.execute(request);
+
+  if (
+    request.capability === 'image' ||
+    request.capability === 'audio' ||
+    request.capability === 'video' ||
+    request.capability === 'music'
+  ) {
+    return materializeGeneratedBinary(bindings, request, output);
+  }
+
+  return output;
 }
 
 async function materializeGeneratedBinary(
