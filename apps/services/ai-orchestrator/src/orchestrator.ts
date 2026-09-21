@@ -1,16 +1,22 @@
-import type { OrchestrationRequest, OrchestrationResult } from './domain';
+import type {
+  OrchestrationRequest,
+  RunRecord,
+} from '@aerealith-ai/ai-orchestration';
 
 export interface OrchestrationEngine {
-  submit(request: OrchestrationRequest): Promise<OrchestrationResult>;
+  submit(request: OrchestrationRequest): Promise<RunRecord>;
 }
 
 export class BasicOrchestrationEngine implements OrchestrationEngine {
-  async submit(request: OrchestrationRequest): Promise<OrchestrationResult> {
+  async submit(request: OrchestrationRequest): Promise<RunRecord> {
+    const timestamp = new Date().toISOString();
+
     return {
-      runId: crypto.randomUUID(),
+      id: crypto.randomUUID(),
       status: 'accepted',
       capability: request.capability,
-      createdAt: new Date().toISOString(),
+      createdAt: timestamp,
+      updatedAt: timestamp,
     };
   }
 }
