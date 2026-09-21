@@ -26,6 +26,9 @@ importers:
 
   apps/services/ai-orchestrator:
     dependencies:
+      '@aerealith-ai/ai-qdrant':
+        specifier: workspace:*
+        version: link:../../../libs/ai-qdrant
       '@aerealith-ai/ai-orchestration':
         specifier: workspace:*
         version: link:../../../libs/ai-orchestration
