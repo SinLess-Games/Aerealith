@@ -1,9 +1,16 @@
 import {
   capabilityKinds,
   CapabilityRoutingPolicy,
+  FixedWindowTextChunker,
+  KnowledgeIngestionService,
   OrchestrationExecutor,
+  ProviderEmbeddingGenerator,
   type CapabilityKind,
   type EmbeddingOutput,
+  type KnowledgeIngestionInput,
+  type KnowledgeIngestionOutput,
+  type ModelDescriptor,
+  type ModelProvider,
   type OrchestrationOutput,
   type OrchestrationRequest,
   type RetrievalInput,
@@ -23,8 +30,17 @@ export class VectorStoreUnavailableError extends Error {
 
 export class TenantContextRequiredError extends Error {
   constructor() {
-    super('A trusted tenant context is required for knowledge retrieval.');
+    super('A trusted tenant context is required for knowledge operations.');
     this.name = 'TenantContextRequiredError';
+  }
+}
+
+export class EmbeddingDimensionsRequiredError extends Error {
+  constructor(modelId: string) {
+    super(
+      `Embedding model "${modelId}" must declare embeddingDimensions before it can ingest knowledge.`,
+    );
+    this.name = 'EmbeddingDimensionsRequiredError';
   }
 }
 
@@ -33,6 +49,7 @@ export function executableCapabilities(
 ): readonly CapabilityKind[] {
   const providers = createProviderRegistry(bindings);
   const direct = new Set<CapabilityKind>();
+  const embeddingModels: ModelDescriptor[] = [];
 
   for (const provider of providers.list()) {
     const models = provider.listModels();
@@ -47,11 +64,25 @@ export function executableCapabilities(
       for (const capability of model.capabilities) {
         direct.add(capability);
       }
+
+      if (model.capabilities.includes('embedding')) {
+        embeddingModels.push(model);
+      }
     }
   }
 
-  if (direct.has('embedding') && createVectorStore(bindings)) {
+  if (embeddingModels.length > 0 && createVectorStore(bindings)) {
     direct.add('retrieval');
+
+    if (
+      embeddingModels.some(
+        (model) =>
+          Number.isInteger(model.embeddingDimensions) &&
+          (model.embeddingDimensions ?? 0) > 0,
+      )
+    ) {
+      direct.add('knowledge-ingest');
+    }
   }
 
   return capabilityKinds.filter((capability) => direct.has(capability));
@@ -61,67 +92,118 @@ export async function executeOrchestrationRequest(
   bindings: AiOrchestratorBindings,
   request: OrchestrationRequest,
 ): Promise<OrchestrationOutput> {
-  if (request.capability === 'retrieval') {
-    return executeRetrieval(bindings, request);
+  switch (request.capability) {
+    case 'knowledge-ingest':
+      return executeKnowledgeIngestion(bindings, request);
+    case 'retrieval':
+      return executeRetrieval(bindings, request);
+    default: {
+      const providers = createProviderRegistry(bindings);
+      const executor = new OrchestrationExecutor(
+        providers,
+        new CapabilityRoutingPolicy(),
+      );
+
+      return executor.execute(request);
+    }
+  }
+}
+
+async function executeKnowledgeIngestion(
+  bindings: AiOrchestratorBindings,
+  request: OrchestrationRequest,
+): Promise<OrchestrationOutput> {
+  const tenantId = requireTenantId(request);
+  const vectorStore = createVectorStore(bindings);
+
+  if (!vectorStore) {
+    throw new VectorStoreUnavailableError();
   }
 
-  const providers = createProviderRegistry(bindings);
-  const executor = new OrchestrationExecutor(
-    providers,
-    new CapabilityRoutingPolicy(),
+  const input = request.input as KnowledgeIngestionInput;
+  const namespace = createTenantKnowledgeNamespace(
+    tenantId,
+    input.namespace,
+  );
+  const { provider, model } = await selectEmbeddingTarget(
+    bindings,
+    request,
+  );
+  const dimensions = model.embeddingDimensions;
+
+  if (!dimensions) {
+    throw new EmbeddingDimensionsRequiredError(model.id);
+  }
+
+  const embeddings = new ProviderEmbeddingGenerator(
+    provider,
+    model,
+    dimensions,
+  );
+  const chunker = new FixedWindowTextChunker({
+    ...(input.chunking?.maxCharacters === undefined
+      ? {}
+      : { maxCharacters: input.chunking.maxCharacters }),
+    ...(input.chunking?.overlapCharacters === undefined
+      ? {}
+      : { overlapCharacters: input.chunking.overlapCharacters }),
+  });
+  const service = new KnowledgeIngestionService(
+    chunker,
+    embeddings,
+    vectorStore,
+    vectorStore,
   );
 
-  return executor.execute(request);
+  const result = await service.ingest({
+    namespace,
+    documents: input.documents,
+  });
+
+  const content: KnowledgeIngestionOutput = {
+    namespace: input.namespace,
+    documentsProcessed: result.documentsProcessed,
+    chunksWritten: result.chunksWritten,
+    embeddingModelId: result.embeddingModelId,
+  };
+
+  return {
+    content,
+    providerId: provider.id,
+    modelId: model.id,
+  };
 }
 
 async function executeRetrieval(
   bindings: AiOrchestratorBindings,
   request: OrchestrationRequest,
 ): Promise<OrchestrationOutput> {
+  const tenantId = requireTenantId(request);
   const vectorStore = createVectorStore(bindings);
+
   if (!vectorStore) {
     throw new VectorStoreUnavailableError();
   }
 
-  if (!request.tenantId) {
-    throw new TenantContextRequiredError();
-  }
-
   const input = request.input as RetrievalInput;
   const namespace = createTenantKnowledgeNamespace(
-    request.tenantId,
+    tenantId,
     input.namespace,
   );
-  const providers = createProviderRegistry(bindings);
-  const routing = new CapabilityRoutingPolicy();
-  const embeddingModels = await providers.modelsFor('embedding');
-  const embeddingRequest: OrchestrationRequest = {
-    ...request,
-    capability: 'embedding',
-    input: {
-      texts: [input.query],
-    },
-  };
-  const route = routing.select(embeddingRequest, embeddingModels);
-  const provider = providers.get(route.providerId);
-
-  if (!provider) {
-    throw new Error(
-      `Embedding provider "${route.providerId}" is not registered.`,
-    );
-  }
-
-  const models = await provider.listModels();
-  const model = models.find((candidate) => candidate.id === route.modelId);
-
-  if (!model) {
-    throw new Error(
-      `Embedding model "${route.modelId}" is not available.`,
-    );
-  }
+  const { provider, model } = await selectEmbeddingTarget(
+    bindings,
+    request,
+  );
 
   const embeddingResult = await provider.execute(
-    embeddingRequest,
+    {
+      ...request,
+      capability: 'embedding',
+      input: {
+        texts: [input.query],
+      },
+      preferences: embeddingPreferences(request),
+    },
     model,
   );
   const embeddingOutput = embeddingResult.content as EmbeddingOutput;
@@ -148,6 +230,67 @@ async function executeRetrieval(
     modelId: embeddingResult.modelId,
     ...(embeddingResult.usage ? { usage: embeddingResult.usage } : {}),
   };
+}
+
+async function selectEmbeddingTarget(
+  bindings: AiOrchestratorBindings,
+  request: OrchestrationRequest,
+): Promise<{
+  provider: ModelProvider;
+  model: ModelDescriptor;
+}> {
+  const providers = createProviderRegistry(bindings);
+  const routing = new CapabilityRoutingPolicy();
+  const embeddingModels = await providers.modelsFor('embedding');
+  const embeddingRequest: OrchestrationRequest = {
+    ...request,
+    capability: 'embedding',
+    input: { texts: ['routing-probe'] },
+    preferences: embeddingPreferences(request),
+  };
+  const route = routing.select(embeddingRequest, embeddingModels);
+  const provider = providers.get(route.providerId);
+
+  if (!provider) {
+    throw new Error(
+      `Embedding provider "${route.providerId}" is not registered.`,
+    );
+  }
+
+  const models = await provider.listModels();
+  const model = models.find((candidate) => candidate.id === route.modelId);
+
+  if (!model) {
+    throw new Error(
+      `Embedding model "${route.modelId}" is not available.`,
+    );
+  }
+
+  return { provider, model };
+}
+
+function embeddingPreferences(
+  request: OrchestrationRequest,
+): OrchestrationRequest['preferences'] {
+  const provider = request.preferences?.provider;
+  const allowFallback = request.preferences?.allowFallback;
+
+  if (provider === undefined && allowFallback === undefined) {
+    return undefined;
+  }
+
+  return {
+    ...(provider === undefined ? {} : { provider }),
+    ...(allowFallback === undefined ? {} : { allowFallback }),
+  };
+}
+
+function requireTenantId(request: OrchestrationRequest): string {
+  if (!request.tenantId) {
+    throw new TenantContextRequiredError();
+  }
+
+  return request.tenantId;
 }
 
 function createTenantKnowledgeNamespace(
