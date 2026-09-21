@@ -84,6 +84,25 @@ describe('AiApiClient', () => {
     );
   });
 
+  it('deletes an individual knowledge document', async () => {
+    const fetchImplementation = vi.fn(
+      async (_input: RequestInfo | URL, init?: RequestInit) => {
+        expect(init?.method).toBe('DELETE');
+        return new Response(null, { status: 204 });
+      },
+    );
+    const client = new AiApiClient({
+      baseUrl: 'https://api.example.test',
+      fetchImplementation,
+    });
+
+    await client.deleteKnowledgeDocument('kb-1', 'doc/one');
+
+    expect(fetchImplementation.mock.calls[0]?.[0]).toBe(
+      'https://api.example.test/api/V1/ai/knowledge-bases/kb-1/documents/doc%2Fone',
+    );
+  });
+
   it('maps API failures to AiApiError', async () => {
     const client = new AiApiClient({
       fetchImplementation: vi.fn(async () =>
