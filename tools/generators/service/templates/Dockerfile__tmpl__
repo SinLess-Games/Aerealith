@@ -62,11 +62,7 @@ COPY . .
 # =============================================================================
 
 # Install without automatically executing arbitrary dependency lifecycle
-# scripts.
-ling support without forcing
-# every generated service to depend directly on the profiler.
-#
-# Nx is also rebuilt explicitly because its native helpers may require their
+# scripts. Nx is rebuilt explicitly because its native helpers may require their
 # trusted installation lifecycle.
 RUN --mount=type=cache,id=aerealith-pnpm-store,target=/pnpm/store,sharing=locked \
   pnpm install \
