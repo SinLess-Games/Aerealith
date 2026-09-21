@@ -20,6 +20,7 @@ import {
 } from './auth-runtime';
 import type { AiOrchestratorBindings } from './bindings';
 import { CloudflareWorkflowOrchestrationEngine } from './cloudflare-workflow-engine';
+import { codeRequestNeedsSandbox } from './code-agent-runtime';
 import { executableCapabilities } from './execution-runtime';
 import { createIdempotentRunIdentity } from './idempotency';
 import {
@@ -537,6 +538,18 @@ app.post('/api/V1/ai/runs', async (c) => {
   }
 
   assertRunSubmissionReady(c.env, parsed.data.capability);
+  if (
+    parsed.data.capability === 'code' &&
+    codeRequestNeedsSandbox(
+      parsed.data.input as import('@aerealith-ai/ai-orchestration').CodeGenerationInput,
+    ) &&
+    !c.env.AI_CODE_SANDBOX
+  ) {
+    throw new ApiError('AI code sandbox is not configured.', {
+      code: ApiErrorCode.InternalError,
+      status: HttpStatus.ServiceUnavailable,
+    });
+  }
   await enforceRunRateLimit(c.env, principal.id);
   const usageReserved = await enforceDailyUsageLimits(
     c.env,
@@ -771,6 +784,7 @@ function responseMeta(context: ApiRequestContext) {
   };
 }
 
+export { AiCodeSandbox } from './code-sandbox-container';
 export { AiRateLimit } from './rate-limit';
 export { AiRunIndex } from './run-index';
 export { AiRunState } from './run-state';
