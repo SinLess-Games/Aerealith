@@ -295,6 +295,18 @@ export class AiApiClient {
     );
   }
 
+  async deleteKnowledgeDocument(
+    knowledgeBaseId: string,
+    documentId: string,
+  ): Promise<void> {
+    await this.requestNoContent(
+      `/api/V1/ai/knowledge-bases/${encodeURIComponent(
+        knowledgeBaseId,
+      )}/documents/${encodeURIComponent(documentId)}`,
+      { method: 'DELETE' },
+    );
+  }
+
   async deleteKnowledgeBase(knowledgeBaseId: string): Promise<void> {
     await this.requestNoContent(
       `/api/V1/ai/knowledge-bases/${encodeURIComponent(

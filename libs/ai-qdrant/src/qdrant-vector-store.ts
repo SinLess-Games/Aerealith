@@ -244,6 +244,25 @@ export class QdrantVectorStore implements VectorStore, VectorIndexManager {
     });
   }
 
+  /**
+   * Deletes points matching an application filter while always enforcing the
+   * logical namespace boundary. Callers cannot use this method to delete data
+   * belonging to another tenant or knowledge base.
+   */
+  async deleteByFilter(
+    namespace: string,
+    filter: Record<string, unknown>,
+  ): Promise<void> {
+    const normalizedNamespace = normalizeNamespace(namespace);
+
+    await this.request(this.collectionPath('/points/delete?wait=true'), {
+      method: 'POST',
+      body: JSON.stringify({
+        filter: mergeNamespaceFilter(normalizedNamespace, filter),
+      }),
+    });
+  }
+
   private assertCompatibleCollection(
     details: QdrantCollectionResponse,
     dimensions: number,

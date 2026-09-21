@@ -104,6 +104,10 @@ export interface KnowledgeCatalogStub {
     knowledgeBaseId: string,
     documentIds: readonly string[],
   ): Promise<import('./knowledge-catalog').KnowledgeBaseRecord | undefined>;
+  deleteDocument(
+    knowledgeBaseId: string,
+    documentId: string,
+  ): Promise<boolean>;
   deleteKnowledgeBase(id: string): Promise<boolean>;
 }
 

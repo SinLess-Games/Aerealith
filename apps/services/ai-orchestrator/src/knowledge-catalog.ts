@@ -118,6 +118,34 @@ export class AiKnowledgeCatalog extends DurableObject<AiOrchestratorBindings> {
     return updated;
   }
 
+  async deleteDocument(
+    knowledgeBaseId: string,
+    documentId: string,
+  ): Promise<boolean> {
+    const catalog = this.catalog();
+    const index = catalog.findIndex(
+      (item) => item.id === knowledgeBaseId,
+    );
+    if (index < 0) return false;
+
+    const current = catalog[index]!;
+    const documents = current.documents.filter(
+      (document) => document.id !== documentId,
+    );
+
+    if (documents.length === current.documents.length) {
+      return false;
+    }
+
+    catalog[index] = {
+      ...current,
+      updatedAt: new Date().toISOString(),
+      documents,
+    };
+    this.save(catalog);
+    return true;
+  }
+
   async deleteKnowledgeBase(id: string): Promise<boolean> {
     const catalog = this.catalog();
     const next = catalog.filter((item) => item.id !== id);

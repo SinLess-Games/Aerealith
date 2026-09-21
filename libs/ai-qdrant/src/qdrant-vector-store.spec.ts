@@ -353,6 +353,49 @@ describe('QdrantVectorStore', () => {
     });
   });
 
+  it('deletes filtered points without crossing namespace boundaries', async () => {
+    const fetchImplementation = vi.fn(
+      async (_input: RequestInfo | URL, _init?: RequestInit) =>
+        new Response(JSON.stringify({ status: 'ok' }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+    );
+
+    const store = new QdrantVectorStore({
+      baseUrl: 'https://qdrant.example.test',
+      fetchImplementation,
+    });
+
+    await store.deleteByFilter('tenant-a', {
+      must: [
+        {
+          key: 'metadata.documentId',
+          match: { value: 'doc-1' },
+        },
+      ],
+    });
+
+    const [url, init] = fetchImplementation.mock.calls[0] ?? [];
+    expect(url).toBe(
+      'https://qdrant.example.test/collections/aerealith-knowledge/points/delete?wait=true',
+    );
+    expect(JSON.parse(String(init?.body))).toEqual({
+      filter: {
+        must: [
+          {
+            key: 'namespace',
+            match: { value: 'tenant-a' },
+          },
+          {
+            key: 'metadata.documentId',
+            match: { value: 'doc-1' },
+          },
+        ],
+      },
+    });
+  });
+
   it('requires embeddings before vector search', async () => {
     const fetchImplementation = vi.fn(
       async (_input: RequestInfo | URL, _init?: RequestInit) =>
