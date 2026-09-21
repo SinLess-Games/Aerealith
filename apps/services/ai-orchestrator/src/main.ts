@@ -11,6 +11,7 @@ import { createLogger } from '@aerealith-ai/observability/logger';
 import { secureHeaders } from 'hono/secure-headers';
 import { z } from 'zod';
 
+import { createArtifactStore } from './artifact-runtime';
 import {
   authenticateRequest,
   AuthenticationRequiredError,
@@ -27,7 +28,8 @@ import {
 import { providerRuntimeStatus } from './provider-runtime';
 import { orchestrationRequestSchema } from './request-schema';
 import { AiRunController } from './run-controller';
-import { createRunStore } from './run-store';
+import { createRunEventStream } from './run-events';
+import { createRunIndexStore, createRunStore } from './run-store';
 import { vectorStoreStatus } from './vector-store';
 
 type AiOrchestratorEnv = ApiEnv<ApiRequestContext, AiOrchestratorBindings>;
@@ -49,6 +51,17 @@ const app = createApiApp<AiOrchestratorEnv>({
 
 const runIdSchema = z.uuid();
 
+const runListQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+  before: z
+    .string()
+    .max(64)
+    .refine((value) => !Number.isNaN(Date.parse(value)), {
+      message: 'before must be an ISO date-time.',
+    })
+    .optional(),
+});
+
 app.get('/health', (c) =>
   c.json({
     service: 'ai-orchestrator',
@@ -63,6 +76,7 @@ app.get('/ready', (c) => {
   const workflowConfigured = Boolean(c.env.AI_ORCHESTRATION_WORKFLOW);
   const authConfigured = Boolean(c.env.AUTH_WORKER);
   const runStateConfigured = Boolean(c.env.AI_RUN_STATE);
+  const runIndexConfigured = Boolean(c.env.AI_RUN_INDEX);
   const vectorStore = vectorStoreStatus(c.env);
   const providers = providerRuntimeStatus(c.env);
   const executable = executableCapabilities(c.env);
@@ -71,6 +85,7 @@ app.get('/ready', (c) => {
     ...(authConfigured ? [] : ['AUTH_WORKER']),
     ...(workflowConfigured ? [] : ['AI_ORCHESTRATION_WORKFLOW']),
     ...(runStateConfigured ? [] : ['AI_RUN_STATE']),
+    ...(runIndexConfigured ? [] : ['AI_RUN_INDEX']),
     ...(providers.configuredProviders > 0 ? [] : ['AI']),
   ];
 
@@ -88,6 +103,7 @@ app.get('/ready', (c) => {
           authConfigured,
           workflowConfigured,
           runStateConfigured,
+          runIndexConfigured,
           vectorStore: {
             provider: vectorStore.provider,
             configured: vectorStore.configured,
@@ -111,6 +127,7 @@ app.get('/ready', (c) => {
       authConfigured,
       workflowConfigured,
       runStateConfigured,
+      runIndexConfigured,
       vectorStore: {
         provider: vectorStore.provider,
         configured: vectorStore.configured,
@@ -166,6 +183,81 @@ app.get('/api/V1/ai/capabilities', (c) =>
   }),
 );
 
+app.get('/api/V1/ai/runs', async (c) => {
+  const principal = await requirePrincipal(c.req.raw, c.env);
+  const parsed = runListQuerySchema.safeParse({
+    limit: c.req.query('limit') ?? 50,
+    before: c.req.query('before'),
+  });
+
+  if (!parsed.success) {
+    throw new ApiError('The run-history query is invalid.', {
+      code: ApiErrorCode.ValidationFailed,
+      status: HttpStatus.UnprocessableEntity,
+      metadata: {
+        issues: parsed.error.issues.map(({ code, message, path }) => ({
+          code,
+          message,
+          path,
+        })),
+      },
+    });
+  }
+
+  const index = createRunIndexStore(c.env);
+  if (!index) {
+    throw new ApiError('AI run history is not configured.', {
+      code: ApiErrorCode.InternalError,
+      status: HttpStatus.ServiceUnavailable,
+    });
+  }
+
+  const page = await index.list(
+    principal.id,
+    parsed.data.limit,
+    parsed.data.before,
+  );
+
+  return c.json({
+    ok: true,
+    data: page.items,
+    pagination: {
+      nextBefore: page.nextBefore ?? null,
+    },
+    meta: responseMeta(c.get('apiContext')),
+  });
+});
+
+app.get('/api/V1/ai/runs/:runId/events', async (c) => {
+  const principal = await requirePrincipal(c.req.raw, c.env);
+  const parsedRunId = runIdSchema.safeParse(c.req.param('runId'));
+
+  if (!parsedRunId.success) {
+    throw new ApiError('The AI run id is invalid.', {
+      code: ApiErrorCode.ValidationFailed,
+      status: HttpStatus.UnprocessableEntity,
+    });
+  }
+
+  const runs = createRunStore(c.env);
+  if (!runs) {
+    throw new ApiError('AI run persistence is not configured.', {
+      code: ApiErrorCode.InternalError,
+      status: HttpStatus.ServiceUnavailable,
+    });
+  }
+
+  const run = await runs.get(parsedRunId.data);
+  if (!run || run.tenantId !== principal.id) {
+    throw new ApiError('The AI run was not found.', {
+      code: ApiErrorCode.NotFound,
+      status: HttpStatus.NotFound,
+    });
+  }
+
+  return createRunEventStream(runs, run.id, c.req.raw.signal);
+});
+
 app.get('/api/V1/ai/runs/:runId', async (c) => {
   const principal = await requirePrincipal(c.req.raw, c.env);
   const parsedRunId = runIdSchema.safeParse(c.req.param('runId'));
@@ -198,6 +290,62 @@ app.get('/api/V1/ai/runs/:runId', async (c) => {
     data: run,
     meta: responseMeta(c.get('apiContext')),
   });
+});
+
+app.get('/api/V1/ai/artifacts/:artifactId', async (c) => {
+  const principal = await requirePrincipal(c.req.raw, c.env);
+  const artifactId = c.req.param('artifactId');
+  const artifacts = createArtifactStore(c.env);
+
+  if (!artifacts) {
+    throw new ApiError('AI artifact storage is not configured.', {
+      code: ApiErrorCode.InternalError,
+      status: HttpStatus.ServiceUnavailable,
+    });
+  }
+
+  let artifact: Response | undefined;
+  try {
+    artifact = await artifacts.get(`user:${principal.id}`, artifactId);
+  } catch {
+    throw new ApiError('The AI artifact id is invalid.', {
+      code: ApiErrorCode.ValidationFailed,
+      status: HttpStatus.UnprocessableEntity,
+    });
+  }
+
+  if (!artifact) {
+    throw new ApiError('The AI artifact was not found.', {
+      code: ApiErrorCode.NotFound,
+      status: HttpStatus.NotFound,
+    });
+  }
+
+  return artifact;
+});
+
+app.delete('/api/V1/ai/artifacts/:artifactId', async (c) => {
+  const principal = await requirePrincipal(c.req.raw, c.env);
+  const artifactId = c.req.param('artifactId');
+  const artifacts = createArtifactStore(c.env);
+
+  if (!artifacts) {
+    throw new ApiError('AI artifact storage is not configured.', {
+      code: ApiErrorCode.InternalError,
+      status: HttpStatus.ServiceUnavailable,
+    });
+  }
+
+  try {
+    await artifacts.delete(`user:${principal.id}`, artifactId);
+  } catch {
+    throw new ApiError('The AI artifact id is invalid.', {
+      code: ApiErrorCode.ValidationFailed,
+      status: HttpStatus.UnprocessableEntity,
+    });
+  }
+
+  return new Response(null, { status: 204 });
 });
 
 app.delete('/api/V1/ai/runs/:runId', async (c) => {
@@ -327,6 +475,7 @@ function assertRunSubmissionReady(
       ? []
       : ['AI_ORCHESTRATION_WORKFLOW']),
     ...(bindings.AI_RUN_STATE ? [] : ['AI_RUN_STATE']),
+    ...(bindings.AI_RUN_INDEX ? [] : ['AI_RUN_INDEX']),
   ];
 
   if (missing.length > 0) {
@@ -372,6 +521,7 @@ function responseMeta(context: ApiRequestContext) {
   };
 }
 
+export { AiRunIndex } from './run-index';
 export { AiRunState } from './run-state';
 export { AiOrchestrationWorkflow } from './workflow';
 export default app;
