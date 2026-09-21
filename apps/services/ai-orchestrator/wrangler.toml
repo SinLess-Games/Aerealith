@@ -10,7 +10,7 @@ head_sampling_rate = 1.0
 [vars]
 ENVIRONMENT = "production"
 QDRANT_URL = "https://6f069294-5f27-4777-9c34-128b132ab175.australia-southeast1-0.gcp.cloud.qdrant.io"
-QDRANT_COLLECTION_PREFIX = "aerealith-"
+QDRANT_COLLECTION = "aerealith-knowledge"
 
 [[workflows]]
 name = "aerealith-ai-orchestration"
