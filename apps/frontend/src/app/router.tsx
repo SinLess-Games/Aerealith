@@ -25,6 +25,7 @@ import { ForgotPasswordRoute } from './routes/auth/forgot-password.route';
 import { ResetPasswordRoute } from './routes/auth/reset-password.route';
 import { SecurityRoute } from './routes/auth/security.route';
 import { ProfileRoute } from './routes/auth/profile.route';
+import { ObservabilityRoute } from './routes/auth/observability.route';
 import { VerifyEmailRoute } from './routes/auth/verify-email.route';
 import {
   DeveloperDocsRoute,
@@ -43,10 +44,27 @@ import { PricingRoute } from './routes/marketing-site/pricing.route';
  * site and authenticated application shell from unhandled render failures.
  */
 export function AppRoutes() {
+  const maintenanceMode = useFeatureFlag(FeatureFlag.MaintenanceMode);
+
+  if (maintenanceMode) {
+    return (
+      <GlobalErrorBoundary>
+        <MaintenanceRoute />
+      </GlobalErrorBoundary>
+    );
+  }
+
   return (
     <GlobalErrorBoundary>
       <Routes>
-        <Route path="documentation" element={<DocsLayout />}>
+        <Route
+          path="documentation"
+          element={
+            <FlaggedRoute flag={FeatureFlag.Documentation}>
+              <DocsLayout />
+            </FlaggedRoute>
+          }
+        >
           <Route index element={<DocsIndexRoute />} />
           <Route path="user/*" element={<UserDocsRoute />} />
           <Route path="developer/*" element={<DeveloperDocsRoute />} />
@@ -81,18 +99,43 @@ export function AppRoutes() {
           <Route
             path="sign-up"
             element={
-              <>
-                <HomeRoute />
-                <AuthModal ariaLabel="Create an account">
-                  <SignUpRoute />
-                </AuthModal>
-              </>
+              <FlaggedRoute flag={FeatureFlag.Authentication}>
+                <FlaggedRoute flag={FeatureFlag.Registration}>
+                  <>
+                    <HomeRoute />
+                    <AuthModal ariaLabel="Create an account">
+                      <SignUpRoute />
+                    </AuthModal>
+                  </>
+                </FlaggedRoute>
+              </FlaggedRoute>
             }
           />
           <Route path="signup" element={<Navigate to="/sign-up" replace />} />
-          <Route path="forgot-password" element={<ForgotPasswordRoute />} />
-          <Route path="reset-password" element={<ResetPasswordRoute />} />
-          <Route path="verify-email" element={<VerifyEmailRoute />} />
+          <Route
+            path="forgot-password"
+            element={
+              <FlaggedRoute flag={FeatureFlag.Authentication}>
+                <ForgotPasswordRoute />
+              </FlaggedRoute>
+            }
+          />
+          <Route
+            path="reset-password"
+            element={
+              <FlaggedRoute flag={FeatureFlag.Authentication}>
+                <ResetPasswordRoute />
+              </FlaggedRoute>
+            }
+          />
+          <Route
+            path="verify-email"
+            element={
+              <FlaggedRoute flag={FeatureFlag.Authentication}>
+                <VerifyEmailRoute />
+              </FlaggedRoute>
+            }
+          />
           <Route path="*" element={<ErrorRoute error={{ status: 404 }} />} />
         </Route>
         <Route
@@ -112,23 +155,56 @@ export function AppRoutes() {
               </FlaggedRoute>
             }
           />
-          <Route path="account" element={<AccountRoute />} />
-          <Route path="profile" element={<ProfileRoute />} />
-          <Route path="security" element={<SecurityRoute />} />
+          <Route
+            path="account"
+            element={
+              <FlaggedRoute flag={FeatureFlag.Account} redirect="/app">
+                <AccountRoute />
+              </FlaggedRoute>
+            }
+          />
+          <Route
+            path="profile"
+            element={
+              <FlaggedRoute flag={FeatureFlag.Profile} redirect="/app">
+                <ProfileRoute />
+              </FlaggedRoute>
+            }
+          />
+          <Route
+            path="security"
+            element={
+              <FlaggedRoute flag={FeatureFlag.Security} redirect="/app">
+                <SecurityRoute />
+              </FlaggedRoute>
+            }
+          />
+          <Route
+            path="observability"
+            element={
+              <FlaggedRoute flag={FeatureFlag.Observability} redirect="/app">
+                <ObservabilityRoute />
+              </FlaggedRoute>
+            }
+          />
           <Route
             path="admin"
             element={
-              <SuperAdminRoute>
-                <AdminDashboardRoute />
-              </SuperAdminRoute>
+              <FlaggedRoute flag={FeatureFlag.Admin} redirect="/app">
+                <SuperAdminRoute>
+                  <AdminDashboardRoute />
+                </SuperAdminRoute>
+              </FlaggedRoute>
             }
           />
           <Route
             path="admin/entities"
             element={
-              <SuperAdminRoute>
-                <EntityViewerRoute />
-              </SuperAdminRoute>
+              <FlaggedRoute flag={FeatureFlag.Admin} redirect="/app">
+                <SuperAdminRoute>
+                  <EntityViewerRoute />
+                </SuperAdminRoute>
+              </FlaggedRoute>
             }
           />
         </Route>
@@ -166,6 +242,29 @@ function FlaggedRoute({
   children: ReactNode;
 }) {
   return useFeatureFlag(flag) ? children : <Navigate to={redirect} replace />;
+}
+
+function MaintenanceRoute() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[var(--ae-background)] px-6 py-16 text-[var(--ae-foreground)]">
+      <section className="w-full max-w-xl rounded-[28px] border border-[var(--ae-border)] bg-[var(--ae-surface)] p-7 text-center shadow-[var(--ae-shadow-lg)] sm:p-10">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--ae-primary)] bg-[var(--ae-primary-subtle)] text-2xl text-[var(--ae-primary)]">
+          <span aria-hidden="true">✦</span>
+        </div>
+        <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ae-primary)]">
+          Maintenance mode
+        </p>
+        <h1 className="mt-2 text-3xl font-bold tracking-tight">
+          Aerealith is being upgraded
+        </h1>
+        <p className="mt-3 text-sm leading-6 text-[var(--ae-foreground-muted)]">
+          The application is temporarily unavailable while maintenance is in
+          progress. Existing data remains protected; refresh this page when the
+          rollout is complete.
+        </p>
+      </section>
+    </main>
+  );
 }
 
 export default AppRoutes;
