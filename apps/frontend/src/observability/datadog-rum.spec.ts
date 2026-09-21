@@ -145,6 +145,12 @@ describe('Datadog RUM integration', () => {
     await initializeDatadogRum();
     trackDatadogView('/account');
     reportGlobalError(error);
+    expect(mocks.rum.startView).not.toHaveBeenCalled();
+    expect(mocks.rum.addError).not.toHaveBeenCalled();
+
+    setDatadogTrackingAllowed(true);
+    trackDatadogView('/account');
+    reportGlobalError(error);
     expect(mocks.rum.startView).toHaveBeenCalledWith({
       name: '/account',
       service: 'frontend',
