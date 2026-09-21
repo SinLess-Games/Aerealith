@@ -275,6 +275,109 @@ describe('AI execution runtime', () => {
     expect(fetchImplementation).toHaveBeenCalledTimes(5);
   });
 
+  it('rejects unsafe generated-media URLs before artifact persistence', async () => {
+    const AI = {
+      run: vi.fn(async () => ({
+        result: {
+          video: 'https://127.0.0.1/private.mp4',
+        },
+      })),
+    };
+
+    await expect(
+      executeOrchestrationRequest(
+        {
+          AI,
+          AI_ARTIFACTS: {} as R2Bucket,
+        },
+        {
+          capability: 'video',
+          tenantId: 'user-123',
+          actorId: 'user-123',
+          input: {
+            prompt: 'A safe test video',
+          },
+        },
+      ),
+    ).rejects.toThrow('Generated media URL is not allowed.');
+  });
+
+  it('rejects generated-media redirects to private hosts', async () => {
+    const AI = {
+      run: vi.fn(async () => ({
+        result: {
+          video: 'https://media.example.test/video.mp4',
+        },
+      })),
+    };
+    const fetchImplementation = vi.fn(async () =>
+      new Response(null, {
+        status: 302,
+        headers: {
+          location: 'https://127.0.0.1/private.mp4',
+        },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchImplementation);
+
+    await expect(
+      executeOrchestrationRequest(
+        {
+          AI,
+          AI_ARTIFACTS: {} as R2Bucket,
+        },
+        {
+          capability: 'video',
+          tenantId: 'user-123',
+          actorId: 'user-123',
+          input: {
+            prompt: 'A safe test video',
+          },
+        },
+      ),
+    ).rejects.toThrow('Generated media URL is not allowed.');
+
+    expect(fetchImplementation).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects generated media with an oversized declared body', async () => {
+    const AI = {
+      run: vi.fn(async () => ({
+        result: {
+          video: 'https://media.example.test/video.mp4',
+        },
+      })),
+    };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        new Response('x', {
+          status: 200,
+          headers: {
+            'content-length': String(512 * 1024 * 1024 + 1),
+          },
+        }),
+      ),
+    );
+
+    await expect(
+      executeOrchestrationRequest(
+        {
+          AI,
+          AI_ARTIFACTS: {} as R2Bucket,
+        },
+        {
+          capability: 'video',
+          tenantId: 'user-123',
+          actorId: 'user-123',
+          input: {
+            prompt: 'A safe test video',
+          },
+        },
+      ),
+    ).rejects.toThrow('512 MiB artifact limit');
+  });
+
   it('does not advertise retrieval without Qdrant credentials', () => {
     const bindings = configuredBindings();
     delete (bindings as { QDRANT_API_KEY?: string }).QDRANT_API_KEY;
