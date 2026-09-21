@@ -14,6 +14,9 @@ declare const __AEREALITH_FARO_URL__: string;
 declare const __AEREALITH_APP_ENVIRONMENT__: string;
 declare const __AEREALITH_APP_VERSION__: string;
 
+const SensitiveTelemetryUrl =
+  /[?&](?:token|code|key|password|secret|session|email)=/i;
+
 function resolveEnvironment(
   environment?: BrowserObservabilityEnvironment,
 ): BrowserObservabilityEnvironment {
@@ -65,6 +68,12 @@ export function initializeBrowserObservability(
         resolvedEnvironment.VITE_APP_ENVIRONMENT?.trim() || 'development',
       version: resolvedEnvironment.VITE_APP_VERSION?.trim() || 'development',
     },
+    ignoreUrls: [SensitiveTelemetryUrl],
+    beforeSend: (item) => {
+      const pageUrl = item.meta.page?.url;
+      if (pageUrl) item.meta.page.url = sanitizeBrowserTelemetryUrl(pageUrl);
+      return item;
+    },
     instrumentations: [
       ...getWebInstrumentations({
         captureConsole: false,
@@ -78,6 +87,17 @@ export function initializeBrowserObservability(
     },
   });
   return true;
+}
+
+export function sanitizeBrowserTelemetryUrl(value: string): string {
+  try {
+    const url = new URL(value, window.location.origin);
+    url.search = '';
+    url.hash = '';
+    return url.toString();
+  } catch {
+    return value.split(/[?#]/, 1)[0] ?? value;
+  }
 }
 
 /**
