@@ -37,6 +37,7 @@ export class CloudflareWorkflowOrchestrationEngine
       ...(options.requestFingerprint
         ? { requestFingerprint: options.requestFingerprint }
         : {}),
+      executionMode: 'workflow',
       status: 'accepted',
       capability: request.capability,
       createdAt: timestamp,
