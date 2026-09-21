@@ -84,7 +84,41 @@ export class KnowledgeIngestionService {
       distance: 'cosine',
     });
 
-    await this.vectorStore.upsert(request.namespace, records);
+    if (this.vectorStore.replaceByFilter) {
+      const recordsByDocument = new Map<
+        string,
+        typeof records
+      >();
+
+      for (const record of records) {
+        const documentId = record.metadata.documentId;
+        if (typeof documentId !== 'string') {
+          throw new KnowledgeIngestionError(
+            'Knowledge vector record is missing its canonical document id.',
+          );
+        }
+
+        const existing = recordsByDocument.get(documentId) ?? [];
+        recordsByDocument.set(documentId, [...existing, record]);
+      }
+
+      for (const [documentId, documentRecords] of recordsByDocument) {
+        await this.vectorStore.replaceByFilter(
+          request.namespace,
+          {
+            must: [
+              {
+                key: 'metadata.documentId',
+                match: { value: documentId },
+              },
+            ],
+          },
+          documentRecords,
+        );
+      }
+    } else {
+      await this.vectorStore.upsert(request.namespace, records);
+    }
 
     return {
       namespace: request.namespace,
