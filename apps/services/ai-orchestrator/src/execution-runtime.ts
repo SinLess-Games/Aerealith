@@ -87,6 +87,8 @@ export function executableCapabilities(
   if (!bindings.AI_ARTIFACTS) {
     direct.delete('image');
     direct.delete('audio');
+    direct.delete('video');
+    direct.delete('music');
   }
 
   if (embeddingModels.length > 0 && vectorStoreStatus(bindings).configured) {
