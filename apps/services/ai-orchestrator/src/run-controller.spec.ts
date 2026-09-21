@@ -94,6 +94,29 @@ describe('AiRunController', () => {
     expect(cancelled?.status).toBe('cancelled');
   });
 
+  it('cancels streaming runs without looking up a Workflow', async () => {
+    const run: RunRecord = {
+      id: '5d9dd628-c0a3-4fb7-a03d-2a345278ebd5',
+      executionMode: 'streaming',
+      status: 'running',
+      capability: 'text',
+      createdAt: '2026-09-21T00:00:00.000Z',
+      updatedAt: '2026-09-21T00:00:01.000Z',
+    };
+    const store = createStore(run);
+    const get = vi.fn();
+    const workflow: WorkflowBinding<WorkflowRunParams> = {
+      create: vi.fn(async () => undefined),
+      get,
+    };
+
+    const controller = new AiRunController(workflow, store);
+    const cancelled = await controller.cancel(run.id);
+
+    expect(cancelled?.status).toBe('cancelled');
+    expect(get).not.toHaveBeenCalled();
+  });
+
   it('does not terminate a Workflow for an already completed run', async () => {
     const run: RunRecord = {
       id: '5d9dd628-c0a3-4fb7-a03d-2a345278ebd5',
