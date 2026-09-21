@@ -1,3 +1,4 @@
+import type { GeneratedBinary } from '@aerealith-ai/ai-cloudflare-workers';
 import {
   capabilityKinds,
   CapabilityRoutingPolicy,
@@ -9,6 +10,7 @@ import {
   type EmbeddingOutput,
   type KnowledgeIngestionInput,
   type KnowledgeIngestionOutput,
+  type MediaGenerationOutput,
   type ModelDescriptor,
   type ModelProvider,
   type OrchestrationOutput,
@@ -17,9 +19,13 @@ import {
   type RetrievalOutput,
 } from '@aerealith-ai/ai-orchestration';
 
+import { createArtifactStore } from './artifact-runtime';
 import type { AiOrchestratorBindings } from './bindings';
 import { createProviderRegistry } from './provider-runtime';
-import { createVectorStore } from './vector-store';
+import {
+  createVectorStore,
+  vectorStoreStatus,
+} from './vector-store';
 
 export class VectorStoreUnavailableError extends Error {
   constructor() {
@@ -28,9 +34,16 @@ export class VectorStoreUnavailableError extends Error {
   }
 }
 
+export class ArtifactStoreUnavailableError extends Error {
+  constructor() {
+    super('The artifact store is not configured.');
+    this.name = 'ArtifactStoreUnavailableError';
+  }
+}
+
 export class TenantContextRequiredError extends Error {
   constructor() {
-    super('A trusted tenant context is required for knowledge operations.');
+    super('A trusted tenant context is required for knowledge and media operations.');
     this.name = 'TenantContextRequiredError';
   }
 }
@@ -55,8 +68,6 @@ export function executableCapabilities(
     const models = provider.listModels();
 
     if (models instanceof Promise) {
-      // Runtime catalogs currently use synchronous model lists. Async provider
-      // discovery is intentionally excluded from readiness evaluation.
       continue;
     }
 
@@ -71,7 +82,12 @@ export function executableCapabilities(
     }
   }
 
-  if (embeddingModels.length > 0 && createVectorStore(bindings)) {
+  if (!bindings.AI_ARTIFACTS) {
+    direct.delete('image');
+    direct.delete('audio');
+  }
+
+  if (embeddingModels.length > 0 && vectorStoreStatus(bindings).configured) {
     direct.add('retrieval');
 
     if (
@@ -103,10 +119,62 @@ export async function executeOrchestrationRequest(
         providers,
         new CapabilityRoutingPolicy(),
       );
+      const output = await executor.execute(request);
 
-      return executor.execute(request);
+      if (
+        request.capability === 'image' ||
+        request.capability === 'audio'
+      ) {
+        return materializeGeneratedBinary(bindings, request, output);
+      }
+
+      return output;
     }
   }
+}
+
+async function materializeGeneratedBinary(
+  bindings: AiOrchestratorBindings,
+  request: OrchestrationRequest,
+  output: OrchestrationOutput,
+): Promise<OrchestrationOutput> {
+  const tenantId = requireTenantId(request);
+  const generated = output.content as GeneratedBinary;
+
+  if (
+    !generated ||
+    (generated.kind !== 'image' && generated.kind !== 'audio') ||
+    typeof generated.contentType !== 'string' ||
+    !generated.data
+  ) {
+    throw new Error('The media provider returned an invalid binary result.');
+  }
+
+  const artifacts = createArtifactStore(bindings);
+  if (!artifacts) {
+    throw new ArtifactStoreUnavailableError();
+  }
+
+  const reference = await artifacts.put(`user:${tenantId}`, {
+    kind: generated.kind,
+    contentType: generated.contentType,
+    body: generated.data,
+    metadata: {
+      providerId: output.providerId,
+      modelId: output.modelId,
+      capability: request.capability,
+    },
+  });
+
+  const content: MediaGenerationOutput = {
+    artifacts: [reference],
+  };
+
+  return {
+    ...output,
+    content,
+    artifacts: [reference.id],
+  };
 }
 
 async function executeKnowledgeIngestion(
@@ -114,7 +182,7 @@ async function executeKnowledgeIngestion(
   request: OrchestrationRequest,
 ): Promise<OrchestrationOutput> {
   const tenantId = requireTenantId(request);
-  const vectorStore = createVectorStore(bindings);
+  const vectorStore = await createVectorStore(bindings);
 
   if (!vectorStore) {
     throw new VectorStoreUnavailableError();
@@ -180,7 +248,7 @@ async function executeRetrieval(
   request: OrchestrationRequest,
 ): Promise<OrchestrationOutput> {
   const tenantId = requireTenantId(request);
-  const vectorStore = createVectorStore(bindings);
+  const vectorStore = await createVectorStore(bindings);
 
   if (!vectorStore) {
     throw new VectorStoreUnavailableError();
