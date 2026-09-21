@@ -66,10 +66,30 @@ describe('QdrantVectorStore', () => {
   it('does not recreate an existing shared collection', async () => {
     const fetchImplementation = vi.fn(
       async (_input: RequestInfo | URL, _init?: RequestInit) =>
-        new Response(JSON.stringify({ result: { status: 'green' } }), {
-          status: 200,
-          headers: { 'content-type': 'application/json' },
-        }),
+        new Response(
+          JSON.stringify({
+            result: {
+              status: 'green',
+              config: {
+                params: {
+                  vectors: {
+                    size: 768,
+                    distance: 'Cosine',
+                  },
+                },
+              },
+              payload_schema: {
+                namespace: {
+                  data_type: 'keyword',
+                },
+              },
+            },
+          }),
+          {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          },
+        ),
     );
 
     const store = new QdrantVectorStore({
@@ -83,6 +103,95 @@ describe('QdrantVectorStore', () => {
 
     expect(fetchImplementation).toHaveBeenCalledTimes(1);
     expect(fetchImplementation.mock.calls[0]?.[1]?.method).toBe('GET');
+  });
+
+  it('rejects an incompatible existing collection before writing vectors', async () => {
+    const fetchImplementation = vi.fn(
+      async (_input: RequestInfo | URL, _init?: RequestInit) =>
+        new Response(
+          JSON.stringify({
+            result: {
+              config: {
+                params: {
+                  vectors: {
+                    size: 768,
+                    distance: 'Cosine',
+                  },
+                },
+              },
+              payload_schema: {
+                namespace: {
+                  data_type: 'keyword',
+                },
+              },
+            },
+          }),
+          {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          },
+        ),
+    );
+
+    const store = new QdrantVectorStore({
+      baseUrl: 'https://qdrant.example.test',
+      fetchImplementation,
+    });
+
+    await expect(
+      store.ensureIndex('tenant-a', {
+        dimensions: 1536,
+        distance: 'cosine',
+      }),
+    ).rejects.toThrow('uses 768 dimensions');
+
+    expect(fetchImplementation).toHaveBeenCalledTimes(1);
+  });
+
+  it('repairs a missing tenant payload index on an existing collection', async () => {
+    const fetchImplementation = vi
+      .fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            result: {
+              config: {
+                params: {
+                  vectors: {
+                    size: 768,
+                    distance: 'Cosine',
+                  },
+                },
+              },
+              payload_schema: {},
+            },
+          }),
+          {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ status: 'ok' }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+      );
+
+    const store = new QdrantVectorStore({
+      baseUrl: 'https://qdrant.example.test',
+      fetchImplementation,
+    });
+
+    await store.ensureIndex('tenant-a', {
+      dimensions: 768,
+    });
+
+    expect(fetchImplementation).toHaveBeenCalledTimes(2);
+    expect(fetchImplementation.mock.calls[1]?.[0]).toBe(
+      'https://qdrant.example.test/collections/aerealith-knowledge/index?wait=true',
+    );
   });
 
   it('enforces namespace filtering for vector queries', async () => {
