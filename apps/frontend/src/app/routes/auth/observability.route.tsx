@@ -1,6 +1,7 @@
 import { FiActivity, FiCheckCircle, FiEye, FiShield, FiZap } from 'react-icons/fi';
 
 import { useConsent } from '../../../consent/consent-context';
+import { useFeatureFlags } from '../../../features/flags/feature-flags';
 import {
   isBrowserObservabilityActive,
   isBrowserObservabilityConfigured,
@@ -8,7 +9,10 @@ import {
 
 export function ObservabilityRoute() {
   const consent = useConsent();
+  const featureFlags = useFeatureFlags();
   const configured = isBrowserObservabilityConfigured();
+  const enabledFlagCount = Object.values(featureFlags).filter(Boolean).length;
+  const totalFlagCount = Object.keys(featureFlags).length;
   const active = isBrowserObservabilityActive();
   const analyticsAllowed = consent.hasDecision && consent.preferences.analytics;
 
@@ -73,6 +77,45 @@ export function ObservabilityRoute() {
           detail="Telemetry session ends with the browser session"
         />
       </div>
+
+      <section className="rounded-[24px] border border-[var(--ae-border)] bg-[var(--ae-surface)] p-5 shadow-[var(--ae-shadow-sm)] sm:p-6">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--ae-primary)]">
+              Release controls
+            </p>
+            <h2 className="mt-1 text-xl font-semibold">Feature rollout status</h2>
+            <p className="mt-1 text-sm text-[var(--ae-foreground-muted)]">
+              {enabledFlagCount} of {totalFlagCount} frontend feature flags are
+              currently enabled for this evaluation context.
+            </p>
+          </div>
+          <div className="rounded-full border border-[var(--ae-border)] bg-[var(--ae-background-elevated)] px-3 py-2 text-xs font-semibold text-[var(--ae-foreground-muted)]">
+            Context-aware Flagship evaluation
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {Object.entries(featureFlags).map(([key, enabled]) => (
+            <div
+              key={key}
+              className="flex min-h-11 items-center gap-3 rounded-xl border border-[var(--ae-border)] bg-[var(--ae-background-elevated)] px-3 py-2"
+            >
+              <span
+                aria-hidden="true"
+                className={[
+                  'h-2.5 w-2.5 shrink-0 rounded-full',
+                  enabled ? 'bg-emerald-400' : 'bg-[var(--ae-foreground-muted)]',
+                ].join(' ')}
+              />
+              <code className="min-w-0 flex-1 truncate text-[11px]">{key}</code>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--ae-foreground-muted)]">
+                {enabled ? 'On' : 'Off'}
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
         <section className="rounded-[24px] border border-[var(--ae-border)] bg-[var(--ae-surface)] p-5 shadow-[var(--ae-shadow-sm)] sm:p-6">
