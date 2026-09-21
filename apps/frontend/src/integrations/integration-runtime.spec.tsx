@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   initializeDatadogRum: vi.fn<() => Promise<boolean>>(),
   loadCloudflareWebAnalytics: vi.fn(),
   loadGoogleTagManager: vi.fn(),
+  observabilityEnabled: true,
   preferences: { analytics: false, sessionReplay: false },
   reportGlobalError: vi.fn(),
   setDatadogSessionReplayAllowed: vi.fn(),
@@ -23,6 +24,9 @@ vi.mock('../analytics/google-tag-manager', () => ({
 vi.mock('../consent/consent-context', () => ({
   useConsent: () => ({ preferences: mocks.preferences }),
 }));
+vi.mock('../features/flags/feature-flags', () => ({
+  useFeatureFlag: () => mocks.observabilityEnabled,
+}));
 vi.mock('../observability/datadog-rum', () => ({
   initializeDatadogRum: mocks.initializeDatadogRum,
   reportGlobalError: mocks.reportGlobalError,
@@ -34,6 +38,7 @@ describe('IntegrationRuntime', () => {
   beforeEach(() => {
     mocks.preferences.analytics = false;
     mocks.preferences.sessionReplay = false;
+    mocks.observabilityEnabled = true;
     mocks.config.datadog.enabled = true;
     mocks.initializeDatadogRum.mockReset().mockResolvedValue(true);
     mocks.loadCloudflareWebAnalytics.mockReset();
@@ -108,6 +113,23 @@ describe('IntegrationRuntime', () => {
       'unhandledrejection',
       expect.any(Function),
     );
+  });
+
+  it('keeps Datadog disabled when the observability rollout is off', () => {
+    mocks.preferences.analytics = true;
+    mocks.preferences.sessionReplay = true;
+    mocks.observabilityEnabled = false;
+    const addEventListener = vi.spyOn(window, 'addEventListener');
+
+    render(<IntegrationRuntime />);
+
+    expect(mocks.loadGoogleTagManager).toHaveBeenCalled();
+    expect(mocks.loadCloudflareWebAnalytics).toHaveBeenCalled();
+    expect(mocks.initializeDatadogRum).not.toHaveBeenCalled();
+    expect(mocks.setDatadogSessionReplayAllowed).toHaveBeenCalledWith(false);
+    expect(
+      addEventListener.mock.calls.some(([event]) => event === 'error'),
+    ).toBe(false);
   });
 
   it('does not register global handlers when Datadog is disabled', () => {
