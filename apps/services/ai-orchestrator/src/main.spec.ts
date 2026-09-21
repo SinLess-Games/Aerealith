@@ -63,6 +63,15 @@ function createRunStateNamespace() {
           records.set(runId, run);
           return run;
         },
+        async createRunIfAbsent(run) {
+          const existing = records.get(runId);
+          if (existing) {
+            return { run: existing, created: false };
+          }
+
+          records.set(runId, run);
+          return { run, created: true };
+        },
         async getRun() {
           return records.get(runId);
         },
@@ -217,6 +226,9 @@ function createUsageNamespace(options?: {
           return { ...state };
         },
       };
+    },
+    getState() {
+      return { ...state };
     },
   };
 }
@@ -612,6 +624,100 @@ describe('AI orchestrator service', () => {
     expect(secondBody.data.id).toBe(firstBody.data.id);
     expect(records).toHaveProperty('size', 1);
     expect(create).toHaveBeenCalledTimes(1);
+  });
+
+  it('releases the losing quota reservation during concurrent idempotent submission', async () => {
+    const create = vi.fn(
+      async (_options: { id?: string; params: WorkflowRunParams }) =>
+        undefined,
+    );
+    const { namespace, records } = createRunStateNamespace();
+    const { namespace: runIndex } = createRunIndexNamespace();
+    const baseUsage = createUsageNamespace();
+    let consumeCount = 0;
+    let releaseBarrier: (() => void) | undefined;
+    const barrier = new Promise<void>((resolve) => {
+      releaseBarrier = resolve;
+    });
+    const usage = {
+      ...baseUsage,
+      get(id: unknown) {
+        const stub = baseUsage.get(id);
+
+        return {
+          ...stub,
+          async consumeRun(
+            dailyRunLimit: number,
+            dailyCostBudgetUsd: number,
+          ) {
+            const decision = await stub.consumeRun(
+              dailyRunLimit,
+              dailyCostBudgetUsd,
+            );
+            consumeCount += 1;
+
+            if (consumeCount === 2) {
+              releaseBarrier?.();
+            } else {
+              await barrier;
+            }
+
+            return decision;
+          },
+        };
+      },
+    };
+    const env = {
+      ENVIRONMENT: 'production',
+      AUTH_WORKER: createAuthWorker(),
+      AI_ORCHESTRATION_WORKFLOW: { create },
+      AI_RUN_STATE: namespace,
+      AI_RUN_INDEX: runIndex,
+      AI_RATE_LIMIT: createRateLimitNamespace(),
+      AI_USAGE: usage,
+      AI_PROVIDER_CATALOG: JSON.stringify([
+        {
+          id: 'primary',
+          kind: 'openai-compatible',
+          baseUrl: 'https://models.example.test/v1',
+          models: [
+            {
+              id: 'chat-model',
+              capabilities: ['text'],
+            },
+          ],
+        },
+      ]),
+    };
+    const request = {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'idempotency-key': 'concurrent-submit',
+      },
+      body: JSON.stringify({
+        capability: 'text',
+        input: {
+          messages: [{ role: 'user', content: 'hello concurrently' }],
+        },
+      }),
+    } satisfies RequestInit;
+
+    const [first, second] = await Promise.all([
+      app.request('http://localhost/api/V1/ai/runs', request, env),
+      app.request('http://localhost/api/V1/ai/runs', request, env),
+    ]);
+
+    expect(first.status).toBe(202);
+    expect(second.status).toBe(202);
+
+    const firstBody = (await first.json()) as { data: RunRecord };
+    const secondBody = (await second.json()) as { data: RunRecord };
+
+    expect(firstBody.data.id).toBe(secondBody.data.id);
+    expect(records).toHaveProperty('size', 1);
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(baseUsage.getState().runs).toBe(1);
   });
 
   it('returns conflict when an Idempotency-Key is reused for another request', async () => {
