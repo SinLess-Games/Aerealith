@@ -14,6 +14,25 @@ export type AiCapabilityStatus = {
   executable: readonly CapabilityKind[];
 };
 
+export type AiProviderStatus = {
+  configuredProviders: number;
+  totalProviders: number;
+  capabilities: readonly CapabilityKind[];
+  providers: readonly {
+    id: string;
+    kind: 'cloudflare-workers-ai' | 'openai-compatible';
+    configured: boolean;
+    modelCount: number;
+    capabilities: readonly CapabilityKind[];
+  }[];
+};
+
+export type AiVectorStoreStatus = {
+  provider: 'qdrant';
+  configured: boolean;
+  collection: string;
+};
+
 export type AiModelSummary = {
   id: string;
   providerId: string;
@@ -144,8 +163,12 @@ export class AiApiClient {
     return this.getJson('/api/V1/ai/capabilities');
   }
 
-  providers(): Promise<unknown> {
+  providers(): Promise<AiProviderStatus> {
     return this.getJson('/api/V1/ai/providers');
+  }
+
+  vectorStore(): Promise<AiVectorStoreStatus> {
+    return this.getJson('/api/V1/ai/vector-store');
   }
 
   models(): Promise<readonly AiModelSummary[]> {
