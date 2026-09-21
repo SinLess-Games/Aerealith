@@ -123,7 +123,7 @@ describe('AI orchestrator service', () => {
           },
         ]),
         PRIMARY_MODEL_API_KEY: 'provider-secret',
-      } as never,
+      },
     );
 
     expect(response.status).toBe(200);
