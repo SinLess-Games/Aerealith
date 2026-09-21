@@ -10,12 +10,18 @@ import type {
   OrchestrationSubmissionOptions,
 } from './orchestrator';
 
+type AtomicRunStore = RunStore & {
+  createIfAbsent(
+    run: RunRecord,
+  ): Promise<{ run: RunRecord; created: boolean }>;
+};
+
 export class CloudflareWorkflowOrchestrationEngine
   implements OrchestrationEngine
 {
   constructor(
     private readonly workflow: WorkflowBinding<WorkflowRunParams>,
-    private readonly runs?: RunStore,
+    private readonly runs?: AtomicRunStore,
   ) {}
 
   async submit(
@@ -37,7 +43,13 @@ export class CloudflareWorkflowOrchestrationEngine
       updatedAt: timestamp,
     };
 
-    await this.runs?.create(run);
+    const claim = this.runs
+      ? await this.runs.createIfAbsent(run)
+      : { run, created: true };
+
+    if (!claim.created) {
+      return claim.run;
+    }
 
     try {
       await this.workflow.create({
@@ -56,6 +68,6 @@ export class CloudflareWorkflowOrchestrationEngine
       throw error;
     }
 
-    return run;
+    return claim.run;
   }
 }
