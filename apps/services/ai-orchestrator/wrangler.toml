@@ -30,6 +30,8 @@ ENVIRONMENT = "production"
 AI_PROVIDER_CATALOG = "[]"
 AI_RUNS_PER_MINUTE = "60"
 AI_RATE_LIMIT_WINDOW_MS = "60000"
+AI_DAILY_RUN_LIMIT = "0"
+AI_DAILY_COST_BUDGET_USD = "0"
 
 QDRANT_URL = "https://6f069294-5f27-4777-9c34-128b132ab175.australia-southeast1-0.gcp.cloud.qdrant.io"
 QDRANT_COLLECTION = "aerealith-knowledge-v1"
@@ -68,6 +70,10 @@ class_name = "AiRunIndex"
 name = "AI_RATE_LIMIT"
 class_name = "AiRateLimit"
 
+[[durable_objects.bindings]]
+name = "AI_USAGE"
+class_name = "AiUsageLedger"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["AiRunState"]
@@ -79,6 +85,10 @@ new_sqlite_classes = ["AiRunIndex"]
 [[migrations]]
 tag = "v3"
 new_sqlite_classes = ["AiRateLimit"]
+
+[[migrations]]
+tag = "v4"
+new_sqlite_classes = ["AiUsageLedger"]
 
 [[services]]
 binding = "AUTH_WORKER"
