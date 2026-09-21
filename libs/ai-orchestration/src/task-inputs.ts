@@ -102,6 +102,19 @@ export type RerankInput = {
   limit?: number;
 };
 
+export type KnowledgeIngestionInput = {
+  namespace: string;
+  documents: readonly {
+    id: string;
+    text: string;
+    metadata?: Record<string, unknown>;
+  }[];
+  chunking?: {
+    maxCharacters?: number;
+    overlapCharacters?: number;
+  };
+};
+
 export type RetrievalInput = {
   namespace: string;
   query: string;
@@ -125,6 +138,7 @@ export type CapabilityInputMap = {
   music: MusicGenerationInput;
   analytics: AnalyticsInput;
   prediction: PredictionInput;
+  'knowledge-ingest': KnowledgeIngestionInput;
   retrieval: RetrievalInput;
   tool: ToolInvocationInput;
 };
