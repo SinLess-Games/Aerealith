@@ -4,18 +4,23 @@ import { useEffect } from 'react';
 import { loadCloudflareWebAnalytics } from '../analytics/cloudflare-web-analytics';
 import { loadGoogleTagManager } from '../analytics/google-tag-manager';
 import { useConsent } from '../consent/consent-context';
-import { useFeatureFlag } from '../features/flags/feature-flags';
+import {
+  useFeatureFlag,
+  useFeatureFlags,
+} from '../features/flags/feature-flags';
 import {
   initializeDatadogRum,
   reportGlobalError,
   setDatadogSessionReplayAllowed,
   setDatadogTrackingAllowed,
+  trackDatadogFeatureFlag,
 } from '../observability/datadog-rum';
 import { integrationConfig } from './integration-config';
 
 export function IntegrationRuntime() {
   const { preferences } = useConsent();
   const observabilityEnabled = useFeatureFlag(FeatureFlag.Observability);
+  const featureFlags = useFeatureFlags();
 
   useEffect(() => {
     if (!preferences.analytics) return;
@@ -36,6 +41,9 @@ export function IntegrationRuntime() {
 
       setDatadogTrackingAllowed(true);
       setDatadogSessionReplayAllowed(preferences.sessionReplay);
+      for (const [key, value] of Object.entries(featureFlags)) {
+        trackDatadogFeatureFlag(key, value);
+      }
     });
 
     return () => {
@@ -43,6 +51,7 @@ export function IntegrationRuntime() {
     };
   }, [
     observabilityEnabled,
+    featureFlags,
     preferences.analytics,
     preferences.sessionReplay,
   ]);
