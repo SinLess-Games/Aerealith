@@ -840,6 +840,96 @@ describe('AI orchestrator service', () => {
     expect(JSON.stringify(body)).not.toContain('user-999');
   });
 
+  it('deletes one knowledge document without deleting its knowledge base', async () => {
+    const knowledgeBaseId = '5d9dd628-c0a3-4fb7-a03d-2a345278ebd5';
+    const knowledgeBase = {
+      id: knowledgeBaseId,
+      tenantId: 'user-123',
+      name: 'Docs',
+      createdAt: '2026-09-21T00:00:00.000Z',
+      updatedAt: '2026-09-21T00:01:00.000Z',
+      documents: [
+        {
+          id: 'doc-1',
+          createdAt: '2026-09-21T00:01:00.000Z',
+        },
+        {
+          id: 'doc-2',
+          createdAt: '2026-09-21T00:01:00.000Z',
+        },
+      ],
+    };
+    const deleteDocument = vi.fn(async () => true);
+    const catalogStub = {
+      createKnowledgeBase: vi.fn(),
+      getKnowledgeBase: vi.fn(async () => knowledgeBase),
+      listKnowledgeBases: vi.fn(async () => []),
+      recordDocuments: vi.fn(),
+      deleteDocument,
+      deleteKnowledgeBase: vi.fn(async () => true),
+    };
+    const fetchImplementation = vi.fn(
+      async (_input: RequestInfo | URL, init?: RequestInit) => {
+        const body = JSON.parse(String(init?.body)) as {
+          filter: {
+            must: Array<{
+              key: string;
+              match: { value: string };
+            }>;
+          };
+        };
+
+        expect(body.filter.must).toEqual([
+          {
+            key: 'namespace',
+            match: {
+              value:
+                `user:user-123:knowledge:${knowledgeBaseId}`,
+            },
+          },
+          {
+            key: 'metadata.documentId',
+            match: { value: 'doc-1' },
+          },
+        ]);
+
+        return Response.json({ status: 'ok' });
+      },
+    );
+    vi.stubGlobal('fetch', fetchImplementation);
+
+    try {
+      const response = await app.request(
+        `http://localhost/api/V1/ai/knowledge-bases/${knowledgeBaseId}/documents/doc-1`,
+        { method: 'DELETE' },
+        {
+          AUTH_WORKER: createAuthWorker('user-123'),
+          AI_KNOWLEDGE_CATALOG: {
+            idFromName(name: string) {
+              return name;
+            },
+            get() {
+              return catalogStub;
+            },
+          },
+          QDRANT_URL: 'https://qdrant.example.test',
+          QDRANT_API_KEY: 'secret',
+          QDRANT_COLLECTION: 'aerealith-test-knowledge',
+        },
+      );
+
+      expect(response.status).toBe(204);
+      expect(fetchImplementation).toHaveBeenCalledTimes(1);
+      expect(deleteDocument).toHaveBeenCalledWith(
+        knowledgeBaseId,
+        'doc-1',
+      );
+      expect(catalogStub.deleteKnowledgeBase).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('returns durable run status by run id', async () => {
     const { namespace, records } = createRunStateNamespace();
     const run: RunRecord = {
