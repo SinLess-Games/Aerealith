@@ -350,6 +350,77 @@ describe('QdrantVectorStore', () => {
     });
   });
 
+  it('replaces filtered points with an ordered Qdrant batch', async () => {
+    const fetchImplementation = vi.fn(
+      async (_input: RequestInfo | URL, _init?: RequestInit) =>
+        Response.json({ status: 'ok', result: [] }),
+    );
+    const store = new QdrantVectorStore({
+      baseUrl: 'https://qdrant.example.test',
+      fetchImplementation,
+    });
+
+    await store.replaceByFilter(
+      'tenant-a',
+      {
+        must: [
+          {
+            key: 'metadata.documentId',
+            match: { value: 'doc-1' },
+          },
+        ],
+      },
+      [
+        {
+          id: 'doc-1:0',
+          vector: [0.1, 0.2],
+          text: 'replacement',
+          metadata: { documentId: 'doc-1' },
+        },
+      ],
+    );
+
+    const [url, init] = fetchImplementation.mock.calls[0] ?? [];
+    expect(url).toBe(
+      'https://qdrant.example.test/collections/aerealith-knowledge/points/batch?wait=true&ordering=strong',
+    );
+
+    const body = JSON.parse(String(init?.body)) as {
+      operations: Array<Record<string, unknown>>;
+    };
+    expect(body.operations).toHaveLength(2);
+    expect(body.operations[0]).toEqual({
+      delete: {
+        filter: {
+          must: [
+            {
+              key: 'namespace',
+              match: { value: 'tenant-a' },
+            },
+            {
+              key: 'metadata.documentId',
+              match: { value: 'doc-1' },
+            },
+          ],
+        },
+      },
+    });
+    expect(body.operations[1]).toMatchObject({
+      upsert: {
+        points: [
+          {
+            payload: {
+              namespace: 'tenant-a',
+              record_id: 'doc-1:0',
+              text: 'replacement',
+              metadata: { documentId: 'doc-1' },
+            },
+          },
+        ],
+      },
+    });
+  });
+
   it('deletes filtered points without crossing namespace boundaries', async () => {
     const fetchImplementation = vi.fn(
       async (_input: RequestInfo | URL, _init?: RequestInit) =>
