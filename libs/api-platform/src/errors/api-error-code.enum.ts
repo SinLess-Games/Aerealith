@@ -4,6 +4,7 @@ export const ApiErrorCode = {
   Forbidden: 'FORBIDDEN',
   NotFound: 'NOT_FOUND',
   ValidationFailed: 'VALIDATION_FAILED',
+  RateLimited: 'RATE_LIMITED',
   InternalError: 'INTERNAL_ERROR',
 } as const;
 
