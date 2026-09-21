@@ -1,4 +1,7 @@
-import { capabilityKinds } from '@aerealith-ai/ai-orchestration';
+import {
+  capabilityKinds,
+  type CodeGenerationInput,
+} from '@aerealith-ai/ai-orchestration';
 import {
   ApiError,
   ApiErrorCode,
@@ -541,7 +544,7 @@ app.post('/api/V1/ai/runs', async (c) => {
   if (
     parsed.data.capability === 'code' &&
     codeRequestNeedsSandbox(
-      parsed.data.input as import('@aerealith-ai/ai-orchestration').CodeGenerationInput,
+      parsed.data.input as CodeGenerationInput,
     ) &&
     !c.env.AI_CODE_SANDBOX
   ) {
