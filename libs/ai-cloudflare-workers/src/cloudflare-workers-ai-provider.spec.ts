@@ -222,6 +222,46 @@ describe('CloudflareWorkersAiProvider', () => {
     );
   });
 
+  it('rejects media inputs beyond the selected Cloudflare model limits', async () => {
+    const run = vi.fn();
+    const provider = new CloudflareWorkersAiProvider({ run });
+
+    await expect(
+      provider.execute(
+        {
+          capability: 'image',
+          input: { prompt: 'x'.repeat(2_049) },
+        },
+        model(CloudflareWorkersAiModels.image),
+      ),
+    ).rejects.toThrow('2,048 characters');
+
+    await expect(
+      provider.execute(
+        {
+          capability: 'video',
+          input: { prompt: 'x'.repeat(2_001) },
+        },
+        model(CloudflareWorkersAiModels.video),
+      ),
+    ).rejects.toThrow('2,000 characters');
+
+    await expect(
+      provider.execute(
+        {
+          capability: 'music',
+          input: {
+            prompt: 'song',
+            lyrics: 'x'.repeat(3_501),
+          },
+        },
+        model(CloudflareWorkersAiModels.music),
+      ),
+    ).rejects.toThrow('3,500 characters');
+
+    expect(run).not.toHaveBeenCalled();
+  });
+
   it('returns TTS streams for the artifact runtime to persist', async () => {
     const stream = new ReadableStream<Uint8Array>({
       start(controller) {
