@@ -1128,12 +1128,6 @@ async function submitDurableRun(
     const submission = await engine.submit(request, submissionOptions);
 
     if (!submission.created) {
-      if (usageReserved && bindings.AI_USAGE) {
-        await new AiUsageStore(bindings.AI_USAGE)
-          .releaseRun(principal.id)
-          .catch(() => undefined);
-      }
-
       if (
         submissionOptions?.requestFingerprint &&
         submission.run.requestFingerprint !==
@@ -1146,6 +1140,12 @@ async function submitDurableRun(
             status: HttpStatus.Conflict,
           },
         );
+      }
+
+      if (usageReserved && bindings.AI_USAGE) {
+        await new AiUsageStore(bindings.AI_USAGE)
+          .releaseRun(principal.id)
+          .catch(() => undefined);
       }
     }
 
