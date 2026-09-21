@@ -105,6 +105,10 @@ describe('Datadog RUM integration', () => {
 
     await initializeDatadogRum();
     setDatadogSessionReplayAllowed(true);
+    expect(mocks.rum.startSessionReplayRecording).not.toHaveBeenCalled();
+
+    setDatadogTrackingAllowed(true);
+    setDatadogSessionReplayAllowed(true);
     setDatadogSessionReplayAllowed(true);
     expect(mocks.rum.startSessionReplayRecording).toHaveBeenCalledTimes(1);
 
