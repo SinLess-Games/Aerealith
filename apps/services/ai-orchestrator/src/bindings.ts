@@ -24,7 +24,7 @@ export type AiOrchestratorBindings = {
   QDRANT_API_KEY?: string;
 
   /**
-   * Prefix applied to Qdrant collections created/used by Aerealith.
+   * Shared Qdrant collection used for Aerealith knowledge vectors.
    */
-  QDRANT_COLLECTION_PREFIX?: string;
+  QDRANT_COLLECTION?: string;
 };
