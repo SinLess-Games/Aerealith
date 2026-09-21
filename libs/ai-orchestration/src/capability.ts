@@ -1,6 +1,8 @@
 export const capabilityKinds = [
   'text',
   'code',
+  'embedding',
+  'rerank',
   'image',
   'audio',
   'video',
