@@ -74,6 +74,45 @@ export interface RateLimitNamespace {
   };
 }
 
+export interface UsageLedgerNamespace {
+  idFromName(name: string): unknown;
+  get(id: unknown): {
+    consumeRun(
+      dailyRunLimit: number,
+      dailyCostBudgetUsd: number,
+    ): Promise<{
+      allowed: boolean;
+      reason?: 'DAILY_RUN_LIMIT' | 'DAILY_COST_BUDGET';
+      usage: {
+        day: string;
+        runs: number;
+        inputUnits: number;
+        outputUnits: number;
+        totalUnits: number;
+        estimatedCostUsd: number;
+      };
+    }>;
+    recordUsage(
+      usage?: import('@aerealith-ai/ai-orchestration').Usage,
+    ): Promise<{
+      day: string;
+      runs: number;
+      inputUnits: number;
+      outputUnits: number;
+      totalUnits: number;
+      estimatedCostUsd: number;
+    }>;
+    getUsage(): Promise<{
+      day: string;
+      runs: number;
+      inputUnits: number;
+      outputUnits: number;
+      totalUnits: number;
+      estimatedCostUsd: number;
+    }>;
+  };
+}
+
 export type AiOrchestratorBindings = {
   [binding: string]: unknown;
 
@@ -85,6 +124,7 @@ export type AiOrchestratorBindings = {
   AI_RUN_STATE?: RunStateNamespace;
   AI_RUN_INDEX?: RunIndexNamespace;
   AI_RATE_LIMIT?: RateLimitNamespace;
+  AI_USAGE?: UsageLedgerNamespace;
   AI_ARTIFACTS?: R2Bucket;
 
   /**
@@ -94,6 +134,8 @@ export type AiOrchestratorBindings = {
   AI_PROVIDER_CATALOG?: string;
   AI_RUNS_PER_MINUTE?: string;
   AI_RATE_LIMIT_WINDOW_MS?: string;
+  AI_DAILY_RUN_LIMIT?: string;
+  AI_DAILY_COST_BUDGET_USD?: string;
 
   /**
    * Qdrant Cloud cluster endpoint. The URL itself is not a secret.
