@@ -720,6 +720,105 @@ describe('AI orchestrator service', () => {
     expect(baseUsage.getState().runs).toBe(1);
   });
 
+  it('rejects a conflicting payload that races on the same Idempotency-Key', async () => {
+    const create = vi.fn(
+      async (_options: { id?: string; params: WorkflowRunParams }) =>
+        undefined,
+    );
+    const { namespace, records } = createRunStateNamespace();
+    const { namespace: runIndex } = createRunIndexNamespace();
+    const baseUsage = createUsageNamespace();
+    let consumeCount = 0;
+    let releaseBarrier: (() => void) | undefined;
+    const barrier = new Promise<void>((resolve) => {
+      releaseBarrier = resolve;
+    });
+    const usage = {
+      ...baseUsage,
+      get(id: unknown) {
+        const stub = baseUsage.get(id);
+
+        return {
+          ...stub,
+          async consumeRun(
+            dailyRunLimit: number,
+            dailyCostBudgetUsd: number,
+          ) {
+            const decision = await stub.consumeRun(
+              dailyRunLimit,
+              dailyCostBudgetUsd,
+            );
+            consumeCount += 1;
+
+            if (consumeCount === 2) {
+              releaseBarrier?.();
+            } else {
+              await barrier;
+            }
+
+            return decision;
+          },
+        };
+      },
+    };
+    const env = {
+      ENVIRONMENT: 'production',
+      AUTH_WORKER: createAuthWorker(),
+      AI_ORCHESTRATION_WORKFLOW: { create },
+      AI_RUN_STATE: namespace,
+      AI_RUN_INDEX: runIndex,
+      AI_RATE_LIMIT: createRateLimitNamespace(),
+      AI_USAGE: usage,
+      AI_PROVIDER_CATALOG: JSON.stringify([
+        {
+          id: 'primary',
+          kind: 'openai-compatible',
+          baseUrl: 'https://models.example.test/v1',
+          models: [
+            {
+              id: 'chat-model',
+              capabilities: ['text'],
+            },
+          ],
+        },
+      ]),
+    };
+    const request = (content: string): RequestInit => ({
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'idempotency-key': 'concurrent-conflict',
+      },
+      body: JSON.stringify({
+        capability: 'text',
+        input: {
+          messages: [{ role: 'user', content }],
+        },
+      }),
+    });
+
+    const responses = await Promise.all([
+      app.request(
+        'http://localhost/api/V1/ai/runs',
+        request('first payload'),
+        env,
+      ),
+      app.request(
+        'http://localhost/api/V1/ai/runs',
+        request('different payload'),
+        env,
+      ),
+    ]);
+
+    expect(responses.map((response) => response.status).sort()).toEqual([
+      202,
+      409,
+    ]);
+    expect(records).toHaveProperty('size', 1);
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(baseUsage.getState().runs).toBe(1);
+  });
+
   it('returns conflict when an Idempotency-Key is reused for another request', async () => {
     const create = vi.fn(
       async (_options: { id?: string; params: WorkflowRunParams }) => undefined,
