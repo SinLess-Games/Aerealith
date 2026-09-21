@@ -1,3 +1,4 @@
+export * from './text-chunker';
 export * from './knowledge-service';
 export * from './knowledge';
 export * from './code-sandbox';
