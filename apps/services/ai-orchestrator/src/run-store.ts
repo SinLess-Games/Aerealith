@@ -18,8 +18,31 @@ export class DurableObjectRunStore implements RunStore {
   ) {}
 
   async create(run: RunRecord): Promise<void> {
-    await this.stub(run.id).createRun(run);
-    await this.index?.upsert(run);
+    await this.createIfAbsent(run);
+  }
+
+  async createIfAbsent(
+    run: RunRecord,
+  ): Promise<{ run: RunRecord; created: boolean }> {
+    const stub = this.stub(run.id);
+
+    if (stub.createRunIfAbsent) {
+      const result = await stub.createRunIfAbsent(run);
+      await this.index?.upsert(result.run);
+      return result;
+    }
+
+    // Compatibility fallback for local/test stubs. Production AiRunState
+    // exposes createRunIfAbsent and performs the claim atomically in one DO.
+    const existing = await stub.getRun();
+    if (existing) {
+      await this.index?.upsert(existing);
+      return { run: existing, created: false };
+    }
+
+    const created = await stub.createRun(run);
+    await this.index?.upsert(created);
+    return { run: created, created: true };
   }
 
   get(runId: string): Promise<RunRecord | undefined> {
