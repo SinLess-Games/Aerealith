@@ -6,6 +6,8 @@ import {
   FiXCircle,
 } from 'react-icons/fi';
 
+import { recordBrowserEvent } from '../../lib/browser-observability';
+
 import { aiApi } from './ai-client';
 
 export function AiRunsPanel() {
@@ -22,6 +24,30 @@ export function AiRunsPanel() {
   const failedCount = runs.filter(
     (run) => run.status === 'failed' || run.status === 'cancelled',
   ).length;
+
+  async function cancelRun(run: Omit<RunRecord, 'output'>) {
+    recordBrowserEvent(
+      'ai_run_cancel_requested',
+      { capability: run.capability },
+      'ai',
+    );
+
+    try {
+      await aiApi.cancelRun(run.id);
+      recordBrowserEvent(
+        'ai_run_cancel_completed',
+        { capability: run.capability },
+        'ai',
+      );
+      await runsQuery.refetch();
+    } catch {
+      recordBrowserEvent(
+        'ai_run_cancel_failed',
+        { capability: run.capability },
+        'ai',
+      );
+    }
+  }
 
   return (
     <section className="relative overflow-hidden rounded-[28px] border border-[var(--ae-border)] bg-[var(--ae-surface)] p-5 shadow-[var(--ae-shadow-sm)] sm:p-6">
@@ -88,7 +114,13 @@ export function AiRunsPanel() {
             No AI runs yet.
           </p>
         ) : (
-          runs.map((run) => <RunRow key={run.id} run={run} />)
+          runs.map((run) => (
+            <RunRow
+              key={run.id}
+              run={run}
+              onCancel={() => void cancelRun(run)}
+            />
+          ))
         )}
       </div>
     </section>
@@ -97,8 +129,10 @@ export function AiRunsPanel() {
 
 function RunRow({
   run,
+  onCancel,
 }: {
   run: Omit<RunRecord, 'output'>;
+  onCancel: () => void;
 }) {
   return (
     <article className="grid gap-3 border-b border-[var(--ae-border)] bg-[var(--ae-surface)] px-4 py-4 transition-colors last:border-b-0 hover:bg-[var(--ae-background-elevated)] md:grid-cols-[110px_120px_minmax(0,1fr)_180px_150px] md:items-center md:gap-4">
@@ -151,7 +185,7 @@ function RunRow({
             aria-label={'Cancel run ' + run.id}
             title="Cancel run"
             className="ml-auto rounded-lg p-2 text-[var(--ae-danger)] hover:bg-[var(--ae-danger-subtle)]"
-            onClick={() => void aiApi.cancelRun(run.id)}
+            onClick={onCancel}
           >
             <FiXCircle aria-hidden="true" />
           </button>
