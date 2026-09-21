@@ -2,12 +2,14 @@ import { QdrantVectorStore } from '@aerealith-ai/ai-qdrant';
 
 import type { AiOrchestratorBindings } from './bindings';
 
+const DEFAULT_COLLECTION = 'aerealith-knowledge';
+
 export type VectorStoreRuntimeStatus = {
   provider: 'qdrant';
   configured: boolean;
   endpointConfigured: boolean;
   credentialsConfigured: boolean;
-  collectionPrefix: string;
+  collection: string;
 };
 
 export function createVectorStore(bindings: AiOrchestratorBindings) {
@@ -21,7 +23,7 @@ export function createVectorStore(bindings: AiOrchestratorBindings) {
   return new QdrantVectorStore({
     baseUrl,
     apiKey,
-    collectionPrefix: resolveCollectionPrefix(bindings),
+    collectionName: resolveCollection(bindings),
   });
 }
 
@@ -36,10 +38,10 @@ export function vectorStoreStatus(
     configured: endpointConfigured && credentialsConfigured,
     endpointConfigured,
     credentialsConfigured,
-    collectionPrefix: resolveCollectionPrefix(bindings),
+    collection: resolveCollection(bindings),
   };
 }
 
-function resolveCollectionPrefix(bindings: AiOrchestratorBindings): string {
-  return bindings.QDRANT_COLLECTION_PREFIX?.trim() || 'aerealith-';
+function resolveCollection(bindings: AiOrchestratorBindings): string {
+  return bindings.QDRANT_COLLECTION?.trim() || DEFAULT_COLLECTION;
 }
