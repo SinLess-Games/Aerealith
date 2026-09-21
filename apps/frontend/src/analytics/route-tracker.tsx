@@ -40,11 +40,7 @@ export function RouteTracker() {
       page_path: path,
       page_title: document.title,
     });
-  }, [
-    location.pathname,
-    location.search,
-    preferences.analytics,
-  ]);
+  }, [location.pathname, location.search, preferences.analytics]);
 
   return null;
 }
