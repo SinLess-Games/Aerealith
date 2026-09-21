@@ -18,6 +18,7 @@ import {
   type OrchestrationEngine,
 } from './orchestrator';
 import { providerRuntimeStatus } from './provider-runtime';
+import { orchestrationRequestSchema } from './request-schema';
 import { createRunStore } from './run-store';
 import { vectorStoreStatus } from './vector-store';
 
@@ -39,28 +40,6 @@ const app = createApiApp<AiOrchestratorEnv>({
 });
 
 const runIdSchema = z.uuid();
-
-const metadataSchema = z
-  .record(z.string().max(64), z.string().max(512))
-  .refine((value) => Object.keys(value).length <= 32, {
-    message: 'metadata may contain at most 32 entries.',
-  });
-
-const requestSchema = z.object({
-  capability: z.enum(capabilityKinds),
-  input: z.unknown(),
-  priority: z.enum(['interactive', 'background', 'batch']).optional(),
-  preferences: z
-    .object({
-      provider: z.string().min(1).max(128).optional(),
-      model: z.string().min(1).max(256).optional(),
-      allowFallback: z.boolean().optional(),
-      maxCostUsd: z.number().nonnegative().finite().optional(),
-      maxLatencyMs: z.number().int().positive().max(3_600_000).optional(),
-    })
-    .optional(),
-  metadata: metadataSchema.optional(),
-});
 
 app.get('/health', (c) =>
   c.json({
@@ -217,7 +196,7 @@ app.post('/api/V1/ai/runs', async (c) => {
     });
   }
 
-  const parsed = requestSchema.safeParse(body);
+  const parsed = orchestrationRequestSchema.safeParse(body);
   if (!parsed.success) {
     throw new ApiError('The orchestration request is invalid.', {
       code: ApiErrorCode.ValidationFailed,
