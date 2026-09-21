@@ -6,6 +6,7 @@ import { useState, type ReactNode } from 'react';
 
 import { ConsentProvider } from '../../consent/consent-context';
 import { FeatureFlagsProvider } from '../../features/flags/feature-flags';
+import { BrowserObservabilityGate } from '../../features/observability/browser-observability-gate';
 
 /**
  * App-wide context providers:
@@ -25,6 +26,7 @@ export function AppProviders({ children }: Readonly<{ children: ReactNode }>) {
     <QueryClientProvider client={queryClient}>
       <ConsentProvider>
         <FeatureFlagsProvider>
+          <BrowserObservabilityGate />
           <ThemeProvider>
             <AccessibilityProvider>{children}</AccessibilityProvider>
           </ThemeProvider>
