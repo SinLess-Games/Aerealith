@@ -42,6 +42,7 @@ import { orchestrationRequestSchema } from './request-schema';
 import { AiRunController } from './run-controller';
 import { createRunEventStream } from './run-events';
 import { createRunIndexStore, createRunStore } from './run-store';
+import { startStreamingTextRun } from './streaming-runtime';
 import { sandboxToolDefinitions } from './tool-runtime';
 import { AiUsageStore } from './usage-ledger';
 import { vectorStoreStatus } from './vector-store';
@@ -474,6 +475,93 @@ app.delete('/api/V1/ai/runs/:runId', async (c) => {
   });
 });
 
+app.post('/api/V1/ai/stream', async (c) => {
+  const principal = await requirePrincipal(c.req.raw, c.env);
+
+  let body: unknown;
+  try {
+    body = await c.req.json();
+  } catch (error) {
+    throw new ApiError('A valid JSON body is required.', {
+      code: ApiErrorCode.BadRequest,
+      status: HttpStatus.BadRequest,
+      cause: error,
+    });
+  }
+
+  const parsed = orchestrationRequestSchema.safeParse(body);
+  if (!parsed.success || parsed.data.capability !== 'text') {
+    throw new ApiError(
+      'Streaming currently accepts text capability requests only.',
+      {
+        code: ApiErrorCode.ValidationFailed,
+        status: HttpStatus.UnprocessableEntity,
+        metadata: {
+          ...(parsed.success
+            ? {}
+            : {
+                issues: parsed.error.issues.map(
+                  ({ code, message, path }) => ({
+                    code,
+                    message,
+                    path,
+                  }),
+                ),
+              }),
+        },
+      },
+    );
+  }
+
+  assertStreamingSubmissionReady(c.env);
+  await enforceRunRateLimit(c.env, principal.id);
+  const usageReserved = await enforceDailyUsageLimits(
+    c.env,
+    principal.id,
+  );
+  const runs = createRunStore(c.env);
+
+  if (!runs) {
+    throw new ApiError('AI run persistence is not configured.', {
+      code: ApiErrorCode.InternalError,
+      status: HttpStatus.ServiceUnavailable,
+    });
+  }
+
+  try {
+    const streaming = await startStreamingTextRun(
+      c.env,
+      {
+        ...parsed.data,
+        tenantId: principal.id,
+        actorId: principal.id,
+      },
+      runs,
+    );
+
+    c.executionCtx.waitUntil(
+      streaming.completion.catch(() => undefined),
+    );
+
+    return new Response(streaming.stream, {
+      status: HttpStatus.Ok,
+      headers: {
+        'content-type': 'text/event-stream; charset=utf-8',
+        'cache-control': 'no-cache, no-transform',
+        'x-ai-run-id': streaming.run.id,
+      },
+    });
+  } catch (error) {
+    if (usageReserved && c.env.AI_USAGE) {
+      await new AiUsageStore(c.env.AI_USAGE)
+        .releaseRun(principal.id)
+        .catch(() => undefined);
+    }
+
+    throw error;
+  }
+});
+
 app.post('/api/V1/ai/runs', async (c) => {
   const principal = await requirePrincipal(c.req.raw, c.env);
 
@@ -744,6 +832,31 @@ function parseNonNegativeNumber(
 
   const parsed = Number.parseFloat(value);
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
+function assertStreamingSubmissionReady(
+  bindings: AiOrchestratorBindings,
+): void {
+  if ((bindings.ENVIRONMENT ?? 'development') !== 'production') {
+    return;
+  }
+
+  const missing = [
+    ...(bindings.AUTH_WORKER ? [] : ['AUTH_WORKER']),
+    ...(bindings.AI_RUN_STATE ? [] : ['AI_RUN_STATE']),
+    ...(bindings.AI_RUN_INDEX ? [] : ['AI_RUN_INDEX']),
+    ...(bindings.AI_RATE_LIMIT ? [] : ['AI_RATE_LIMIT']),
+    ...(bindings.AI_USAGE ? [] : ['AI_USAGE']),
+    ...(bindings.AI ? [] : ['AI']),
+  ];
+
+  if (missing.length > 0) {
+    throw new ApiError('AI streaming runtime is not ready.', {
+      code: ApiErrorCode.InternalError,
+      status: HttpStatus.ServiceUnavailable,
+      metadata: { missing },
+    });
+  }
 }
 
 function assertRunSubmissionReady(
