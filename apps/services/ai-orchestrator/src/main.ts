@@ -71,7 +71,7 @@ app.get('/ready', (c) => {
     ...(authConfigured ? [] : ['AUTH_WORKER']),
     ...(workflowConfigured ? [] : ['AI_ORCHESTRATION_WORKFLOW']),
     ...(runStateConfigured ? [] : ['AI_RUN_STATE']),
-    ...(providers.configuredProviders > 0 ? [] : ['AI_PROVIDER_CATALOG']),
+    ...(providers.configuredProviders > 0 ? [] : ['AI']),
   ];
 
   if (
