@@ -1,8 +1,10 @@
+import { FeatureFlag } from '@aerealith-ai/core';
 import { useEffect } from 'react';
 
 import { loadCloudflareWebAnalytics } from '../analytics/cloudflare-web-analytics';
 import { loadGoogleTagManager } from '../analytics/google-tag-manager';
 import { useConsent } from '../consent/consent-context';
+import { useFeatureFlag } from '../features/flags/feature-flags';
 import {
   initializeDatadogRum,
   reportGlobalError,
@@ -12,24 +14,44 @@ import { integrationConfig } from './integration-config';
 
 export function IntegrationRuntime() {
   const { preferences } = useConsent();
+  const observabilityEnabled = useFeatureFlag(FeatureFlag.Observability);
 
   useEffect(() => {
     if (!preferences.analytics) return;
     loadGoogleTagManager();
     loadCloudflareWebAnalytics();
+
+    if (!observabilityEnabled) return;
+
     void initializeDatadogRum().then(() => {
       setDatadogSessionReplayAllowed(preferences.sessionReplay);
     });
-  }, [preferences.analytics, preferences.sessionReplay]);
+  }, [
+    observabilityEnabled,
+    preferences.analytics,
+    preferences.sessionReplay,
+  ]);
 
   useEffect(() => {
     setDatadogSessionReplayAllowed(
-      preferences.analytics && preferences.sessionReplay,
+      observabilityEnabled &&
+        preferences.analytics &&
+        preferences.sessionReplay,
     );
-  }, [preferences.analytics, preferences.sessionReplay]);
+  }, [
+    observabilityEnabled,
+    preferences.analytics,
+    preferences.sessionReplay,
+  ]);
 
   useEffect(() => {
-    if (!integrationConfig.datadog.enabled || !preferences.analytics) return;
+    if (
+      !observabilityEnabled ||
+      !integrationConfig.datadog.enabled ||
+      !preferences.analytics
+    ) {
+      return;
+    }
     const onError = (event: ErrorEvent) => {
       reportGlobalError(
         event.error instanceof Error
@@ -50,7 +72,7 @@ export function IntegrationRuntime() {
       window.removeEventListener('error', onError);
       window.removeEventListener('unhandledrejection', onRejection);
     };
-  }, [preferences.analytics]);
+  }, [observabilityEnabled, preferences.analytics]);
 
   return null;
 }
