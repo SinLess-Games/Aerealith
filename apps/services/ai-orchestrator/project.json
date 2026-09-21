@@ -9,6 +9,20 @@
     "domain:ai"
   ],
   "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "{options.outputPath}"
+      ],
+      "options": {
+        "outputPath": "dist/apps/services/ai-orchestrator",
+        "main": "apps/services/ai-orchestrator/src/main.ts",
+        "tsConfig": "apps/services/ai-orchestrator/tsconfig.app.json"
+      }
+    },
     "typecheck": {
       "executor": "nx:run-commands",
       "options": {
@@ -50,6 +64,16 @@
       "options": {
         "passWithNoTests": false,
         "configFile": "apps/services/ai-orchestrator/vitest.config.mts"
+      }
+    },
+    "typegen": {
+      "executor": "nx:run-commands",
+      "outputs": [
+        "{projectRoot}/worker-configuration.d.ts"
+      ],
+      "options": {
+        "cwd": "apps/services/ai-orchestrator",
+        "command": "wrangler types"
       }
     }
   }
