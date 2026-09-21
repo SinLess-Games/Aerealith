@@ -30,7 +30,13 @@ export async function createIdempotentRunIdentity(
 }
 
 function canonicalJson(value: unknown): string {
-  return JSON.stringify(canonicalize(value));
+  const encoded = JSON.stringify(canonicalize(value));
+
+  if (encoded === undefined) {
+    throw new Error('The orchestration request is not JSON serializable.');
+  }
+
+  return encoded;
 }
 
 function canonicalize(value: unknown): unknown {
