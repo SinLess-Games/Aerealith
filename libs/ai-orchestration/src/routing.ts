@@ -15,6 +15,11 @@ export class NoRouteError extends Error {
 }
 
 export interface RoutingPolicy {
+  rank(
+    request: OrchestrationRequest,
+    candidates: readonly ModelDescriptor[],
+  ): readonly RoutingDecision[];
+
   select(
     request: OrchestrationRequest,
     candidates: readonly ModelDescriptor[],
@@ -22,10 +27,10 @@ export interface RoutingPolicy {
 }
 
 export class CapabilityRoutingPolicy implements RoutingPolicy {
-  select(
+  rank(
     request: OrchestrationRequest,
     candidates: readonly ModelDescriptor[],
-  ): RoutingDecision {
+  ): readonly RoutingDecision[] {
     const preferences = request.preferences;
     let eligible = candidates.filter((candidate) =>
       candidate.capabilities.includes(request.capability),
@@ -55,24 +60,33 @@ export class CapabilityRoutingPolicy implements RoutingPolicy {
       throw new NoRouteError();
     }
 
-    const selected = [...eligible].sort((left, right) => {
-      const priorityDelta = (right.priority ?? 0) - (left.priority ?? 0);
-      if (priorityDelta !== 0) return priorityDelta;
+    return [...eligible]
+      .sort((left, right) => {
+        const priorityDelta = (right.priority ?? 0) - (left.priority ?? 0);
+        if (priorityDelta !== 0) return priorityDelta;
 
-      return `${left.providerId}/${left.id}`.localeCompare(
-        `${right.providerId}/${right.id}`,
-      );
-    })[0];
+        return `${left.providerId}/${left.id}`.localeCompare(
+          `${right.providerId}/${right.id}`,
+        );
+      })
+      .map((candidate, index) => ({
+        providerId: candidate.providerId,
+        modelId: candidate.id,
+        reason:
+          index === 0
+            ? preferences?.provider || preferences?.model
+              ? 'matched request preferences'
+              : 'highest-priority eligible model'
+            : 'fallback eligible model',
+      }));
+  }
 
+  select(
+    request: OrchestrationRequest,
+    candidates: readonly ModelDescriptor[],
+  ): RoutingDecision {
+    const selected = this.rank(request, candidates)[0];
     if (!selected) throw new NoRouteError();
-
-    return {
-      providerId: selected.providerId,
-      modelId: selected.id,
-      reason:
-        preferences?.provider || preferences?.model
-          ? 'matched request preferences'
-          : 'highest-priority eligible model',
-    };
+    return selected;
   }
 }
