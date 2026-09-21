@@ -70,6 +70,9 @@
       ],
       "@aerealith-ai/ai-qdrant": [
         "./libs/ai-qdrant/src/index.ts"
+      ],
+      "@aerealith-ai/ai-openai-compatible": [
+        "./libs/ai-openai-compatible/src/index.ts"
       ]
     },
     "strict": false,
