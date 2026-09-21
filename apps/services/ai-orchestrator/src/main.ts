@@ -69,10 +69,7 @@ const logger = createLogger({
 const app = createApiApp<AiOrchestratorEnv>({
   serviceName: 'ai-orchestrator',
   logger,
-  middleware: [
-    { handler: secureHeaders() },
-    { handler: credentialedCors },
-  ],
+  middleware: [{ handler: secureHeaders() }, { handler: credentialedCors }],
 });
 
 const runIdSchema = z.uuid();
@@ -1501,14 +1498,8 @@ function createCredentialedCors(
     const response = await handler(context, next);
 
     if (allowedOrigins.has(context.req.header('origin') ?? '')) {
-      context.res.headers.set(
-        'Access-Control-Allow-Credentials',
-        'true',
-      );
-      response?.headers.set(
-        'Access-Control-Allow-Credentials',
-        'true',
-      );
+      context.res.headers.set('Access-Control-Allow-Credentials', 'true');
+      response?.headers.set('Access-Control-Allow-Credentials', 'true');
     }
 
     return response;
