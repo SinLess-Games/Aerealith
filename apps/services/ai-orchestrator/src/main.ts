@@ -13,6 +13,7 @@ import { z } from 'zod';
 
 import type { AiOrchestratorBindings } from './bindings';
 import { CloudflareWorkflowOrchestrationEngine } from './cloudflare-workflow-engine';
+import { executableCapabilities } from './execution-runtime';
 import {
   BasicOrchestrationEngine,
   type OrchestrationEngine,
@@ -56,6 +57,7 @@ app.get('/ready', (c) => {
   const runStateConfigured = Boolean(c.env.AI_RUN_STATE);
   const vectorStore = vectorStoreStatus(c.env);
   const providers = providerRuntimeStatus(c.env);
+  const executable = executableCapabilities(c.env);
 
   const missingProductionDependencies = [
     ...(workflowConfigured ? [] : ['AI_ORCHESTRATION_WORKFLOW']),
@@ -84,6 +86,7 @@ app.get('/ready', (c) => {
             configured: providers.configuredProviders,
             total: providers.totalProviders,
           },
+          executableCapabilities: executable,
         },
         meta: responseMeta(c.get('apiContext')),
       },
@@ -105,6 +108,7 @@ app.get('/ready', (c) => {
         configured: providers.configuredProviders,
         total: providers.totalProviders,
       },
+      executableCapabilities: executable,
     },
     meta: responseMeta(c.get('apiContext')),
   });
@@ -249,8 +253,8 @@ function assertRunSubmissionReady(
     });
   }
 
-  const providers = providerRuntimeStatus(bindings);
-  if (!providers.capabilities.includes(capability)) {
+  const executable = executableCapabilities(bindings);
+  if (!executable.includes(capability)) {
     throw new ApiError(
       `No configured production provider can execute capability "${capability}".`,
       {
