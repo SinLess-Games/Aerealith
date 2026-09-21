@@ -29,6 +29,12 @@ importers:
       '@aerealith-ai/ai-orchestration':
         specifier: workspace:*
         version: link:../../../libs/ai-orchestration
+      '@aerealith-ai/api-platform':
+        specifier: workspace:*
+        version: link:../../../libs/api-platform
+      '@aerealith-ai/core':
+        specifier: workspace:*
+        version: link:../../../libs/core
       '@aerealith-ai/observability':
         specifier: workspace:*
         version: link:../../../libs/observability
