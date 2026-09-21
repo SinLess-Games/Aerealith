@@ -67,6 +67,9 @@
       ],
       "@aerealith-ai/ai-orchestration": [
         "./libs/ai-orchestration/src/index.ts"
+      ],
+      "@aerealith-ai/ai-qdrant": [
+        "./libs/ai-qdrant/src/index.ts"
       ]
     },
     "strict": false,
