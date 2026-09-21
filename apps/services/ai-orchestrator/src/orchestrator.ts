@@ -8,21 +8,26 @@ export type OrchestrationSubmissionOptions = {
   requestFingerprint?: string;
 };
 
+export type OrchestrationSubmissionResult = {
+  run: RunRecord;
+  created: boolean;
+};
+
 export interface OrchestrationEngine {
   submit(
     request: OrchestrationRequest,
     options?: OrchestrationSubmissionOptions,
-  ): Promise<RunRecord>;
+  ): Promise<OrchestrationSubmissionResult>;
 }
 
 export class BasicOrchestrationEngine implements OrchestrationEngine {
   async submit(
     request: OrchestrationRequest,
     options: OrchestrationSubmissionOptions = {},
-  ): Promise<RunRecord> {
+  ): Promise<OrchestrationSubmissionResult> {
     const timestamp = new Date().toISOString();
 
-    return {
+    const run: RunRecord = {
       id: options.runId ?? crypto.randomUUID(),
       ...(request.tenantId ? { tenantId: request.tenantId } : {}),
       ...(request.actorId ? { actorId: request.actorId } : {}),
@@ -34,5 +39,7 @@ export class BasicOrchestrationEngine implements OrchestrationEngine {
       createdAt: timestamp,
       updatedAt: timestamp,
     };
+
+    return { run, created: true };
   }
 }
