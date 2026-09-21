@@ -54,6 +54,16 @@ export function initializeDatadogRum(): Promise<boolean> {
   return initializing;
 }
 
+export function setDatadogTrackingAllowed(allowed: boolean) {
+  if (!rum || !initialized) return;
+  rum.setTrackingConsent(allowed ? 'granted' : 'not-granted');
+
+  if (!allowed && replayRunning) {
+    rum.stopSessionReplayRecording();
+    replayRunning = false;
+  }
+}
+
 export function setDatadogSessionReplayAllowed(allowed: boolean) {
   if (!rum || !initialized) return;
   if (allowed && !replayRunning) {
