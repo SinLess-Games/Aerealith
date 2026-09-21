@@ -1,6 +1,68 @@
 import { QdrantVectorStore } from './qdrant-vector-store';
 
 describe('QdrantVectorStore', () => {
+  it('creates a missing collection with the embedding dimensions', async () => {
+    const fetchImplementation = vi
+      .fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>()
+      .mockResolvedValueOnce(new Response(null, { status: 404 }))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ result: true, status: 'ok' }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+      );
+
+    const store = new QdrantVectorStore({
+      baseUrl: 'https://qdrant.example.test',
+      apiKey: 'secret',
+      collectionPrefix: 'aerealith-',
+      fetchImplementation,
+    });
+
+    await store.ensureIndex('knowledge', {
+      dimensions: 1536,
+      distance: 'cosine',
+    });
+
+    expect(fetchImplementation).toHaveBeenCalledTimes(2);
+    expect(fetchImplementation.mock.calls[0]?.[0]).toBe(
+      'https://qdrant.example.test/collections/aerealith-knowledge',
+    );
+    expect(fetchImplementation.mock.calls[0]?.[1]?.method).toBe('GET');
+
+    const [, createInit] = fetchImplementation.mock.calls[1] ?? [];
+    expect(createInit?.method).toBe('PUT');
+    expect(JSON.parse(String(createInit?.body))).toEqual({
+      vectors: {
+        size: 1536,
+        distance: 'Cosine',
+      },
+    });
+    expect(new Headers(createInit?.headers).get('api-key')).toBe('secret');
+  });
+
+  it('does not recreate an existing collection', async () => {
+    const fetchImplementation = vi.fn(
+      async (_input: RequestInfo | URL, _init?: RequestInit) =>
+        new Response(JSON.stringify({ result: { status: 'green' } }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+    );
+
+    const store = new QdrantVectorStore({
+      baseUrl: 'https://qdrant.example.test',
+      fetchImplementation,
+    });
+
+    await store.ensureIndex('knowledge', {
+      dimensions: 768,
+    });
+
+    expect(fetchImplementation).toHaveBeenCalledTimes(1);
+    expect(fetchImplementation.mock.calls[0]?.[1]?.method).toBe('GET');
+  });
+
   it('queries vectors and maps Qdrant payloads', async () => {
     const fetchImplementation = vi.fn(
       async (_input: RequestInfo | URL, _init?: RequestInit) =>
