@@ -27,10 +27,11 @@ describe('AiKnowledgeCatalog', () => {
       description: ' Documentation ',
     });
 
-    const updated = await catalog.recordDocuments(
-      knowledgeBase.id,
-      ['doc-1', 'doc-1', 'doc-2'],
-    );
+    const updated = await catalog.recordDocuments(knowledgeBase.id, [
+      'doc-1',
+      'doc-1',
+      'doc-2',
+    ]);
 
     expect(updated).toMatchObject({
       id: knowledgeBase.id,
@@ -64,7 +65,9 @@ describe('AiKnowledgeCatalog', () => {
       catalog.deleteDocument(knowledgeBase.id, 'doc-1'),
     ).resolves.toBe(true);
 
-    await expect(catalog.getKnowledgeBase(knowledgeBase.id)).resolves.toMatchObject({
+    await expect(
+      catalog.getKnowledgeBase(knowledgeBase.id),
+    ).resolves.toMatchObject({
       id: knowledgeBase.id,
       documents: [expect.objectContaining({ id: 'doc-2' })],
     });
@@ -81,9 +84,9 @@ describe('AiKnowledgeCatalog', () => {
       name: 'Docs',
     });
 
-    await expect(
-      catalog.deleteKnowledgeBase(knowledgeBase.id),
-    ).resolves.toBe(true);
+    await expect(catalog.deleteKnowledgeBase(knowledgeBase.id)).resolves.toBe(
+      true,
+    );
     await expect(
       catalog.getKnowledgeBase(knowledgeBase.id),
     ).resolves.toBeUndefined();

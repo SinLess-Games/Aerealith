@@ -55,12 +55,15 @@ export type SandboxCommandResult = {
 export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
   private internetEnabled = false;
 
-  async initialize(options: {
-    repositoryUrl?: string;
-    ref?: string;
-    networkAccess?: boolean;
-  } = {}): Promise<{ root: string }> {
-    const networkAccess = options.networkAccess ?? Boolean(options.repositoryUrl);
+  async initialize(
+    options: {
+      repositoryUrl?: string;
+      ref?: string;
+      networkAccess?: boolean;
+    } = {},
+  ): Promise<{ root: string }> {
+    const networkAccess =
+      options.networkAccess ?? Boolean(options.repositoryUrl);
     await this.ensureStarted(networkAccess);
     await this.touch();
 
@@ -72,10 +75,9 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
     }
 
     const repositoryUrl = validateRepositoryUrl(options.repositoryUrl);
-    const existing = await this.run(
-      ['test', '-d', `${REPOSITORY_ROOT}/.git`],
-      { timeoutMs: 10_000 },
-    );
+    const existing = await this.run(['test', '-d', `${REPOSITORY_ROOT}/.git`], {
+      timeoutMs: 10_000,
+    });
 
     if (existing.exitCode !== 0) {
       const cloneArgs = [
@@ -111,9 +113,7 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
     });
 
     if (result.exitCode !== 0) {
-      throw new Error(
-        `Failed to read file: ${truncate(result.stderr, 2_000)}`,
-      );
+      throw new Error(`Failed to read file: ${truncate(result.stderr, 2_000)}`);
     }
 
     if (new TextEncoder().encode(result.stdout).byteLength > MAX_FILE_BYTES) {
@@ -152,9 +152,7 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
     const output = await process.output();
 
     if (output.exitCode !== 0) {
-      throw new Error(
-        `Failed to write file: ${decode(output.stderr)}`,
-      );
+      throw new Error(`Failed to write file: ${decode(output.stderr)}`);
     }
 
     await this.touch();
@@ -199,10 +197,7 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
     return files;
   }
 
-  async search(
-    pattern: string,
-    path = '.',
-  ): Promise<readonly string[]> {
+  async search(pattern: string, path = '.'): Promise<readonly string[]> {
     await this.touch();
 
     if (!pattern || pattern.length > 1_024 || pattern.includes('\0')) {
@@ -258,16 +253,11 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
     await this.ensureStarted(request.networkAccess ?? this.internetEnabled);
     await this.touch();
 
-    const result = await this.run(
-      [request.command, ...(request.args ?? [])],
-      {
-        cwd: request.cwd
-          ? resolveWorkspacePath(request.cwd)
-          : undefined,
-        env: sanitizeEnvironment(request.env),
-        timeoutMs: request.timeoutMs,
-      },
-    );
+    const result = await this.run([request.command, ...(request.args ?? [])], {
+      cwd: request.cwd ? resolveWorkspacePath(request.cwd) : undefined,
+      env: sanitizeEnvironment(request.env),
+      timeoutMs: request.timeoutMs,
+    });
 
     await this.touch();
     return result;
@@ -376,9 +366,7 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
               process.kill(9);
             } finally {
               reject(
-                new Error(
-                  `Sandbox command exceeded ${timeoutMs} ms timeout.`,
-                ),
+                new Error(`Sandbox command exceeded ${timeoutMs} ms timeout.`),
               );
             }
           }, timeoutMs);
@@ -387,8 +375,7 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
 
       const stdout = decode(output.stdout);
       const stderr = decode(output.stderr);
-      const totalBytes =
-        output.stdout.byteLength + output.stderr.byteLength;
+      const totalBytes = output.stdout.byteLength + output.stderr.byteLength;
 
       if (totalBytes > MAX_COMMAND_OUTPUT_BYTES) {
         throw new Error(
@@ -471,9 +458,7 @@ function validateRepositoryUrl(value: string): string {
   }
 
   if (
-    !/^\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(?:\.git)?\/?$/u.test(
-      url.pathname,
-    )
+    !/^\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(?:\.git)?\/?$/u.test(url.pathname)
   ) {
     throw new Error('Sandbox GitHub repository URL is invalid.');
   }
@@ -515,7 +500,5 @@ function decode(value: ArrayBuffer): string {
 }
 
 function truncate(value: string, maxLength: number): string {
-  return value.length <= maxLength
-    ? value
-    : `${value.slice(0, maxLength)}…`;
+  return value.length <= maxLength ? value : `${value.slice(0, maxLength)}…`;
 }
