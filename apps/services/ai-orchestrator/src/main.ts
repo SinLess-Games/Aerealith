@@ -31,6 +31,7 @@ import { orchestrationRequestSchema } from './request-schema';
 import { AiRunController } from './run-controller';
 import { createRunEventStream } from './run-events';
 import { createRunIndexStore, createRunStore } from './run-store';
+import { AiUsageStore } from './usage-ledger';
 import { vectorStoreStatus } from './vector-store';
 
 type AiOrchestratorEnv = ApiEnv<ApiRequestContext, AiOrchestratorBindings>;
@@ -79,6 +80,7 @@ app.get('/ready', (c) => {
   const runStateConfigured = Boolean(c.env.AI_RUN_STATE);
   const runIndexConfigured = Boolean(c.env.AI_RUN_INDEX);
   const rateLimitConfigured = Boolean(c.env.AI_RATE_LIMIT);
+  const usageConfigured = Boolean(c.env.AI_USAGE);
   const vectorStore = vectorStoreStatus(c.env);
   const providers = providerRuntimeStatus(c.env);
   const executable = executableCapabilities(c.env);
@@ -89,6 +91,7 @@ app.get('/ready', (c) => {
     ...(runStateConfigured ? [] : ['AI_RUN_STATE']),
     ...(runIndexConfigured ? [] : ['AI_RUN_INDEX']),
     ...(rateLimitConfigured ? [] : ['AI_RATE_LIMIT']),
+    ...(usageConfigured ? [] : ['AI_USAGE']),
     ...(providers.configuredProviders > 0 ? [] : ['AI']),
   ];
 
@@ -108,6 +111,7 @@ app.get('/ready', (c) => {
           runStateConfigured,
           runIndexConfigured,
           rateLimitConfigured,
+          usageConfigured,
           vectorStore: {
             provider: vectorStore.provider,
             configured: vectorStore.configured,
@@ -133,6 +137,7 @@ app.get('/ready', (c) => {
       runStateConfigured,
       runIndexConfigured,
       rateLimitConfigured,
+      usageConfigured,
       vectorStore: {
         provider: vectorStore.provider,
         configured: vectorStore.configured,
@@ -190,6 +195,43 @@ app.get('/api/V1/ai/capabilities', (c) =>
     meta: responseMeta(c.get('apiContext')),
   }),
 );
+
+app.get('/api/V1/ai/usage', async (c) => {
+  const principal = await requirePrincipal(c.req.raw, c.env);
+
+  if (!c.env.AI_USAGE) {
+    throw new ApiError('AI usage tracking is not configured.', {
+      code: ApiErrorCode.InternalError,
+      status: HttpStatus.ServiceUnavailable,
+    });
+  }
+
+  const usage = await new AiUsageStore(c.env.AI_USAGE).getUsage(
+    principal.id,
+  );
+
+  return c.json({
+    ok: true,
+    data: {
+      ...usage,
+      limits: {
+        dailyRuns: parseNonNegativeInteger(
+          c.env.AI_DAILY_RUN_LIMIT,
+          0,
+        ),
+        dailyCostBudgetUsd: parseNonNegativeNumber(
+          c.env.AI_DAILY_COST_BUDGET_USD,
+          0,
+        ),
+        runsPerMinute: parsePositiveInteger(
+          c.env.AI_RUNS_PER_MINUTE,
+          60,
+        ),
+      },
+    },
+    meta: responseMeta(c.get('apiContext')),
+  });
+});
 
 app.get('/api/V1/ai/runs', async (c) => {
   const principal = await requirePrincipal(c.req.raw, c.env);
@@ -425,6 +467,7 @@ app.post('/api/V1/ai/runs', async (c) => {
   }
 
   assertRunSubmissionReady(c.env, parsed.data.capability);
+  await enforceDailyUsageLimits(c.env, principal.id);
   await enforceRunRateLimit(c.env, principal.id);
 
   const engine = resolveEngine(c.env);
@@ -467,6 +510,54 @@ async function requirePrincipal(
     }
 
     throw error;
+  }
+}
+
+async function enforceDailyUsageLimits(
+  bindings: AiOrchestratorBindings,
+  tenantId: string,
+): Promise<void> {
+  if (!bindings.AI_USAGE) {
+    if ((bindings.ENVIRONMENT ?? 'development') === 'production') {
+      throw new ApiError('AI usage tracking is not configured.', {
+        code: ApiErrorCode.InternalError,
+        status: HttpStatus.ServiceUnavailable,
+      });
+    }
+
+    return;
+  }
+
+  const dailyRunLimit = parseNonNegativeInteger(
+    bindings.AI_DAILY_RUN_LIMIT,
+    0,
+  );
+  const dailyCostBudgetUsd = parseNonNegativeNumber(
+    bindings.AI_DAILY_COST_BUDGET_USD,
+    0,
+  );
+  const decision = await new AiUsageStore(
+    bindings.AI_USAGE,
+  ).consumeRun(tenantId, dailyRunLimit, dailyCostBudgetUsd);
+
+  if (!decision.allowed) {
+    throw new ApiError(
+      decision.reason === 'DAILY_COST_BUDGET'
+        ? 'Daily AI cost budget reached.'
+        : 'Daily AI run limit reached.',
+      {
+        code: ApiErrorCode.RateLimited,
+        status: HttpStatus.TooManyRequests,
+        metadata: {
+          reason: decision.reason,
+          usage: decision.usage,
+          limits: {
+            dailyRunLimit,
+            dailyCostBudgetUsd,
+          },
+        },
+      },
+    );
   }
 }
 
@@ -516,6 +607,26 @@ function parsePositiveInteger(
   return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+function parseNonNegativeInteger(
+  value: string | undefined,
+  fallback: number,
+): number {
+  if (!value) return fallback;
+
+  const parsed = Number.parseInt(value, 10);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
+function parseNonNegativeNumber(
+  value: string | undefined,
+  fallback: number,
+): number {
+  if (!value) return fallback;
+
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
 function assertRunSubmissionReady(
   bindings: AiOrchestratorBindings,
   capability: (typeof capabilityKinds)[number],
@@ -532,6 +643,7 @@ function assertRunSubmissionReady(
     ...(bindings.AI_RUN_STATE ? [] : ['AI_RUN_STATE']),
     ...(bindings.AI_RUN_INDEX ? [] : ['AI_RUN_INDEX']),
     ...(bindings.AI_RATE_LIMIT ? [] : ['AI_RATE_LIMIT']),
+    ...(bindings.AI_USAGE ? [] : ['AI_USAGE']),
   ];
 
   if (missing.length > 0) {
@@ -580,5 +692,6 @@ function responseMeta(context: ApiRequestContext) {
 export { AiRateLimit } from './rate-limit';
 export { AiRunIndex } from './run-index';
 export { AiRunState } from './run-state';
+export { AiUsageLedger } from './usage-ledger';
 export { AiOrchestrationWorkflow } from './workflow';
 export default app;
