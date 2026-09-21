@@ -13,8 +13,7 @@ RUN apt-get update \
     ripgrep \
   && rm -rf /var/lib/apt/lists/*
 
-RUN corepack enable \
-  && corepack prepare pnpm@11.13.1 --activate
+RUN npm install --global pnpm@11.13.1
 
 RUN mkdir -p /workspace /workspace/home \
   && chown -R node:node /workspace
