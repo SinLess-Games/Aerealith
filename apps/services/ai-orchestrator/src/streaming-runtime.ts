@@ -30,6 +30,7 @@ export class StreamingUnavailableError extends Error {
 export type StreamingRun = {
   run: RunRecord;
   stream: ReadableStream<Uint8Array>;
+  completion: Promise<void>;
 };
 
 export async function startStreamingTextRun(
@@ -108,41 +109,46 @@ export async function startStreamingTextRun(
     capability: 'text',
   });
 
+  const [clientStream, trackingStream] = raw.tee();
+  const completion = trackStreamingResponse(
+    trackingStream,
+    bindings,
+    request,
+    runs,
+    run,
+    model,
+  );
+
   return {
     run,
-    stream: trackStreamingResponse(
-      raw,
-      bindings,
-      request,
-      runs,
-      run,
-      model,
-    ),
+    stream: clientStream,
+    completion,
   };
 }
 
-function trackStreamingResponse(
+async function trackStreamingResponse(
   source: ReadableStream<Uint8Array>,
   bindings: AiOrchestratorBindings,
   request: OrchestrationRequest,
   runs: DurableObjectRunStore,
   run: RunRecord,
   model: ModelDescriptor,
-): ReadableStream<Uint8Array> {
+): Promise<void> {
   const decoder = new TextDecoder();
+  const reader = source.getReader();
   const startedAtMs = Date.now();
   let buffer = '';
   let text = '';
   let persistedBytes = 0;
+  let truncated = false;
   let usage: Usage | undefined;
-  let finalized = false;
 
-  const transform = new TransformStream<Uint8Array, Uint8Array>({
-    transform(chunk, controller) {
-      controller.enqueue(chunk);
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-      const decoded = decoder.decode(chunk, { stream: true });
-      buffer += decoded;
+      buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
       buffer = lines.pop() ?? '';
 
@@ -153,36 +159,44 @@ function trackStreamingResponse(
         const delta = streamDelta(parsed);
         if (delta) {
           const bytes = new TextEncoder().encode(delta).byteLength;
+
           if (
             persistedBytes + bytes <=
             MAX_PERSISTED_STREAM_TEXT_BYTES
           ) {
             text += delta;
             persistedBytes += bytes;
+          } else {
+            truncated = true;
           }
         }
 
-        const parsedUsage = streamUsage(parsed, model);
-        if (parsedUsage) usage = parsedUsage;
+        usage = streamUsage(parsed, model) ?? usage;
       }
-    },
-    async flush() {
-      if (buffer) {
-        const parsed = parseSseData(buffer);
-        if (parsed) {
-          const delta = streamDelta(parsed);
-          if (delta) text += delta;
-          usage = streamUsage(parsed, model) ?? usage;
+    }
+
+    buffer += decoder.decode();
+
+    if (buffer) {
+      const parsed = parseSseData(buffer);
+      if (parsed) {
+        const delta = streamDelta(parsed);
+        if (delta) {
+          const bytes = new TextEncoder().encode(delta).byteLength;
+          if (
+            persistedBytes + bytes <=
+            MAX_PERSISTED_STREAM_TEXT_BYTES
+          ) {
+            text += delta;
+            persistedBytes += bytes;
+          } else {
+            truncated = true;
+          }
         }
+
+        usage = streamUsage(parsed, model) ?? usage;
       }
-
-      await finalizeSuccess();
-    },
-  });
-
-  async function finalizeSuccess(): Promise<void> {
-    if (finalized) return;
-    finalized = true;
+    }
 
     const completedAt = new Date().toISOString();
     const output: OrchestrationOutput = {
@@ -191,8 +205,7 @@ function trackStreamingResponse(
       content: {
         text,
         streamed: true,
-        truncatedInRunState:
-          persistedBytes >= MAX_PERSISTED_STREAM_TEXT_BYTES,
+        ...(truncated ? { truncatedInRunState: true } : {}),
       },
       ...(usage ? { usage } : {}),
     };
@@ -217,22 +230,24 @@ function trackStreamingResponse(
       durationMs: Date.now() - startedAtMs,
       output,
     });
+  } catch (error) {
+    const completedAt = new Date().toISOString();
+    await runs.updateStatus(run.id, 'failed', {
+      errorCode: 'STREAMING_EXECUTION_FAILED',
+      completedAt,
+    });
+
+    recordAiRunFailed({
+      runId: run.id,
+      capability: 'text',
+      durationMs: Date.now() - startedAtMs,
+      errorCode: 'STREAMING_EXECUTION_FAILED',
+    });
+
+    throw error;
+  } finally {
+    reader.releaseLock();
   }
-
-  source.closed?.catch?.(() => undefined);
-
-  return source
-    .pipeThrough(transform)
-    .pipeThrough(
-      new TransformStream<Uint8Array, Uint8Array>({
-        transform(chunk, controller) {
-          controller.enqueue(chunk);
-        },
-        async flush() {
-          await finalizeSuccess();
-        },
-      }),
-    );
 }
 
 function parseSseData(line: string): Record<string, unknown> | undefined {
