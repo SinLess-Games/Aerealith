@@ -125,6 +125,26 @@ const predictionInputSchema = z.object({
   confidenceIntervals: z.boolean().optional(),
 });
 
+const knowledgeIngestInputSchema = z.object({
+  namespace: z.string().min(1).max(256),
+  documents: z
+    .array(
+      z.object({
+        id: z.string().min(1).max(512),
+        text: z.string().min(1).max(1_000_000),
+        metadata: z.record(z.string().max(128), z.unknown()).optional(),
+      }),
+    )
+    .min(1)
+    .max(256),
+  chunking: z
+    .object({
+      maxCharacters: z.number().int().min(256).max(100_000).optional(),
+      overlapCharacters: z.number().int().min(0).max(50_000).optional(),
+    })
+    .optional(),
+});
+
 const retrievalInputSchema = z.object({
   namespace: z.string().min(1).max(256),
   query: z.string().min(1).max(250_000),
@@ -148,6 +168,7 @@ const capabilityInputSchemas = {
   music: musicInputSchema,
   analytics: analyticsInputSchema,
   prediction: predictionInputSchema,
+  'knowledge-ingest': knowledgeIngestInputSchema,
   retrieval: retrievalInputSchema,
   tool: toolInputSchema,
 } as const;
