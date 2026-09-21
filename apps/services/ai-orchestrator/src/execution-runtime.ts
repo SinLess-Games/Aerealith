@@ -125,7 +125,9 @@ export async function executeOrchestrationRequest(
 
       if (
         request.capability === 'image' ||
-        request.capability === 'audio'
+        request.capability === 'audio' ||
+        request.capability === 'video' ||
+        request.capability === 'music'
       ) {
         return materializeGeneratedBinary(bindings, request, output);
       }
@@ -145,9 +147,9 @@ async function materializeGeneratedBinary(
 
   if (
     !generated ||
-    (generated.kind !== 'image' && generated.kind !== 'audio') ||
+    !['image', 'audio', 'video', 'music'].includes(generated.kind) ||
     typeof generated.contentType !== 'string' ||
-    !generated.data
+    (!('data' in generated) && !('url' in generated))
   ) {
     throw new Error('The media provider returned an invalid binary result.');
   }
@@ -157,10 +159,12 @@ async function materializeGeneratedBinary(
     throw new ArtifactStoreUnavailableError();
   }
 
+  const body = await resolveGeneratedMediaBody(generated);
+
   const reference = await artifacts.put(`user:${tenantId}`, {
     kind: generated.kind,
     contentType: generated.contentType,
-    body: generated.data,
+    body,
     metadata: {
       providerId: output.providerId,
       modelId: output.modelId,
@@ -177,6 +181,47 @@ async function materializeGeneratedBinary(
     content,
     artifacts: [reference.id],
   };
+}
+
+async function resolveGeneratedMediaBody(
+  generated: GeneratedBinary,
+): Promise<ArrayBuffer | ReadableStream<Uint8Array>> {
+  if ('data' in generated && generated.data) {
+    return generated.data;
+  }
+
+  if (!('url' in generated) || !generated.url) {
+    throw new Error('The media provider returned no artifact body.');
+  }
+
+  const source = new URL(generated.url);
+  if (source.protocol !== 'https:') {
+    throw new Error('Generated media URLs must use HTTPS.');
+  }
+
+  const response = await fetch(source, {
+    redirect: 'follow',
+    cf: {
+      cacheTtl: 0,
+      cacheEverything: false,
+    },
+  });
+
+  if (!response.ok || !response.body) {
+    throw new Error(
+      `Failed to download generated media (HTTP ${response.status}).`,
+    );
+  }
+
+  const contentLength = response.headers.get('content-length');
+  if (
+    contentLength &&
+    Number.parseInt(contentLength, 10) > 512 * 1024 * 1024
+  ) {
+    throw new Error('Generated media exceeds the 512 MiB artifact limit.');
+  }
+
+  return response.body;
 }
 
 async function executeKnowledgeIngestion(
