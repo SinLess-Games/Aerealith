@@ -1,3 +1,4 @@
+export * from './executor';
 export * from './capability';
 export * from './contracts';
 export * from './planner';
