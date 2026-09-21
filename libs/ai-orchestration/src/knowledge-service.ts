@@ -73,8 +73,8 @@ export class KnowledgeIngestionService {
         vector,
         text: chunk.text,
         metadata: {
-          documentId: chunk.documentId,
           ...(chunk.metadata ?? {}),
+          documentId: chunk.documentId,
         },
       };
     });
