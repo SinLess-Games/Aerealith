@@ -146,9 +146,11 @@ describe('AiChatPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'New' }));
 
     expect(
-      screen.getByRole('textbox', {
-        name: 'Message Aerealith',
-      }),
-    ).toHaveValue('');
+      (
+        screen.getByRole('textbox', {
+          name: 'Message Aerealith',
+        }) as HTMLTextAreaElement
+      ).value,
+    ).toBe('');
   });
 });
