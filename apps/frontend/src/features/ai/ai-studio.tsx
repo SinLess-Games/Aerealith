@@ -16,6 +16,7 @@ import {
 } from 'react-icons/fi';
 
 import { useFeatureFlags } from '../flags/feature-flags';
+import { recordBrowserEvent } from '../../lib/browser-observability';
 import { aiApi } from './ai-client';
 import {
   AiAnalyzePanel,
@@ -324,7 +325,14 @@ export function AiStudio() {
                   role="tab"
                   aria-selected={active}
                   aria-current={active ? 'page' : undefined}
-                  onClick={() => setActiveTab(id)}
+                  onClick={() => {
+                    setActiveTab(id);
+                    recordBrowserEvent(
+                      'ai_workspace_selected',
+                      { workspace: id },
+                      'ai',
+                    );
+                  }}
                 >
                   <span
                     className={[
