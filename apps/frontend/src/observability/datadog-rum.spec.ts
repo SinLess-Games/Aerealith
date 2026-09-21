@@ -7,6 +7,7 @@ import {
   resetDatadogForTests,
   sanitizeUrl,
   setDatadogSessionReplayAllowed,
+  setDatadogTrackingAllowed,
   trackDatadogView,
 } from './datadog-rum';
 
@@ -27,6 +28,7 @@ const mocks = vi.hoisted(() => ({
   rum: {
     addError: vi.fn(),
     init: vi.fn(),
+    setTrackingConsent: vi.fn(),
     startSessionReplayRecording: vi.fn(),
     startView: vi.fn(),
     stopSessionReplayRecording: vi.fn(),
@@ -63,6 +65,7 @@ describe('Datadog RUM integration', () => {
         applicationId: 'application-id',
         clientToken: 'client-token',
         defaultPrivacyLevel: 'mask-user-input',
+        trackingConsent: 'not-granted',
         service: 'frontend',
         trackLongTasks: true,
         trackResources: true,
@@ -79,6 +82,21 @@ describe('Datadog RUM integration', () => {
     expect(options.beforeSend(event)).toBe(true);
     expect(event.view.url).toBe('https://example.com/account');
     expect(options.beforeSend({})).toBe(true);
+  });
+
+  it('applies tracking consent before and after initialization', async () => {
+    setDatadogTrackingAllowed(true);
+    await initializeDatadogRum();
+
+    expect(mocks.rum.init).toHaveBeenCalledWith(
+      expect.objectContaining({ trackingConsent: 'granted' }),
+    );
+
+    setDatadogTrackingAllowed(false);
+    expect(mocks.rum.setTrackingConsent).toHaveBeenCalledWith('not-granted');
+
+    setDatadogTrackingAllowed(true);
+    expect(mocks.rum.setTrackingConsent).toHaveBeenCalledWith('granted');
   });
 
   it('starts and stops replay only when state changes', async () => {
