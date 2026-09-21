@@ -182,6 +182,54 @@ export class AiApiClient {
     );
   }
 
+  async streamText(
+    request: Extract<OrchestrationRequest, { capability: 'text' }> | OrchestrationRequest,
+    signal?: AbortSignal,
+  ): Promise<{
+    runId: string;
+    stream: ReadableStream<Uint8Array>;
+  }> {
+    if (request.capability !== 'text') {
+      throw new TypeError('AI streaming currently supports text requests only.');
+    }
+
+    const response = await this.fetchImplementation(
+      this.url('/api/V1/ai/stream'),
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          accept: 'text/event-stream',
+        },
+        body: JSON.stringify(stripTrustedIdentity(request)),
+        credentials: 'include',
+        ...(signal ? { signal } : {}),
+      },
+    );
+
+    if (!response.ok) {
+      throw await this.errorFromResponse(response);
+    }
+
+    if (!response.body) {
+      throw new AiApiError('The text stream has no response body.', {
+        status: response.status,
+      });
+    }
+
+    const runId = response.headers.get('x-ai-run-id');
+    if (!runId) {
+      throw new AiApiError('The text stream did not include a run id.', {
+        status: response.status,
+      });
+    }
+
+    return {
+      runId,
+      stream: response.body,
+    };
+  }
+
   async runEvents(
     runId: string,
     signal?: AbortSignal,
