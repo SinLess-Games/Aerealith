@@ -26,6 +26,50 @@ export type AiModelSummary = {
   outputCostPerMillionUnitsUsd?: number;
 };
 
+export type AiConversationMessage = {
+  id: string;
+  role: 'system' | 'user' | 'assistant' | 'tool';
+  content: string;
+  name?: string;
+  runId?: string;
+  createdAt: string;
+};
+
+export type AiConversation = {
+  id: string;
+  tenantId: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  messages: readonly AiConversationMessage[];
+};
+
+export type AiConversationSummary = Omit<AiConversation, 'messages'> & {
+  messageCount: number;
+};
+
+export type AiKnowledgeDocument = {
+  id: string;
+  createdAt: string;
+};
+
+export type AiKnowledgeBase = {
+  id: string;
+  tenantId: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+  documents: readonly AiKnowledgeDocument[];
+};
+
+export type AiKnowledgeBaseSummary = Omit<
+  AiKnowledgeBase,
+  'documents'
+> & {
+  documentCount: number;
+};
+
 export type AiToolDefinition = {
   name: string;
   description: string;
@@ -117,6 +161,147 @@ export class AiApiClient {
 
   usage(): Promise<AiUsageSummary> {
     return this.getJson('/api/V1/ai/usage');
+  }
+
+  async listConversations(options: {
+    limit?: number;
+    before?: string;
+  } = {}): Promise<{
+    items: readonly AiConversationSummary[];
+    nextBefore?: string;
+  }> {
+    const query = new URLSearchParams();
+    if (options.limit !== undefined) {
+      query.set('limit', String(options.limit));
+    }
+    if (options.before !== undefined) {
+      query.set('before', options.before);
+    }
+
+    const suffix = query.size > 0 ? `?${query.toString()}` : '';
+    const envelope = await this.requestEnvelope<
+      readonly AiConversationSummary[]
+    >(`/api/V1/ai/conversations${suffix}`);
+
+    return {
+      items: envelope.data,
+      ...(envelope.pagination?.nextBefore
+        ? { nextBefore: envelope.pagination.nextBefore }
+        : {}),
+    };
+  }
+
+  createConversation(title?: string): Promise<AiConversation> {
+    return this.getJson('/api/V1/ai/conversations', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(title ? { title } : {}),
+    });
+  }
+
+  getConversation(conversationId: string): Promise<AiConversation> {
+    return this.getJson(
+      `/api/V1/ai/conversations/${encodeURIComponent(conversationId)}`,
+    );
+  }
+
+  appendConversationMessage(
+    conversationId: string,
+    message: {
+      role: 'system' | 'user' | 'assistant' | 'tool';
+      content: string;
+      name?: string;
+    },
+  ): Promise<AiConversation> {
+    return this.getJson(
+      `/api/V1/ai/conversations/${encodeURIComponent(
+        conversationId,
+      )}/messages`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(message),
+      },
+    );
+  }
+
+  async deleteConversation(conversationId: string): Promise<void> {
+    await this.requestNoContent(
+      `/api/V1/ai/conversations/${encodeURIComponent(
+        conversationId,
+      )}`,
+      { method: 'DELETE' },
+    );
+  }
+
+  listKnowledgeBases(): Promise<readonly AiKnowledgeBaseSummary[]> {
+    return this.getJson('/api/V1/ai/knowledge-bases');
+  }
+
+  createKnowledgeBase(input: {
+    name: string;
+    description?: string;
+  }): Promise<AiKnowledgeBase> {
+    return this.getJson('/api/V1/ai/knowledge-bases', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+  }
+
+  getKnowledgeBase(knowledgeBaseId: string): Promise<AiKnowledgeBase> {
+    return this.getJson(
+      `/api/V1/ai/knowledge-bases/${encodeURIComponent(
+        knowledgeBaseId,
+      )}`,
+    );
+  }
+
+  listKnowledgeDocuments(
+    knowledgeBaseId: string,
+  ): Promise<readonly AiKnowledgeDocument[]> {
+    return this.getJson(
+      `/api/V1/ai/knowledge-bases/${encodeURIComponent(
+        knowledgeBaseId,
+      )}/documents`,
+    );
+  }
+
+  ingestKnowledgeDocuments(
+    knowledgeBaseId: string,
+    documents: readonly {
+      id: string;
+      text: string;
+      metadata?: Record<string, unknown>;
+    }[],
+    options: { idempotencyKey?: string } = {},
+  ): Promise<RunRecord> {
+    const headers = new Headers({
+      'content-type': 'application/json',
+    });
+    if (options.idempotencyKey) {
+      headers.set('idempotency-key', options.idempotencyKey);
+    }
+
+    return this.getJson(
+      `/api/V1/ai/knowledge-bases/${encodeURIComponent(
+        knowledgeBaseId,
+      )}/documents`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ documents }),
+      },
+    );
+  }
+
+  async deleteKnowledgeBase(knowledgeBaseId: string): Promise<void> {
+    await this.requestNoContent(
+      `/api/V1/ai/knowledge-bases/${encodeURIComponent(
+        knowledgeBaseId,
+      )}`,
+      { method: 'DELETE' },
+    );
   }
 
   async listRuns(options: {
@@ -297,6 +482,20 @@ export class AiApiClient {
     return this.url(
       `/api/V1/ai/artifacts/${encodeURIComponent(artifactId)}`,
     );
+  }
+
+  private async requestNoContent(
+    path: string,
+    init?: RequestInit,
+  ): Promise<void> {
+    const response = await this.fetchImplementation(this.url(path), {
+      ...init,
+      credentials: init?.credentials ?? 'include',
+    });
+
+    if (!response.ok) {
+      throw await this.errorFromResponse(response);
+    }
   }
 
   private async getJson<T>(
