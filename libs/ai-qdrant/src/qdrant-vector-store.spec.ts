@@ -5,24 +5,24 @@ describe('QdrantVectorStore', () => {
     const fetchImplementation = vi.fn(
       async (_input: RequestInfo | URL, _init?: RequestInit) =>
         new Response(
-        JSON.stringify({
-          result: {
-            points: [
-              {
-                id: 'point-1',
-                score: 0.91,
-                payload: {
-                  text: 'hello',
-                  metadata: { source: 'test' },
+          JSON.stringify({
+            result: {
+              points: [
+                {
+                  id: 'point-1',
+                  score: 0.91,
+                  payload: {
+                    text: 'hello',
+                    metadata: { source: 'test' },
+                  },
                 },
-              },
-            ],
+              ],
+            },
+          }),
+          {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
           },
-        }),
-        {
-          status: 200,
-          headers: { 'content-type': 'application/json' },
-        },
         ),
     );
 
@@ -57,11 +57,12 @@ describe('QdrantVectorStore', () => {
   });
 
   it('upserts points using the Qdrant points endpoint', async () => {
-    const fetchImplementation = vi.fn(async () =>
-      new Response(JSON.stringify({ status: 'ok' }), {
-        status: 200,
-        headers: { 'content-type': 'application/json' },
-      }),
+    const fetchImplementation = vi.fn(
+      async (_input: RequestInfo | URL, _init?: RequestInit) =>
+        new Response(JSON.stringify({ status: 'ok' }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
     );
 
     const store = new QdrantVectorStore({
@@ -104,9 +105,14 @@ describe('QdrantVectorStore', () => {
   });
 
   it('requires embeddings before vector search', async () => {
+    const fetchImplementation = vi.fn(
+      async (_input: RequestInfo | URL, _init?: RequestInit) =>
+        new Response(null, { status: 200 }),
+    );
+
     const store = new QdrantVectorStore({
       baseUrl: 'https://qdrant.example.test',
-      fetchImplementation: vi.fn(),
+      fetchImplementation,
     });
 
     await expect(
@@ -115,5 +121,7 @@ describe('QdrantVectorStore', () => {
         text: 'embed me first',
       }),
     ).rejects.toThrow('requires a non-empty query.vector');
+
+    expect(fetchImplementation).not.toHaveBeenCalled();
   });
 });
