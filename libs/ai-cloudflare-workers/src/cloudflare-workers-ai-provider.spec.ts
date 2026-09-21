@@ -145,6 +145,83 @@ describe('CloudflareWorkersAiProvider', () => {
     expect(new TextDecoder().decode(content.data)).toBe('fake-image');
   });
 
+  it('normalizes Cloudflare unified video URLs', async () => {
+    const run = vi.fn(async () => ({
+      state: 'Completed',
+      result: {
+        video: 'https://media.example.test/video.mp4',
+      },
+    }));
+    const provider = new CloudflareWorkersAiProvider({ run });
+
+    const result = await provider.execute(
+      {
+        capability: 'video',
+        input: {
+          prompt: 'A storm rolling over a mountain',
+          durationSeconds: 5,
+          width: 1280,
+          height: 720,
+          fps: 24,
+        },
+      },
+      model(CloudflareWorkersAiModels.video),
+    );
+
+    expect(result.content).toEqual({
+      kind: 'video',
+      contentType: 'video/mp4',
+      url: 'https://media.example.test/video.mp4',
+    });
+    expect(run).toHaveBeenCalledWith(
+      CloudflareWorkersAiModels.video,
+      expect.objectContaining({
+        prompt: 'A storm rolling over a mountain',
+        duration: 5,
+        resolution: '720p',
+        aspect_ratio: '16:9',
+        fps: 24,
+      }),
+    );
+  });
+
+  it('normalizes Cloudflare unified music URLs', async () => {
+    const run = vi.fn(async () => ({
+      state: 'Completed',
+      result: {
+        audio: 'https://media.example.test/song.mp3',
+      },
+    }));
+    const provider = new CloudflareWorkersAiProvider({ run });
+
+    const result = await provider.execute(
+      {
+        capability: 'music',
+        input: {
+          prompt: 'Dark cinematic synthwave',
+          instrumental: true,
+          format: 'mp3',
+        },
+      },
+      model(CloudflareWorkersAiModels.music),
+    );
+
+    expect(result.content).toEqual({
+      kind: 'music',
+      contentType: 'audio/mpeg',
+      url: 'https://media.example.test/song.mp3',
+    });
+    expect(run).toHaveBeenCalledWith(
+      CloudflareWorkersAiModels.music,
+      expect.objectContaining({
+        prompt: 'Dark cinematic synthwave',
+        is_instrumental: true,
+        lyrics_optimizer: false,
+        format: 'mp3',
+      }),
+    );
+  });
+
   it('returns TTS streams for the artifact runtime to persist', async () => {
     const stream = new ReadableStream<Uint8Array>({
       start(controller) {
