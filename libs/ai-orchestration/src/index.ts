@@ -1,3 +1,6 @@
+export * from './knowledge';
+export * from './code-sandbox';
+export * from './artifacts';
 export * from './executor';
 export * from './capability';
 export * from './contracts';
