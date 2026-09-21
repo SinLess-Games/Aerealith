@@ -1,6 +1,7 @@
 import type {
   OrchestrationRequest,
   RunRecord,
+  RunStore,
 } from '@aerealith-ai/ai-orchestration';
 
 import type { WorkflowBinding, WorkflowRunParams } from './bindings';
@@ -11,26 +12,39 @@ export class CloudflareWorkflowOrchestrationEngine
 {
   constructor(
     private readonly workflow: WorkflowBinding<WorkflowRunParams>,
+    private readonly runs?: RunStore,
   ) {}
 
   async submit(request: OrchestrationRequest): Promise<RunRecord> {
     const runId = crypto.randomUUID();
     const timestamp = new Date().toISOString();
-
-    await this.workflow.create({
-      id: runId,
-      params: {
-        runId,
-        request,
-      },
-    });
-
-    return {
+    const run: RunRecord = {
       id: runId,
       status: 'accepted',
       capability: request.capability,
       createdAt: timestamp,
       updatedAt: timestamp,
     };
+
+    await this.runs?.create(run);
+
+    try {
+      await this.workflow.create({
+        id: runId,
+        params: {
+          runId,
+          request,
+        },
+      });
+    } catch (error) {
+      await this.runs?.updateStatus(runId, 'failed', {
+        errorCode: 'WORKFLOW_DISPATCH_FAILED',
+        updatedAt: new Date().toISOString(),
+      });
+
+      throw error;
+    }
+
+    return run;
   }
 }
