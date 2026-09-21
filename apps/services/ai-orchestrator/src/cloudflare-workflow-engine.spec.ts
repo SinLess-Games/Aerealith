@@ -12,7 +12,19 @@ class TestRunStore implements RunStore {
   readonly records = new Map<string, RunRecord>();
 
   async create(run: RunRecord): Promise<void> {
+    await this.createIfAbsent(run);
+  }
+
+  async createIfAbsent(
+    run: RunRecord,
+  ): Promise<{ run: RunRecord; created: boolean }> {
+    const existing = this.records.get(run.id);
+    if (existing) {
+      return { run: existing, created: false };
+    }
+
     this.records.set(run.id, run);
+    return { run, created: true };
   }
 
   async get(runId: string): Promise<RunRecord | undefined> {
@@ -67,6 +79,33 @@ describe('CloudflareWorkflowOrchestrationEngine', () => {
     expect(options?.id).toBe(run.id);
     expect(options?.params.runId).toBe(run.id);
     expect(options?.params.request).toEqual(request);
+  });
+
+  it('does not dispatch a duplicate idempotent run', async () => {
+    const create = vi.fn(
+      async (_options: { id?: string; params: WorkflowRunParams }) => undefined,
+    );
+    const runs = new TestRunStore();
+    const engine = new CloudflareWorkflowOrchestrationEngine(
+      { create },
+      runs,
+    );
+    const request: OrchestrationRequest = {
+      capability: 'text',
+      input: 'hello',
+      tenantId: 'user-123',
+    };
+    const options = {
+      runId: '5d9dd628-c0a3-4fb7-a03d-2a345278ebd5',
+      requestFingerprint: 'fingerprint-1',
+    };
+
+    const first = await engine.submit(request, options);
+    const second = await engine.submit(request, options);
+
+    expect(second).toEqual(first);
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(runs.records).toHaveProperty('size', 1);
   });
 
   it('marks the durable run failed when Workflow dispatch fails', async () => {
