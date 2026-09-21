@@ -142,6 +142,52 @@ describe('frontend worker', () => {
     expect(apiWorker.fetch).toHaveBeenCalledWith(request);
   });
 
+  it('routes AI API requests to the AI orchestrator binding when Flagship enables AI Studio', async () => {
+    const boundResponse = Response.json({
+      service: 'ai-orchestrator',
+      status: 'ok',
+    });
+    const aiWorker = {
+      fetch: vi.fn().mockResolvedValue(boundResponse),
+    };
+    const request = new Request(
+      'https://aerealith.com/api/V1/ai/capabilities',
+    );
+
+    const response = await worker.fetch(request, {
+      ...createEnvironment(new Response('asset')),
+      AI_ORCHESTRATOR_WORKER: aiWorker,
+      FLAGSHIP_FLAGS: {
+        getBooleanValue: vi.fn(async (key: string, fallback: boolean) =>
+          key === 'ai-studio' ? true : fallback,
+        ),
+      },
+    });
+
+    expect(response).toBe(boundResponse);
+    expect(aiWorker.fetch).toHaveBeenCalledWith(request);
+  });
+
+  it('fails closed for the AI API when AI Studio is disabled', async () => {
+    const aiWorker = {
+      fetch: vi.fn().mockResolvedValue(Response.json({ ok: true })),
+    };
+
+    const response = await worker.fetch(
+      new Request('https://aerealith.com/api/V1/ai/models'),
+      {
+        ...createEnvironment(new Response('asset')),
+        AI_ORCHESTRATOR_WORKER: aiWorker,
+      },
+    );
+
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: 'FEATURE_DISABLED' },
+    });
+    expect(aiWorker.fetch).not.toHaveBeenCalled();
+  });
+
   it('does not retain a lowercase API compatibility route', async () => {
     const environment = createEnvironment(new Response('asset'));
     const request = new Request(
