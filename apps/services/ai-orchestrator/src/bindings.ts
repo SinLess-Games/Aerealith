@@ -18,6 +18,39 @@ export interface SecretStoreBinding {
   get(): Promise<string>;
 }
 
+export interface AiCodeSandboxStub {
+  initialize(options?: {
+    repositoryUrl?: string;
+    ref?: string;
+    networkAccess?: boolean;
+  }): Promise<{ root: string }>;
+  readFile(path: string): Promise<string>;
+  writeFile(path: string, content: string): Promise<void>;
+  listFiles(path?: string): Promise<readonly string[]>;
+  search(
+    pattern: string,
+    path?: string,
+  ): Promise<readonly string[]>;
+  execute(request: {
+    command: string;
+    args?: readonly string[];
+    cwd?: string;
+    env?: Readonly<Record<string, string>>;
+    timeoutMs?: number;
+    networkAccess?: boolean;
+  }): Promise<{
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+    durationMs: number;
+  }>;
+  close(): Promise<void>;
+}
+
+export interface AiCodeSandboxNamespace {
+  getByName(name: string): AiCodeSandboxStub;
+}
+
 export interface WorkflowInstance {
   status(): Promise<unknown>;
   terminate(): Promise<void>;
@@ -134,6 +167,7 @@ export type AiOrchestratorBindings = {
   AI_RATE_LIMIT?: RateLimitNamespace;
   AI_USAGE?: UsageLedgerNamespace;
   AI_ARTIFACTS?: R2Bucket;
+  AI_CODE_SANDBOX?: AiCodeSandboxNamespace;
 
   /**
    * Optional JSON catalog for non-Cloudflare OpenAI-compatible providers.
