@@ -63,6 +63,46 @@ describe('orchestrationRequestSchema', () => {
     expect(parsed.success).toBe(false);
   });
 
+  it('accepts bounded knowledge ingestion documents', () => {
+    const parsed = orchestrationRequestSchema.parse({
+      capability: 'knowledge-ingest',
+      input: {
+        namespace: 'kb-1',
+        documents: [
+          {
+            id: 'doc-1',
+            text: 'Aerealith documentation',
+            metadata: { source: 'docs' },
+          },
+        ],
+        chunking: {
+          maxCharacters: 4000,
+          overlapCharacters: 400,
+        },
+      },
+    });
+
+    expect(parsed).toMatchObject({
+      capability: 'knowledge-ingest',
+      input: {
+        namespace: 'kb-1',
+        documents: [{ id: 'doc-1' }],
+      },
+    });
+  });
+
+  it('rejects empty knowledge ingestion batches', () => {
+    const parsed = orchestrationRequestSchema.safeParse({
+      capability: 'knowledge-ingest',
+      input: {
+        namespace: 'kb-1',
+        documents: [],
+      },
+    });
+
+    expect(parsed.success).toBe(false);
+  });
+
   it('accepts retrieval filters while requiring namespace isolation input', () => {
     const parsed = orchestrationRequestSchema.parse({
       capability: 'retrieval',
