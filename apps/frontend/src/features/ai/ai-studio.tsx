@@ -17,10 +17,12 @@ import {
 
 import { useFeatureFlags } from '../flags/feature-flags';
 import { aiApi } from './ai-client';
-import { AiAnalyzePanel } from './ai-task-panels';
-import { AiCodePanel } from './ai-task-panels';
-import { AiMediaPanel } from './ai-task-panels';
-import { AiToolsPanel } from './ai-task-panels';
+import {
+  AiAnalyzePanel,
+  AiCodePanel,
+  AiMediaPanel,
+  AiToolsPanel,
+} from './ai-task-panels';
 import { AiChatPanel } from './ai-chat-panel';
 import { AiKnowledgePanel } from './ai-knowledge-panel';
 import { AiRunsPanel } from './ai-runs-panel';
