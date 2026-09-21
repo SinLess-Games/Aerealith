@@ -12,10 +12,6 @@ import {
   type ApiRequestContext,
 } from '@aerealith-ai/api-platform';
 import { HttpStatus } from '@aerealith-ai/core';
-import {
-  createApiRequestObserver,
-  createOperationObserver,
-} from '@aerealith-ai/observability';
 import { createLogger } from '@aerealith-ai/observability/logger';
 import type { MiddlewareHandler } from 'hono';
 import { cors } from 'hono/cors';
@@ -60,12 +56,6 @@ const browserOrigins = new Set([
 ]);
 
 const credentialedCors = createCredentialedCors(browserOrigins);
-
-const workerMeter = {
-  createCounter: () => ({ add: () => undefined }),
-  createHistogram: () => ({ record: () => undefined }),
-  createUpDownCounter: () => ({ add: () => undefined }),
-} as const;
 
 const logger = createLogger({
   service: 'ai-orchestrator',
