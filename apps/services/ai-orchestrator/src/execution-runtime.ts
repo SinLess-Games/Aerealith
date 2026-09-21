@@ -16,7 +16,9 @@ import {
   type OrchestrationOutput,
   type OrchestrationRequest,
   type RetrievalInput,
+  type RetrievalMatch,
   type RetrievalOutput,
+  type RerankOutput,
 } from '@aerealith-ai/ai-orchestration';
 
 import { createArtifactStore } from './artifact-runtime';
@@ -282,12 +284,21 @@ async function executeRetrieval(
     throw new Error('Embedding provider returned no retrieval query vector.');
   }
 
-  const matches = await vectorStore.search({
+  const requestedLimit = input.limit ?? 10;
+  const candidateLimit = input.rerank
+    ? Math.min(Math.max(requestedLimit * 3, requestedLimit), 100)
+    : requestedLimit;
+
+  const vectorMatches = await vectorStore.search({
     namespace,
     vector,
-    ...(input.limit === undefined ? {} : { limit: input.limit }),
+    limit: candidateLimit,
     ...(input.filter === undefined ? {} : { filter: input.filter }),
   });
+
+  const matches = input.rerank
+    ? await rerankMatches(bindings, request, input.query, vectorMatches, requestedLimit)
+    : vectorMatches.slice(0, requestedLimit);
 
   const content: RetrievalOutput = {
     matches,
@@ -299,6 +310,70 @@ async function executeRetrieval(
     modelId: embeddingResult.modelId,
     ...(embeddingResult.usage ? { usage: embeddingResult.usage } : {}),
   };
+}
+
+async function rerankMatches(
+  bindings: AiOrchestratorBindings,
+  request: OrchestrationRequest,
+  query: string,
+  matches: readonly RetrievalMatch[],
+  limit: number,
+): Promise<readonly RetrievalMatch[]> {
+  const documents = matches
+    .filter((match): match is RetrievalMatch & { text: string } =>
+      typeof match.text === 'string' && match.text.length > 0,
+    )
+    .map((match) => ({
+      id: match.id,
+      text: match.text,
+    }));
+
+  if (documents.length === 0) {
+    return matches.slice(0, limit);
+  }
+
+  const providers = createProviderRegistry(bindings);
+  const routing = new CapabilityRoutingPolicy();
+  const rerankModels = await providers.modelsFor('rerank');
+  const rerankRequest: OrchestrationRequest = {
+    ...request,
+    capability: 'rerank',
+    input: {
+      query,
+      documents,
+      limit,
+    },
+  };
+  const route = routing.select(rerankRequest, rerankModels);
+  const provider = providers.get(route.providerId);
+
+  if (!provider) {
+    return matches.slice(0, limit);
+  }
+
+  const models = await provider.listModels();
+  const model = models.find((candidate) => candidate.id === route.modelId);
+
+  if (!model) {
+    return matches.slice(0, limit);
+  }
+
+  const reranked = await provider.execute(rerankRequest, model);
+  const output = reranked.content as RerankOutput;
+  const byId = new Map(matches.map((match) => [match.id, match]));
+
+  return output.results
+    .map((result) => {
+      const match = byId.get(result.id);
+      return match
+        ? {
+            ...match,
+            score: result.score,
+          }
+        : undefined;
+    })
+    .filter((match): match is RetrievalMatch => Boolean(match))
+    .slice(0, limit);
 }
 
 async function selectEmbeddingTarget(
