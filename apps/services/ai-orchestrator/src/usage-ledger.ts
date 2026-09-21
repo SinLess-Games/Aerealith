@@ -61,6 +61,17 @@ export class AiUsageLedger extends DurableObject<AiOrchestratorBindings> {
     };
   }
 
+  async releaseRun(now = new Date()): Promise<DailyUsage> {
+    const current = this.current(now);
+    const next: DailyUsage = {
+      ...current,
+      runs: Math.max(0, current.runs - 1),
+    };
+
+    this.ctx.storage.kv.put(STATE_KEY, next);
+    return next;
+  }
+
   async recordUsage(
     usage: Usage | undefined,
     now = new Date(),
@@ -117,6 +128,7 @@ export class AiUsageStore {
           dailyRunLimit: number,
           dailyCostBudgetUsd: number,
         ): Promise<UsageDecision>;
+        releaseRun(): Promise<DailyUsage>;
         recordUsage(usage?: Usage): Promise<DailyUsage>;
         getUsage(): Promise<DailyUsage>;
       };
@@ -132,6 +144,10 @@ export class AiUsageStore {
       dailyRunLimit,
       dailyCostBudgetUsd,
     );
+  }
+
+  releaseRun(tenantId: string): Promise<DailyUsage> {
+    return this.stub(tenantId).releaseRun();
   }
 
   recordUsage(
