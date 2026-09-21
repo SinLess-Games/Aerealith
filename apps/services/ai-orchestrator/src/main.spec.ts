@@ -210,6 +210,74 @@ function createRunIndexNamespace() {
   return { namespace, runsByTenant };
 }
 
+function createUsageNamespace(options?: {
+  runs?: number;
+  estimatedCostUsd?: number;
+}) {
+  const state = {
+    day: '2026-09-21',
+    runs: options?.runs ?? 0,
+    inputUnits: 0,
+    outputUnits: 0,
+    totalUnits: 0,
+    estimatedCostUsd: options?.estimatedCostUsd ?? 0,
+  };
+
+  return {
+    idFromName(name: string) {
+      return name;
+    },
+    get(_id: unknown) {
+      return {
+        async consumeRun(
+          dailyRunLimit: number,
+          dailyCostBudgetUsd: number,
+        ) {
+          if (dailyRunLimit > 0 && state.runs >= dailyRunLimit) {
+            return {
+              allowed: false,
+              reason: 'DAILY_RUN_LIMIT' as const,
+              usage: { ...state },
+            };
+          }
+
+          if (
+            dailyCostBudgetUsd > 0 &&
+            state.estimatedCostUsd >= dailyCostBudgetUsd
+          ) {
+            return {
+              allowed: false,
+              reason: 'DAILY_COST_BUDGET' as const,
+              usage: { ...state },
+            };
+          }
+
+          state.runs += 1;
+          return {
+            allowed: true,
+            usage: { ...state },
+          };
+        },
+        async recordUsage(usage?: {
+          inputUnits?: number;
+          outputUnits?: number;
+          totalUnits?: number;
+          estimatedCostUsd?: number;
+        }) {
+          state.inputUnits += usage?.inputUnits ?? 0;
+          state.outputUnits += usage?.outputUnits ?? 0;
+          state.totalUnits += usage?.totalUnits ?? 0;
+          state.estimatedCostUsd += usage?.estimatedCostUsd ?? 0;
+          return { ...state };
+        },
+        async getUsage() {
+          return { ...state };
+        },
+      };
+    },
+  };
+}
+
 function createRateLimitNamespace(limit = 60) {
   const counts = new Map<string, number>();
 
@@ -371,6 +439,7 @@ describe('AI orchestrator service', () => {
         'AI_RUN_STATE',
         'AI_RUN_INDEX',
         'AI_RATE_LIMIT',
+        'AI_USAGE',
         'AI',
       ],
     });
@@ -495,6 +564,7 @@ describe('AI orchestrator service', () => {
         AI_RUN_STATE: namespace,
         AI_RUN_INDEX: runIndex,
         AI_RATE_LIMIT: createRateLimitNamespace(),
+        AI_USAGE: createUsageNamespace(),
         AI_PROVIDER_CATALOG: JSON.stringify([
           {
             id: 'primary',
@@ -555,6 +625,7 @@ describe('AI orchestrator service', () => {
         AI_RUN_STATE: namespace,
         AI_RUN_INDEX: runIndex,
         AI_RATE_LIMIT: createRateLimitNamespace(),
+        AI_USAGE: createUsageNamespace(),
         AI_PROVIDER_CATALOG: JSON.stringify([
           {
             id: 'primary',
