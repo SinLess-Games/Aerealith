@@ -23,15 +23,21 @@ export class RunOutputTooLargeError extends Error {
 
 export class AiRunState extends DurableObject<AiOrchestratorBindings> {
   async createRun(run: RunRecord): Promise<RunRecord> {
+    return (await this.createRunIfAbsent(run)).run;
+  }
+
+  async createRunIfAbsent(
+    run: RunRecord,
+  ): Promise<{ run: RunRecord; created: boolean }> {
     const existing = this.ctx.storage.kv.get<RunRecord>(RUN_KEY);
 
     if (existing) {
-      return existing;
+      return { run: existing, created: false };
     }
 
     validateInlineOutput(run.output);
     this.ctx.storage.kv.put(RUN_KEY, run);
-    return run;
+    return { run, created: true };
   }
 
   async getRun(): Promise<RunRecord | undefined> {
