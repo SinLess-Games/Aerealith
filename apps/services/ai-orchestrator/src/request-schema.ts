@@ -149,6 +149,7 @@ const retrievalInputSchema = z.object({
   namespace: z.string().min(1).max(256),
   query: z.string().min(1).max(250_000),
   limit: z.number().int().positive().max(1_000).optional(),
+  rerank: z.boolean().optional(),
   filter: z.record(z.string(), z.unknown()).optional(),
 });
 
