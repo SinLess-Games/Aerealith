@@ -59,6 +59,21 @@ export interface RunIndexNamespace {
   get(id: unknown): RunIndexStub;
 }
 
+export interface RateLimitNamespace {
+  idFromName(name: string): unknown;
+  get(id: unknown): {
+    consume(
+      limit: number,
+      windowMs: number,
+    ): Promise<{
+      allowed: boolean;
+      limit: number;
+      remaining: number;
+      retryAfterSeconds: number;
+    }>;
+  };
+}
+
 export type AiOrchestratorBindings = {
   [binding: string]: unknown;
 
@@ -69,6 +84,7 @@ export type AiOrchestratorBindings = {
   AI_ORCHESTRATION_WORKFLOW?: WorkflowBinding<WorkflowRunParams>;
   AI_RUN_STATE?: RunStateNamespace;
   AI_RUN_INDEX?: RunIndexNamespace;
+  AI_RATE_LIMIT?: RateLimitNamespace;
   AI_ARTIFACTS?: R2Bucket;
 
   /**
@@ -76,6 +92,8 @@ export type AiOrchestratorBindings = {
    * Cloudflare Workers AI is registered directly through the AI binding.
    */
   AI_PROVIDER_CATALOG?: string;
+  AI_RUNS_PER_MINUTE?: string;
+  AI_RATE_LIMIT_WINDOW_MS?: string;
 
   /**
    * Qdrant Cloud cluster endpoint. The URL itself is not a secret.
