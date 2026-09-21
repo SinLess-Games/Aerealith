@@ -37,6 +37,7 @@ export function DashboardLayout() {
   const { error, isAuthenticated, isError, isLoading, refetch, user } =
     useSession();
   const logout = useLogout();
+  const adminEnabled = useFeatureFlag(FeatureFlag.Admin);
   const adminAccess = useQuery({
     queryKey: ADMIN_OVERVIEW_QUERY_KEY,
     queryFn: fetchAdminOverview,
@@ -44,7 +45,6 @@ export function DashboardLayout() {
     retry: false,
     staleTime: 60_000,
   });
-  const adminEnabled = useFeatureFlag(FeatureFlag.Admin);
   const isSuperAdmin = adminEnabled && adminAccess.isSuccess;
   const aiStudioEnabled = useFeatureFlag(FeatureFlag.AiStudio);
   const documentationEnabled = useFeatureFlag(FeatureFlag.Documentation);
