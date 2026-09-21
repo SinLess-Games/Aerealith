@@ -35,6 +35,9 @@ import {
   vectorStoreStatus,
 } from './vector-store';
 
+const MAX_GENERATED_MEDIA_BYTES = 512 * 1024 * 1024;
+const MAX_GENERATED_MEDIA_REDIRECTS = 5;
+
 export class VectorStoreUnavailableError extends Error {
   constructor() {
     super('The vector store is not configured.');
@@ -223,34 +226,123 @@ async function resolveGeneratedMediaBody(
     throw new Error('The media provider returned no artifact body.');
   }
 
-  const source = new URL(generated.url);
-  if (source.protocol !== 'https:') {
-    throw new Error('Generated media URLs must use HTTPS.');
+  let source = validateGeneratedMediaUrl(generated.url);
+  let response: Response | undefined;
+
+  for (
+    let redirectCount = 0;
+    redirectCount <= MAX_GENERATED_MEDIA_REDIRECTS;
+    redirectCount += 1
+  ) {
+    response = await fetch(source, {
+      redirect: 'manual',
+      cf: {
+        cacheTtl: 0,
+        cacheEverything: false,
+      },
+    });
+
+    if (
+      response.status < 300 ||
+      response.status >= 400
+    ) {
+      break;
+    }
+
+    if (redirectCount === MAX_GENERATED_MEDIA_REDIRECTS) {
+      throw new Error('Generated media exceeded the redirect limit.');
+    }
+
+    const location = response.headers.get('location');
+    if (!location) {
+      throw new Error('Generated media redirect did not include a location.');
+    }
+
+    source = validateGeneratedMediaUrl(
+      new URL(location, source).toString(),
+    );
   }
 
-  const response = await fetch(source, {
-    redirect: 'follow',
-    cf: {
-      cacheTtl: 0,
-      cacheEverything: false,
-    },
-  });
-
-  if (!response.ok || !response.body) {
+  if (!response || !response.ok || !response.body) {
     throw new Error(
-      `Failed to download generated media (HTTP ${response.status}).`,
+      `Failed to download generated media (HTTP ${response?.status ?? 0}).`,
     );
   }
 
   const contentLength = response.headers.get('content-length');
   if (
     contentLength &&
-    Number.parseInt(contentLength, 10) > 512 * 1024 * 1024
+    Number.parseInt(contentLength, 10) > MAX_GENERATED_MEDIA_BYTES
   ) {
     throw new Error('Generated media exceeds the 512 MiB artifact limit.');
   }
 
-  return response.body;
+  return enforceStreamByteLimit(
+    response.body,
+    MAX_GENERATED_MEDIA_BYTES,
+  );
+}
+
+function validateGeneratedMediaUrl(value: string): URL {
+  const url = new URL(value);
+  const hostname = url.hostname.toLowerCase();
+
+  if (
+    url.protocol !== 'https:' ||
+    url.username ||
+    url.password ||
+    hostname === 'localhost' ||
+    hostname.endsWith('.localhost') ||
+    isPrivateGeneratedMediaHost(hostname)
+  ) {
+    throw new Error('Generated media URL is not allowed.');
+  }
+
+  return url;
+}
+
+function isPrivateGeneratedMediaHost(hostname: string): boolean {
+  if (hostname === '::1' || hostname === '[::1]') return true;
+
+  const match = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/u.exec(
+    hostname,
+  );
+  if (!match) return false;
+
+  const octets = match.slice(1).map(Number);
+  if (octets.some((octet) => octet < 0 || octet > 255)) return true;
+
+  const [a, b] = octets;
+  return (
+    a === 10 ||
+    a === 127 ||
+    a === 0 ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b !== undefined && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168)
+  );
+}
+
+function enforceStreamByteLimit(
+  body: ReadableStream<Uint8Array>,
+  limitBytes: number,
+): ReadableStream<Uint8Array> {
+  let total = 0;
+
+  return body.pipeThrough(
+    new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, controller) {
+        total += chunk.byteLength;
+        if (total > limitBytes) {
+          throw new Error(
+            'Generated media exceeds the 512 MiB artifact limit.',
+          );
+        }
+
+        controller.enqueue(chunk);
+      },
+    }),
+  );
 }
 
 async function executeKnowledgeIngestion(
