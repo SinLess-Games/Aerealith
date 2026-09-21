@@ -43,7 +43,7 @@ export function AiChatPanel({
   const [prompt, setPrompt] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string>();
-  const abortRef = useRef<AbortController>();
+  const abortRef = useRef<AbortController | undefined>(undefined);
 
   async function sendMessage() {
     const content = prompt.trim();
