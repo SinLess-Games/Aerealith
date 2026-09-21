@@ -51,6 +51,43 @@ export interface AiCodeSandboxNamespace {
   getByName(name: string): AiCodeSandboxStub;
 }
 
+export interface ConversationStateStub {
+  createConversation(
+    conversation: import('./conversation-state').ConversationRecord,
+  ): Promise<import('./conversation-state').ConversationRecord>;
+  getConversation(): Promise<
+    import('./conversation-state').ConversationRecord | undefined
+  >;
+  appendMessage(
+    message: import('./conversation-state').ConversationMessage,
+  ): Promise<import('./conversation-state').ConversationRecord>;
+  deleteConversation(): Promise<void>;
+}
+
+export interface ConversationStateNamespace {
+  idFromName(name: string): unknown;
+  get(id: unknown): ConversationStateStub;
+}
+
+export interface ConversationIndexStub {
+  upsertConversation(
+    conversation: import('./conversation-state').ConversationSummary,
+  ): Promise<void>;
+  deleteConversation(conversationId: string): Promise<void>;
+  listConversations(
+    limit?: number,
+    before?: string,
+  ): Promise<{
+    items: readonly import('./conversation-state').ConversationSummary[];
+    nextBefore?: string;
+  }>;
+}
+
+export interface ConversationIndexNamespace {
+  idFromName(name: string): unknown;
+  get(id: unknown): ConversationIndexStub;
+}
+
 export interface WorkflowInstance {
   status(): Promise<unknown>;
   terminate(): Promise<void>;
@@ -168,6 +205,8 @@ export type AiOrchestratorBindings = {
   AI_USAGE?: UsageLedgerNamespace;
   AI_ARTIFACTS?: R2Bucket;
   AI_CODE_SANDBOX?: AiCodeSandboxNamespace;
+  AI_CONVERSATION_STATE?: ConversationStateNamespace;
+  AI_CONVERSATION_INDEX?: ConversationIndexNamespace;
 
   /**
    * Optional JSON catalog for non-Cloudflare OpenAI-compatible providers.
