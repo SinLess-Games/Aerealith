@@ -50,7 +50,10 @@ export type RunRecord = {
   capability: CapabilityKind;
   createdAt: string;
   updatedAt: string;
+  startedAt?: string;
+  completedAt?: string;
   providerId?: string;
   modelId?: string;
+  output?: OrchestrationOutput;
   errorCode?: string;
 };
