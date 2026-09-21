@@ -34,6 +34,7 @@ import {
   initializeBrowserObservability,
   recordBrowserError,
   recordBrowserEvent,
+  sanitizeBrowserTelemetryUrl,
   setBrowserObservabilityPaused,
 } from './browser-observability';
 
@@ -75,6 +76,44 @@ describe('browser observability', () => {
         sessionTracking: { enabled: true, persistent: false },
       }),
     );
+  });
+
+  it('sanitizes page URLs and ignores sensitive resource URLs', () => {
+    initializeBrowserObservability({
+      VITE_GRAFANA_FARO_URL: 'https://faro.example/collect',
+    });
+
+    const options = initializeFaro.mock.calls[0]![0];
+    const item = {
+      meta: {
+        page: {
+          url: 'https://aerealith.com/reset-password?token=secret#form',
+        },
+      },
+    };
+
+    expect(options.beforeSend(item)).toBe(item);
+    expect(item.meta.page.url).toBe('https://aerealith.com/reset-password');
+    expect(options.ignoreUrls[0].test('/api/data?token=secret')).toBe(true);
+    expect(options.ignoreUrls[0].test('/api/data?view=summary')).toBe(false);
+  });
+
+  it('sanitizes relative and malformed telemetry URLs', () => {
+    expect(sanitizeBrowserTelemetryUrl('/account?token=secret#details')).toBe(
+      `${window.location.origin}/account`,
+    );
+
+    const OriginalUrl = URL;
+    vi.stubGlobal(
+      'URL',
+      class ThrowingUrl {
+        constructor() {
+          throw new Error('invalid');
+        }
+      },
+    );
+    expect(sanitizeBrowserTelemetryUrl('bad?token=secret#details')).toBe('bad');
+    vi.stubGlobal('URL', OriginalUrl);
   });
 
   it('normalizes the collector URL and defaults blank application labels', () => {
