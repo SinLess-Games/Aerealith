@@ -1,5 +1,73 @@
-import type { WorkflowRunParams } from './bindings';
+import type {
+  RunRecord,
+  RunStatus,
+} from '@aerealith-ai/ai-orchestration';
+
+import type {
+  RunStateNamespace,
+  RunStateStub,
+  WorkflowRunParams,
+} from './bindings';
 import app from './main';
+
+function createRunStateNamespace() {
+  const records = new Map<string, RunRecord>();
+
+  const namespace: RunStateNamespace = {
+    idFromName(name: string) {
+      return name;
+    },
+    get(id: unknown): RunStateStub {
+      const runId = String(id);
+
+      return {
+        async createRun(run) {
+          const existing = records.get(runId);
+          if (existing) return existing;
+          records.set(runId, run);
+          return run;
+        },
+        async getRun() {
+          return records.get(runId);
+        },
+        async updateStatus(
+          status: RunStatus,
+          patch = {},
+        ) {
+          const current = records.get(runId);
+          if (!current) throw new Error('missing run');
+
+          const updated: RunRecord = {
+            ...current,
+            ...patch,
+            id: current.id,
+            status,
+            createdAt: current.createdAt,
+            updatedAt: new Date().toISOString(),
+          };
+
+          records.set(runId, updated);
+          return updated;
+        },
+        async cancelRun() {
+          const current = records.get(runId);
+          if (!current) throw new Error('missing run');
+
+          const updated: RunRecord = {
+            ...current,
+            status: 'cancelled',
+            updatedAt: new Date().toISOString(),
+          };
+
+          records.set(runId, updated);
+          return updated;
+        },
+      };
+    },
+  };
+
+  return { namespace, records };
+}
 
 describe('AI orchestrator service', () => {
   it('reports health with a request id', async () => {
@@ -22,9 +90,12 @@ describe('AI orchestrator service', () => {
   });
 
   it('propagates correlation ids through the shared request context', async () => {
-    const response = await app.request('http://localhost/api/V1/ai/capabilities', {
-      headers: { 'x-correlation-id': 'correlation-123' },
-    });
+    const response = await app.request(
+      'http://localhost/api/V1/ai/capabilities',
+      {
+        headers: { 'x-correlation-id': 'correlation-123' },
+      },
+    );
 
     expect(response.headers.get('x-correlation-id')).toBe('correlation-123');
     await expect(response.json()).resolves.toMatchObject({
@@ -58,7 +129,7 @@ describe('AI orchestrator service', () => {
     expect(JSON.stringify(body)).not.toContain('qdrant.example.test');
   });
 
-  it('reports not ready when the production Workflow binding is missing', async () => {
+  it('reports missing production Workflow and run-state bindings', async () => {
     const response = await app.request(
       'http://localhost/ready',
       undefined,
@@ -69,6 +140,7 @@ describe('AI orchestrator service', () => {
     await expect(response.json()).resolves.toMatchObject({
       service: 'ai-orchestrator',
       status: 'not_ready',
+      missing: ['AI_ORCHESTRATION_WORKFLOW', 'AI_RUN_STATE'],
     });
   });
 
@@ -128,10 +200,12 @@ describe('AI orchestrator service', () => {
     expect(body.data.capability).toBe('code');
   });
 
-  it('dispatches production runs to the Workflow binding', async () => {
+  it('persists production runs before Workflow dispatch', async () => {
     const create = vi.fn(
       async (_options: { id?: string; params: WorkflowRunParams }) => undefined,
     );
+    const { namespace, records } = createRunStateNamespace();
+
     const response = await app.request(
       'http://localhost/api/V1/ai/runs',
       {
@@ -139,22 +213,70 @@ describe('AI orchestrator service', () => {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           capability: 'text',
-          input: 'hello',
+          input: {
+            messages: [{ role: 'user', content: 'hello' }],
+          },
         }),
       },
       {
         ENVIRONMENT: 'production',
         AI_ORCHESTRATION_WORKFLOW: { create },
+        AI_RUN_STATE: namespace,
       },
     );
 
     expect(response.status).toBe(202);
     expect(create).toHaveBeenCalledTimes(1);
 
+    const body = (await response.json()) as {
+      data: RunRecord;
+    };
+
+    expect(records.get(body.data.id)).toEqual(body.data);
+
     const options = create.mock.calls[0]?.[0] as
       | { id?: string; params: WorkflowRunParams }
       | undefined;
 
     expect(options?.params.request.capability).toBe('text');
+  });
+
+  it('returns durable run status by run id', async () => {
+    const { namespace, records } = createRunStateNamespace();
+    const run: RunRecord = {
+      id: '5d9dd628-c0a3-4fb7-a03d-2a345278ebd5',
+      status: 'queued',
+      capability: 'text',
+      createdAt: '2026-09-21T00:00:00.000Z',
+      updatedAt: '2026-09-21T00:00:01.000Z',
+    };
+    records.set(run.id, run);
+
+    const response = await app.request(
+      `http://localhost/api/V1/ai/runs/${run.id}`,
+      undefined,
+      { AI_RUN_STATE: namespace },
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      ok: true,
+      data: run,
+    });
+  });
+
+  it('returns 404 when a durable run does not exist', async () => {
+    const { namespace } = createRunStateNamespace();
+
+    const response = await app.request(
+      'http://localhost/api/V1/ai/runs/5d9dd628-c0a3-4fb7-a03d-2a345278ebd5',
+      undefined,
+      { AI_RUN_STATE: namespace },
+    );
+
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: 'NOT_FOUND' },
+    });
   });
 });
