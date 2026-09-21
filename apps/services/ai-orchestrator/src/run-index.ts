@@ -48,6 +48,7 @@ export class AiRunIndex extends DurableObject<AiOrchestratorBindings> {
 }
 
 function toIndexedRun(run: RunRecord): IndexedRun {
-  const { output: _output, ...indexed } = run;
+  const { output, ...indexed } = run;
+  void output;
   return indexed;
 }
