@@ -12,6 +12,8 @@ import {
   FiZap,
 } from 'react-icons/fi';
 
+import { recordBrowserEvent } from '../../lib/browser-observability';
+
 import {
   aiApi,
   consumeAiTextStream,
@@ -74,6 +76,14 @@ export function AiChatPanel({
     setError(undefined);
     setIsSending(true);
     setPrompt('');
+    recordBrowserEvent(
+      'ai_chat_submitted',
+      {
+        responseMode: streamingEnabled ? 'streaming' : 'durable',
+        routing: selectedModel ? 'manual' : 'automatic',
+      },
+      'ai',
+    );
 
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -179,6 +189,12 @@ export function AiChatPanel({
         ]);
       }
 
+      recordBrowserEvent(
+        'ai_chat_completed',
+        { responseMode: streamingEnabled ? 'streaming' : 'durable' },
+        'ai',
+      );
+
       await queryClient.invalidateQueries({
         queryKey: ['ai'],
       });
@@ -187,8 +203,10 @@ export function AiChatPanel({
         caught instanceof DOMException &&
         caught.name === 'AbortError'
       ) {
+        recordBrowserEvent('ai_chat_stopped', {}, 'ai');
         setError('Generation stopped.');
       } else {
+        recordBrowserEvent('ai_chat_failed', {}, 'ai');
         setError(
           caught instanceof Error
             ? caught.message
