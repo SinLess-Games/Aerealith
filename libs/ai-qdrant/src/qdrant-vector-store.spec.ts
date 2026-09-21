@@ -2,8 +2,9 @@ import { QdrantVectorStore } from './qdrant-vector-store';
 
 describe('QdrantVectorStore', () => {
   it('queries vectors and maps Qdrant payloads', async () => {
-    const fetchImplementation = vi.fn(async () =>
-      new Response(
+    const fetchImplementation = vi.fn(
+      async (_input: RequestInfo | URL, _init?: RequestInit) =>
+        new Response(
         JSON.stringify({
           result: {
             points: [
@@ -22,7 +23,7 @@ describe('QdrantVectorStore', () => {
           status: 200,
           headers: { 'content-type': 'application/json' },
         },
-      ),
+        ),
     );
 
     const store = new QdrantVectorStore({
