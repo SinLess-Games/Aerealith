@@ -1,6 +1,7 @@
 import type {
   RunRecord,
   RunStatus,
+  RunStatusPatch,
   RunStore,
 } from '@aerealith-ai/ai-orchestration';
 
@@ -23,7 +24,7 @@ export class DurableObjectRunStore implements RunStore {
   async updateStatus(
     runId: string,
     status: RunStatus,
-    patch: Partial<Omit<RunRecord, 'id' | 'status'>> = {},
+    patch: RunStatusPatch = {},
   ): Promise<void> {
     await this.stub(runId).updateStatus(status, patch);
   }
