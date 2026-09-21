@@ -13,6 +13,8 @@ import {
 } from '@aerealith-ai/api-platform';
 import { HttpStatus } from '@aerealith-ai/core';
 import { createLogger } from '@aerealith-ai/observability/logger';
+import type { MiddlewareHandler } from 'hono';
+import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
 import { z } from 'zod';
 
@@ -46,6 +48,15 @@ import { createVectorStore, vectorStoreStatus } from './vector-store';
 
 type AiOrchestratorEnv = ApiEnv<ApiRequestContext, AiOrchestratorBindings>;
 
+const browserOrigins = new Set([
+  'https://aerealith.com',
+  'https://www.aerealith.com',
+  'http://localhost:4200',
+  'http://127.0.0.1:4200',
+]);
+
+const credentialedCors = createCredentialedCors(browserOrigins);
+
 const logger = createLogger({
   service: 'ai-orchestrator',
   environment: 'cloudflare-worker',
@@ -58,7 +69,10 @@ const logger = createLogger({
 const app = createApiApp<AiOrchestratorEnv>({
   serviceName: 'ai-orchestrator',
   logger,
-  middleware: [{ handler: secureHeaders() }],
+  middleware: [
+    { handler: secureHeaders() },
+    { handler: credentialedCors },
+  ],
 });
 
 const runIdSchema = z.uuid();
@@ -1457,6 +1471,48 @@ function resolveEngine(bindings: AiOrchestratorBindings): OrchestrationEngine {
   }
 
   return new BasicOrchestrationEngine();
+}
+
+function createCredentialedCors(
+  allowedOrigins: ReadonlySet<string>,
+): MiddlewareHandler<AiOrchestratorEnv> {
+  const handler = cors({
+    origin: (origin) => (allowedOrigins.has(origin) ? origin : ''),
+    allowMethods: ['GET', 'HEAD', 'POST', 'DELETE', 'OPTIONS'],
+    allowHeaders: [
+      'Accept',
+      'Authorization',
+      'Content-Type',
+      'Idempotency-Key',
+      'X-CSRF-Token',
+      'X-Request-ID',
+    ],
+    exposeHeaders: [
+      'Content-Length',
+      'Content-Type',
+      'Retry-After',
+      'X-AI-Run-ID',
+      'X-Request-ID',
+    ],
+    maxAge: 86_400,
+  });
+
+  return async (context, next) => {
+    const response = await handler(context, next);
+
+    if (allowedOrigins.has(context.req.header('origin') ?? '')) {
+      context.res.headers.set(
+        'Access-Control-Allow-Credentials',
+        'true',
+      );
+      response?.headers.set(
+        'Access-Control-Allow-Credentials',
+        'true',
+      );
+    }
+
+    return response;
+  };
 }
 
 function responseMeta(context: ApiRequestContext) {
