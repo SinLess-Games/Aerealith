@@ -38,6 +38,7 @@ describe('AI provider runtime', () => {
     expect(status).toEqual({
       configuredProviders: 1,
       totalProviders: 1,
+      capabilities: ['text', 'code', 'embedding'],
       providers: [
         {
           id: 'primary',
@@ -74,6 +75,7 @@ describe('AI provider runtime', () => {
     expect(providerRuntimeStatus(bindings)).toMatchObject({
       configuredProviders: 0,
       totalProviders: 1,
+      capabilities: [],
       providers: [{ id: 'primary', configured: false }],
     });
   });
