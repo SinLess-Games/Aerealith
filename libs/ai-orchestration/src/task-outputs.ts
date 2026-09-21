@@ -46,6 +46,13 @@ export type PredictionOutput = {
   artifacts?: readonly ArtifactReference[];
 };
 
+export type KnowledgeIngestionOutput = {
+  namespace: string;
+  documentsProcessed: number;
+  chunksWritten: number;
+  embeddingModelId: string;
+};
+
 export type RetrievalOutput = {
   matches: readonly {
     id: string;
@@ -70,6 +77,7 @@ export type CapabilityOutputMap = {
   music: MediaGenerationOutput;
   analytics: AnalyticsOutput;
   prediction: PredictionOutput;
+  'knowledge-ingest': KnowledgeIngestionOutput;
   retrieval: RetrievalOutput;
   tool: ToolInvocationOutput;
 };
