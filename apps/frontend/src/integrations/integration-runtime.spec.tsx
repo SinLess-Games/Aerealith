@@ -6,6 +6,7 @@ import { IntegrationRuntime } from './integration-runtime';
 
 const mocks = vi.hoisted(() => ({
   config: { datadog: { enabled: true } },
+  featureFlags: { observability: true, dashboard: true },
   initializeDatadogRum: vi.fn<() => Promise<boolean>>(),
   loadCloudflareWebAnalytics: vi.fn(),
   loadGoogleTagManager: vi.fn(),
@@ -14,6 +15,7 @@ const mocks = vi.hoisted(() => ({
   reportGlobalError: vi.fn(),
   setDatadogSessionReplayAllowed: vi.fn(),
   setDatadogTrackingAllowed: vi.fn(),
+  trackDatadogFeatureFlag: vi.fn(),
 }));
 
 vi.mock('../analytics/cloudflare-web-analytics', () => ({
@@ -27,12 +29,14 @@ vi.mock('../consent/consent-context', () => ({
 }));
 vi.mock('../features/flags/feature-flags', () => ({
   useFeatureFlag: () => mocks.observabilityEnabled,
+  useFeatureFlags: () => mocks.featureFlags,
 }));
 vi.mock('../observability/datadog-rum', () => ({
   initializeDatadogRum: mocks.initializeDatadogRum,
   reportGlobalError: mocks.reportGlobalError,
   setDatadogSessionReplayAllowed: mocks.setDatadogSessionReplayAllowed,
   setDatadogTrackingAllowed: mocks.setDatadogTrackingAllowed,
+  trackDatadogFeatureFlag: mocks.trackDatadogFeatureFlag,
 }));
 vi.mock('./integration-config', () => ({ integrationConfig: mocks.config }));
 
@@ -48,6 +52,7 @@ describe('IntegrationRuntime', () => {
     mocks.reportGlobalError.mockReset();
     mocks.setDatadogSessionReplayAllowed.mockReset();
     mocks.setDatadogTrackingAllowed.mockReset();
+    mocks.trackDatadogFeatureFlag.mockReset();
   });
 
   it('keeps optional integrations disabled without analytics consent', () => {
@@ -71,6 +76,14 @@ describe('IntegrationRuntime', () => {
     expect(mocks.initializeDatadogRum).toHaveBeenCalled();
     await waitFor(() =>
       expect(mocks.setDatadogSessionReplayAllowed).toHaveBeenCalledWith(true),
+    );
+    expect(mocks.trackDatadogFeatureFlag).toHaveBeenCalledWith(
+      'observability',
+      true,
+    );
+    expect(mocks.trackDatadogFeatureFlag).toHaveBeenCalledWith(
+      'dashboard',
+      true,
     );
   });
 
