@@ -121,7 +121,7 @@ app.get('/api/V1/ai/vector-store', (c) => {
     data: {
       provider: status.provider,
       configured: status.configured,
-      collectionPrefix: status.collectionPrefix,
+      collection: status.collection,
     },
     meta: responseMeta(c.get('apiContext')),
   });
