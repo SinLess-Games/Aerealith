@@ -375,10 +375,17 @@ function resolveWorkspacePath(path: string): string {
   }
 
   const normalizedInput = path.replaceAll('\\', '/');
-  const relative = normalizedInput.startsWith('/')
-    ? normalizedInput.slice(1)
-    : normalizedInput;
-  const segments = relative.split('/').filter((segment) => segment && segment !== '.');
+  const workspaceRelative =
+    normalizedInput === WORKSPACE_ROOT
+      ? ''
+      : normalizedInput.startsWith(`${WORKSPACE_ROOT}/`)
+        ? normalizedInput.slice(WORKSPACE_ROOT.length + 1)
+        : normalizedInput.startsWith('/')
+          ? normalizedInput.slice(1)
+          : normalizedInput;
+  const segments = workspaceRelative
+    .split('/')
+    .filter((segment) => segment && segment !== '.');
 
   if (segments.some((segment) => segment === '..')) {
     throw new Error('Sandbox paths cannot escape the workspace.');
