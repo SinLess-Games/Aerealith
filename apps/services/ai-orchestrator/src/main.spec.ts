@@ -224,7 +224,7 @@ describe('AI orchestrator service', () => {
         'AUTH_WORKER',
         'AI_ORCHESTRATION_WORKFLOW',
         'AI_RUN_STATE',
-        'AI_PROVIDER_CATALOG',
+        'AI',
       ],
     });
   });
