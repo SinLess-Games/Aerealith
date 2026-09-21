@@ -3,28 +3,54 @@
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/services/ai-orchestrator/src",
   "projectType": "application",
-  "tags": ["scope:services", "type:service", "domain:ai"],
+  "tags": [
+    "scope:services",
+    "type:service",
+    "domain:ai"
+  ],
   "targets": {
     "typecheck": {
       "executor": "nx:run-commands",
-      "options": { "command": "tsc --noEmit -p apps/services/ai-orchestrator/tsconfig.app.json" }
+      "options": {
+        "command": "tsc --noEmit -p apps/services/ai-orchestrator/tsconfig.app.json"
+      }
     },
     "lint": {
       "executor": "@nx/eslint:lint",
-      "options": { "lintFilePatterns": ["apps/services/ai-orchestrator/**/*.{ts,tsx,js,jsx}"] }
+      "options": {
+        "lintFilePatterns": [
+          "apps/services/ai-orchestrator/**/*.{ts,tsx,js,jsx}"
+        ]
+      }
     },
     "worker-serve": {
       "continuous": true,
       "executor": "nx:run-commands",
-      "options": { "cwd": "apps/services/ai-orchestrator", "command": "wrangler dev" }
+      "options": {
+        "cwd": "apps/services/ai-orchestrator",
+        "command": "wrangler dev"
+      }
     },
     "worker-dry-run": {
       "executor": "nx:run-commands",
-      "options": { "cwd": "apps/services/ai-orchestrator", "command": "wrangler deploy --dry-run" }
+      "options": {
+        "cwd": "apps/services/ai-orchestrator",
+        "command": "wrangler deploy --dry-run"
+      }
     },
     "deploy": {
       "executor": "nx:run-commands",
-      "options": { "cwd": "apps/services/ai-orchestrator", "command": "wrangler deploy" }
+      "options": {
+        "cwd": "apps/services/ai-orchestrator",
+        "command": "wrangler deploy"
+      }
+    },
+    "test": {
+      "executor": "@nx/vitest:test",
+      "options": {
+        "passWithNoTests": false,
+        "configFile": "apps/services/ai-orchestrator/vitest.config.mts"
+      }
     }
   }
 }
