@@ -168,7 +168,8 @@ export const orchestrationRequestSchema = z
 
     for (const issue of parsed.error.issues) {
       context.addIssue({
-        ...issue,
+        code: 'custom',
+        message: issue.message,
         path: ['input', ...issue.path],
       });
     }
