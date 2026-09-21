@@ -368,6 +368,9 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
           timer = setTimeout(() => {
             try {
               process.kill(9);
+              void container.destroy(
+                'Aerealith sandbox command exceeded its execution timeout',
+              );
             } finally {
               reject(
                 new Error(`Sandbox command exceeded ${timeoutMs} ms timeout.`),
