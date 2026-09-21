@@ -1,6 +1,8 @@
 import {
   capabilityKinds,
   type CodeGenerationInput,
+  type OrchestrationRequest,
+  type RunRecord,
 } from '@aerealith-ai/ai-orchestration';
 import {
   ApiError,
@@ -773,12 +775,33 @@ app.post('/api/V1/ai/runs', async (c) => {
     });
   }
 
-  const request = {
-    ...parsed.data,
-    tenantId: principal.id,
-    actorId: principal.id,
-  };
-  const idempotencyKey = c.req.header('idempotency-key');
+  const result = await submitDurableRun(
+    c.env,
+    principal,
+    {
+      ...parsed.data,
+      tenantId: principal.id,
+      actorId: principal.id,
+    },
+    c.req.header('idempotency-key'),
+  );
+
+  return c.json(
+    {
+      ok: true,
+      data: result,
+      meta: responseMeta(c.get('apiContext')),
+    },
+    HttpStatus.Accepted,
+  );
+});
+
+async function submitDurableRun(
+  bindings: AiOrchestratorBindings,
+  principal: AiPrincipal,
+  request: OrchestrationRequest,
+  idempotencyKey?: string,
+): Promise<RunRecord> {
   let submissionOptions:
     | {
         runId: string;
@@ -801,7 +824,7 @@ app.post('/api/V1/ai/runs', async (c) => {
       });
     }
 
-    const runs = createRunStore(c.env);
+    const runs = createRunStore(bindings);
     const existing = runs
       ? await runs.get(submissionOptions.runId)
       : undefined;
@@ -820,59 +843,42 @@ app.post('/api/V1/ai/runs', async (c) => {
         );
       }
 
-      return c.json(
-        {
-          ok: true,
-          data: existing,
-          meta: responseMeta(c.get('apiContext')),
-        },
-        HttpStatus.Accepted,
-      );
+      return existing;
     }
   }
 
-  assertRunSubmissionReady(c.env, parsed.data.capability);
+  assertRunSubmissionReady(bindings, request.capability);
+
   if (
-    parsed.data.capability === 'code' &&
-    codeRequestNeedsSandbox(
-      parsed.data.input as CodeGenerationInput,
-    ) &&
-    !c.env.AI_CODE_SANDBOX
+    request.capability === 'code' &&
+    codeRequestNeedsSandbox(request.input as CodeGenerationInput) &&
+    !bindings.AI_CODE_SANDBOX
   ) {
     throw new ApiError('AI code sandbox is not configured.', {
       code: ApiErrorCode.InternalError,
       status: HttpStatus.ServiceUnavailable,
     });
   }
-  await enforceRunRateLimit(c.env, principal.id);
+
+  await enforceRunRateLimit(bindings, principal.id);
   const usageReserved = await enforceDailyUsageLimits(
-    c.env,
+    bindings,
     principal.id,
   );
-
-  const engine = resolveEngine(c.env);
+  const engine = resolveEngine(bindings);
 
   try {
-    const result = await engine.submit(request, submissionOptions);
-
-    return c.json(
-      {
-        ok: true,
-        data: result,
-        meta: responseMeta(c.get('apiContext')),
-      },
-      HttpStatus.Accepted,
-    );
+    return await engine.submit(request, submissionOptions);
   } catch (error) {
-    if (usageReserved && c.env.AI_USAGE) {
-      await new AiUsageStore(c.env.AI_USAGE)
+    if (usageReserved && bindings.AI_USAGE) {
+      await new AiUsageStore(bindings.AI_USAGE)
         .releaseRun(principal.id)
         .catch(() => undefined);
     }
 
     throw error;
   }
-});
+}
 
 function requireConversationStore(
   bindings: AiOrchestratorBindings,
