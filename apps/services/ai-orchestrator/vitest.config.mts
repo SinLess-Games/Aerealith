@@ -10,6 +10,12 @@ export default defineConfig({
   resolve: {
     alias: [
       {
+        find: /^@aerealith-ai\/ai-cloudflare-workers$/,
+        replacement: workspaceFile(
+          '../../../libs/ai-cloudflare-workers/src/index.ts',
+        ),
+      },
+      {
         find: /^cloudflare:workers$/,
         replacement: workspaceFile(
           './src/testing/cloudflare-workers-shim.ts',
