@@ -9,6 +9,7 @@ import {
   initializeDatadogRum,
   reportGlobalError,
   setDatadogSessionReplayAllowed,
+  setDatadogTrackingAllowed,
 } from '../observability/datadog-rum';
 import { integrationConfig } from './integration-config';
 
@@ -24,6 +25,7 @@ export function IntegrationRuntime() {
     if (!observabilityEnabled) return;
 
     void initializeDatadogRum().then(() => {
+      setDatadogTrackingAllowed(true);
       setDatadogSessionReplayAllowed(preferences.sessionReplay);
     });
   }, [
@@ -33,10 +35,10 @@ export function IntegrationRuntime() {
   ]);
 
   useEffect(() => {
+    const trackingAllowed = observabilityEnabled && preferences.analytics;
+    setDatadogTrackingAllowed(trackingAllowed);
     setDatadogSessionReplayAllowed(
-      observabilityEnabled &&
-        preferences.analytics &&
-        preferences.sessionReplay,
+      trackingAllowed && preferences.sessionReplay,
     );
   }, [
     observabilityEnabled,
