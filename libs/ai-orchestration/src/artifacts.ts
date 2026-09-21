@@ -12,6 +12,7 @@ export type ArtifactReference = {
   id: string;
   kind: ArtifactKind;
   contentType: string;
+  createdAt: string;
   sizeBytes?: number;
   checksum?: string;
   metadata?: Record<string, string>;
@@ -25,7 +26,13 @@ export type ArtifactWrite = {
 };
 
 export interface ArtifactStore {
-  put(artifact: ArtifactWrite): Promise<ArtifactReference>;
-  get(artifactId: string): Promise<Response | undefined>;
-  delete(artifactId: string): Promise<void>;
+  put(
+    namespace: string,
+    artifact: ArtifactWrite,
+  ): Promise<ArtifactReference>;
+  get(
+    namespace: string,
+    artifactId: string,
+  ): Promise<Response | undefined>;
+  delete(namespace: string, artifactId: string): Promise<void>;
 }
