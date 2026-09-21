@@ -8,6 +8,7 @@ export type ModelDescriptor = {
   priority?: number;
   supportsStreaming?: boolean;
   contextWindow?: number;
+  embeddingDimensions?: number;
   inputCostPerMillionUnitsUsd?: number;
   outputCostPerMillionUnitsUsd?: number;
 };
