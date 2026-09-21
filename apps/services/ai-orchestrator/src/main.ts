@@ -14,7 +14,10 @@ import { createLogger } from '@aerealith-ai/observability/logger';
 import { secureHeaders } from 'hono/secure-headers';
 import { z } from 'zod';
 
-import { createArtifactStore } from './artifact-runtime';
+import {
+  artifactStoreStatus,
+  createArtifactStore,
+} from './artifact-runtime';
 import {
   authenticateRequest,
   AuthenticationRequiredError,
@@ -90,6 +93,8 @@ app.get('/ready', (c) => {
   const runIndexConfigured = Boolean(c.env.AI_RUN_INDEX);
   const rateLimitConfigured = Boolean(c.env.AI_RATE_LIMIT);
   const usageConfigured = Boolean(c.env.AI_USAGE);
+  const codeSandboxConfigured = Boolean(c.env.AI_CODE_SANDBOX);
+  const artifactStore = artifactStoreStatus(c.env);
   const vectorStore = vectorStoreStatus(c.env);
   const providers = providerRuntimeStatus(c.env);
   const executable = executableCapabilities(c.env);
@@ -101,6 +106,9 @@ app.get('/ready', (c) => {
     ...(runIndexConfigured ? [] : ['AI_RUN_INDEX']),
     ...(rateLimitConfigured ? [] : ['AI_RATE_LIMIT']),
     ...(usageConfigured ? [] : ['AI_USAGE']),
+    ...(codeSandboxConfigured ? [] : ['AI_CODE_SANDBOX']),
+    ...(artifactStore.configured ? [] : ['AI_ARTIFACTS']),
+    ...(vectorStore.configured ? [] : ['QDRANT']),
     ...(providers.configuredProviders > 0 ? [] : ['AI']),
   ];
 
@@ -121,6 +129,8 @@ app.get('/ready', (c) => {
           runIndexConfigured,
           rateLimitConfigured,
           usageConfigured,
+          codeSandboxConfigured,
+          artifactStore,
           vectorStore: {
             provider: vectorStore.provider,
             configured: vectorStore.configured,
@@ -147,6 +157,8 @@ app.get('/ready', (c) => {
       runIndexConfigured,
       rateLimitConfigured,
       usageConfigured,
+      codeSandboxConfigured,
+      artifactStore,
       vectorStore: {
         provider: vectorStore.provider,
         configured: vectorStore.configured,
