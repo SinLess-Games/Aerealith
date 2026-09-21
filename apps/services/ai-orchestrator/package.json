@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@aerealith-ai/ai-orchestration": "workspace:*",
+    "@aerealith-ai/ai-qdrant": "workspace:*",
     "@aerealith-ai/api-platform": "workspace:*",
     "@aerealith-ai/core": "workspace:*",
     "@aerealith-ai/observability": "workspace:*",
