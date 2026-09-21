@@ -43,6 +43,22 @@ export interface RunStateNamespace {
   get(id: unknown): RunStateStub;
 }
 
+export interface RunIndexStub {
+  upsertRun(run: RunRecord): Promise<void>;
+  listRuns(
+    limit?: number,
+    before?: string,
+  ): Promise<{
+    items: readonly Omit<RunRecord, 'output'>[];
+    nextBefore?: string;
+  }>;
+}
+
+export interface RunIndexNamespace {
+  idFromName(name: string): unknown;
+  get(id: unknown): RunIndexStub;
+}
+
 export type AiOrchestratorBindings = {
   [binding: string]: unknown;
 
@@ -52,6 +68,7 @@ export type AiOrchestratorBindings = {
   AUTH_WORKER?: WorkerFetcher;
   AI_ORCHESTRATION_WORKFLOW?: WorkflowBinding<WorkflowRunParams>;
   AI_RUN_STATE?: RunStateNamespace;
+  AI_RUN_INDEX?: RunIndexNamespace;
   AI_ARTIFACTS?: R2Bucket;
 
   /**
