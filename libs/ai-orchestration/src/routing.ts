@@ -36,24 +36,22 @@ export class CapabilityRoutingPolicy implements RoutingPolicy {
       candidate.capabilities.includes(request.capability),
     );
 
-    if (preferences?.provider) {
-      const providerMatches = eligible.filter(
+    if (
+      preferences?.provider &&
+      preferences.allowFallback === false
+    ) {
+      eligible = eligible.filter(
         (candidate) => candidate.providerId === preferences.provider,
       );
-
-      if (providerMatches.length > 0 || preferences.allowFallback === false) {
-        eligible = providerMatches;
-      }
     }
 
-    if (preferences?.model) {
-      const modelMatches = eligible.filter(
+    if (
+      preferences?.model &&
+      preferences.allowFallback === false
+    ) {
+      eligible = eligible.filter(
         (candidate) => candidate.id === preferences.model,
       );
-
-      if (modelMatches.length > 0 || preferences.allowFallback === false) {
-        eligible = modelMatches;
-      }
     }
 
     if (eligible.length === 0) {
@@ -62,6 +60,11 @@ export class CapabilityRoutingPolicy implements RoutingPolicy {
 
     return [...eligible]
       .sort((left, right) => {
+        const preferenceDelta =
+          preferenceScore(right, preferences) -
+          preferenceScore(left, preferences);
+        if (preferenceDelta !== 0) return preferenceDelta;
+
         const priorityDelta = (right.priority ?? 0) - (left.priority ?? 0);
         if (priorityDelta !== 0) return priorityDelta;
 
@@ -89,4 +92,26 @@ export class CapabilityRoutingPolicy implements RoutingPolicy {
     if (!selected) throw new NoRouteError();
     return selected;
   }
+}
+
+
+function preferenceScore(
+  candidate: ModelDescriptor,
+  preferences: OrchestrationRequest['preferences'],
+): number {
+  if (!preferences) return 0;
+
+  let score = 0;
+  if (
+    preferences.provider &&
+    candidate.providerId === preferences.provider
+  ) {
+    score += 2;
+  }
+
+  if (preferences.model && candidate.id === preferences.model) {
+    score += 4;
+  }
+
+  return score;
 }
