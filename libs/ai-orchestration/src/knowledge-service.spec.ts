@@ -53,6 +53,7 @@ class TestVectorStore implements VectorStore {
     ],
   );
   readonly delete = vi.fn(async () => undefined);
+  readonly replaceByFilter = vi.fn(async () => undefined);
 }
 
 describe('KnowledgeIngestionService', () => {
@@ -90,17 +91,56 @@ describe('KnowledgeIngestionService', () => {
       dimensions: 2,
       distance: 'cosine',
     });
-    expect(vectorStore.upsert).toHaveBeenCalledWith('tenant-a', [
+    expect(vectorStore.replaceByFilter).toHaveBeenCalledWith(
+      'tenant-a',
       {
-        id: 'doc-1:0',
-        vector: [5, 1],
-        text: 'hello',
-        metadata: {
-          documentId: 'doc-1',
-          source: 'manual',
-        },
+        must: [
+          {
+            key: 'metadata.documentId',
+            match: { value: 'doc-1' },
+          },
+        ],
       },
-    ]);
+      [
+        {
+          id: 'doc-1:0',
+          vector: [5, 1],
+          text: 'hello',
+          metadata: {
+            documentId: 'doc-1',
+            source: 'manual',
+          },
+        },
+      ],
+    );
+    expect(vectorStore.upsert).not.toHaveBeenCalled();
+  });
+  it('replaces prior document chunks instead of appending stale chunks', async () => {
+    const vectorStore = new TestVectorStore();
+    const service = new KnowledgeIngestionService(
+      new TestChunker(),
+      new TestEmbeddings(),
+      vectorStore,
+    );
+
+    await service.ingest({
+      namespace: 'tenant-a',
+      documents: [{ id: 'doc-1', text: 'shorter replacement' }],
+    });
+
+    expect(vectorStore.replaceByFilter).toHaveBeenCalledTimes(1);
+    expect(vectorStore.replaceByFilter).toHaveBeenCalledWith(
+      'tenant-a',
+      expect.objectContaining({
+        must: [
+          {
+            key: 'metadata.documentId',
+            match: { value: 'doc-1' },
+          },
+        ],
+      }),
+      expect.any(Array),
+    );
   });
 });
 
