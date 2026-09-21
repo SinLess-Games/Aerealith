@@ -1,5 +1,6 @@
 import {
   createProviderRegistry,
+  modelRuntimeCatalog,
   ProviderCatalogConfigurationError,
   providerRuntimeStatus,
 } from './provider-runtime';
@@ -83,6 +84,31 @@ describe('AI provider runtime', () => {
     });
     expect(JSON.stringify(status)).not.toContain('secret');
     expect(JSON.stringify(status)).not.toContain('models.example.test');
+  });
+
+  it('returns a safe model catalog for UI model selection', async () => {
+    const AI = {
+      run: vi.fn(async () => ({ response: 'ok' })),
+    };
+
+    const models = await modelRuntimeCatalog({ AI });
+
+    expect(models).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          providerId: 'cloudflare-workers-ai',
+          id: '@cf/zai-org/glm-4.7-flash',
+          capabilities: expect.arrayContaining(['text']),
+        }),
+        expect.objectContaining({
+          providerId: 'cloudflare-workers-ai',
+          id: '@cf/qwen/qwen3-embedding-0.6b',
+          embeddingDimensions: 1024,
+        }),
+      ]),
+    );
+    expect(JSON.stringify(models)).not.toContain('baseUrl');
+    expect(JSON.stringify(models)).not.toContain('apiKey');
   });
 
   it('does not register a provider whose required secret is missing', () => {
