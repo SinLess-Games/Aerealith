@@ -1,11 +1,26 @@
+"$schema" = "../../../node_modules/wrangler/config-schema.json"
+
 name = "aerealith-ai-orchestrator"
 main = "src/main.ts"
 compatibility_date = "2026-09-20"
+compatibility_flags = ["nodejs_compat"]
 workers_dev = false
+upload_source_maps = true
 
 [observability]
 enabled = true
 head_sampling_rate = 1.0
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1.0
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = true
+head_sampling_rate = 1.0
+persist = true
 
 [vars]
 ENVIRONMENT = "production"
@@ -16,3 +31,11 @@ QDRANT_COLLECTION = "aerealith-knowledge-v1"
 name = "aerealith-ai-orchestration"
 binding = "AI_ORCHESTRATION_WORKFLOW"
 class_name = "AiOrchestrationWorkflow"
+
+[[durable_objects.bindings]]
+name = "AI_RUN_STATE"
+class_name = "AiRunState"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["AiRunState"]
