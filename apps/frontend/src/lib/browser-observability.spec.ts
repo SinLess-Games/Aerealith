@@ -1,18 +1,44 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { initializeFaro } = vi.hoisted(() => ({
-  initializeFaro: vi.fn(),
-}));
+const { faro, initializeFaro, pause, pushError, pushEvent, unpause } = vi.hoisted(
+  () => ({
+    faro: { api: undefined as undefined | { pushError: typeof pushError; pushEvent: typeof pushEvent } },
+    initializeFaro: vi.fn(),
+    pause: vi.fn(),
+    pushError: vi.fn(),
+    pushEvent: vi.fn(),
+    unpause: vi.fn(),
+  }),
+);
+
 vi.mock('@grafana/faro-web-sdk', () => ({
-  faro: { api: undefined },
+  faro: {
+    get api() {
+      return faro.api;
+    },
+    pause,
+    unpause,
+  },
   getWebInstrumentations: vi.fn(() => []),
   initializeFaro,
 }));
 
-import { initializeBrowserObservability } from './browser-observability';
+import {
+  initializeBrowserObservability,
+  recordBrowserError,
+  recordBrowserEvent,
+  setBrowserObservabilityPaused,
+} from './browser-observability';
 
-describe('initializeBrowserObservability', () => {
-  beforeEach(() => initializeFaro.mockClear());
+describe('browser observability', () => {
+  beforeEach(() => {
+    faro.api = undefined;
+    initializeFaro.mockClear();
+    pause.mockClear();
+    unpause.mockClear();
+    pushError.mockClear();
+    pushEvent.mockClear();
+  });
 
   it('remains disabled without a collector URL', () => {
     expect(initializeBrowserObservability({})).toBe(false);
@@ -61,5 +87,51 @@ describe('initializeBrowserObservability', () => {
         }),
       }),
     );
+  });
+
+  it('does not initialize Faro twice', () => {
+    faro.api = { pushError, pushEvent };
+
+    expect(
+      initializeBrowserObservability({
+        VITE_GRAFANA_FARO_URL: 'https://faro.example/collect',
+      }),
+    ).toBe(true);
+    expect(initializeFaro).not.toHaveBeenCalled();
+  });
+
+  it('pauses and resumes an initialized Faro client', () => {
+    faro.api = { pushError, pushEvent };
+
+    setBrowserObservabilityPaused(true);
+    setBrowserObservabilityPaused(false);
+
+    expect(pause).toHaveBeenCalledTimes(1);
+    expect(unpause).toHaveBeenCalledTimes(1);
+  });
+
+  it('records bounded product events only after Faro is active', () => {
+    recordBrowserEvent('ignored', { surface: 'chat' }, 'ai');
+    expect(pushEvent).not.toHaveBeenCalled();
+
+    faro.api = { pushError, pushEvent };
+    recordBrowserEvent('ai_chat_completed', { responseMode: 'streaming' }, 'ai');
+
+    expect(pushEvent).toHaveBeenCalledWith(
+      'ai_chat_completed',
+      { responseMode: 'streaming' },
+      'ai',
+    );
+  });
+
+  it('records handled errors only after Faro is active', () => {
+    faro.api = { pushError, pushEvent };
+    const error = new Error('render failed');
+
+    recordBrowserError(error, { surface: 'global-route-boundary' });
+
+    expect(pushError).toHaveBeenCalledWith(error, {
+      context: { surface: 'global-route-boundary' },
+    });
   });
 });
