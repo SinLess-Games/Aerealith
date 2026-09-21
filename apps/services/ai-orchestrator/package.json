@@ -1,0 +1,13 @@
+{
+  "name": "@aerealith-ai/service-ai-orchestrator",
+  "version": "0.0.1",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "engines": { "node": "26.5.0", "pnpm": "11.13.1" },
+  "dependencies": {
+    "@aerealith-ai/observability": "workspace:*",
+    "hono": "4.13.8",
+    "zod": "4.4.3"
+  }
+}
