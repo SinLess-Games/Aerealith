@@ -1,6 +1,8 @@
-import type {
-  OrchestrationRequest,
-  RunRecord,
+import {
+  CapabilityRoutingPolicy,
+  OrchestrationExecutor,
+  type OrchestrationRequest,
+  type RunRecord,
 } from '@aerealith-ai/ai-orchestration';
 import {
   WorkflowEntrypoint,
@@ -12,6 +14,7 @@ import type {
   AiOrchestratorBindings,
   WorkflowRunParams,
 } from './bindings';
+import { createProviderRegistry } from './provider-runtime';
 import { createRunStore } from './run-store';
 
 export class AiOrchestrationWorkflow extends WorkflowEntrypoint<
@@ -25,6 +28,17 @@ export class AiOrchestrationWorkflow extends WorkflowEntrypoint<
     const runs = createRunStore(this.env);
 
     const initialized = await step.do('initialize run', async () => {
+      const existing = await runs?.get(event.payload.runId);
+
+      if (existing) {
+        await runs?.updateStatus(event.payload.runId, 'planning');
+        return {
+          ...existing,
+          status: 'planning' as const,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+
       const timestamp = new Date().toISOString();
       const run: RunRecord = {
         id: event.payload.runId,
@@ -34,40 +48,77 @@ export class AiOrchestrationWorkflow extends WorkflowEntrypoint<
         updatedAt: timestamp,
       };
 
-      const existing = await runs?.get(event.payload.runId);
-      if (!existing) {
-        await runs?.create(run);
-        return run;
-      }
+      await runs?.create(run);
+      return run;
+    });
 
-      await runs?.updateStatus(event.payload.runId, 'planning');
-      return {
-        ...existing,
-        status: 'planning',
+    const queued = await step.do('queue execution', async () => {
+      const next: RunRecord = {
+        ...initialized,
+        status: 'queued',
         updatedAt: new Date().toISOString(),
       };
-    });
-
-    return step.do('prepare execution', async () => {
-      const prepared = this.prepareExecution(
-        initialized,
-        event.payload.request,
-      );
 
       await runs?.updateStatus(event.payload.runId, 'queued');
-      return prepared;
+      return next;
     });
+
+    const startedAt = new Date().toISOString();
+    await runs?.updateStatus(event.payload.runId, 'running', {
+      startedAt,
+    });
+
+    try {
+      const output = await step.do('execute provider', async () => {
+        const providers = createProviderRegistry(this.env);
+        const executor = new OrchestrationExecutor(
+          providers,
+          new CapabilityRoutingPolicy(),
+        );
+
+        return executor.execute(event.payload.request);
+      });
+
+      const completedAt = new Date().toISOString();
+
+      await runs?.updateStatus(event.payload.runId, 'succeeded', {
+        providerId: output.providerId,
+        modelId: output.modelId,
+        output,
+        completedAt,
+      });
+
+      return {
+        ...queued,
+        status: 'succeeded',
+        startedAt,
+        completedAt,
+        providerId: output.providerId,
+        modelId: output.modelId,
+        output,
+        updatedAt: completedAt,
+      };
+    } catch (error) {
+      const completedAt = new Date().toISOString();
+
+      await runs?.updateStatus(event.payload.runId, 'failed', {
+        errorCode: classifyExecutionError(error),
+        completedAt,
+      });
+
+      throw error;
+    }
+  }
+}
+
+function classifyExecutionError(error: unknown): string {
+  if (error instanceof Error && error.name === 'NoRouteError') {
+    return 'NO_MODEL_ROUTE';
   }
 
-  private prepareExecution(
-    run: RunRecord,
-    request: OrchestrationRequest,
-  ): RunRecord {
-    return {
-      ...run,
-      capability: request.capability,
-      status: 'queued',
-      updatedAt: new Date().toISOString(),
-    };
+  if (error instanceof Error && error.name === 'ProviderExecutionError') {
+    return 'PROVIDER_EXECUTION_FAILED';
   }
+
+  return 'ORCHESTRATION_EXECUTION_FAILED';
 }
