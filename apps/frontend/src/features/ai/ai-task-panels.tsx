@@ -233,7 +233,7 @@ export function AiMediaPanel({
                   className={[
                     'min-h-11 rounded-xl border px-4 text-sm font-semibold capitalize transition-all duration-200',
                     value === activeCapability
-                      ? 'border-[var(--ae-primary)] bg-[var(--ae-primary-subtle)] text-[var(--ae-foreground)] shadow-[0_0_24px_color-mix(in_srgb,var(--ae-primary)_16%,transparent)]'
+                      ? 'border-[var(--ae-primary)] bg-[var(--ae-primary-subtle)] text-[var(--ae-foreground)] shadow-[var(--ae-shadow-sm)]'
                       : 'border-[var(--ae-border)] bg-[var(--ae-background-elevated)] text-[var(--ae-foreground-muted)] hover:-translate-y-0.5 hover:border-[var(--ae-primary)] hover:text-[var(--ae-foreground)]',
                   ].join(' ')}
                   onClick={() => {
@@ -790,7 +790,7 @@ function Panel({
     <section className="relative overflow-hidden rounded-[28px] border border-[var(--ae-border)] bg-[var(--ae-surface)] p-5 shadow-[var(--ae-shadow-sm)] sm:p-6">
       <div className="pointer-events-none absolute -right-24 -top-28 h-72 w-72 rounded-full bg-[var(--ae-primary-subtle)] blur-3xl opacity-70" />
       <div className="relative mb-7 flex items-start gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[var(--ae-primary)] bg-[var(--ae-primary-subtle)] text-xl text-[var(--ae-primary)] shadow-[0_0_28px_color-mix(in_srgb,var(--ae-primary)_14%,transparent)]">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[var(--ae-primary)] bg-[var(--ae-primary-subtle)] text-xl text-[var(--ae-primary)] shadow-[var(--ae-shadow-sm)]">
           <Icon aria-hidden="true" />
         </div>
         <div className="min-w-0">
@@ -852,7 +852,7 @@ function PrimaryAction({
     <button
       type="button"
       disabled={disabled}
-      className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[var(--ae-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_10px_30px_color-mix(in_srgb,var(--ae-primary)_22%,transparent)] transition-all hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-40"
+      className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[var(--ae-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-[var(--ae-shadow-sm)] transition-all hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-40"
       onClick={onClick}
     >
       <FiPlay aria-hidden="true" />
