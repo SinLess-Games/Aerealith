@@ -1,8 +1,6 @@
-import {
-  CapabilityRoutingPolicy,
-  OrchestrationExecutor,
-  type OrchestrationRequest,
-  type RunRecord,
+import type {
+  OrchestrationRequest,
+  RunRecord,
 } from '@aerealith-ai/ai-orchestration';
 import {
   WorkflowEntrypoint,
@@ -14,7 +12,7 @@ import type {
   AiOrchestratorBindings,
   WorkflowRunParams,
 } from './bindings';
-import { createProviderRegistry } from './provider-runtime';
+import { executeOrchestrationRequest } from './execution-runtime';
 import { createRunStore } from './run-store';
 
 export class AiOrchestrationWorkflow extends WorkflowEntrypoint<
@@ -69,15 +67,9 @@ export class AiOrchestrationWorkflow extends WorkflowEntrypoint<
     });
 
     try {
-      const output = await step.do('execute provider', async () => {
-        const providers = createProviderRegistry(this.env);
-        const executor = new OrchestrationExecutor(
-          providers,
-          new CapabilityRoutingPolicy(),
-        );
-
-        return executor.execute(event.payload.request);
-      });
+      const output = await step.do('execute request', async () =>
+        executeOrchestrationRequest(this.env, event.payload.request),
+      );
 
       const completedAt = new Date().toISOString();
 
@@ -118,6 +110,14 @@ function classifyExecutionError(error: unknown): string {
 
   if (error instanceof Error && error.name === 'ProviderExecutionError') {
     return 'PROVIDER_EXECUTION_FAILED';
+  }
+
+  if (error instanceof Error && error.name === 'VectorStoreUnavailableError') {
+    return 'VECTOR_STORE_UNAVAILABLE';
+  }
+
+  if (error instanceof Error && error.name === 'RunOutputTooLargeError') {
+    return 'RUN_OUTPUT_TOO_LARGE';
   }
 
   return 'ORCHESTRATION_EXECUTION_FAILED';
