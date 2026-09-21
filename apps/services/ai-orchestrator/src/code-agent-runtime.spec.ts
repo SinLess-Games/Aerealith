@@ -28,6 +28,18 @@ describe('sandboxed coding-agent runtime', () => {
       execute: vi.fn(async (request) => {
         if (
           request.command === 'git' &&
+          request.args?.[0] === 'add'
+        ) {
+          return {
+            exitCode: 0,
+            stdout: '',
+            stderr: '',
+            durationMs: 1,
+          };
+        }
+
+        if (
+          request.command === 'git' &&
           request.args?.[0] === 'diff' &&
           request.args?.[1] === '--name-only'
         ) {
