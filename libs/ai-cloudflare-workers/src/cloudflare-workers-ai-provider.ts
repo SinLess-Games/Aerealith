@@ -231,11 +231,15 @@ export class CloudflareWorkersAiProvider implements ModelProvider {
     model: ModelDescriptor,
   ): Promise<OrchestrationOutput> {
     const input = request.input as ImageGenerationInput;
+    if (input.count !== undefined && input.count !== 1) {
+      throw new CloudflareWorkersAiProviderError(
+        'Cloudflare FLUX generation currently supports one image per run.',
+      );
+    }
+
     const response = await this.binding.run(model.id, {
       prompt: input.prompt,
       ...(input.seed === undefined ? {} : { seed: input.seed }),
-      ...(input.width === undefined ? {} : { width: input.width }),
-      ...(input.height === undefined ? {} : { height: input.height }),
     });
 
     if (!isRecord(response) || typeof response['image'] !== 'string') {
