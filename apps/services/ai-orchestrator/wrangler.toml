@@ -73,6 +73,10 @@ class_name = "AiConversationState"
 name = "AI_CONVERSATION_INDEX"
 class_name = "AiConversationIndex"
 
+[[durable_objects.bindings]]
+name = "AI_KNOWLEDGE_CATALOG"
+class_name = "AiKnowledgeCatalog"
+
 [[containers]]
 class_name = "AiCodeSandbox"
 image = "./Dockerfile.sandbox"
@@ -106,6 +110,10 @@ new_sqlite_classes = ["AiConversationState"]
 [[migrations]]
 tag = "v7"
 new_sqlite_classes = ["AiConversationIndex"]
+
+[[migrations]]
+tag = "v8"
+new_sqlite_classes = ["AiKnowledgeCatalog"]
 
 [[services]]
 binding = "AUTH_WORKER"
