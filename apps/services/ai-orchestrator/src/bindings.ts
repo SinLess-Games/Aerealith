@@ -88,6 +88,30 @@ export interface ConversationIndexNamespace {
   get(id: unknown): ConversationIndexStub;
 }
 
+export interface KnowledgeCatalogStub {
+  createKnowledgeBase(input: {
+    tenantId: string;
+    name: string;
+    description?: string;
+  }): Promise<import('./knowledge-catalog').KnowledgeBaseRecord>;
+  getKnowledgeBase(
+    id: string,
+  ): Promise<import('./knowledge-catalog').KnowledgeBaseRecord | undefined>;
+  listKnowledgeBases(): Promise<
+    readonly import('./knowledge-catalog').KnowledgeBaseSummary[]
+  >;
+  recordDocuments(
+    knowledgeBaseId: string,
+    documentIds: readonly string[],
+  ): Promise<import('./knowledge-catalog').KnowledgeBaseRecord | undefined>;
+  deleteKnowledgeBase(id: string): Promise<boolean>;
+}
+
+export interface KnowledgeCatalogNamespace {
+  idFromName(name: string): unknown;
+  get(id: unknown): KnowledgeCatalogStub;
+}
+
 export interface WorkflowInstance {
   status(): Promise<unknown>;
   terminate(): Promise<void>;
@@ -207,6 +231,7 @@ export type AiOrchestratorBindings = {
   AI_CODE_SANDBOX?: AiCodeSandboxNamespace;
   AI_CONVERSATION_STATE?: ConversationStateNamespace;
   AI_CONVERSATION_INDEX?: ConversationIndexNamespace;
+  AI_KNOWLEDGE_CATALOG?: KnowledgeCatalogNamespace;
 
   /**
    * Optional JSON catalog for non-Cloudflare OpenAI-compatible providers.
