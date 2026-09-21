@@ -44,6 +44,7 @@ export type AiOrchestratorBindings = {
   AUTH_WORKER?: WorkerFetcher;
   AI_ORCHESTRATION_WORKFLOW?: WorkflowBinding<WorkflowRunParams>;
   AI_RUN_STATE?: RunStateNamespace;
+  AI_ARTIFACTS?: R2Bucket;
 
   /**
    * Public JSON catalog describing provider endpoints and model capabilities.
