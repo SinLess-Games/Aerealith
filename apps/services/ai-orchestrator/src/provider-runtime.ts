@@ -1,4 +1,8 @@
 import {
+  CloudflareWorkersAiProvider,
+  cloudflareWorkersAiModelCatalog,
+} from '@aerealith-ai/ai-cloudflare-workers';
+import {
   capabilityKinds,
   InMemoryProviderRegistry,
   type CapabilityKind,
@@ -42,7 +46,7 @@ export type ProviderRuntimeStatus = {
   capabilities: readonly CapabilityKind[];
   providers: readonly {
     id: string;
-    kind: 'openai-compatible';
+    kind: 'cloudflare-workers-ai' | 'openai-compatible';
     configured: boolean;
     modelCount: number;
     capabilities: readonly CapabilityKind[];
@@ -60,11 +64,18 @@ export function createProviderRegistry(
   bindings: AiOrchestratorBindings,
 ): InMemoryProviderRegistry {
   const registry = new InMemoryProviderRegistry();
+
+  if (bindings.AI) {
+    registry.register(
+      new CloudflareWorkersAiProvider(bindings.AI),
+    );
+  }
+
   const catalog = parseProviderCatalog(bindings);
 
   for (const provider of catalog) {
     const apiKey = provider.apiKeyBinding
-      ? readStringBinding(bindings, provider.apiKeyBinding)
+      ? readPlainStringBinding(bindings, provider.apiKeyBinding)
       : undefined;
 
     if (provider.apiKeyBinding && !apiKey) {
@@ -92,25 +103,39 @@ export function createProviderRegistry(
 export function providerRuntimeStatus(
   bindings: AiOrchestratorBindings,
 ): ProviderRuntimeStatus {
+  const providers: ProviderRuntimeStatus['providers'][number][] = [];
+
+  if (bindings.AI) {
+    providers.push({
+      id: 'cloudflare-workers-ai',
+      kind: 'cloudflare-workers-ai',
+      configured: true,
+      modelCount: cloudflareWorkersAiModelCatalog.length,
+      capabilities: uniqueCapabilities(
+        cloudflareWorkersAiModelCatalog.flatMap(
+          (model) => model.capabilities,
+        ),
+      ),
+    });
+  }
+
   const catalog = parseProviderCatalog(bindings);
 
-  const providers = catalog.map((provider) => {
+  for (const provider of catalog) {
     const configured =
       !provider.apiKeyBinding ||
-      Boolean(readStringBinding(bindings, provider.apiKeyBinding));
+      Boolean(readPlainStringBinding(bindings, provider.apiKeyBinding));
 
-    const capabilities = uniqueCapabilities(
-      provider.models.flatMap((model) => model.capabilities),
-    );
-
-    return {
+    providers.push({
       id: provider.id,
       kind: provider.kind,
       configured,
       modelCount: provider.models.length,
-      capabilities,
-    } as const;
-  });
+      capabilities: uniqueCapabilities(
+        provider.models.flatMap((model) => model.capabilities),
+      ),
+    });
+  }
 
   return {
     configuredProviders: providers.filter((provider) => provider.configured)
@@ -150,6 +175,12 @@ function parseProviderCatalog(bindings: AiOrchestratorBindings) {
 
   const ids = new Set<string>();
   for (const provider of parsed.data) {
+    if (provider.id === 'cloudflare-workers-ai') {
+      throw new ProviderCatalogConfigurationError(
+        'The provider id "cloudflare-workers-ai" is reserved.',
+      );
+    }
+
     if (ids.has(provider.id)) {
       throw new ProviderCatalogConfigurationError(
         `AI_PROVIDER_CATALOG contains duplicate provider id "${provider.id}".`,
@@ -162,7 +193,7 @@ function parseProviderCatalog(bindings: AiOrchestratorBindings) {
   return parsed.data;
 }
 
-function readStringBinding(
+function readPlainStringBinding(
   bindings: AiOrchestratorBindings,
   name: string,
 ): string | undefined {
