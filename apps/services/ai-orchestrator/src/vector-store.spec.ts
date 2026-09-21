@@ -14,7 +14,7 @@ describe('AI orchestrator vector-store runtime', () => {
       configured: false,
       endpointConfigured: true,
       credentialsConfigured: false,
-      collection: 'aerealith-knowledge',
+      collection: 'aerealith-knowledge-v1',
     });
 
     expect(
