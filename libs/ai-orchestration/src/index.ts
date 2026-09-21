@@ -1,3 +1,4 @@
+export * from './knowledge-service';
 export * from './knowledge';
 export * from './code-sandbox';
 export * from './artifacts';
