@@ -21,6 +21,7 @@ export function HomeRoute() {
   const [newsletter, setNewsletter] = useState(false);
   const [waitlistMessage, setWaitlistMessage] = useState('');
   const waitlistEnabled = useFeatureFlag(FeatureFlag.Waitlist);
+  const pricingEnabled = useFeatureFlag(FeatureFlag.Pricing);
   const waitlist = useMutation({
     mutationFn: joinWaitlist,
     onSuccess: (result) => {
@@ -800,53 +801,55 @@ export function HomeRoute() {
             Pricing preview
             ========================================================= */}
 
-        <section
-          className={`${panelClass} grid gap-5 p-5 lg:grid-cols-[260px_1fr]`}
-        >
-          <div>
-            <SectionIntro {...content.pricing} />
+        {pricingEnabled ? (
+          <section
+            className={`${panelClass} grid gap-5 p-5 lg:grid-cols-[260px_1fr]`}
+          >
+            <div>
+              <SectionIntro {...content.pricing} />
 
-            <div className="mt-5">
-              <OutlineLink {...content.pricing.action} />
+              <div className="mt-5">
+                <OutlineLink {...content.pricing.action} />
+              </div>
             </div>
-          </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            {content.pricing.tiers.map((tier) => (
-              <article
-                key={tier.name}
-                className="home-price-card relative rounded-xl border p-4 text-center backdrop-blur-lg transition duration-300 hover:-translate-y-1"
-                style={
-                  {
-                    '--tier-accent': tier.accent,
-                    borderColor: tier.accent,
-                  } as CSSProperties
-                }
-              >
-                <p
-                  className="text-xs font-semibold uppercase"
-                  style={{ color: tier.accent }}
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+              {content.pricing.tiers.map((tier) => (
+                <article
+                  key={tier.name}
+                  className="home-price-card relative rounded-xl border p-4 text-center backdrop-blur-lg transition duration-300 hover:-translate-y-1"
+                  style={
+                    {
+                      '--tier-accent': tier.accent,
+                      borderColor: tier.accent,
+                    } as CSSProperties
+                  }
                 >
-                  {tier.name}
-                </p>
+                  <p
+                    className="text-xs font-semibold uppercase"
+                    style={{ color: tier.accent }}
+                  >
+                    {tier.name}
+                  </p>
 
-                {'badge' in tier ? (
-                  <span className="absolute top-2 right-2 rounded bg-lime-300 px-1 text-[8px] font-bold text-black">
-                    {tier.badge}
-                  </span>
-                ) : null}
+                  {'badge' in tier ? (
+                    <span className="absolute top-2 right-2 rounded bg-lime-300 px-1 text-[8px] font-bold text-black">
+                      {tier.badge}
+                    </span>
+                  ) : null}
 
-                <p className="home-heading mt-4 text-3xl">{tier.price}</p>
+                  <p className="home-heading mt-4 text-3xl">{tier.price}</p>
 
-                <p className="home-muted text-[10px]">{tier.cadence}</p>
+                  <p className="home-muted text-[10px]">{tier.cadence}</p>
 
-                <p className="home-muted mt-4 text-xs leading-5">
-                  {tier.description}
-                </p>
-              </article>
-            ))}
-          </div>
-        </section>
+                  <p className="home-muted mt-4 text-xs leading-5">
+                    {tier.description}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         {/* =========================================================
             Final CTA
