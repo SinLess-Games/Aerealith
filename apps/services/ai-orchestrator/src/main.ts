@@ -27,6 +27,7 @@ import {
 import type { AiOrchestratorBindings } from './bindings';
 import { CloudflareWorkflowOrchestrationEngine } from './cloudflare-workflow-engine';
 import { codeRequestNeedsSandbox } from './code-agent-runtime';
+import { ConversationStore } from './conversation-runtime';
 import { executableCapabilities } from './execution-runtime';
 import { createIdempotentRunIdentity } from './idempotency';
 import {
@@ -66,6 +67,16 @@ const app = createApiApp<AiOrchestratorEnv>({
 
 const runIdSchema = z.uuid();
 
+const conversationCreateSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+});
+
+const conversationMessageSchema = z.object({
+  role: z.enum(['system', 'user', 'assistant', 'tool']),
+  content: z.string().min(1).max(250_000),
+  name: z.string().min(1).max(128).optional(),
+});
+
 const runListQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(50),
   before: z
@@ -95,6 +106,12 @@ app.get('/ready', (c) => {
   const rateLimitConfigured = Boolean(c.env.AI_RATE_LIMIT);
   const usageConfigured = Boolean(c.env.AI_USAGE);
   const codeSandboxConfigured = Boolean(c.env.AI_CODE_SANDBOX);
+  const conversationStateConfigured = Boolean(
+    c.env.AI_CONVERSATION_STATE,
+  );
+  const conversationIndexConfigured = Boolean(
+    c.env.AI_CONVERSATION_INDEX,
+  );
   const artifactStore = artifactStoreStatus(c.env);
   const vectorStore = vectorStoreStatus(c.env);
   const providers = providerRuntimeStatus(c.env);
@@ -108,6 +125,8 @@ app.get('/ready', (c) => {
     ...(rateLimitConfigured ? [] : ['AI_RATE_LIMIT']),
     ...(usageConfigured ? [] : ['AI_USAGE']),
     ...(codeSandboxConfigured ? [] : ['AI_CODE_SANDBOX']),
+    ...(conversationStateConfigured ? [] : ['AI_CONVERSATION_STATE']),
+    ...(conversationIndexConfigured ? [] : ['AI_CONVERSATION_INDEX']),
     ...(artifactStore.configured ? [] : ['AI_ARTIFACTS']),
     ...(vectorStore.configured ? [] : ['QDRANT']),
     ...(providers.configuredProviders > 0 ? [] : ['AI']),
@@ -131,6 +150,8 @@ app.get('/ready', (c) => {
           rateLimitConfigured,
           usageConfigured,
           codeSandboxConfigured,
+          conversationStateConfigured,
+          conversationIndexConfigured,
           artifactStore,
           vectorStore: {
             provider: vectorStore.provider,
@@ -159,6 +180,8 @@ app.get('/ready', (c) => {
       rateLimitConfigured,
       usageConfigured,
       codeSandboxConfigured,
+      conversationStateConfigured,
+      conversationIndexConfigured,
       artifactStore,
       vectorStore: {
         provider: vectorStore.provider,
@@ -232,6 +255,165 @@ app.get('/api/V1/ai/capabilities', (c) =>
     },
     meta: responseMeta(c.get('apiContext')),
   }),
+);
+
+app.get('/api/V1/ai/conversations', async (c) => {
+  const principal = await requirePrincipal(c.req.raw, c.env);
+  const parsed = runListQuerySchema.safeParse({
+    limit: c.req.query('limit') ?? 50,
+    before: c.req.query('before'),
+  });
+
+  if (!parsed.success) {
+    throw new ApiError('The conversation query is invalid.', {
+      code: ApiErrorCode.ValidationFailed,
+      status: HttpStatus.UnprocessableEntity,
+    });
+  }
+
+  const conversations = requireConversationStore(c.env);
+  const page = await conversations.list(
+    principal.id,
+    parsed.data.limit,
+    parsed.data.before,
+  );
+
+  return c.json({
+    ok: true,
+    data: page.items,
+    pagination: {
+      nextBefore: page.nextBefore ?? null,
+    },
+    meta: responseMeta(c.get('apiContext')),
+  });
+});
+
+app.post('/api/V1/ai/conversations', async (c) => {
+  const principal = await requirePrincipal(c.req.raw, c.env);
+  const body = await readOptionalJson(c.req.raw);
+  const parsed = conversationCreateSchema.safeParse(body ?? {});
+
+  if (!parsed.success) {
+    throw new ApiError('The conversation request is invalid.', {
+      code: ApiErrorCode.ValidationFailed,
+      status: HttpStatus.UnprocessableEntity,
+    });
+  }
+
+  const conversation = await requireConversationStore(c.env).create(
+    principal.id,
+    parsed.data.title,
+  );
+
+  return c.json(
+    {
+      ok: true,
+      data: conversation,
+      meta: responseMeta(c.get('apiContext')),
+    },
+    HttpStatus.Created,
+  );
+});
+
+app.get('/api/V1/ai/conversations/:conversationId', async (c) => {
+  const principal = await requirePrincipal(c.req.raw, c.env);
+  const conversationId = parseUuid(
+    c.req.param('conversationId'),
+    'conversation',
+  );
+  const conversation = await requireConversationStore(c.env).get(
+    principal.id,
+    conversationId,
+  );
+
+  if (!conversation || conversation.tenantId !== principal.id) {
+    throw new ApiError('The AI conversation was not found.', {
+      code: ApiErrorCode.NotFound,
+      status: HttpStatus.NotFound,
+    });
+  }
+
+  return c.json({
+    ok: true,
+    data: conversation,
+    meta: responseMeta(c.get('apiContext')),
+  });
+});
+
+app.post(
+  '/api/V1/ai/conversations/:conversationId/messages',
+  async (c) => {
+    const principal = await requirePrincipal(c.req.raw, c.env);
+    const conversationId = parseUuid(
+      c.req.param('conversationId'),
+      'conversation',
+    );
+
+    let body: unknown;
+    try {
+      body = await c.req.json();
+    } catch (error) {
+      throw new ApiError('A valid JSON body is required.', {
+        code: ApiErrorCode.BadRequest,
+        status: HttpStatus.BadRequest,
+        cause: error,
+      });
+    }
+
+    const parsed = conversationMessageSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new ApiError('The conversation message is invalid.', {
+        code: ApiErrorCode.ValidationFailed,
+        status: HttpStatus.UnprocessableEntity,
+      });
+    }
+
+    const conversation = await requireConversationStore(c.env).append(
+      principal.id,
+      conversationId,
+      parsed.data,
+    );
+
+    if (!conversation) {
+      throw new ApiError('The AI conversation was not found.', {
+        code: ApiErrorCode.NotFound,
+        status: HttpStatus.NotFound,
+      });
+    }
+
+    return c.json(
+      {
+        ok: true,
+        data: conversation,
+        meta: responseMeta(c.get('apiContext')),
+      },
+      HttpStatus.Created,
+    );
+  },
+);
+
+app.delete(
+  '/api/V1/ai/conversations/:conversationId',
+  async (c) => {
+    const principal = await requirePrincipal(c.req.raw, c.env);
+    const conversationId = parseUuid(
+      c.req.param('conversationId'),
+      'conversation',
+    );
+    const deleted = await requireConversationStore(c.env).delete(
+      principal.id,
+      conversationId,
+    );
+
+    if (!deleted) {
+      throw new ApiError('The AI conversation was not found.', {
+        code: ApiErrorCode.NotFound,
+        status: HttpStatus.NotFound,
+      });
+    }
+
+    return new Response(null, { status: HttpStatus.NoContent });
+  },
 );
 
 app.get('/api/V1/ai/usage', async (c) => {
@@ -692,6 +874,58 @@ app.post('/api/V1/ai/runs', async (c) => {
   }
 });
 
+function requireConversationStore(
+  bindings: AiOrchestratorBindings,
+): ConversationStore {
+  if (
+    !bindings.AI_CONVERSATION_STATE ||
+    !bindings.AI_CONVERSATION_INDEX
+  ) {
+    throw new ApiError('AI conversation storage is not configured.', {
+      code: ApiErrorCode.InternalError,
+      status: HttpStatus.ServiceUnavailable,
+    });
+  }
+
+  return new ConversationStore(
+    bindings.AI_CONVERSATION_STATE,
+    bindings.AI_CONVERSATION_INDEX,
+  );
+}
+
+function parseUuid(value: string, resource: string): string {
+  const parsed = z.uuid().safeParse(value);
+
+  if (!parsed.success) {
+    throw new ApiError(`The AI ${resource} id is invalid.`, {
+      code: ApiErrorCode.ValidationFailed,
+      status: HttpStatus.UnprocessableEntity,
+    });
+  }
+
+  return parsed.data;
+}
+
+async function readOptionalJson(
+  request: Request,
+): Promise<unknown | undefined> {
+  const contentLength = request.headers.get('content-length');
+  if (contentLength === '0') return undefined;
+
+  const text = await request.text();
+  if (!text.trim()) return undefined;
+
+  try {
+    return JSON.parse(text) as unknown;
+  } catch (error) {
+    throw new ApiError('A valid JSON body is required.', {
+      code: ApiErrorCode.BadRequest,
+      status: HttpStatus.BadRequest,
+      cause: error,
+    });
+  }
+}
+
 async function requirePrincipal(
   request: Request,
   bindings: AiOrchestratorBindings,
@@ -922,6 +1156,8 @@ function responseMeta(context: ApiRequestContext) {
 }
 
 export { AiCodeSandbox } from './code-sandbox-container';
+export { AiConversationIndex } from './conversation-index';
+export { AiConversationState } from './conversation-state';
 export { AiRateLimit } from './rate-limit';
 export { AiRunIndex } from './run-index';
 export { AiRunState } from './run-state';
