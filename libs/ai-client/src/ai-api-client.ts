@@ -291,10 +291,12 @@ function stripTrustedIdentity(
   request: OrchestrationRequest,
 ): OrchestrationRequest {
   const {
-    tenantId: _tenantId,
-    actorId: _actorId,
+    tenantId,
+    actorId,
     ...safeRequest
   } = request;
+  void tenantId;
+  void actorId;
 
   return safeRequest;
 }
