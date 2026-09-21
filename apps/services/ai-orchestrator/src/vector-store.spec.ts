@@ -14,7 +14,7 @@ describe('AI orchestrator vector-store runtime', () => {
       configured: false,
       endpointConfigured: true,
       credentialsConfigured: false,
-      collectionPrefix: 'aerealith-',
+      collection: 'aerealith-knowledge',
     });
 
     expect(
@@ -28,7 +28,7 @@ describe('AI orchestrator vector-store runtime', () => {
     const bindings = {
       QDRANT_URL: 'https://qdrant.example.test',
       QDRANT_API_KEY: 'test-key',
-      QDRANT_COLLECTION_PREFIX: 'aerealith-test-',
+      QDRANT_COLLECTION: 'aerealith-test-knowledge',
     };
 
     expect(createVectorStore(bindings)).toBeDefined();
@@ -37,7 +37,7 @@ describe('AI orchestrator vector-store runtime', () => {
       configured: true,
       endpointConfigured: true,
       credentialsConfigured: true,
-      collectionPrefix: 'aerealith-test-',
+      collectionPrefix: 'aerealith-test-knowledge',
     });
   });
 });
