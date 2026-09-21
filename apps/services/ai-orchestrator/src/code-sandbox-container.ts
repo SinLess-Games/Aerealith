@@ -74,7 +74,6 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
       return { root: WORKSPACE_ROOT };
     }
 
-    const repositoryUrl = validateRepositoryUrl(options.repositoryUrl);
     const existing = await this.run(['test', '-d', `${REPOSITORY_ROOT}/.git`], {
       timeoutMs: 10_000,
     });
@@ -85,7 +84,7 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
         'clone',
         '--depth',
         '1',
-        ...(options.ref ? ['--branch', options.ref] : []),
+        ...(repositoryRef ? ['--branch', repositoryRef] : []),
         repositoryUrl,
         REPOSITORY_ROOT,
       ];
@@ -400,6 +399,26 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
     };
     return state.container;
   }
+}
+
+function validateRepositoryRef(
+  value: string | undefined,
+): string | undefined {
+  if (value === undefined) return undefined;
+
+  const ref = value.trim();
+  if (
+    !ref ||
+    ref.length > 256 ||
+    ref.startsWith('-') ||
+    !/^[A-Za-z0-9._/-]+$/u.test(ref) ||
+    ref.includes('..') ||
+    ref.includes('//')
+  ) {
+    throw new Error('Sandbox repository ref is invalid.');
+  }
+
+  return ref;
 }
 
 function resolveWorkspacePath(path: string): string {
