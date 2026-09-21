@@ -39,6 +39,7 @@ import { orchestrationRequestSchema } from './request-schema';
 import { AiRunController } from './run-controller';
 import { createRunEventStream } from './run-events';
 import { createRunIndexStore, createRunStore } from './run-store';
+import { sandboxToolDefinitions } from './tool-runtime';
 import { AiUsageStore } from './usage-ledger';
 import { vectorStoreStatus } from './vector-store';
 
@@ -175,6 +176,14 @@ app.get('/api/V1/ai/providers', (c) => {
   return c.json({
     ok: true,
     data: status,
+    meta: responseMeta(c.get('apiContext')),
+  });
+});
+
+app.get('/api/V1/ai/tools', (c) => {
+  return c.json({
+    ok: true,
+    data: c.env.AI_CODE_SANDBOX ? sandboxToolDefinitions : [],
     meta: responseMeta(c.get('apiContext')),
   });
 });
