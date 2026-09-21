@@ -14,6 +14,7 @@ import {
   recordAiRunSucceeded,
 } from './ai-telemetry';
 import { externalizeLargeOutput } from './artifact-runtime';
+import { ConversationStore } from './conversation-runtime';
 import type {
   AiOrchestratorBindings,
   WorkflowRunParams,
@@ -115,6 +116,13 @@ export class AiOrchestrationWorkflow extends WorkflowEntrypoint<
         );
       }
 
+      await persistConversationAssistantMessage(
+        this.env,
+        event.payload.request,
+        event.payload.runId,
+        output,
+      );
+
       recordAiRunSucceeded({
         runId: event.payload.runId,
         capability: event.payload.request.capability,
@@ -151,6 +159,40 @@ export class AiOrchestrationWorkflow extends WorkflowEntrypoint<
       throw error;
     }
   }
+}
+
+async function persistConversationAssistantMessage(
+  bindings: AiOrchestratorBindings,
+  request: OrchestrationRequest,
+  runId: string,
+  output: import('@aerealith-ai/ai-orchestration').OrchestrationOutput,
+): Promise<void> {
+  if (
+    request.capability !== 'text' ||
+    !request.tenantId ||
+    !request.metadata?.conversationId ||
+    !bindings.AI_CONVERSATION_STATE ||
+    !bindings.AI_CONVERSATION_INDEX
+  ) {
+    return;
+  }
+
+  const content = output.content as { text?: unknown };
+  if (typeof content.text !== 'string' || !content.text) return;
+
+  await new ConversationStore(
+    bindings.AI_CONVERSATION_STATE,
+    bindings.AI_CONVERSATION_INDEX,
+  ).append(
+    request.tenantId,
+    request.metadata.conversationId,
+    {
+      role: 'assistant',
+      content: content.text,
+      runId,
+      id: `assistant:${runId}`,
+    },
+  );
 }
 
 function classifyExecutionError(error: unknown): string {
