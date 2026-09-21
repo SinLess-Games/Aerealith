@@ -272,6 +272,40 @@ function createRateLimitNamespace(limit = 60) {
 }
 
 describe('AI orchestrator service', () => {
+  it('allows credentialed CORS for the Aerealith UI origin', async () => {
+    const response = await app.request(
+      'http://localhost/api/V1/ai/capabilities',
+      {
+        headers: {
+          origin: 'https://aerealith.com',
+        },
+      },
+      {},
+    );
+
+    expect(response.headers.get('access-control-allow-origin')).toBe(
+      'https://aerealith.com',
+    );
+    expect(response.headers.get('access-control-allow-credentials')).toBe(
+      'true',
+    );
+  });
+
+  it('does not grant CORS access to unknown browser origins', async () => {
+    const response = await app.request(
+      'http://localhost/api/V1/ai/capabilities',
+      {
+        headers: {
+          origin: 'https://evil.example',
+        },
+      },
+      {},
+    );
+
+    expect(response.headers.get('access-control-allow-origin')).toBeNull();
+    expect(response.headers.get('access-control-allow-credentials')).toBeNull();
+  });
+
   it('reports health with a request id', async () => {
     const response = await app.request(
       'http://localhost/health',
