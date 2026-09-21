@@ -63,10 +63,7 @@ export type AiKnowledgeBase = {
   documents: readonly AiKnowledgeDocument[];
 };
 
-export type AiKnowledgeBaseSummary = Omit<
-  AiKnowledgeBase,
-  'documents'
-> & {
+export type AiKnowledgeBaseSummary = Omit<AiKnowledgeBase, 'documents'> & {
   documentCount: number;
 };
 
@@ -163,10 +160,12 @@ export class AiApiClient {
     return this.getJson('/api/V1/ai/usage');
   }
 
-  async listConversations(options: {
-    limit?: number;
-    before?: string;
-  } = {}): Promise<{
+  async listConversations(
+    options: {
+      limit?: number;
+      before?: string;
+    } = {},
+  ): Promise<{
     items: readonly AiConversationSummary[];
     nextBefore?: string;
   }> {
@@ -214,9 +213,7 @@ export class AiApiClient {
     },
   ): Promise<AiConversation> {
     return this.getJson(
-      `/api/V1/ai/conversations/${encodeURIComponent(
-        conversationId,
-      )}/messages`,
+      `/api/V1/ai/conversations/${encodeURIComponent(conversationId)}/messages`,
       {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
@@ -227,9 +224,7 @@ export class AiApiClient {
 
   async deleteConversation(conversationId: string): Promise<void> {
     await this.requestNoContent(
-      `/api/V1/ai/conversations/${encodeURIComponent(
-        conversationId,
-      )}`,
+      `/api/V1/ai/conversations/${encodeURIComponent(conversationId)}`,
       { method: 'DELETE' },
     );
   }
@@ -251,9 +246,7 @@ export class AiApiClient {
 
   getKnowledgeBase(knowledgeBaseId: string): Promise<AiKnowledgeBase> {
     return this.getJson(
-      `/api/V1/ai/knowledge-bases/${encodeURIComponent(
-        knowledgeBaseId,
-      )}`,
+      `/api/V1/ai/knowledge-bases/${encodeURIComponent(knowledgeBaseId)}`,
     );
   }
 
@@ -309,17 +302,17 @@ export class AiApiClient {
 
   async deleteKnowledgeBase(knowledgeBaseId: string): Promise<void> {
     await this.requestNoContent(
-      `/api/V1/ai/knowledge-bases/${encodeURIComponent(
-        knowledgeBaseId,
-      )}`,
+      `/api/V1/ai/knowledge-bases/${encodeURIComponent(knowledgeBaseId)}`,
       { method: 'DELETE' },
     );
   }
 
-  async listRuns(options: {
-    limit?: number;
-    before?: string;
-  } = {}): Promise<RunHistoryPage> {
+  async listRuns(
+    options: {
+      limit?: number;
+      before?: string;
+    } = {},
+  ): Promise<RunHistoryPage> {
     const query = new URLSearchParams();
 
     if (options.limit !== undefined) {
@@ -344,9 +337,7 @@ export class AiApiClient {
   }
 
   getRun(runId: string): Promise<RunRecord> {
-    return this.getJson(
-      `/api/V1/ai/runs/${encodeURIComponent(runId)}`,
-    );
+    return this.getJson(`/api/V1/ai/runs/${encodeURIComponent(runId)}`);
   }
 
   createRun(
@@ -373,21 +364,24 @@ export class AiApiClient {
   }
 
   cancelRun(runId: string): Promise<RunRecord> {
-    return this.getJson(
-      `/api/V1/ai/runs/${encodeURIComponent(runId)}`,
-      { method: 'DELETE' },
-    );
+    return this.getJson(`/api/V1/ai/runs/${encodeURIComponent(runId)}`, {
+      method: 'DELETE',
+    });
   }
 
   async streamText(
-    request: Extract<OrchestrationRequest, { capability: 'text' }> | OrchestrationRequest,
+    request:
+      | Extract<OrchestrationRequest, { capability: 'text' }>
+      | OrchestrationRequest,
     signal?: AbortSignal,
   ): Promise<{
     runId: string;
     stream: ReadableStream<Uint8Array>;
   }> {
     if (request.capability !== 'text') {
-      throw new TypeError('AI streaming currently supports text requests only.');
+      throw new TypeError(
+        'AI streaming currently supports text requests only.',
+      );
     }
 
     const response = await this.fetchImplementation(
@@ -432,9 +426,7 @@ export class AiApiClient {
     signal?: AbortSignal,
   ): Promise<ReadableStream<Uint8Array>> {
     const response = await this.fetchImplementation(
-      this.url(
-        `/api/V1/ai/runs/${encodeURIComponent(runId)}/events`,
-      ),
+      this.url(`/api/V1/ai/runs/${encodeURIComponent(runId)}/events`),
       {
         headers: {
           accept: 'text/event-stream',
@@ -491,9 +483,7 @@ export class AiApiClient {
   }
 
   artifactUrl(artifactId: string): string {
-    return this.url(
-      `/api/V1/ai/artifacts/${encodeURIComponent(artifactId)}`,
-    );
+    return this.url(`/api/V1/ai/artifacts/${encodeURIComponent(artifactId)}`);
   }
 
   private async requestNoContent(
@@ -510,10 +500,7 @@ export class AiApiClient {
     }
   }
 
-  private async getJson<T>(
-    path: string,
-    init?: RequestInit,
-  ): Promise<T> {
+  private async getJson<T>(path: string, init?: RequestInit): Promise<T> {
     const envelope = await this.requestEnvelope<T>(path, init);
     return envelope.data;
   }
@@ -534,12 +521,9 @@ export class AiApiClient {
     return (await response.json()) as ApiEnvelope<T>;
   }
 
-  private async errorFromResponse(
-    response: Response,
-  ): Promise<AiApiError> {
+  private async errorFromResponse(response: Response): Promise<AiApiError> {
     const body = (await response.json().catch(() => undefined)) as
-      | ApiErrorEnvelope
-      | undefined;
+      ApiErrorEnvelope | undefined;
     const error = body?.error;
 
     return new AiApiError(
@@ -560,11 +544,7 @@ export class AiApiClient {
 function stripTrustedIdentity(
   request: OrchestrationRequest,
 ): OrchestrationRequest {
-  const {
-    tenantId,
-    actorId,
-    ...safeRequest
-  } = request;
+  const { tenantId, actorId, ...safeRequest } = request;
   void tenantId;
   void actorId;
 

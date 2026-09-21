@@ -45,8 +45,7 @@ describe('QdrantVectorStore', () => {
       },
     });
 
-    const [indexUrl, createIndexInit] =
-      fetchImplementation.mock.calls[2] ?? [];
+    const [indexUrl, createIndexInit] = fetchImplementation.mock.calls[2] ?? [];
     expect(indexUrl).toBe(
       'https://qdrant.example.test/collections/aerealith-knowledge/index?wait=true',
     );
@@ -58,9 +57,7 @@ describe('QdrantVectorStore', () => {
         is_tenant: true,
       },
     });
-    expect(new Headers(createIndexInit?.headers).get('api-key')).toBe(
-      'secret',
-    );
+    expect(new Headers(createIndexInit?.headers).get('api-key')).toBe('secret');
   });
 
   it('does not recreate an existing shared collection', async () => {

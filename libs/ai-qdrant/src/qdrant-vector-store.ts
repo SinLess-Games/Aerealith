@@ -68,8 +68,7 @@ export class QdrantVectorStore implements VectorStore, VectorIndexManager {
   constructor(options: QdrantVectorStoreOptions) {
     this.baseUrl = trimTrailingSlashes(options.baseUrl.trim());
     this.apiKey = options.apiKey?.trim() || undefined;
-    this.collectionName =
-      options.collectionName?.trim() || DEFAULT_COLLECTION;
+    this.collectionName = options.collectionName?.trim() || DEFAULT_COLLECTION;
     this.fetchImplementation =
       options.fetchImplementation ?? globalThis.fetch.bind(globalThis);
 
@@ -217,9 +216,7 @@ export class QdrantVectorStore implements VectorStore, VectorIndexManager {
           [NAMESPACE_FIELD]: normalizedNamespace,
           [RECORD_ID_FIELD]: record.id,
           ...(record.text ? { [TEXT_FIELD]: record.text } : {}),
-          ...(record.metadata
-            ? { [METADATA_FIELD]: record.metadata }
-            : {}),
+          ...(record.metadata ? { [METADATA_FIELD]: record.metadata } : {}),
         },
       })),
     );

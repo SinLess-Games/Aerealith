@@ -95,10 +95,7 @@ export class KnowledgeIngestionService {
   }
 }
 
-export type KnowledgeSearchRequest = Omit<
-  RetrievalQuery,
-  'vector' | 'text'
-> & {
+export type KnowledgeSearchRequest = Omit<RetrievalQuery, 'vector' | 'text'> & {
   text: string;
 };
 

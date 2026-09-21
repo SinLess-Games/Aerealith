@@ -27,10 +27,7 @@ export interface AiCodeSandboxStub {
   readFile(path: string): Promise<string>;
   writeFile(path: string, content: string): Promise<void>;
   listFiles(path?: string): Promise<readonly string[]>;
-  search(
-    pattern: string,
-    path?: string,
-  ): Promise<readonly string[]>;
+  search(pattern: string, path?: string): Promise<readonly string[]>;
   execute(request: {
     command: string;
     args?: readonly string[];
@@ -104,10 +101,7 @@ export interface KnowledgeCatalogStub {
     knowledgeBaseId: string,
     documentIds: readonly string[],
   ): Promise<import('./knowledge-catalog').KnowledgeBaseRecord | undefined>;
-  deleteDocument(
-    knowledgeBaseId: string,
-    documentId: string,
-  ): Promise<boolean>;
+  deleteDocument(knowledgeBaseId: string, documentId: string): Promise<boolean>;
   deleteKnowledgeBase(id: string): Promise<boolean>;
 }
 
@@ -261,5 +255,4 @@ export type AiOrchestratorBindings = {
    * Shared Qdrant collection used for Aerealith knowledge vectors.
    */
   QDRANT_COLLECTION?: string;
-
 };

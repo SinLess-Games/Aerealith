@@ -16,10 +16,7 @@ import { createLogger } from '@aerealith-ai/observability/logger';
 import { secureHeaders } from 'hono/secure-headers';
 import { z } from 'zod';
 
-import {
-  artifactStoreStatus,
-  createArtifactStore,
-} from './artifact-runtime';
+import { artifactStoreStatus, createArtifactStore } from './artifact-runtime';
 import {
   authenticateRequest,
   AuthenticationRequiredError,
@@ -36,10 +33,7 @@ import {
   BasicOrchestrationEngine,
   type OrchestrationEngine,
 } from './orchestrator';
-import {
-  modelRuntimeCatalog,
-  providerRuntimeStatus,
-} from './provider-runtime';
+import { modelRuntimeCatalog, providerRuntimeStatus } from './provider-runtime';
 import { AiRateLimiter } from './rate-limit';
 import { orchestrationRequestSchema } from './request-schema';
 import { AiRunController } from './run-controller';
@@ -48,10 +42,7 @@ import { createRunIndexStore, createRunStore } from './run-store';
 import { startStreamingTextRun } from './streaming-runtime';
 import { sandboxToolDefinitions } from './tool-runtime';
 import { AiUsageStore } from './usage-ledger';
-import {
-  createVectorStore,
-  vectorStoreStatus,
-} from './vector-store';
+import { createVectorStore, vectorStoreStatus } from './vector-store';
 
 type AiOrchestratorEnv = ApiEnv<ApiRequestContext, AiOrchestratorBindings>;
 
@@ -129,15 +120,9 @@ app.get('/ready', (c) => {
   const rateLimitConfigured = Boolean(c.env.AI_RATE_LIMIT);
   const usageConfigured = Boolean(c.env.AI_USAGE);
   const codeSandboxConfigured = Boolean(c.env.AI_CODE_SANDBOX);
-  const conversationStateConfigured = Boolean(
-    c.env.AI_CONVERSATION_STATE,
-  );
-  const conversationIndexConfigured = Boolean(
-    c.env.AI_CONVERSATION_INDEX,
-  );
-  const knowledgeCatalogConfigured = Boolean(
-    c.env.AI_KNOWLEDGE_CATALOG,
-  );
+  const conversationStateConfigured = Boolean(c.env.AI_CONVERSATION_STATE);
+  const conversationIndexConfigured = Boolean(c.env.AI_CONVERSATION_INDEX);
+  const knowledgeCatalogConfigured = Boolean(c.env.AI_KNOWLEDGE_CATALOG);
   const artifactStore = artifactStoreStatus(c.env);
   const vectorStore = vectorStoreStatus(c.env);
   const providers = providerRuntimeStatus(c.env);
@@ -365,99 +350,93 @@ app.get('/api/V1/ai/knowledge-bases/:knowledgeBaseId', async (c) => {
   });
 });
 
-app.get(
-  '/api/V1/ai/knowledge-bases/:knowledgeBaseId/documents',
-  async (c) => {
-    const principal = await requirePrincipal(c.req.raw, c.env);
-    const knowledgeBaseId = parseUuid(
-      c.req.param('knowledgeBaseId'),
-      'knowledge-base',
-    );
-    const knowledgeBase = await requireKnowledgeCatalog(
-      c.env,
-      principal.id,
-    ).getKnowledgeBase(knowledgeBaseId);
+app.get('/api/V1/ai/knowledge-bases/:knowledgeBaseId/documents', async (c) => {
+  const principal = await requirePrincipal(c.req.raw, c.env);
+  const knowledgeBaseId = parseUuid(
+    c.req.param('knowledgeBaseId'),
+    'knowledge-base',
+  );
+  const knowledgeBase = await requireKnowledgeCatalog(
+    c.env,
+    principal.id,
+  ).getKnowledgeBase(knowledgeBaseId);
 
-    if (!knowledgeBase || knowledgeBase.tenantId !== principal.id) {
-      throw new ApiError('The AI knowledge base was not found.', {
-        code: ApiErrorCode.NotFound,
-        status: HttpStatus.NotFound,
-      });
-    }
-
-    return c.json({
-      ok: true,
-      data: knowledgeBase.documents,
-      meta: responseMeta(c.get('apiContext')),
+  if (!knowledgeBase || knowledgeBase.tenantId !== principal.id) {
+    throw new ApiError('The AI knowledge base was not found.', {
+      code: ApiErrorCode.NotFound,
+      status: HttpStatus.NotFound,
     });
-  },
-);
+  }
 
-app.post(
-  '/api/V1/ai/knowledge-bases/:knowledgeBaseId/documents',
-  async (c) => {
-    const principal = await requirePrincipal(c.req.raw, c.env);
-    const knowledgeBaseId = parseUuid(
-      c.req.param('knowledgeBaseId'),
-      'knowledge-base',
-    );
-    const catalog = requireKnowledgeCatalog(c.env, principal.id);
-    const knowledgeBase = await catalog.getKnowledgeBase(knowledgeBaseId);
+  return c.json({
+    ok: true,
+    data: knowledgeBase.documents,
+    meta: responseMeta(c.get('apiContext')),
+  });
+});
 
-    if (!knowledgeBase || knowledgeBase.tenantId !== principal.id) {
-      throw new ApiError('The AI knowledge base was not found.', {
-        code: ApiErrorCode.NotFound,
-        status: HttpStatus.NotFound,
-      });
-    }
+app.post('/api/V1/ai/knowledge-bases/:knowledgeBaseId/documents', async (c) => {
+  const principal = await requirePrincipal(c.req.raw, c.env);
+  const knowledgeBaseId = parseUuid(
+    c.req.param('knowledgeBaseId'),
+    'knowledge-base',
+  );
+  const catalog = requireKnowledgeCatalog(c.env, principal.id);
+  const knowledgeBase = await catalog.getKnowledgeBase(knowledgeBaseId);
 
-    let body: unknown;
-    try {
-      body = await c.req.json();
-    } catch (error) {
-      throw new ApiError('A valid JSON body is required.', {
-        code: ApiErrorCode.BadRequest,
-        status: HttpStatus.BadRequest,
-        cause: error,
-      });
-    }
+  if (!knowledgeBase || knowledgeBase.tenantId !== principal.id) {
+    throw new ApiError('The AI knowledge base was not found.', {
+      code: ApiErrorCode.NotFound,
+      status: HttpStatus.NotFound,
+    });
+  }
 
-    const parsed = knowledgeDocumentsSchema.safeParse(body);
-    if (!parsed.success) {
-      throw new ApiError('The knowledge documents are invalid.', {
-        code: ApiErrorCode.ValidationFailed,
-        status: HttpStatus.UnprocessableEntity,
-      });
-    }
+  let body: unknown;
+  try {
+    body = await c.req.json();
+  } catch (error) {
+    throw new ApiError('A valid JSON body is required.', {
+      code: ApiErrorCode.BadRequest,
+      status: HttpStatus.BadRequest,
+      cause: error,
+    });
+  }
 
-    const run = await submitDurableRun(
-      c.env,
-      principal,
-      {
-        capability: 'knowledge-ingest',
-        tenantId: principal.id,
-        actorId: principal.id,
-        input: {
-          namespace: knowledgeBaseId,
-          documents: parsed.data.documents,
-        },
-        metadata: {
-          knowledgeBaseId,
-        },
+  const parsed = knowledgeDocumentsSchema.safeParse(body);
+  if (!parsed.success) {
+    throw new ApiError('The knowledge documents are invalid.', {
+      code: ApiErrorCode.ValidationFailed,
+      status: HttpStatus.UnprocessableEntity,
+    });
+  }
+
+  const run = await submitDurableRun(
+    c.env,
+    principal,
+    {
+      capability: 'knowledge-ingest',
+      tenantId: principal.id,
+      actorId: principal.id,
+      input: {
+        namespace: knowledgeBaseId,
+        documents: parsed.data.documents,
       },
-      c.req.header('idempotency-key'),
-    );
-
-    return c.json(
-      {
-        ok: true,
-        data: run,
-        meta: responseMeta(c.get('apiContext')),
+      metadata: {
+        knowledgeBaseId,
       },
-      HttpStatus.Accepted,
-    );
-  },
-);
+    },
+    c.req.header('idempotency-key'),
+  );
+
+  return c.json(
+    {
+      ok: true,
+      data: run,
+      meta: responseMeta(c.get('apiContext')),
+    },
+    HttpStatus.Accepted,
+  );
+});
 
 app.delete(
   '/api/V1/ai/knowledge-bases/:knowledgeBaseId/documents/:documentId',
@@ -485,7 +464,9 @@ app.delete(
       });
     }
 
-    if (!knowledgeBase.documents.some((document) => document.id === documentId)) {
+    if (
+      !knowledgeBase.documents.some((document) => document.id === documentId)
+    ) {
       throw new ApiError('The AI knowledge document was not found.', {
         code: ApiErrorCode.NotFound,
         status: HttpStatus.NotFound,
@@ -517,40 +498,37 @@ app.delete(
   },
 );
 
-app.delete(
-  '/api/V1/ai/knowledge-bases/:knowledgeBaseId',
-  async (c) => {
-    const principal = await requirePrincipal(c.req.raw, c.env);
-    const knowledgeBaseId = parseUuid(
-      c.req.param('knowledgeBaseId'),
-      'knowledge-base',
-    );
-    const catalog = requireKnowledgeCatalog(c.env, principal.id);
-    const knowledgeBase = await catalog.getKnowledgeBase(knowledgeBaseId);
+app.delete('/api/V1/ai/knowledge-bases/:knowledgeBaseId', async (c) => {
+  const principal = await requirePrincipal(c.req.raw, c.env);
+  const knowledgeBaseId = parseUuid(
+    c.req.param('knowledgeBaseId'),
+    'knowledge-base',
+  );
+  const catalog = requireKnowledgeCatalog(c.env, principal.id);
+  const knowledgeBase = await catalog.getKnowledgeBase(knowledgeBaseId);
 
-    if (!knowledgeBase || knowledgeBase.tenantId !== principal.id) {
-      throw new ApiError('The AI knowledge base was not found.', {
-        code: ApiErrorCode.NotFound,
-        status: HttpStatus.NotFound,
-      });
-    }
+  if (!knowledgeBase || knowledgeBase.tenantId !== principal.id) {
+    throw new ApiError('The AI knowledge base was not found.', {
+      code: ApiErrorCode.NotFound,
+      status: HttpStatus.NotFound,
+    });
+  }
 
-    const vectorStore = await createVectorStore(c.env);
-    if (!vectorStore) {
-      throw new ApiError('AI vector storage is not configured.', {
-        code: ApiErrorCode.InternalError,
-        status: HttpStatus.ServiceUnavailable,
-      });
-    }
+  const vectorStore = await createVectorStore(c.env);
+  if (!vectorStore) {
+    throw new ApiError('AI vector storage is not configured.', {
+      code: ApiErrorCode.InternalError,
+      status: HttpStatus.ServiceUnavailable,
+    });
+  }
 
-    await vectorStore.deleteIndex(
-      `user:${principal.id}:knowledge:${knowledgeBaseId}`,
-    );
-    await catalog.deleteKnowledgeBase(knowledgeBaseId);
+  await vectorStore.deleteIndex(
+    `user:${principal.id}:knowledge:${knowledgeBaseId}`,
+  );
+  await catalog.deleteKnowledgeBase(knowledgeBaseId);
 
-    return new Response(null, { status: HttpStatus.NoContent });
-  },
-);
+  return new Response(null, { status: HttpStatus.NoContent });
+});
 
 app.get('/api/V1/ai/conversations', async (c) => {
   const principal = await requirePrincipal(c.req.raw, c.env);
@@ -635,81 +613,75 @@ app.get('/api/V1/ai/conversations/:conversationId', async (c) => {
   });
 });
 
-app.post(
-  '/api/V1/ai/conversations/:conversationId/messages',
-  async (c) => {
-    const principal = await requirePrincipal(c.req.raw, c.env);
-    const conversationId = parseUuid(
-      c.req.param('conversationId'),
-      'conversation',
-    );
+app.post('/api/V1/ai/conversations/:conversationId/messages', async (c) => {
+  const principal = await requirePrincipal(c.req.raw, c.env);
+  const conversationId = parseUuid(
+    c.req.param('conversationId'),
+    'conversation',
+  );
 
-    let body: unknown;
-    try {
-      body = await c.req.json();
-    } catch (error) {
-      throw new ApiError('A valid JSON body is required.', {
-        code: ApiErrorCode.BadRequest,
-        status: HttpStatus.BadRequest,
-        cause: error,
-      });
-    }
+  let body: unknown;
+  try {
+    body = await c.req.json();
+  } catch (error) {
+    throw new ApiError('A valid JSON body is required.', {
+      code: ApiErrorCode.BadRequest,
+      status: HttpStatus.BadRequest,
+      cause: error,
+    });
+  }
 
-    const parsed = conversationMessageSchema.safeParse(body);
-    if (!parsed.success) {
-      throw new ApiError('The conversation message is invalid.', {
-        code: ApiErrorCode.ValidationFailed,
-        status: HttpStatus.UnprocessableEntity,
-      });
-    }
+  const parsed = conversationMessageSchema.safeParse(body);
+  if (!parsed.success) {
+    throw new ApiError('The conversation message is invalid.', {
+      code: ApiErrorCode.ValidationFailed,
+      status: HttpStatus.UnprocessableEntity,
+    });
+  }
 
-    const conversation = await requireConversationStore(c.env).append(
-      principal.id,
-      conversationId,
-      parsed.data,
-    );
+  const conversation = await requireConversationStore(c.env).append(
+    principal.id,
+    conversationId,
+    parsed.data,
+  );
 
-    if (!conversation) {
-      throw new ApiError('The AI conversation was not found.', {
-        code: ApiErrorCode.NotFound,
-        status: HttpStatus.NotFound,
-      });
-    }
+  if (!conversation) {
+    throw new ApiError('The AI conversation was not found.', {
+      code: ApiErrorCode.NotFound,
+      status: HttpStatus.NotFound,
+    });
+  }
 
-    return c.json(
-      {
-        ok: true,
-        data: conversation,
-        meta: responseMeta(c.get('apiContext')),
-      },
-      HttpStatus.Created,
-    );
-  },
-);
+  return c.json(
+    {
+      ok: true,
+      data: conversation,
+      meta: responseMeta(c.get('apiContext')),
+    },
+    HttpStatus.Created,
+  );
+});
 
-app.delete(
-  '/api/V1/ai/conversations/:conversationId',
-  async (c) => {
-    const principal = await requirePrincipal(c.req.raw, c.env);
-    const conversationId = parseUuid(
-      c.req.param('conversationId'),
-      'conversation',
-    );
-    const deleted = await requireConversationStore(c.env).delete(
-      principal.id,
-      conversationId,
-    );
+app.delete('/api/V1/ai/conversations/:conversationId', async (c) => {
+  const principal = await requirePrincipal(c.req.raw, c.env);
+  const conversationId = parseUuid(
+    c.req.param('conversationId'),
+    'conversation',
+  );
+  const deleted = await requireConversationStore(c.env).delete(
+    principal.id,
+    conversationId,
+  );
 
-    if (!deleted) {
-      throw new ApiError('The AI conversation was not found.', {
-        code: ApiErrorCode.NotFound,
-        status: HttpStatus.NotFound,
-      });
-    }
+  if (!deleted) {
+    throw new ApiError('The AI conversation was not found.', {
+      code: ApiErrorCode.NotFound,
+      status: HttpStatus.NotFound,
+    });
+  }
 
-    return new Response(null, { status: HttpStatus.NoContent });
-  },
-);
+  return new Response(null, { status: HttpStatus.NoContent });
+});
 
 app.get('/api/V1/ai/usage', async (c) => {
   const principal = await requirePrincipal(c.req.raw, c.env);
@@ -721,27 +693,19 @@ app.get('/api/V1/ai/usage', async (c) => {
     });
   }
 
-  const usage = await new AiUsageStore(c.env.AI_USAGE).getUsage(
-    principal.id,
-  );
+  const usage = await new AiUsageStore(c.env.AI_USAGE).getUsage(principal.id);
 
   return c.json({
     ok: true,
     data: {
       ...usage,
       limits: {
-        dailyRuns: parseNonNegativeInteger(
-          c.env.AI_DAILY_RUN_LIMIT,
-          0,
-        ),
+        dailyRuns: parseNonNegativeInteger(c.env.AI_DAILY_RUN_LIMIT, 0),
         dailyCostBudgetUsd: parseNonNegativeNumber(
           c.env.AI_DAILY_COST_BUDGET_USD,
           0,
         ),
-        runsPerMinute: parsePositiveInteger(
-          c.env.AI_RUNS_PER_MINUTE,
-          60,
-        ),
+        runsPerMinute: parsePositiveInteger(c.env.AI_RUNS_PER_MINUTE, 60),
       },
     },
     meta: responseMeta(c.get('apiContext')),
@@ -977,13 +941,11 @@ app.post('/api/V1/ai/stream', async (c) => {
           ...(parsed.success
             ? {}
             : {
-                issues: parsed.error.issues.map(
-                  ({ code, message, path }) => ({
-                    code,
-                    message,
-                    path,
-                  }),
-                ),
+                issues: parsed.error.issues.map(({ code, message, path }) => ({
+                  code,
+                  message,
+                  path,
+                })),
               }),
         },
       },
@@ -992,10 +954,7 @@ app.post('/api/V1/ai/stream', async (c) => {
 
   assertStreamingSubmissionReady(c.env);
   await enforceRunRateLimit(c.env, principal.id);
-  const usageReserved = await enforceDailyUsageLimits(
-    c.env,
-    principal.id,
-  );
+  const usageReserved = await enforceDailyUsageLimits(c.env, principal.id);
   const runs = createRunStore(c.env);
 
   if (!runs) {
@@ -1016,9 +975,7 @@ app.post('/api/V1/ai/stream', async (c) => {
       runs,
     );
 
-    c.executionCtx.waitUntil(
-      streaming.completion.catch(() => undefined),
-    );
+    c.executionCtx.waitUntil(streaming.completion.catch(() => undefined));
 
     return new Response(streaming.stream, {
       status: HttpStatus.Ok,
@@ -1118,14 +1075,11 @@ async function submitDurableRun(
     }
 
     const runs = createRunStore(bindings);
-    const existing = runs
-      ? await runs.get(submissionOptions.runId)
-      : undefined;
+    const existing = runs ? await runs.get(submissionOptions.runId) : undefined;
 
     if (existing) {
       if (
-        existing.requestFingerprint !==
-        submissionOptions.requestFingerprint
+        existing.requestFingerprint !== submissionOptions.requestFingerprint
       ) {
         throw new ApiError(
           'The Idempotency-Key was already used for a different request.',
@@ -1154,10 +1108,7 @@ async function submitDurableRun(
   }
 
   await enforceRunRateLimit(bindings, principal.id);
-  const usageReserved = await enforceDailyUsageLimits(
-    bindings,
-    principal.id,
-  );
+  const usageReserved = await enforceDailyUsageLimits(bindings, principal.id);
   const engine = resolveEngine(bindings);
 
   try {
@@ -1191,10 +1142,7 @@ function requireKnowledgeCatalog(
 function requireConversationStore(
   bindings: AiOrchestratorBindings,
 ): ConversationStore {
-  if (
-    !bindings.AI_CONVERSATION_STATE ||
-    !bindings.AI_CONVERSATION_INDEX
-  ) {
+  if (!bindings.AI_CONVERSATION_STATE || !bindings.AI_CONVERSATION_INDEX) {
     throw new ApiError('AI conversation storage is not configured.', {
       code: ApiErrorCode.InternalError,
       status: HttpStatus.ServiceUnavailable,
@@ -1281,17 +1229,16 @@ async function enforceDailyUsageLimits(
     return false;
   }
 
-  const dailyRunLimit = parseNonNegativeInteger(
-    bindings.AI_DAILY_RUN_LIMIT,
-    0,
-  );
+  const dailyRunLimit = parseNonNegativeInteger(bindings.AI_DAILY_RUN_LIMIT, 0);
   const dailyCostBudgetUsd = parseNonNegativeNumber(
     bindings.AI_DAILY_COST_BUDGET_USD,
     0,
   );
-  const decision = await new AiUsageStore(
-    bindings.AI_USAGE,
-  ).consumeRun(tenantId, dailyRunLimit, dailyCostBudgetUsd);
+  const decision = await new AiUsageStore(bindings.AI_USAGE).consumeRun(
+    tenantId,
+    dailyRunLimit,
+    dailyCostBudgetUsd,
+  );
 
   if (!decision.allowed) {
     throw new ApiError(
@@ -1462,9 +1409,7 @@ function resolveEngine(bindings: AiOrchestratorBindings): OrchestrationEngine {
 function responseMeta(context: ApiRequestContext) {
   return {
     requestId: context.requestId,
-    ...(context.correlationId
-      ? { correlationId: context.correlationId }
-      : {}),
+    ...(context.correlationId ? { correlationId: context.correlationId } : {}),
     timestamp: new Date().toISOString(),
   };
 }

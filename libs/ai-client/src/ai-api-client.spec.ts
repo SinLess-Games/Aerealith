@@ -8,10 +8,7 @@ describe('AiApiClient', () => {
           'submit-1',
         );
 
-        const body = JSON.parse(String(init?.body)) as Record<
-          string,
-          unknown
-        >;
+        const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
 
         expect(body).not.toHaveProperty('tenantId');
         expect(body).not.toHaveProperty('actorId');
@@ -72,9 +69,7 @@ describe('AiApiClient', () => {
     );
     const client = new AiApiClient({ fetchImplementation });
 
-    await expect(
-      client.listRuns({ limit: 1 }),
-    ).resolves.toMatchObject({
+    await expect(client.listRuns({ limit: 1 })).resolves.toMatchObject({
       items: [{ id: 'run-1' }],
       nextBefore: '2026-09-21T00:00:00.000Z',
     });
@@ -139,13 +134,14 @@ describe('AiApiClient', () => {
         controller.close();
       },
     });
-    const fetchImplementation = vi.fn(async () =>
-      new Response(stream, {
-        headers: {
-          'content-type': 'text/event-stream',
-          'x-ai-run-id': 'run-stream-1',
-        },
-      }),
+    const fetchImplementation = vi.fn(
+      async () =>
+        new Response(stream, {
+          headers: {
+            'content-type': 'text/event-stream',
+            'x-ai-run-id': 'run-stream-1',
+          },
+        }),
     );
     const client = new AiApiClient({ fetchImplementation });
 

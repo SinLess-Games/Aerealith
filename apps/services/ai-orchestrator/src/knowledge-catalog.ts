@@ -21,10 +21,7 @@ export type KnowledgeBaseRecord = {
   documents: readonly KnowledgeDocumentRecord[];
 };
 
-export type KnowledgeBaseSummary = Omit<
-  KnowledgeBaseRecord,
-  'documents'
-> & {
+export type KnowledgeBaseSummary = Omit<KnowledgeBaseRecord, 'documents'> & {
   documentCount: number;
 };
 
@@ -59,20 +56,14 @@ export class AiKnowledgeCatalog extends DurableObject<AiOrchestratorBindings> {
     return knowledgeBase;
   }
 
-  async getKnowledgeBase(
-    id: string,
-  ): Promise<KnowledgeBaseRecord | undefined> {
+  async getKnowledgeBase(id: string): Promise<KnowledgeBaseRecord | undefined> {
     return this.catalog().find((item) => item.id === id);
   }
 
-  async listKnowledgeBases(): Promise<
-    readonly KnowledgeBaseSummary[]
-  > {
+  async listKnowledgeBases(): Promise<readonly KnowledgeBaseSummary[]> {
     return this.catalog()
       .map(toSummary)
-      .sort((left, right) =>
-        right.updatedAt.localeCompare(left.updatedAt),
-      );
+      .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
   }
 
   async recordDocuments(
@@ -80,9 +71,7 @@ export class AiKnowledgeCatalog extends DurableObject<AiOrchestratorBindings> {
     documentIds: readonly string[],
   ): Promise<KnowledgeBaseRecord | undefined> {
     const catalog = this.catalog();
-    const index = catalog.findIndex(
-      (item) => item.id === knowledgeBaseId,
-    );
+    const index = catalog.findIndex((item) => item.id === knowledgeBaseId);
     if (index < 0) return undefined;
 
     const current = catalog[index]!;
@@ -123,9 +112,7 @@ export class AiKnowledgeCatalog extends DurableObject<AiOrchestratorBindings> {
     documentId: string,
   ): Promise<boolean> {
     const catalog = this.catalog();
-    const index = catalog.findIndex(
-      (item) => item.id === knowledgeBaseId,
-    );
+    const index = catalog.findIndex((item) => item.id === knowledgeBaseId);
     if (index < 0) return false;
 
     const current = catalog[index]!;
@@ -157,9 +144,7 @@ export class AiKnowledgeCatalog extends DurableObject<AiOrchestratorBindings> {
   }
 
   private catalog(): KnowledgeBaseRecord[] {
-    return (
-      this.ctx.storage.kv.get<KnowledgeBaseRecord[]>(CATALOG_KEY) ?? []
-    );
+    return this.ctx.storage.kv.get<KnowledgeBaseRecord[]>(CATALOG_KEY) ?? [];
   }
 
   private save(catalog: readonly KnowledgeBaseRecord[]): void {
@@ -167,9 +152,7 @@ export class AiKnowledgeCatalog extends DurableObject<AiOrchestratorBindings> {
   }
 }
 
-function toSummary(
-  knowledgeBase: KnowledgeBaseRecord,
-): KnowledgeBaseSummary {
+function toSummary(knowledgeBase: KnowledgeBaseRecord): KnowledgeBaseSummary {
   const { documents, ...summary } = knowledgeBase;
 
   return {
