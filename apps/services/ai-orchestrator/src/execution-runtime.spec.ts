@@ -22,6 +22,7 @@ function configuredBindings() {
             id: 'embedding-model',
             capabilities: ['embedding'],
             priority: 100,
+            embeddingDimensions: 3,
           },
         ],
       },
@@ -43,6 +44,7 @@ describe('AI execution runtime', () => {
       'text',
       'code',
       'embedding',
+      'knowledge-ingest',
       'retrieval',
     ]);
   });
@@ -91,7 +93,7 @@ describe('AI execution runtime', () => {
                     id: '550e8400-e29b-41d4-a716-446655440000',
                     score: 0.98,
                     payload: {
-                      namespace: 'tenant-a:knowledge',
+                      namespace: 'user:user-123:knowledge:tenant-a:knowledge',
                       record_id: 'doc-1:0',
                       text: 'Aerealith retrieval result',
                       metadata: {
@@ -148,6 +150,129 @@ describe('AI execution runtime', () => {
     });
 
     expect(fetchImplementation).toHaveBeenCalledTimes(2);
+  });
+
+  it('chunks, embeds, provisions, and writes tenant-isolated knowledge', async () => {
+    const fetchImplementation = vi.fn(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+
+        if (url === 'https://models.example.test/v1/embeddings') {
+          return new Response(
+            JSON.stringify({
+              data: [{ index: 0, embedding: [0.1, 0.2, 0.3] }],
+            }),
+            {
+              status: 200,
+              headers: { 'content-type': 'application/json' },
+            },
+          );
+        }
+
+        if (
+          url ===
+            'https://qdrant.example.test/collections/aerealith-knowledge-v1' &&
+          init?.method === 'GET'
+        ) {
+          return new Response(null, { status: 404 });
+        }
+
+        if (
+          url ===
+            'https://qdrant.example.test/collections/aerealith-knowledge-v1' &&
+          init?.method === 'PUT'
+        ) {
+          expect(JSON.parse(String(init.body))).toEqual({
+            vectors: {
+              size: 3,
+              distance: 'Cosine',
+            },
+          });
+
+          return Response.json({ result: true, status: 'ok' });
+        }
+
+        if (
+          url ===
+          'https://qdrant.example.test/collections/aerealith-knowledge-v1/index?wait=true'
+        ) {
+          expect(JSON.parse(String(init?.body))).toEqual({
+            field_name: 'namespace',
+            field_schema: {
+              type: 'keyword',
+              is_tenant: true,
+            },
+          });
+
+          return Response.json({ result: true, status: 'ok' });
+        }
+
+        if (
+          url ===
+          'https://qdrant.example.test/collections/aerealith-knowledge-v1/points?wait=true'
+        ) {
+          const body = JSON.parse(String(init?.body)) as {
+            points: Array<{
+              payload: {
+                namespace: string;
+                record_id: string;
+                metadata: Record<string, unknown>;
+              };
+            }>;
+          };
+
+          expect(body.points[0]?.payload).toMatchObject({
+            namespace: 'user:user-123:knowledge:kb-1',
+            record_id: 'doc-1:0',
+            metadata: {
+              source: 'docs',
+              documentId: 'doc-1',
+            },
+          });
+
+          return Response.json({ status: 'ok' });
+        }
+
+        throw new Error(`Unexpected fetch: ${url} ${init?.method ?? 'GET'}`);
+      },
+    );
+
+    vi.stubGlobal('fetch', fetchImplementation);
+
+    const result = await executeOrchestrationRequest(
+      configuredBindings(),
+      {
+        capability: 'knowledge-ingest',
+        tenantId: 'user-123',
+        actorId: 'user-123',
+        input: {
+          namespace: 'kb-1',
+          documents: [
+            {
+              id: 'doc-1',
+              text: 'Aerealith documentation',
+              metadata: {
+                source: 'docs',
+                documentId: 'attacker-value',
+              },
+            },
+          ],
+        },
+      },
+    );
+
+    expect(result).toMatchObject({
+      providerId: 'primary',
+      modelId: 'embedding-model',
+      content: {
+        namespace: 'kb-1',
+        documentsProcessed: 1,
+        chunksWritten: 1,
+        embeddingModelId: 'embedding-model',
+      },
+    });
+
+    expect(fetchImplementation).toHaveBeenCalledTimes(5);
   });
 
   it('does not advertise retrieval without Qdrant credentials', () => {
