@@ -40,4 +40,14 @@ export interface VectorStore {
     }[],
   ): Promise<void>;
   delete(namespace: string, ids: readonly string[]): Promise<void>;
+  replaceByFilter?(
+    namespace: string,
+    filter: Record<string, unknown>,
+    records: readonly {
+      id: string;
+      vector: readonly number[];
+      text?: string;
+      metadata?: Record<string, unknown>;
+    }[],
+  ): Promise<void>;
 }
