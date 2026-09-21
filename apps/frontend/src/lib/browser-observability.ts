@@ -87,3 +87,16 @@ export function recordBrowserError(
 
   faro.api.pushError(resolved, { context });
 }
+
+/**
+ * Records bounded product events for operational correlation. Keep attributes
+ * enumerable and low-cardinality; never include user-authored content.
+ */
+export function recordBrowserEvent(
+  name: string,
+  attributes: Readonly<Record<string, string>> = {},
+  domain = 'aerealith',
+): void {
+  if (!faro.api) return;
+  faro.api.pushEvent(name, { ...attributes }, domain);
+}
