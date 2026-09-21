@@ -9,12 +9,17 @@ import type {
   AiOrchestratorBindings,
   RunStateNamespace,
 } from './bindings';
+import { DurableObjectRunIndexStore } from './run-index-store';
 
 export class DurableObjectRunStore implements RunStore {
-  constructor(private readonly namespace: RunStateNamespace) {}
+  constructor(
+    private readonly namespace: RunStateNamespace,
+    private readonly index?: DurableObjectRunIndexStore,
+  ) {}
 
   async create(run: RunRecord): Promise<void> {
     await this.stub(run.id).createRun(run);
+    await this.index?.upsert(run);
   }
 
   get(runId: string): Promise<RunRecord | undefined> {
@@ -26,11 +31,14 @@ export class DurableObjectRunStore implements RunStore {
     status: RunStatus,
     patch: RunStatusPatch = {},
   ): Promise<void> {
-    await this.stub(runId).updateStatus(status, patch);
+    const updated = await this.stub(runId).updateStatus(status, patch);
+    await this.index?.upsert(updated);
   }
 
-  cancel(runId: string): Promise<RunRecord> {
-    return this.stub(runId).cancelRun();
+  async cancel(runId: string): Promise<RunRecord> {
+    const updated = await this.stub(runId).cancelRun();
+    await this.index?.upsert(updated);
+    return updated;
   }
 
   private stub(runId: string) {
@@ -42,7 +50,19 @@ export class DurableObjectRunStore implements RunStore {
 export function createRunStore(
   bindings: AiOrchestratorBindings,
 ): DurableObjectRunStore | undefined {
-  return bindings.AI_RUN_STATE
-    ? new DurableObjectRunStore(bindings.AI_RUN_STATE)
+  if (!bindings.AI_RUN_STATE) return undefined;
+
+  const index = bindings.AI_RUN_INDEX
+    ? new DurableObjectRunIndexStore(bindings.AI_RUN_INDEX)
+    : undefined;
+
+  return new DurableObjectRunStore(bindings.AI_RUN_STATE, index);
+}
+
+export function createRunIndexStore(
+  bindings: AiOrchestratorBindings,
+): DurableObjectRunIndexStore | undefined {
+  return bindings.AI_RUN_INDEX
+    ? new DurableObjectRunIndexStore(bindings.AI_RUN_INDEX)
     : undefined;
 }
