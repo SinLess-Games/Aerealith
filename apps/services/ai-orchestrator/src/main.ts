@@ -17,6 +17,7 @@ import {
   BasicOrchestrationEngine,
   type OrchestrationEngine,
 } from './orchestrator';
+import { createRunStore } from './run-store';
 import { vectorStoreStatus } from './vector-store';
 
 type AiOrchestratorEnv = ApiEnv<ApiRequestContext, AiOrchestratorBindings>;
@@ -35,6 +36,8 @@ const app = createApiApp<AiOrchestratorEnv>({
   logger,
   middleware: [{ handler: secureHeaders() }],
 });
+
+const runIdSchema = z.uuid();
 
 const metadataSchema = z
   .record(z.string().max(64), z.string().max(512))
@@ -70,15 +73,27 @@ app.get('/health', (c) =>
 app.get('/ready', (c) => {
   const environment = c.env.ENVIRONMENT ?? 'development';
   const workflowConfigured = Boolean(c.env.AI_ORCHESTRATION_WORKFLOW);
+  const runStateConfigured = Boolean(c.env.AI_RUN_STATE);
   const vectorStore = vectorStoreStatus(c.env);
 
-  if (environment === 'production' && !workflowConfigured) {
+  const missingProductionDependencies = [
+    ...(workflowConfigured ? [] : ['AI_ORCHESTRATION_WORKFLOW']),
+    ...(runStateConfigured ? [] : ['AI_RUN_STATE']),
+  ];
+
+  if (
+    environment === 'production' &&
+    missingProductionDependencies.length > 0
+  ) {
     return c.json(
       {
         service: 'ai-orchestrator',
         status: 'not_ready',
-        reason: 'AI_ORCHESTRATION_WORKFLOW binding is required in production.',
+        reason: 'Required production bindings are missing.',
+        missing: missingProductionDependencies,
         dependencies: {
+          workflowConfigured,
+          runStateConfigured,
           vectorStore: {
             provider: vectorStore.provider,
             configured: vectorStore.configured,
@@ -93,8 +108,9 @@ app.get('/ready', (c) => {
   return c.json({
     service: 'ai-orchestrator',
     status: 'ready',
-    workflowConfigured,
     dependencies: {
+      workflowConfigured,
+      runStateConfigured,
       vectorStore: {
         provider: vectorStore.provider,
         configured: vectorStore.configured,
@@ -134,6 +150,39 @@ app.get('/api/V1/ai/capabilities', (c) =>
     meta: responseMeta(c.get('apiContext')),
   }),
 );
+
+app.get('/api/V1/ai/runs/:runId', async (c) => {
+  const parsedRunId = runIdSchema.safeParse(c.req.param('runId'));
+
+  if (!parsedRunId.success) {
+    throw new ApiError('The AI run id is invalid.', {
+      code: ApiErrorCode.ValidationFailed,
+      status: HttpStatus.UnprocessableEntity,
+    });
+  }
+
+  const runs = createRunStore(c.env);
+  if (!runs) {
+    throw new ApiError('AI run persistence is not configured.', {
+      code: ApiErrorCode.InternalError,
+      status: HttpStatus.ServiceUnavailable,
+    });
+  }
+
+  const run = await runs.get(parsedRunId.data);
+  if (!run) {
+    throw new ApiError('The AI run was not found.', {
+      code: ApiErrorCode.NotFound,
+      status: HttpStatus.NotFound,
+    });
+  }
+
+  return c.json({
+    ok: true,
+    data: run,
+    meta: responseMeta(c.get('apiContext')),
+  });
+});
 
 app.post('/api/V1/ai/runs', async (c) => {
   let body: unknown;
@@ -176,9 +225,12 @@ app.post('/api/V1/ai/runs', async (c) => {
 });
 
 function resolveEngine(bindings: AiOrchestratorBindings): OrchestrationEngine {
+  const runs = createRunStore(bindings);
+
   if (bindings.AI_ORCHESTRATION_WORKFLOW) {
     return new CloudflareWorkflowOrchestrationEngine(
       bindings.AI_ORCHESTRATION_WORKFLOW,
+      runs,
     );
   }
 
@@ -195,5 +247,6 @@ function responseMeta(context: ApiRequestContext) {
   };
 }
 
+export { AiRunState } from './run-state';
 export { AiOrchestrationWorkflow } from './workflow';
 export default app;
