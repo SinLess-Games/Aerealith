@@ -100,15 +100,6 @@ export class AiOrchestrationWorkflow extends WorkflowEntrypoint<
         );
       });
 
-      const completedAt = new Date().toISOString();
-
-      await runs?.updateStatus(event.payload.runId, 'succeeded', {
-        providerId: output.providerId,
-        modelId: output.modelId,
-        output,
-        completedAt,
-      });
-
       if (this.env.AI_USAGE && event.payload.request.tenantId) {
         await new AiUsageStore(this.env.AI_USAGE).recordUsage(
           event.payload.request.tenantId,
@@ -126,6 +117,15 @@ export class AiOrchestrationWorkflow extends WorkflowEntrypoint<
         this.env,
         event.payload.request,
       );
+
+      const completedAt = new Date().toISOString();
+
+      await runs?.updateStatus(event.payload.runId, 'succeeded', {
+        providerId: output.providerId,
+        modelId: output.modelId,
+        output,
+        completedAt,
+      });
 
       recordAiRunSucceeded({
         runId: event.payload.runId,
