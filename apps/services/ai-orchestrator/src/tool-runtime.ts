@@ -175,10 +175,10 @@ export async function executeToolRequest(
     bindings.AI_CODE_SANDBOX,
   );
 
-  const parsed = parseArguments(input.name, input.arguments);
-  const repository = parsed.repository;
+  const common = commonWorkspaceSchema.parse(input.arguments);
+  const repository = common.repository;
   const session = await sandboxProvider.create({
-    workspaceId: `user:${tenantId}:tool:${parsed.workspaceId}`,
+    workspaceId: `user:${tenantId}:tool:${common.workspaceId}`,
     ...(repository?.url ? { repositoryUrl: repository.url } : {}),
     ...(repository?.ref ? { ref: repository.ref } : {}),
     networkAccess: Boolean(repository?.url),
@@ -187,23 +187,32 @@ export async function executeToolRequest(
   let output: unknown;
 
   switch (input.name) {
-    case 'sandbox.list_files':
+    case 'sandbox.list_files': {
+      const parsed = listFilesSchema.parse(input.arguments);
       output = await session.listFiles(parsed.path ?? '.');
       break;
-    case 'sandbox.read_file':
+    }
+    case 'sandbox.read_file': {
+      const parsed = readFileSchema.parse(input.arguments);
       output = await session.readFile(parsed.path);
       break;
-    case 'sandbox.search':
+    }
+    case 'sandbox.search': {
+      const parsed = searchSchema.parse(input.arguments);
       output = await session.search(
         parsed.pattern,
         parsed.path ?? '.',
       );
       break;
-    case 'sandbox.write_file':
+    }
+    case 'sandbox.write_file': {
+      const parsed = writeFileSchema.parse(input.arguments);
       await session.writeFile(parsed.path, parsed.content);
       output = { written: true, path: parsed.path };
       break;
-    case 'sandbox.exec':
+    }
+    case 'sandbox.exec': {
+      const parsed = execSchema.parse(input.arguments);
       output = await session.execute({
         command: parsed.command,
         args: parsed.args,
@@ -214,6 +223,7 @@ export async function executeToolRequest(
         },
       });
       break;
+    }
     default:
       throw new Error(`Tool "${input.name}" is not implemented.`);
   }
@@ -225,26 +235,6 @@ export async function executeToolRequest(
     providerId: 'cloudflare-code-sandbox',
     modelId: 'sandbox-tools-v1',
   };
-}
-
-function parseArguments(
-  name: string,
-  value: unknown,
-): any {
-  switch (name) {
-    case 'sandbox.list_files':
-      return listFilesSchema.parse(value);
-    case 'sandbox.read_file':
-      return readFileSchema.parse(value);
-    case 'sandbox.search':
-      return searchSchema.parse(value);
-    case 'sandbox.write_file':
-      return writeFileSchema.parse(value);
-    case 'sandbox.exec':
-      return execSchema.parse(value);
-    default:
-      throw new Error(`Tool "${name}" is not registered.`);
-  }
 }
 
 function requireTenantId(request: OrchestrationRequest): string {
