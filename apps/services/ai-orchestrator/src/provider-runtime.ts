@@ -1,6 +1,7 @@
 import {
   capabilityKinds,
   InMemoryProviderRegistry,
+  type CapabilityKind,
   type ModelDescriptor,
 } from '@aerealith-ai/ai-orchestration';
 import { OpenAiCompatibleProvider } from '@aerealith-ai/ai-openai-compatible';
@@ -8,9 +9,15 @@ import { z } from 'zod';
 
 import type { AiOrchestratorBindings } from './bindings';
 
+const openAiCompatibleCapabilities = [
+  'text',
+  'code',
+  'embedding',
+] as const satisfies readonly CapabilityKind[];
+
 const modelSchema = z.object({
   id: z.string().min(1).max(256),
-  capabilities: z.array(z.enum(capabilityKinds)).min(1),
+  capabilities: z.array(z.enum(openAiCompatibleCapabilities)).min(1),
   priority: z.number().int().optional(),
   supportsStreaming: z.boolean().optional(),
   contextWindow: z.number().int().positive().optional(),
@@ -23,7 +30,6 @@ const providerSchema = z.object({
   kind: z.literal('openai-compatible'),
   baseUrl: z.url(),
   apiKeyBinding: z.string().min(1).max(128).optional(),
-  headers: z.record(z.string(), z.string()).optional(),
   models: z.array(modelSchema).min(1),
 });
 
@@ -32,12 +38,13 @@ const providerCatalogSchema = z.array(providerSchema);
 export type ProviderRuntimeStatus = {
   configuredProviders: number;
   totalProviders: number;
+  capabilities: readonly CapabilityKind[];
   providers: readonly {
     id: string;
     kind: 'openai-compatible';
     configured: boolean;
     modelCount: number;
-    capabilities: readonly string[];
+    capabilities: readonly CapabilityKind[];
   }[];
 };
 
@@ -73,7 +80,6 @@ export function createProviderRegistry(
         id: provider.id,
         baseUrl: provider.baseUrl,
         apiKey,
-        headers: provider.headers,
         models,
       }),
     );
@@ -92,9 +98,9 @@ export function providerRuntimeStatus(
       !provider.apiKeyBinding ||
       Boolean(readStringBinding(bindings, provider.apiKeyBinding));
 
-    const capabilities = [
-      ...new Set(provider.models.flatMap((model) => model.capabilities)),
-    ].sort();
+    const capabilities = uniqueCapabilities(
+      provider.models.flatMap((model) => model.capabilities),
+    );
 
     return {
       id: provider.id,
@@ -109,6 +115,11 @@ export function providerRuntimeStatus(
     configuredProviders: providers.filter((provider) => provider.configured)
       .length,
     totalProviders: providers.length,
+    capabilities: uniqueCapabilities(
+      providers
+        .filter((provider) => provider.configured)
+        .flatMap((provider) => provider.capabilities),
+    ),
     providers,
   };
 }
@@ -159,4 +170,13 @@ function readStringBinding(
   return typeof value === 'string' && value.trim()
     ? value.trim()
     : undefined;
+}
+
+function uniqueCapabilities(
+  capabilities: readonly CapabilityKind[],
+): CapabilityKind[] {
+  return [...new Set(capabilities)].sort(
+    (left, right) =>
+      capabilityKinds.indexOf(left) - capabilityKinds.indexOf(right),
+  );
 }
