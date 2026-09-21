@@ -10,13 +10,23 @@ import { AppRoutes } from './router';
 beforeEach(() => {
   vi.stubGlobal(
     'fetch',
-    vi.fn().mockResolvedValue({
-      status: 401,
-      json: () =>
-        Promise.resolve({
+    vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input) === '/api/V1/flags') {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ registration: true }),
+        };
+      }
+
+      return {
+        ok: false,
+        status: 401,
+        json: async () => ({
           ok: false,
           error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
         }),
+      };
     }),
   );
 });
@@ -101,6 +111,64 @@ describe('AppRoutes', () => {
 
     expect(
       screen.getByRole('dialog', { name: 'Create an account' }),
+    ).toBeTruthy();
+  });
+
+  it('hides account creation when registration is disabled', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        if (String(input) === '/api/V1/flags') {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({ registration: false }),
+          };
+        }
+        return {
+          ok: false,
+          status: 401,
+          json: async () => ({
+            ok: false,
+            error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
+          }),
+        };
+      }),
+    );
+
+    renderAt('/sign-up');
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: /Your Digital Life/i }),
+    ).toBeTruthy();
+    expect(
+      screen.queryByRole('dialog', { name: 'Create an account' }),
+    ).toBeNull();
+  });
+
+  it('renders maintenance mode when the global rollout flag is enabled', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        if (String(input) === '/api/V1/flags') {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({ 'maintenance-mode': true }),
+          };
+        }
+        return {
+          ok: false,
+          status: 401,
+          json: async () => ({ ok: false }),
+        };
+      }),
+    );
+
+    renderAt('/');
+
+    expect(
+      await screen.findByRole('heading', { name: /being upgraded/i }),
     ).toBeTruthy();
   });
 
