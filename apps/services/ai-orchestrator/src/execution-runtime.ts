@@ -7,6 +7,7 @@ import {
   OrchestrationExecutor,
   ProviderEmbeddingGenerator,
   type CapabilityKind,
+  type CodeGenerationInput,
   type EmbeddingOutput,
   type KnowledgeIngestionInput,
   type KnowledgeIngestionOutput,
@@ -121,7 +122,7 @@ export async function executeOrchestrationRequest(
     case 'code':
       if (
         codeRequestNeedsSandbox(
-          request.input as import('@aerealith-ai/ai-orchestration').CodeGenerationInput,
+          request.input as CodeGenerationInput,
         )
       ) {
         return executeCodeAgent(
