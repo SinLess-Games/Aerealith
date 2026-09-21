@@ -34,6 +34,12 @@ export type AiOrchestratorBindings = {
   AI_RUN_STATE?: RunStateNamespace;
 
   /**
+   * Public JSON catalog describing provider endpoints and model capabilities.
+   * Provider API keys are referenced by binding name and remain secrets.
+   */
+  AI_PROVIDER_CATALOG?: string;
+
+  /**
    * Qdrant Cloud cluster endpoint. The URL itself is not a secret.
    */
   QDRANT_URL?: string;
