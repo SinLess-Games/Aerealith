@@ -36,6 +36,15 @@ export function isBrowserObservabilityActive(): boolean {
   return Boolean(faro.api);
 }
 
+export function setBrowserObservabilityPaused(paused: boolean): void {
+  if (!faro.api) return;
+  if (paused) {
+    faro.pause();
+  } else {
+    faro.unpause();
+  }
+}
+
 /** Starts privacy-conscious browser errors, Web Vitals, sessions, and navigation telemetry. */
 export function initializeBrowserObservability(
   environment?: BrowserObservabilityEnvironment,
