@@ -4,6 +4,7 @@ const { initializeFaro } = vi.hoisted(() => ({
   initializeFaro: vi.fn(),
 }));
 vi.mock('@grafana/faro-web-sdk', () => ({
+  faro: { api: undefined },
   getWebInstrumentations: vi.fn(() => []),
   initializeFaro,
 }));
