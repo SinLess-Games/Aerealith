@@ -148,6 +148,44 @@ function createRunIndexNamespace() {
   return { namespace, runsByTenant };
 }
 
+function createRateLimitNamespace(limit = 60) {
+  const counts = new Map<string, number>();
+
+  return {
+    idFromName(name: string) {
+      return name;
+    },
+    get(id: unknown) {
+      const tenantId = String(id);
+
+      return {
+        async consume(requestLimit: number) {
+          const current = counts.get(tenantId) ?? 0;
+          const effectiveLimit = Math.min(limit, requestLimit);
+
+          if (current >= effectiveLimit) {
+            return {
+              allowed: false,
+              limit: effectiveLimit,
+              remaining: 0,
+              retryAfterSeconds: 60,
+            };
+          }
+
+          counts.set(tenantId, current + 1);
+
+          return {
+            allowed: true,
+            limit: effectiveLimit,
+            remaining: Math.max(0, effectiveLimit - current - 1),
+            retryAfterSeconds: 60,
+          };
+        },
+      };
+    },
+  };
+}
+
 describe('AI orchestrator service', () => {
   it('reports health with a request id', async () => {
     const response = await app.request(
@@ -270,6 +308,7 @@ describe('AI orchestrator service', () => {
         'AI_ORCHESTRATION_WORKFLOW',
         'AI_RUN_STATE',
         'AI_RUN_INDEX',
+        'AI_RATE_LIMIT',
         'AI',
       ],
     });
@@ -393,6 +432,7 @@ describe('AI orchestrator service', () => {
         AI_ORCHESTRATION_WORKFLOW: { create },
         AI_RUN_STATE: namespace,
         AI_RUN_INDEX: runIndex,
+        AI_RATE_LIMIT: createRateLimitNamespace(),
         AI_PROVIDER_CATALOG: JSON.stringify([
           {
             id: 'primary',
@@ -452,6 +492,7 @@ describe('AI orchestrator service', () => {
         AI_ORCHESTRATION_WORKFLOW: { create },
         AI_RUN_STATE: namespace,
         AI_RUN_INDEX: runIndex,
+        AI_RATE_LIMIT: createRateLimitNamespace(),
         AI_PROVIDER_CATALOG: JSON.stringify([
           {
             id: 'primary',
