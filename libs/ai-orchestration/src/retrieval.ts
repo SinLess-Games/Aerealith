@@ -13,6 +13,21 @@ export type RetrievalMatch = {
   metadata?: Record<string, unknown>;
 };
 
+export type VectorDistance = 'cosine' | 'dot' | 'euclid' | 'manhattan';
+
+export type VectorIndexConfiguration = {
+  dimensions: number;
+  distance?: VectorDistance;
+};
+
+export interface VectorIndexManager {
+  ensureIndex(
+    namespace: string,
+    configuration: VectorIndexConfiguration,
+  ): Promise<void>;
+  deleteIndex(namespace: string): Promise<void>;
+}
+
 export interface VectorStore {
   search(query: RetrievalQuery): Promise<readonly RetrievalMatch[]>;
   upsert(
