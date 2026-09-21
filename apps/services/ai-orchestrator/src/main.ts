@@ -211,6 +211,8 @@ app.post('/api/V1/ai/runs', async (c) => {
     });
   }
 
+  assertRunSubmissionReady(c.env, parsed.data.capability);
+
   const engine = resolveEngine(c.env);
   const result = await engine.submit(parsed.data);
 
@@ -223,6 +225,41 @@ app.post('/api/V1/ai/runs', async (c) => {
     HttpStatus.Accepted,
   );
 });
+
+function assertRunSubmissionReady(
+  bindings: AiOrchestratorBindings,
+  capability: (typeof capabilityKinds)[number],
+): void {
+  if ((bindings.ENVIRONMENT ?? 'development') !== 'production') {
+    return;
+  }
+
+  const missing = [
+    ...(bindings.AI_ORCHESTRATION_WORKFLOW
+      ? []
+      : ['AI_ORCHESTRATION_WORKFLOW']),
+    ...(bindings.AI_RUN_STATE ? [] : ['AI_RUN_STATE']),
+  ];
+
+  if (missing.length > 0) {
+    throw new ApiError('AI orchestration runtime is not ready.', {
+      code: ApiErrorCode.InternalError,
+      status: HttpStatus.ServiceUnavailable,
+      metadata: { missing },
+    });
+  }
+
+  const providers = providerRuntimeStatus(bindings);
+  if (!providers.capabilities.includes(capability)) {
+    throw new ApiError(
+      `No configured production provider can execute capability "${capability}".`,
+      {
+        code: ApiErrorCode.InternalError,
+        status: HttpStatus.ServiceUnavailable,
+      },
+    );
+  }
+}
 
 function resolveEngine(bindings: AiOrchestratorBindings): OrchestrationEngine {
   const runs = createRunStore(bindings);
