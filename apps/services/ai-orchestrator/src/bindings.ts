@@ -122,6 +122,9 @@ export interface WorkflowBinding<TParams> {
 
 export interface RunStateStub {
   createRun(run: RunRecord): Promise<RunRecord>;
+  createRunIfAbsent?(
+    run: RunRecord,
+  ): Promise<{ run: RunRecord; created: boolean }>;
   getRun(): Promise<RunRecord | undefined>;
   updateStatus(
     status: RunStatus,
