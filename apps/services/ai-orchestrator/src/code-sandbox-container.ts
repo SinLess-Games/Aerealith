@@ -462,42 +462,23 @@ function validateRepositoryUrl(value: string): string {
   if (
     url.protocol !== 'https:' ||
     url.username ||
-    url.password
+    url.password ||
+    url.hostname.toLowerCase() !== 'github.com'
   ) {
     throw new Error(
-      'Sandbox repository URLs must be credential-free HTTPS URLs.',
+      'Sandbox repositories must use credential-free HTTPS GitHub URLs.',
     );
   }
 
-  const hostname = url.hostname.toLowerCase();
-
   if (
-    hostname === 'localhost' ||
-    hostname.endsWith('.localhost') ||
-    isPrivateIpLiteral(hostname)
+    !/^\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(?:\.git)?\/?$/u.test(
+      url.pathname,
+    )
   ) {
-    throw new Error('Sandbox repository URL host is not allowed.');
+    throw new Error('Sandbox GitHub repository URL is invalid.');
   }
 
   return url.toString();
-}
-
-function isPrivateIpLiteral(hostname: string): boolean {
-  if (/^127\./u.test(hostname) || /^10\./u.test(hostname)) return true;
-  if (/^192\.168\./u.test(hostname)) return true;
-
-  const match = /^172\.(\d{1,3})\./u.exec(hostname);
-  if (match) {
-    const second = Number.parseInt(match[1] ?? '', 10);
-    if (second >= 16 && second <= 31) return true;
-  }
-
-  return (
-    hostname === '::1' ||
-    hostname.startsWith('fc') ||
-    hostname.startsWith('fd') ||
-    hostname.startsWith('fe80:')
-  );
 }
 
 function sanitizeEnvironment(
