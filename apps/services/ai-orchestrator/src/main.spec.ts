@@ -4,6 +4,8 @@ import type {
 } from '@aerealith-ai/ai-orchestration';
 
 import type {
+  RunIndexNamespace,
+  RunIndexStub,
   RunStateNamespace,
   RunStateStub,
   WorkflowRunParams,
@@ -101,6 +103,49 @@ function createRunStateNamespace() {
   };
 
   return { namespace, records };
+}
+
+function createRunIndexNamespace() {
+  const runsByTenant = new Map<
+    string,
+    Array<Omit<RunRecord, 'output'>>
+  >();
+
+  const namespace: RunIndexNamespace = {
+    idFromName(name: string) {
+      return name;
+    },
+    get(id: unknown): RunIndexStub {
+      const tenantId = String(id);
+
+      return {
+        async upsertRun(run) {
+          const { output: _output, ...indexed } = run;
+          const current = runsByTenant.get(tenantId) ?? [];
+          runsByTenant.set(tenantId, [
+            indexed,
+            ...current.filter((candidate) => candidate.id !== run.id),
+          ]);
+        },
+        async listRuns(limit = 50, before?: string) {
+          const current = runsByTenant.get(tenantId) ?? [];
+          const filtered = before
+            ? current.filter((run) => run.createdAt < before)
+            : current;
+          const items = filtered.slice(0, limit);
+
+          return {
+            items,
+            ...(filtered.length > items.length && items.at(-1)
+              ? { nextBefore: items.at(-1)!.createdAt }
+              : {}),
+          };
+        },
+      };
+    },
+  };
+
+  return { namespace, runsByTenant };
 }
 
 describe('AI orchestrator service', () => {
@@ -224,6 +269,7 @@ describe('AI orchestrator service', () => {
         'AUTH_WORKER',
         'AI_ORCHESTRATION_WORKFLOW',
         'AI_RUN_STATE',
+        'AI_RUN_INDEX',
         'AI',
       ],
     });
@@ -327,6 +373,7 @@ describe('AI orchestrator service', () => {
       async (_options: { id?: string; params: WorkflowRunParams }) => undefined,
     );
     const { namespace, records } = createRunStateNamespace();
+    const { namespace: runIndex } = createRunIndexNamespace();
 
     const response = await app.request(
       'http://localhost/api/V1/ai/runs',
@@ -345,6 +392,7 @@ describe('AI orchestrator service', () => {
         AUTH_WORKER: createAuthWorker(),
         AI_ORCHESTRATION_WORKFLOW: { create },
         AI_RUN_STATE: namespace,
+        AI_RUN_INDEX: runIndex,
         AI_PROVIDER_CATALOG: JSON.stringify([
           {
             id: 'primary',
@@ -384,6 +432,7 @@ describe('AI orchestrator service', () => {
       async (_options: { id?: string; params: WorkflowRunParams }) => undefined,
     );
     const { namespace } = createRunStateNamespace();
+    const { namespace: runIndex } = createRunIndexNamespace();
 
     const response = await app.request(
       'http://localhost/api/V1/ai/runs',
@@ -402,6 +451,7 @@ describe('AI orchestrator service', () => {
         AUTH_WORKER: createAuthWorker(),
         AI_ORCHESTRATION_WORKFLOW: { create },
         AI_RUN_STATE: namespace,
+        AI_RUN_INDEX: runIndex,
         AI_PROVIDER_CATALOG: JSON.stringify([
           {
             id: 'primary',
@@ -422,6 +472,57 @@ describe('AI orchestrator service', () => {
 
     expect(response.status).toBe(503);
     expect(create).not.toHaveBeenCalled();
+  });
+
+  it('lists only the authenticated user\'s run history', async () => {
+    const { namespace: runIndex, runsByTenant } =
+      createRunIndexNamespace();
+
+    runsByTenant.set('user-123', [
+      {
+        id: '5d9dd628-c0a3-4fb7-a03d-2a345278ebd5',
+        tenantId: 'user-123',
+        actorId: 'user-123',
+        status: 'succeeded',
+        capability: 'text',
+        createdAt: '2026-09-21T00:02:00.000Z',
+        updatedAt: '2026-09-21T00:03:00.000Z',
+      },
+    ]);
+    runsByTenant.set('user-999', [
+      {
+        id: 'b49ff1ee-17d0-44ef-a81e-d727e8be4b67',
+        tenantId: 'user-999',
+        actorId: 'user-999',
+        status: 'succeeded',
+        capability: 'text',
+        createdAt: '2026-09-21T00:01:00.000Z',
+        updatedAt: '2026-09-21T00:02:00.000Z',
+      },
+    ]);
+
+    const response = await app.request(
+      'http://localhost/api/V1/ai/runs?limit=25',
+      undefined,
+      {
+        AUTH_WORKER: createAuthWorker('user-123'),
+        AI_RUN_INDEX: runIndex,
+      },
+    );
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+
+    expect(body).toMatchObject({
+      ok: true,
+      data: [
+        {
+          tenantId: 'user-123',
+          status: 'succeeded',
+        },
+      ],
+    });
+    expect(JSON.stringify(body)).not.toContain('user-999');
   });
 
   it('returns durable run status by run id', async () => {
