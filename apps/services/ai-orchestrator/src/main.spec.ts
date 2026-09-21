@@ -32,6 +32,32 @@ describe('AI orchestrator service', () => {
     });
   });
 
+  it('reports Qdrant vector-store configuration without exposing credentials', async () => {
+    const response = await app.request(
+      'http://localhost/api/V1/ai/vector-store',
+      undefined,
+      {
+        QDRANT_URL: 'https://qdrant.example.test',
+        QDRANT_API_KEY: 'super-secret',
+        QDRANT_COLLECTION_PREFIX: 'aerealith-test-',
+      },
+    );
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+
+    expect(body).toMatchObject({
+      ok: true,
+      data: {
+        provider: 'qdrant',
+        configured: true,
+        collectionPrefix: 'aerealith-test-',
+      },
+    });
+    expect(JSON.stringify(body)).not.toContain('super-secret');
+    expect(JSON.stringify(body)).not.toContain('qdrant.example.test');
+  });
+
   it('reports not ready when the production Workflow binding is missing', async () => {
     const response = await app.request(
       'http://localhost/ready',
