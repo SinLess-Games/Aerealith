@@ -302,8 +302,9 @@ export function AiStudio() {
 
       <div className="rounded-2xl border border-[var(--ae-border)] bg-[var(--ae-glass-background-strong)] p-2 shadow-[var(--ae-shadow-sm)] backdrop-blur-xl">
         <nav
-          className="flex gap-1.5 overflow-x-auto"
+          className="flex snap-x gap-1.5 overflow-x-auto overscroll-x-contain"
           aria-label="AI Studio"
+          role="tablist"
         >
           {tabs
             .filter((tab) => tab.enabled)
@@ -314,12 +315,14 @@ export function AiStudio() {
                   key={id}
                   type="button"
                   className={[
-                    'group relative inline-flex min-h-12 shrink-0 items-center gap-2.5 overflow-hidden rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all',
+                    'group relative inline-flex min-h-12 shrink-0 snap-start items-center gap-2.5 overflow-hidden rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ae-focus-ring)]',
                     active
                       ? 'border-[var(--ae-primary)]/50 bg-[var(--ae-primary-subtle)] text-[var(--ae-foreground)] shadow-[var(--ae-shadow-sm)]'
                       : 'border-transparent text-[var(--ae-foreground-muted)] hover:border-[var(--ae-border)] hover:bg-[var(--ae-surface-muted)] hover:text-[var(--ae-foreground)]',
                   ].join(' ')}
+                  role="tab"
+                  aria-selected={active}
                   aria-current={active ? 'page' : undefined}
                   onClick={() => setActiveTab(id)}
                 >
@@ -346,7 +349,7 @@ export function AiStudio() {
         </nav>
       </div>
 
-      <div className="min-h-[38rem]">
+      <div className="min-h-[34rem] sm:min-h-[38rem]">
         {activeTab === 'chat' ? (
           <AiChatPanel
             models={modelsQuery.data ?? []}
