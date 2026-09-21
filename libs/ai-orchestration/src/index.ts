@@ -1,3 +1,5 @@
+export * from './task-outputs';
+export * from './task-inputs';
 export * from './text-chunker';
 export * from './knowledge-service';
 export * from './knowledge';
