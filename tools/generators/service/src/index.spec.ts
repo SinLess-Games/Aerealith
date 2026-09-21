@@ -33,6 +33,12 @@ describe('serviceGenerator', () => {
     expect(tree.exists('apps/services/billing-api/Dockerfile')).toBe(true);
     expect(tree.exists('apps/services/billing-api/wrangler.toml')).toBe(true);
 
+    const generatedPackage = JSON.parse(
+      readRequired(tree, 'apps/services/billing-api/package.json'),
+    );
+
+    expect(generatedPackage.dependencies.hono).toBe('4.13.8');
+
     const project = JSON.parse(
       readRequired(tree, 'apps/services/billing-api/project.json'),
     );
