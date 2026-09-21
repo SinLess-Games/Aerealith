@@ -5,7 +5,9 @@ import { CloudflareWorkflowOrchestrationEngine } from './cloudflare-workflow-eng
 
 describe('CloudflareWorkflowOrchestrationEngine', () => {
   it('creates a Workflow instance using the run id', async () => {
-    const create = vi.fn(async () => undefined);
+    const create = vi.fn(
+      async (_options: { id?: string; params: WorkflowRunParams }) => undefined,
+    );
     const engine = new CloudflareWorkflowOrchestrationEngine({ create });
     const request: OrchestrationRequest = {
       capability: 'text',
