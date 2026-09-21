@@ -8,6 +8,7 @@ import {
   type WorkflowStep,
 } from 'cloudflare:workers';
 
+import { externalizeLargeOutput } from './artifact-runtime';
 import type {
   AiOrchestratorBindings,
   WorkflowRunParams,
@@ -73,9 +74,18 @@ export class AiOrchestrationWorkflow extends WorkflowEntrypoint<
     });
 
     try {
-      const output = await step.do('execute request', async () =>
-        executeOrchestrationRequest(this.env, event.payload.request),
-      );
+      const output = await step.do('execute request', async () => {
+        const result = await executeOrchestrationRequest(
+          this.env,
+          event.payload.request,
+        );
+
+        return externalizeLargeOutput(
+          this.env,
+          event.payload.request.tenantId,
+          result,
+        );
+      });
 
       const completedAt = new Date().toISOString();
 
