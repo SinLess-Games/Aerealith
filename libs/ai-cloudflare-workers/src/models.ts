@@ -37,7 +37,7 @@ export const cloudflareWorkersAiModelCatalog: readonly ModelDescriptor[] = [
     providerId: CLOUDFLARE_WORKERS_AI_PROVIDER_ID,
     capabilities: ['embedding'],
     priority: 100,
-    contextWindow: 8_192,
+    contextWindow: 4_096,
     embeddingDimensions: 1_024,
     inputCostPerMillionUnitsUsd: 0.0118,
   },
@@ -46,6 +46,7 @@ export const cloudflareWorkersAiModelCatalog: readonly ModelDescriptor[] = [
     providerId: CLOUDFLARE_WORKERS_AI_PROVIDER_ID,
     capabilities: ['rerank'],
     priority: 100,
+    inputCostPerMillionUnitsUsd: 0.00311,
   },
   {
     id: CloudflareWorkersAiModels.image,
