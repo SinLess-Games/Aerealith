@@ -33,8 +33,7 @@ RUN npm install \
 
 FROM base AS build
 
-# Native build dependencies are required by observability/profiling packages
-# such as @datadog/pprof. They remain isolated to this build stage.
+# Native build dependencies required by the profiling runtime remain isolated to this build stage.
 RUN apk add --no-cache \
   g++ \
   make \
@@ -65,8 +64,7 @@ RUN --mount=type=cache,id=aerealith-pnpm,target=/pnpm/store,sharing=locked \
   pnpm install \
   --frozen-lockfile \
   --ignore-scripts \
-  --store-dir=/pnpm/store \
-  && pnpm rebuild @datadog/pprof \
+  --store-dir=/pnpm/store \ \
   && pnpm rebuild nx
 
 
