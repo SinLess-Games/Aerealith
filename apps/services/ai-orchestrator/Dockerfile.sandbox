@@ -1,0 +1,25 @@
+FROM node:26-bookworm-slim
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    bash \
+    build-essential \
+    ca-certificates \
+    curl \
+    git \
+    jq \
+    python3 \
+    python3-pip \
+    ripgrep \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN corepack enable \
+  && corepack prepare pnpm@11.13.1 --activate
+
+RUN mkdir -p /workspace /workspace/home
+
+WORKDIR /workspace
+ENV HOME=/workspace/home
+ENV CI=1
+
+CMD ["sleep", "infinity"]
