@@ -152,6 +152,108 @@ describe('AI execution runtime', () => {
     expect(fetchImplementation).toHaveBeenCalledTimes(2);
   });
 
+  it('falls back to a compatible embedding provider for retrieval', async () => {
+    const bindings = {
+      AI_PROVIDER_CATALOG: JSON.stringify([
+        {
+          id: 'primary',
+          kind: 'openai-compatible',
+          baseUrl: 'https://primary.example.test/v1',
+          models: [
+            {
+              id: 'embed-primary',
+              capabilities: ['embedding'],
+              priority: 100,
+              embeddingDimensions: 3,
+            },
+          ],
+        },
+        {
+          id: 'backup',
+          kind: 'openai-compatible',
+          baseUrl: 'https://backup.example.test/v1',
+          models: [
+            {
+              id: 'embed-backup',
+              capabilities: ['embedding'],
+              priority: 50,
+              embeddingDimensions: 3,
+            },
+          ],
+        },
+      ]),
+      QDRANT_URL: 'https://qdrant.example.test',
+      QDRANT_API_KEY: 'qdrant-secret',
+      QDRANT_COLLECTION: 'aerealith-knowledge-v1',
+    };
+
+    const fetchImplementation = vi.fn(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+
+        if (url === 'https://primary.example.test/v1/embeddings') {
+          return Response.json(
+            { error: { message: 'primary unavailable' } },
+            { status: 503 },
+          );
+        }
+
+        if (url === 'https://backup.example.test/v1/embeddings') {
+          return Response.json({
+            data: [{ index: 0, embedding: [0.3, 0.2, 0.1] }],
+            usage: {
+              prompt_tokens: 7,
+              total_tokens: 7,
+            },
+          });
+        }
+
+        if (
+          url ===
+          'https://qdrant.example.test/collections/aerealith-knowledge-v1/points/query'
+        ) {
+          return Response.json({
+            result: {
+              points: [],
+            },
+          });
+        }
+
+        throw new Error(
+          `Unexpected fetch: ${url} ${init?.method ?? 'GET'}`,
+        );
+      },
+    );
+    vi.stubGlobal('fetch', fetchImplementation);
+
+    const result = await executeOrchestrationRequest(bindings, {
+      capability: 'retrieval',
+      tenantId: 'user-123',
+      actorId: 'user-123',
+      preferences: {
+        provider: 'primary',
+        allowFallback: true,
+      },
+      input: {
+        namespace: 'kb-1',
+        query: 'fallback please',
+      },
+    });
+
+    expect(result).toMatchObject({
+      providerId: 'backup',
+      modelId: 'embed-backup',
+      usage: {
+        inputUnits: 7,
+        totalUnits: 7,
+      },
+      content: {
+        matches: [],
+      },
+    });
+    expect(fetchImplementation).toHaveBeenCalledTimes(3);
+  });
+
   it('chunks, embeds, provisions, and writes tenant-isolated knowledge', async () => {
     const fetchImplementation = vi.fn(
       async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -209,19 +311,42 @@ describe('AI execution runtime', () => {
 
         if (
           url ===
-          'https://qdrant.example.test/collections/aerealith-knowledge-v1/points?wait=true'
+          'https://qdrant.example.test/collections/aerealith-knowledge-v1/points/batch?wait=true&ordering=strong'
         ) {
           const body = JSON.parse(String(init?.body)) as {
-            points: Array<{
-              payload: {
-                namespace: string;
-                record_id: string;
-                metadata: Record<string, unknown>;
+            operations: Array<{
+              delete?: { filter?: unknown };
+              upsert?: {
+                points?: Array<{
+                  payload: {
+                    namespace: string;
+                    record_id: string;
+                    metadata: Record<string, unknown>;
+                  };
+                }>;
               };
             }>;
           };
 
-          expect(body.points[0]?.payload).toMatchObject({
+          expect(body.operations[0]).toMatchObject({
+            delete: {
+              filter: {
+                must: [
+                  {
+                    key: 'namespace',
+                    match: {
+                      value: 'user:user-123:knowledge:kb-1',
+                    },
+                  },
+                  {
+                    key: 'metadata.documentId',
+                    match: { value: 'doc-1' },
+                  },
+                ],
+              },
+            },
+          });
+          expect(body.operations[1]?.upsert?.points?.[0]?.payload).toMatchObject({
             namespace: 'user:user-123:knowledge:kb-1',
             record_id: 'doc-1:0',
             metadata: {
