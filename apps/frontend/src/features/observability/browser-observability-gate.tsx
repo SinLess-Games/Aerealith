@@ -3,7 +3,10 @@ import { useEffect, useRef } from 'react';
 
 import { useConsent } from '../../consent/consent-context';
 import { useFeatureFlag } from '../flags/feature-flags';
-import { initializeBrowserObservability } from '../../lib/browser-observability';
+import {
+  initializeBrowserObservability,
+  setBrowserObservabilityPaused,
+} from '../../lib/browser-observability';
 
 export function BrowserObservabilityGate() {
   const observabilityEnabled = useFeatureFlag(FeatureFlag.Observability);
@@ -11,16 +14,19 @@ export function BrowserObservabilityGate() {
   const started = useRef(false);
 
   useEffect(() => {
-    if (
-      started.current ||
-      !observabilityEnabled ||
-      !hasDecision ||
-      !preferences.analytics
-    ) {
+    const allowed =
+      observabilityEnabled && hasDecision && preferences.analytics;
+
+    if (!allowed) {
+      if (started.current) setBrowserObservabilityPaused(true);
       return;
     }
 
-    started.current = initializeBrowserObservability();
+    if (!started.current) {
+      started.current = initializeBrowserObservability();
+    }
+
+    if (started.current) setBrowserObservabilityPaused(false);
   }, [hasDecision, observabilityEnabled, preferences.analytics]);
 
   return null;
