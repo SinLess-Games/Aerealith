@@ -46,6 +46,8 @@ export type RunStatus =
 
 export type RunRecord = {
   id: string;
+  tenantId?: string;
+  actorId?: string;
   status: RunStatus;
   capability: CapabilityKind;
   createdAt: string;
