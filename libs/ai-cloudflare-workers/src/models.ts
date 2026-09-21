@@ -9,6 +9,8 @@ export const CloudflareWorkersAiModels = {
   rerank: '@cf/baai/bge-reranker-base',
   image: '@cf/black-forest-labs/flux-1-schnell',
   audio: '@cf/deepgram/aura-2-en',
+  video: 'bytedance/seedance-2.0-mini',
+  music: 'minimax/music-2.6',
 } as const;
 
 export const cloudflareWorkersAiModelCatalog: readonly ModelDescriptor[] = [
@@ -58,6 +60,18 @@ export const cloudflareWorkersAiModelCatalog: readonly ModelDescriptor[] = [
     id: CloudflareWorkersAiModels.audio,
     providerId: CLOUDFLARE_WORKERS_AI_PROVIDER_ID,
     capabilities: ['audio'],
+    priority: 100,
+  },
+  {
+    id: CloudflareWorkersAiModels.video,
+    providerId: CLOUDFLARE_WORKERS_AI_PROVIDER_ID,
+    capabilities: ['video'],
+    priority: 100,
+  },
+  {
+    id: CloudflareWorkersAiModels.music,
+    providerId: CLOUDFLARE_WORKERS_AI_PROVIDER_ID,
+    capabilities: ['music'],
     priority: 100,
   },
 ];
