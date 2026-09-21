@@ -24,10 +24,23 @@ export function IntegrationRuntime() {
 
     if (!observabilityEnabled) return;
 
+    let current = true;
+    setDatadogTrackingAllowed(true);
+
     void initializeDatadogRum().then(() => {
+      if (!current) {
+        setDatadogTrackingAllowed(false);
+        setDatadogSessionReplayAllowed(false);
+        return;
+      }
+
       setDatadogTrackingAllowed(true);
       setDatadogSessionReplayAllowed(preferences.sessionReplay);
     });
+
+    return () => {
+      current = false;
+    };
   }, [
     observabilityEnabled,
     preferences.analytics,
