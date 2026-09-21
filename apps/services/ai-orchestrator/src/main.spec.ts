@@ -10,6 +10,40 @@ import type {
 } from './bindings';
 import app from './main';
 
+function createAuthWorker(userId = 'user-123') {
+  return {
+    fetch: vi.fn(
+      async (_request: Request) =>
+        Response.json({
+          ok: true,
+          data: {
+            id: userId,
+            username: 'tester',
+            role: 'user',
+            tier: 'free',
+          },
+        }),
+    ),
+  };
+}
+
+function createUnauthorizedAuthWorker() {
+  return {
+    fetch: vi.fn(
+      async (_request: Request) =>
+        Response.json(
+          {
+            error: {
+              code: 'UNAUTHORIZED',
+              message: 'Authentication is required.',
+            },
+          },
+          { status: 401 },
+        ),
+    ),
+  };
+}
+
 function createRunStateNamespace() {
   const records = new Map<string, RunRecord>();
 
@@ -187,6 +221,7 @@ describe('AI orchestrator service', () => {
       service: 'ai-orchestrator',
       status: 'not_ready',
       missing: [
+        'AUTH_WORKER',
         'AI_ORCHESTRATION_WORKFLOW',
         'AI_RUN_STATE',
         'AI_PROVIDER_CATALOG',
@@ -194,12 +229,38 @@ describe('AI orchestrator service', () => {
     });
   });
 
-  it('rejects invalid JSON with the shared API error envelope', async () => {
-    const response = await app.request('http://localhost/api/V1/ai/runs', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: '{',
+  it('rejects unauthenticated run submission', async () => {
+    const response = await app.request(
+      'http://localhost/api/V1/ai/runs',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          capability: 'text',
+          input: {
+            messages: [{ role: 'user', content: 'hello' }],
+          },
+        }),
+      },
+      { AUTH_WORKER: createUnauthorizedAuthWorker() },
+    );
+
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: 'UNAUTHORIZED' },
     });
+  });
+
+  it('rejects invalid JSON with the shared API error envelope', async () => {
+    const response = await app.request(
+      'http://localhost/api/V1/ai/runs',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: '{',
+      },
+      { AUTH_WORKER: createAuthWorker() },
+    );
 
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({
@@ -211,11 +272,15 @@ describe('AI orchestrator service', () => {
   });
 
   it('rejects invalid orchestration requests', async () => {
-    const response = await app.request('http://localhost/api/V1/ai/runs', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ capability: 'invalid', input: 'hello' }),
-    });
+    const response = await app.request(
+      'http://localhost/api/V1/ai/runs',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ capability: 'invalid', input: 'hello' }),
+      },
+      { AUTH_WORKER: createAuthWorker() },
+    );
 
     expect(response.status).toBe(422);
     await expect(response.json()).resolves.toMatchObject({
@@ -224,22 +289,26 @@ describe('AI orchestrator service', () => {
   });
 
   it('accepts a normalized orchestration request locally', async () => {
-    const response = await app.request('http://localhost/api/V1/ai/runs', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        capability: 'code',
-        input: {
-          mode: 'generate',
-          instruction: 'Write a TypeScript function.',
-        },
-        priority: 'interactive',
-        preferences: {
-          provider: 'example-provider',
-          allowFallback: true,
-        },
-      }),
-    });
+    const response = await app.request(
+      'http://localhost/api/V1/ai/runs',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          capability: 'code',
+          input: {
+            mode: 'generate',
+            instruction: 'Write a TypeScript function.',
+          },
+          priority: 'interactive',
+          preferences: {
+            provider: 'example-provider',
+            allowFallback: true,
+          },
+        }),
+      },
+      { AUTH_WORKER: createAuthWorker() },
+    );
 
     expect(response.status).toBe(202);
     const body = (await response.json()) as {
@@ -273,6 +342,7 @@ describe('AI orchestrator service', () => {
       },
       {
         ENVIRONMENT: 'production',
+        AUTH_WORKER: createAuthWorker(),
         AI_ORCHESTRATION_WORKFLOW: { create },
         AI_RUN_STATE: namespace,
         AI_PROVIDER_CATALOG: JSON.stringify([
@@ -329,6 +399,7 @@ describe('AI orchestrator service', () => {
       },
       {
         ENVIRONMENT: 'production',
+        AUTH_WORKER: createAuthWorker(),
         AI_ORCHESTRATION_WORKFLOW: { create },
         AI_RUN_STATE: namespace,
         AI_PROVIDER_CATALOG: JSON.stringify([
@@ -357,6 +428,8 @@ describe('AI orchestrator service', () => {
     const { namespace, records } = createRunStateNamespace();
     const run: RunRecord = {
       id: '5d9dd628-c0a3-4fb7-a03d-2a345278ebd5',
+      tenantId: 'user-123',
+      actorId: 'user-123',
       status: 'queued',
       capability: 'text',
       createdAt: '2026-09-21T00:00:00.000Z',
@@ -367,7 +440,10 @@ describe('AI orchestrator service', () => {
     const response = await app.request(
       `http://localhost/api/V1/ai/runs/${run.id}`,
       undefined,
-      { AI_RUN_STATE: namespace },
+      {
+        AUTH_WORKER: createAuthWorker(),
+        AI_RUN_STATE: namespace,
+      },
     );
 
     expect(response.status).toBe(200);
@@ -377,13 +453,41 @@ describe('AI orchestrator service', () => {
     });
   });
 
+  it('does not expose another user\'s run', async () => {
+    const { namespace, records } = createRunStateNamespace();
+    const run: RunRecord = {
+      id: '5d9dd628-c0a3-4fb7-a03d-2a345278ebd5',
+      tenantId: 'user-999',
+      actorId: 'user-999',
+      status: 'queued',
+      capability: 'text',
+      createdAt: '2026-09-21T00:00:00.000Z',
+      updatedAt: '2026-09-21T00:00:01.000Z',
+    };
+    records.set(run.id, run);
+
+    const response = await app.request(
+      `http://localhost/api/V1/ai/runs/${run.id}`,
+      undefined,
+      {
+        AUTH_WORKER: createAuthWorker('user-123'),
+        AI_RUN_STATE: namespace,
+      },
+    );
+
+    expect(response.status).toBe(404);
+  });
+
   it('returns 404 when a durable run does not exist', async () => {
     const { namespace } = createRunStateNamespace();
 
     const response = await app.request(
       'http://localhost/api/V1/ai/runs/5d9dd628-c0a3-4fb7-a03d-2a345278ebd5',
       undefined,
-      { AI_RUN_STATE: namespace },
+      {
+        AUTH_WORKER: createAuthWorker(),
+        AI_RUN_STATE: namespace,
+      },
     );
 
     expect(response.status).toBe(404);
