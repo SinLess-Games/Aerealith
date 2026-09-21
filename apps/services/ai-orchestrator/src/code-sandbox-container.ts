@@ -8,6 +8,7 @@ const MAX_FILE_BYTES = 2 * 1024 * 1024;
 const MAX_COMMAND_OUTPUT_BYTES = 4 * 1024 * 1024;
 const DEFAULT_TIMEOUT_MS = 120_000;
 const MAX_TIMEOUT_MS = 15 * 60 * 1000;
+const NETWORK_STATE_KEY = 'network-enabled';
 
 type ContainerExecOutput = {
   stdout: ArrayBuffer;
@@ -257,13 +258,19 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
     if (container.running) {
       await container.destroy('Aerealith sandbox session closed');
     }
+    this.internetEnabled = false;
+    this.ctx.storage.kv.put(NETWORK_STATE_KEY, false);
   }
 
   private async ensureStarted(enableInternet: boolean): Promise<void> {
     const container = await this.container();
 
     if (container.running) {
-      if (enableInternet && !this.internetEnabled) {
+      const persistedNetworkState =
+        this.ctx.storage.kv.get<boolean>(NETWORK_STATE_KEY) ?? false;
+      this.internetEnabled = persistedNetworkState;
+
+      if (enableInternet && !persistedNetworkState) {
         throw new Error(
           'Sandbox network access cannot be elevated after the container has started.',
         );
@@ -272,6 +279,7 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
     }
 
     this.internetEnabled = enableInternet;
+    this.ctx.storage.kv.put(NETWORK_STATE_KEY, enableInternet);
     container.start({
       enableInternet,
       env: {
@@ -423,7 +431,35 @@ function validateRepositoryUrl(value: string): string {
     );
   }
 
+  const hostname = url.hostname.toLowerCase();
+
+  if (
+    hostname === 'localhost' ||
+    hostname.endsWith('.localhost') ||
+    isPrivateIpLiteral(hostname)
+  ) {
+    throw new Error('Sandbox repository URL host is not allowed.');
+  }
+
   return url.toString();
+}
+
+function isPrivateIpLiteral(hostname: string): boolean {
+  if (/^127\./u.test(hostname) || /^10\./u.test(hostname)) return true;
+  if (/^192\.168\./u.test(hostname)) return true;
+
+  const match = /^172\.(\d{1,3})\./u.exec(hostname);
+  if (match) {
+    const second = Number.parseInt(match[1] ?? '', 10);
+    if (second >= 16 && second <= 31) return true;
+  }
+
+  return (
+    hostname === '::1' ||
+    hostname.startsWith('fc') ||
+    hostname.startsWith('fd') ||
+    hostname.startsWith('fe80:')
+  );
 }
 
 function sanitizeEnvironment(
