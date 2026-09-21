@@ -14,7 +14,13 @@ import { BrowserObservabilityGate } from '../../features/observability/browser-o
  * - `AccessibilityProvider` applies contrast/motion/reading preferences.
  * - `QueryClientProvider` supplies TanStack Query for server state (auth, etc.).
  */
-export function AppProviders({ children }: Readonly<{ children: ReactNode }>) {
+export function AppProviders({
+  children,
+  waitForRemoteFeatureFlags,
+}: Readonly<{
+  children: ReactNode;
+  waitForRemoteFeatureFlags?: boolean;
+}>) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -25,7 +31,7 @@ export function AppProviders({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <QueryClientProvider client={queryClient}>
       <ConsentProvider>
-        <FeatureFlagsProvider>
+        <FeatureFlagsProvider waitForRemote={waitForRemoteFeatureFlags}>
           <BrowserObservabilityGate />
           <ThemeProvider>
             <AccessibilityProvider>{children}</AccessibilityProvider>
