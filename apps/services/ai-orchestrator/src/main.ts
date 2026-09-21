@@ -25,7 +25,10 @@ import {
   BasicOrchestrationEngine,
   type OrchestrationEngine,
 } from './orchestrator';
-import { providerRuntimeStatus } from './provider-runtime';
+import {
+  modelRuntimeCatalog,
+  providerRuntimeStatus,
+} from './provider-runtime';
 import { AiRateLimiter } from './rate-limit';
 import { orchestrationRequestSchema } from './request-schema';
 import { AiRunController } from './run-controller';
@@ -167,6 +170,14 @@ app.get('/api/V1/ai/providers', (c) => {
   return c.json({
     ok: true,
     data: status,
+    meta: responseMeta(c.get('apiContext')),
+  });
+});
+
+app.get('/api/V1/ai/models', async (c) => {
+  return c.json({
+    ok: true,
+    data: await modelRuntimeCatalog(c.env),
     meta: responseMeta(c.get('apiContext')),
   });
 });
