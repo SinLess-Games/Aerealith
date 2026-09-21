@@ -1127,10 +1127,26 @@ async function submitDurableRun(
   try {
     const submission = await engine.submit(request, submissionOptions);
 
-    if (!submission.created && usageReserved && bindings.AI_USAGE) {
-      await new AiUsageStore(bindings.AI_USAGE)
-        .releaseRun(principal.id)
-        .catch(() => undefined);
+    if (!submission.created) {
+      if (usageReserved && bindings.AI_USAGE) {
+        await new AiUsageStore(bindings.AI_USAGE)
+          .releaseRun(principal.id)
+          .catch(() => undefined);
+      }
+
+      if (
+        submissionOptions?.requestFingerprint &&
+        submission.run.requestFingerprint !==
+          submissionOptions.requestFingerprint
+      ) {
+        throw new ApiError(
+          'The Idempotency-Key was already used for a different request.',
+          {
+            code: ApiErrorCode.Conflict,
+            status: HttpStatus.Conflict,
+          },
+        );
+      }
     }
 
     return submission.run;
