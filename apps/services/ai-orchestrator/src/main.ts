@@ -1,5 +1,13 @@
 import { capabilityKinds } from '@aerealith-ai/ai-orchestration';
-import { Hono, type Context } from 'hono';
+import {
+  ApiError,
+  ApiErrorCode,
+  createApiApp,
+  type ApiEnv,
+  type ApiRequestContext,
+} from '@aerealith-ai/api-platform';
+import { HttpStatus } from '@aerealith-ai/core';
+import { createLogger } from '@aerealith-ai/observability/logger';
 import { secureHeaders } from 'hono/secure-headers';
 import { z } from 'zod';
 
@@ -10,16 +18,22 @@ import {
   type OrchestrationEngine,
 } from './orchestrator';
 
-type Variables = {
-  requestId: string;
-};
+type AiOrchestratorEnv = ApiEnv<ApiRequestContext, AiOrchestratorBindings>;
 
-type Environment = {
-  Bindings: AiOrchestratorBindings;
-  Variables: Variables;
-};
+const logger = createLogger({
+  service: 'ai-orchestrator',
+  environment: 'cloudflare-worker',
+  console: {
+    pretty: false,
+    color: false,
+  },
+});
 
-const app = new Hono<Environment>();
+const app = createApiApp<AiOrchestratorEnv>({
+  serviceName: 'ai-orchestrator',
+  logger,
+  middleware: [{ handler: secureHeaders() }],
+});
 
 const metadataSchema = z
   .record(z.string().max(64), z.string().max(512))
@@ -43,22 +57,12 @@ const requestSchema = z.object({
   metadata: metadataSchema.optional(),
 });
 
-app.use('*', secureHeaders());
-app.use('*', async (c, next) => {
-  const requestId = normalizeRequestId(c.req.header('x-request-id'));
-  c.set('requestId', requestId);
-
-  await next();
-
-  c.header('x-request-id', requestId);
-});
-
 app.get('/health', (c) =>
   c.json({
     service: 'ai-orchestrator',
     status: 'ok',
     environment: c.env.ENVIRONMENT ?? 'development',
-    meta: responseMeta(c),
+    meta: responseMeta(c.get('apiContext')),
   }),
 );
 
@@ -72,9 +76,9 @@ app.get('/ready', (c) => {
         service: 'ai-orchestrator',
         status: 'not_ready',
         reason: 'AI_ORCHESTRATION_WORKFLOW binding is required in production.',
-        meta: responseMeta(c),
+        meta: responseMeta(c.get('apiContext')),
       },
-      503,
+      HttpStatus.ServiceUnavailable,
     );
   }
 
@@ -82,7 +86,7 @@ app.get('/ready', (c) => {
     service: 'ai-orchestrator',
     status: 'ready',
     workflowConfigured,
-    meta: responseMeta(c),
+    meta: responseMeta(c.get('apiContext')),
   });
 });
 
@@ -91,7 +95,7 @@ app.get('/api/V1/services/ai-orchestrator', (c) =>
     service: 'ai-orchestrator',
     status: 'ok',
     capabilities: capabilityKinds,
-    meta: responseMeta(c),
+    meta: responseMeta(c.get('apiContext')),
   }),
 );
 
@@ -99,27 +103,35 @@ app.get('/api/V1/ai/capabilities', (c) =>
   c.json({
     ok: true,
     data: capabilityKinds,
-    meta: responseMeta(c),
+    meta: responseMeta(c.get('apiContext')),
   }),
 );
 
 app.post('/api/V1/ai/runs', async (c) => {
-  const body = await c.req.json().catch(() => undefined);
-  const parsed = requestSchema.safeParse(body);
+  let body: unknown;
+  try {
+    body = await c.req.json();
+  } catch (error) {
+    throw new ApiError('A valid JSON body is required.', {
+      code: ApiErrorCode.BadRequest,
+      status: HttpStatus.BadRequest,
+      cause: error,
+    });
+  }
 
+  const parsed = requestSchema.safeParse(body);
   if (!parsed.success) {
-    return c.json(
-      {
-        ok: false,
-        error: {
-          code: 'VALIDATION_FAILED',
-          message: 'The orchestration request is invalid.',
-          details: parsed.error.issues,
-        },
-        meta: responseMeta(c),
+    throw new ApiError('The orchestration request is invalid.', {
+      code: ApiErrorCode.ValidationFailed,
+      status: HttpStatus.UnprocessableEntity,
+      metadata: {
+        issues: parsed.error.issues.map(({ code, message, path }) => ({
+          code,
+          message,
+          path,
+        })),
       },
-      422,
-    );
+    });
   }
 
   const engine = resolveEngine(c.env);
@@ -129,33 +141,9 @@ app.post('/api/V1/ai/runs', async (c) => {
     {
       ok: true,
       data: result,
-      meta: responseMeta(c),
+      meta: responseMeta(c.get('apiContext')),
     },
-    202,
-  );
-});
-
-app.onError((error, c) => {
-  console.error(
-    JSON.stringify({
-      level: 'error',
-      service: 'ai-orchestrator',
-      requestId: c.get('requestId'),
-      message: 'AI orchestration request failed.',
-      error: error instanceof Error ? error.message : String(error),
-    }),
-  );
-
-  return c.json(
-    {
-      ok: false,
-      error: {
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'The orchestration request could not be completed.',
-      },
-      meta: responseMeta(c),
-    },
-    500,
+    HttpStatus.Accepted,
   );
 });
 
@@ -169,19 +157,14 @@ function resolveEngine(bindings: AiOrchestratorBindings): OrchestrationEngine {
   return new BasicOrchestrationEngine();
 }
 
-function responseMeta(c: Context<Environment>) {
+function responseMeta(context: ApiRequestContext) {
   return {
-    requestId: c.get('requestId'),
+    requestId: context.requestId,
+    ...(context.correlationId
+      ? { correlationId: context.correlationId }
+      : {}),
     timestamp: new Date().toISOString(),
   };
-}
-
-function normalizeRequestId(value: string | undefined): string {
-  if (value && /^[A-Za-z0-9._:-]{1,128}$/.test(value)) {
-    return value;
-  }
-
-  return crypto.randomUUID();
 }
 
 export { AiOrchestrationWorkflow } from './workflow';
