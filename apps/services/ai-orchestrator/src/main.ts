@@ -410,6 +410,19 @@ app.post('/api/V1/ai/knowledge-bases/:knowledgeBaseId/documents', async (c) => {
     });
   }
 
+  try {
+    await catalog.assertCanRecordDocuments(
+      knowledgeBaseId,
+      parsed.data.documents.map((document) => document.id),
+    );
+  } catch (error) {
+    throw new ApiError('The knowledge documents cannot be added.', {
+      code: ApiErrorCode.ValidationFailed,
+      status: HttpStatus.UnprocessableEntity,
+      cause: error,
+    });
+  }
+
   const run = await submitDurableRun(
     c.env,
     principal,
