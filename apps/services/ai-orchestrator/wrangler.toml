@@ -40,3 +40,7 @@ class_name = "AiRunState"
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["AiRunState"]
+
+[[services]]
+binding = "AUTH_WORKER"
+service = "aerealith-auth"
