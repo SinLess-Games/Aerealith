@@ -1,3 +1,4 @@
+import type { WorkflowRunParams } from './bindings';
 import app from './main';
 
 describe('AI orchestrator service', () => {
@@ -16,6 +17,20 @@ describe('AI orchestrator service', () => {
     });
   });
 
+  it('reports not ready when the production Workflow binding is missing', async () => {
+    const response = await app.request(
+      'http://localhost/ready',
+      undefined,
+      { ENVIRONMENT: 'production' },
+    );
+
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toMatchObject({
+      service: 'ai-orchestrator',
+      status: 'not_ready',
+    });
+  });
+
   it('rejects invalid orchestration requests', async () => {
     const response = await app.request('http://localhost/api/V1/ai/runs', {
       method: 'POST',
@@ -30,7 +45,7 @@ describe('AI orchestrator service', () => {
     });
   });
 
-  it('accepts a normalized orchestration request', async () => {
+  it('accepts a normalized orchestration request locally', async () => {
     const response = await app.request('http://localhost/api/V1/ai/runs', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -55,5 +70,33 @@ describe('AI orchestrator service', () => {
     expect(body.data.id).toBeTruthy();
     expect(body.data.status).toBe('accepted');
     expect(body.data.capability).toBe('code');
+  });
+
+  it('dispatches production runs to the Workflow binding', async () => {
+    const create = vi.fn(async () => undefined);
+    const response = await app.request(
+      'http://localhost/api/V1/ai/runs',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          capability: 'text',
+          input: 'hello',
+        }),
+      },
+      {
+        ENVIRONMENT: 'production',
+        AI_ORCHESTRATION_WORKFLOW: { create },
+      },
+    );
+
+    expect(response.status).toBe(202);
+    expect(create).toHaveBeenCalledTimes(1);
+
+    const options = create.mock.calls[0]?.[0] as
+      | { id?: string; params: WorkflowRunParams }
+      | undefined;
+
+    expect(options?.params.request.capability).toBe('text');
   });
 });
