@@ -2,7 +2,7 @@ import { QdrantVectorStore } from '@aerealith-ai/ai-qdrant';
 
 import type { AiOrchestratorBindings } from './bindings';
 
-const DEFAULT_COLLECTION = 'aerealith-knowledge';
+const DEFAULT_COLLECTION = 'aerealith-knowledge-v1';
 
 export type VectorStoreRuntimeStatus = {
   provider: 'qdrant';
