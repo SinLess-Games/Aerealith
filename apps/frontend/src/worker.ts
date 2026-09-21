@@ -17,8 +17,10 @@ export interface FrontendWorkerEnvironment {
   ASSETS: WorkerFetcher;
   API_WORKER?: WorkerFetcher;
   AUTH_WORKER?: WorkerFetcher;
+  AI_ORCHESTRATOR_WORKER?: WorkerFetcher;
   API_SERVICE_URL?: string;
   AUTH_SERVICE_URL?: string;
+  AI_ORCHESTRATOR_SERVICE_URL?: string;
   FLAGSHIP_FLAGS?: BooleanFeatureFlagProvider;
 }
 
@@ -48,12 +50,14 @@ type FeatureFlagName = keyof typeof FeatureFlagDefaults;
 interface RuntimeFeatureFlags {
   readonly maintenanceMode: boolean;
   readonly observabilityEnabled: boolean;
+  readonly aiStudioEnabled: boolean;
 }
 
 const HealthPath = '/__aerealith/health';
 const FlagsPath = '/api/V1/flags';
 const LegacyApiPath = '/api/v1';
 const ApiServicePath = '/api/V1/';
+const AiServiceRoot = '/api/V1/ai';
 
 const RegistrationPaths = new Set<string>([
   '/api/V1/auth/sign-up',
@@ -99,6 +103,8 @@ export default {
  *   ↓
  * auth service
  *   ↓
+ * AI orchestrator
+ *   ↓
  * API service
  *   ↓
  * frontend assets
@@ -135,6 +141,21 @@ async function handleRequest(
 
   if (isAuthServicePath(url.pathname)) {
     return handleAuthServiceRequest(request, url, environment, flagContext);
+  }
+
+  if (isPathUnderRoot(url.pathname, AiServiceRoot)) {
+    if (!runtimeFlags.aiStudioEnabled) {
+      return createFeatureDisabledResponse();
+    }
+
+    return proxyService(
+      request,
+      url,
+      environment.AI_ORCHESTRATOR_WORKER,
+      environment.AI_ORCHESTRATOR_SERVICE_URL,
+      'AI_SERVICE_UNAVAILABLE',
+      'AI orchestrator',
+    );
   }
 
   if (url.pathname.startsWith(ApiServicePath)) {
@@ -249,14 +270,29 @@ async function resolveRuntimeFeatureFlags(
   provider: BooleanFeatureFlagProvider | undefined,
   context: FeatureFlagContext,
 ): Promise<RuntimeFeatureFlags> {
-  const [maintenanceMode, observabilityEnabled] = await Promise.all([
-    resolveBooleanFeatureFlag(provider, FeatureFlag.MaintenanceMode, context),
-    resolveBooleanFeatureFlag(provider, FeatureFlag.Observability, context),
-  ]);
+  const [maintenanceMode, observabilityEnabled, aiStudioEnabled] =
+    await Promise.all([
+      resolveBooleanFeatureFlag(
+        provider,
+        FeatureFlag.MaintenanceMode,
+        context,
+      ),
+      resolveBooleanFeatureFlag(
+        provider,
+        FeatureFlag.Observability,
+        context,
+      ),
+      resolveBooleanFeatureFlag(
+        provider,
+        FeatureFlag.AiStudio,
+        context,
+      ),
+    ]);
 
   return {
     maintenanceMode,
     observabilityEnabled,
+    aiStudioEnabled,
   };
 }
 
