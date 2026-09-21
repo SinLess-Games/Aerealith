@@ -89,12 +89,12 @@ export function trackDatadogFeatureFlag(
 }
 
 export function trackDatadogView(path: string) {
-  if (!rum || !initialized) return;
+  if (!rum || !initialized || !trackingAllowed) return;
   rum.startView({ name: path, service: integrationConfig.datadog.service });
 }
 
 export function reportGlobalError(error: Error) {
-  if (!rum || !initialized) return;
+  if (!rum || !initialized || !trackingAllowed) return;
   rum.addError(error);
 }
 
