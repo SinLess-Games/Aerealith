@@ -60,12 +60,12 @@ Current runtime variables:
 
 - `QDRANT_URL` — Qdrant Cloud cluster URL.
 - `QDRANT_API_KEY` — secret used for Qdrant authentication.
-- `QDRANT_COLLECTION` — defaults to `aerealith-knowledge`.
+- `QDRANT_COLLECTION` — defaults to `aerealith-knowledge-v1`.
 
 The service only reports whether Qdrant is configured; it never returns the
 endpoint or API key through its status API.
 
-The Qdrant adapter uses one shared knowledge collection with payload-based multitenancy. Every vector is tagged with its logical namespace, every search injects the namespace filter, and the collection provisions a tenant keyword index for that field. This avoids a collection-per-user design while preserving isolation at the vector-store boundary.
+The Qdrant adapter uses one shared knowledge collection with payload-based multitenancy. Every vector is tagged with its logical namespace, every search injects the namespace filter, and the collection provisions a tenant keyword index for that field. This avoids a collection-per-user design while preserving isolation at the vector-store boundary. The production collection is versioned so embedding-schema migrations can move to a new collection without mutating live data in place.
 
 ## Grafana Cloud
 
