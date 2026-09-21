@@ -604,6 +604,136 @@ describe('AI orchestrator service', () => {
     expect(options?.params.request.capability).toBe('text');
   });
 
+  it('replays the same run for the same Idempotency-Key without redispatching', async () => {
+    const create = vi.fn(
+      async (_options: { id?: string; params: WorkflowRunParams }) => undefined,
+    );
+    const { namespace, records } = createRunStateNamespace();
+    const { namespace: runIndex } = createRunIndexNamespace();
+    const env = {
+      ENVIRONMENT: 'production',
+      AUTH_WORKER: createAuthWorker(),
+      AI_ORCHESTRATION_WORKFLOW: { create },
+      AI_RUN_STATE: namespace,
+      AI_RUN_INDEX: runIndex,
+      AI_RATE_LIMIT: createRateLimitNamespace(),
+      AI_USAGE: createUsageNamespace(),
+      AI_PROVIDER_CATALOG: JSON.stringify([
+        {
+          id: 'primary',
+          kind: 'openai-compatible',
+          baseUrl: 'https://models.example.test/v1',
+          apiKeyBinding: 'PRIMARY_MODEL_API_KEY',
+          models: [
+            {
+              id: 'chat-model',
+              capabilities: ['text'],
+            },
+          ],
+        },
+      ]),
+      PRIMARY_MODEL_API_KEY: 'provider-secret',
+    };
+
+    const request = {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'idempotency-key': 'ui-submit-1',
+      },
+      body: JSON.stringify({
+        capability: 'text',
+        input: {
+          messages: [{ role: 'user', content: 'hello' }],
+        },
+      }),
+    } satisfies RequestInit;
+
+    const first = await app.request(
+      'http://localhost/api/V1/ai/runs',
+      request,
+      env,
+    );
+    const second = await app.request(
+      'http://localhost/api/V1/ai/runs',
+      request,
+      env,
+    );
+
+    expect(first.status).toBe(202);
+    expect(second.status).toBe(202);
+    const firstBody = (await first.json()) as { data: RunRecord };
+    const secondBody = (await second.json()) as { data: RunRecord };
+
+    expect(secondBody.data.id).toBe(firstBody.data.id);
+    expect(records).toHaveProperty('size', 1);
+    expect(create).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns conflict when an Idempotency-Key is reused for another request', async () => {
+    const create = vi.fn(
+      async (_options: { id?: string; params: WorkflowRunParams }) => undefined,
+    );
+    const { namespace } = createRunStateNamespace();
+    const { namespace: runIndex } = createRunIndexNamespace();
+    const env = {
+      ENVIRONMENT: 'production',
+      AUTH_WORKER: createAuthWorker(),
+      AI_ORCHESTRATION_WORKFLOW: { create },
+      AI_RUN_STATE: namespace,
+      AI_RUN_INDEX: runIndex,
+      AI_RATE_LIMIT: createRateLimitNamespace(),
+      AI_USAGE: createUsageNamespace(),
+      AI_PROVIDER_CATALOG: JSON.stringify([
+        {
+          id: 'primary',
+          kind: 'openai-compatible',
+          baseUrl: 'https://models.example.test/v1',
+          apiKeyBinding: 'PRIMARY_MODEL_API_KEY',
+          models: [
+            {
+              id: 'chat-model',
+              capabilities: ['text'],
+            },
+          ],
+        },
+      ]),
+      PRIMARY_MODEL_API_KEY: 'provider-secret',
+    };
+
+    const createRequest = (content: string): RequestInit => ({
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'idempotency-key': 'ui-submit-2',
+      },
+      body: JSON.stringify({
+        capability: 'text',
+        input: {
+          messages: [{ role: 'user', content }],
+        },
+      }),
+    });
+
+    const first = await app.request(
+      'http://localhost/api/V1/ai/runs',
+      createRequest('first'),
+      env,
+    );
+    const second = await app.request(
+      'http://localhost/api/V1/ai/runs',
+      createRequest('different'),
+      env,
+    );
+
+    expect(first.status).toBe(202);
+    expect(second.status).toBe(409);
+    await expect(second.json()).resolves.toMatchObject({
+      error: { code: 'CONFLICT' },
+    });
+    expect(create).toHaveBeenCalledTimes(1);
+  });
+
   it('rejects production runs when no provider supports the capability', async () => {
     const create = vi.fn(
       async (_options: { id?: string; params: WorkflowRunParams }) => undefined,
