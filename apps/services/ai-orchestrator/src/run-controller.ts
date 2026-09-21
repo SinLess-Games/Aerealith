@@ -29,6 +29,10 @@ export class AiRunController {
       return current;
     }
 
+    if (current.executionMode === 'streaming') {
+      return this.runs.cancel(runId);
+    }
+
     if (!this.workflow.get) {
       throw new WorkflowControlUnavailableError();
     }
