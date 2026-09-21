@@ -89,6 +89,7 @@ export class AiOrchestrationWorkflow extends WorkflowEntrypoint<
         const result = await executeOrchestrationRequest(
           this.env,
           event.payload.request,
+          { runId: event.payload.runId },
         );
 
         return externalizeLargeOutput(
