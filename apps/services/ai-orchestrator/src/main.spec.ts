@@ -445,6 +445,9 @@ describe('AI orchestrator service', () => {
         'AI_RUN_INDEX',
         'AI_RATE_LIMIT',
         'AI_USAGE',
+        'AI_CODE_SANDBOX',
+        'AI_ARTIFACTS',
+        'QDRANT',
         'AI',
       ],
     });
