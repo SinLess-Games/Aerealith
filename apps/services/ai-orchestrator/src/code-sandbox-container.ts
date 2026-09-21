@@ -62,12 +62,17 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
       networkAccess?: boolean;
     } = {},
   ): Promise<{ root: string }> {
+    const repositoryUrl = options.repositoryUrl
+      ? validateRepositoryUrl(options.repositoryUrl)
+      : undefined;
+    const repositoryRef = validateRepositoryRef(options.ref);
     const networkAccess =
-      options.networkAccess ?? Boolean(options.repositoryUrl);
+      options.networkAccess ?? Boolean(repositoryUrl);
+
     await this.ensureStarted(networkAccess);
     await this.touch();
 
-    if (!options.repositoryUrl) {
+    if (!repositoryUrl) {
       await this.run(['mkdir', '-p', WORKSPACE_ROOT], {
         timeoutMs: 30_000,
       });
