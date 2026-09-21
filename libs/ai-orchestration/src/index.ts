@@ -7,3 +7,4 @@ export * from './retrieval';
 export * from './routing';
 export * from './runs';
 export * from './tools';
+export * from './tool-registry';
