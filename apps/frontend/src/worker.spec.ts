@@ -218,6 +218,52 @@ describe('frontend worker', () => {
     expect(response.headers.get('cache-control')).toContain('no-store');
   });
 
+  it('adds authenticated identity to Flagship targeting context', async () => {
+    const getBooleanValue = vi.fn(
+      async (_key: string, fallback: boolean) => fallback,
+    );
+    const authWorker = {
+      fetch: vi.fn(async () =>
+        Response.json({
+          ok: true,
+          data: {
+            id: 'user-42',
+            username: 'tester',
+            email: 'private@example.test',
+            emailVerified: true,
+            role: 'user',
+            createdAt: '2026-09-21T00:00:00.000Z',
+            updatedAt: '2026-09-21T00:00:00.000Z',
+          },
+        }),
+      ),
+    };
+
+    const response = await worker.fetch(
+      new Request('https://aerealith.com/api/V1/flags', {
+        headers: { cookie: 'aerealith_session=opaque' },
+      }),
+      {
+        ...createEnvironment(new Response('asset')),
+        AUTH_WORKER: authWorker,
+        FLAGSHIP_FLAGS: { getBooleanValue },
+      },
+    );
+
+    expect(response.status).toBe(200);
+    expect(authWorker.fetch).toHaveBeenCalledTimes(1);
+    expect(getBooleanValue).toHaveBeenCalledWith(
+      'ai-studio',
+      false,
+      expect.objectContaining({
+        targetingKey: 'user-42',
+        userId: 'user-42',
+        role: 'user',
+        emailVerified: true,
+      }),
+    );
+  });
+
   it('serves maintenance mode before application assets', async () => {
     const environment = {
       ...createEnvironment(new Response('asset')),
