@@ -11,6 +11,12 @@ import { createLogger } from '@aerealith-ai/observability/logger';
 import { secureHeaders } from 'hono/secure-headers';
 import { z } from 'zod';
 
+import {
+  authenticateRequest,
+  AuthenticationRequiredError,
+  AuthServiceUnavailableError,
+  type AiPrincipal,
+} from './auth-runtime';
 import type { AiOrchestratorBindings } from './bindings';
 import { CloudflareWorkflowOrchestrationEngine } from './cloudflare-workflow-engine';
 import { executableCapabilities } from './execution-runtime';
@@ -54,12 +60,14 @@ app.get('/health', (c) =>
 app.get('/ready', (c) => {
   const environment = c.env.ENVIRONMENT ?? 'development';
   const workflowConfigured = Boolean(c.env.AI_ORCHESTRATION_WORKFLOW);
+  const authConfigured = Boolean(c.env.AUTH_WORKER);
   const runStateConfigured = Boolean(c.env.AI_RUN_STATE);
   const vectorStore = vectorStoreStatus(c.env);
   const providers = providerRuntimeStatus(c.env);
   const executable = executableCapabilities(c.env);
 
   const missingProductionDependencies = [
+    ...(authConfigured ? [] : ['AUTH_WORKER']),
     ...(workflowConfigured ? [] : ['AI_ORCHESTRATION_WORKFLOW']),
     ...(runStateConfigured ? [] : ['AI_RUN_STATE']),
     ...(providers.configuredProviders > 0 ? [] : ['AI_PROVIDER_CATALOG']),
@@ -76,6 +84,7 @@ app.get('/ready', (c) => {
         reason: 'Required production bindings are missing.',
         missing: missingProductionDependencies,
         dependencies: {
+          authConfigured,
           workflowConfigured,
           runStateConfigured,
           vectorStore: {
@@ -98,6 +107,7 @@ app.get('/ready', (c) => {
     service: 'ai-orchestrator',
     status: 'ready',
     dependencies: {
+      authConfigured,
       workflowConfigured,
       runStateConfigured,
       vectorStore: {
@@ -156,6 +166,7 @@ app.get('/api/V1/ai/capabilities', (c) =>
 );
 
 app.get('/api/V1/ai/runs/:runId', async (c) => {
+  const principal = await requirePrincipal(c.req.raw, c.env);
   const parsedRunId = runIdSchema.safeParse(c.req.param('runId'));
 
   if (!parsedRunId.success) {
@@ -174,7 +185,7 @@ app.get('/api/V1/ai/runs/:runId', async (c) => {
   }
 
   const run = await runs.get(parsedRunId.data);
-  if (!run) {
+  if (!run || run.tenantId !== principal.id) {
     throw new ApiError('The AI run was not found.', {
       code: ApiErrorCode.NotFound,
       status: HttpStatus.NotFound,
@@ -189,6 +200,8 @@ app.get('/api/V1/ai/runs/:runId', async (c) => {
 });
 
 app.post('/api/V1/ai/runs', async (c) => {
+  const principal = await requirePrincipal(c.req.raw, c.env);
+
   let body: unknown;
   try {
     body = await c.req.json();
@@ -218,7 +231,11 @@ app.post('/api/V1/ai/runs', async (c) => {
   assertRunSubmissionReady(c.env, parsed.data.capability);
 
   const engine = resolveEngine(c.env);
-  const result = await engine.submit(parsed.data);
+  const result = await engine.submit({
+    ...parsed.data,
+    tenantId: principal.id,
+    actorId: principal.id,
+  });
 
   return c.json(
     {
@@ -230,6 +247,32 @@ app.post('/api/V1/ai/runs', async (c) => {
   );
 });
 
+async function requirePrincipal(
+  request: Request,
+  bindings: AiOrchestratorBindings,
+): Promise<AiPrincipal> {
+  try {
+    return await authenticateRequest(request, bindings);
+  } catch (error) {
+    if (error instanceof AuthenticationRequiredError) {
+      throw new ApiError('Authentication is required.', {
+        code: ApiErrorCode.Unauthorized,
+        status: HttpStatus.Unauthorized,
+      });
+    }
+
+    if (error instanceof AuthServiceUnavailableError) {
+      throw new ApiError('Authentication service is unavailable.', {
+        code: ApiErrorCode.InternalError,
+        status: HttpStatus.ServiceUnavailable,
+        cause: error,
+      });
+    }
+
+    throw error;
+  }
+}
+
 function assertRunSubmissionReady(
   bindings: AiOrchestratorBindings,
   capability: (typeof capabilityKinds)[number],
@@ -239,6 +282,7 @@ function assertRunSubmissionReady(
   }
 
   const missing = [
+    ...(bindings.AUTH_WORKER ? [] : ['AUTH_WORKER']),
     ...(bindings.AI_ORCHESTRATION_WORKFLOW
       ? []
       : ['AI_ORCHESTRATION_WORKFLOW']),
