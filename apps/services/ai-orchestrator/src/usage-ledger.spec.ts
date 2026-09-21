@@ -38,6 +38,19 @@ describe('AiUsageLedger', () => {
     });
   });
 
+  it('rolls back reserved runs after failed dispatch', async () => {
+    const ledger = createLedger();
+    const now = new Date('2026-09-21T12:00:00.000Z');
+
+    await ledger.consumeRun(10, 0, now);
+    await expect(ledger.releaseRun(now)).resolves.toMatchObject({
+      runs: 0,
+    });
+    await expect(ledger.releaseRun(now)).resolves.toMatchObject({
+      runs: 0,
+    });
+  });
+
   it('records token usage and estimated cost', async () => {
     const ledger = createLedger();
     const now = new Date('2026-09-21T12:00:00.000Z');
