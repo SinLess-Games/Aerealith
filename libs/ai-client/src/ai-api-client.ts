@@ -26,6 +26,13 @@ export type AiModelSummary = {
   outputCostPerMillionUnitsUsd?: number;
 };
 
+export type AiToolDefinition = {
+  name: string;
+  description: string;
+  inputSchema: Record<string, unknown>;
+  requiresApproval?: boolean;
+};
+
 export type AiUsageSummary = {
   day: string;
   runs: number;
@@ -102,6 +109,10 @@ export class AiApiClient {
 
   models(): Promise<readonly AiModelSummary[]> {
     return this.getJson('/api/V1/ai/models');
+  }
+
+  tools(): Promise<readonly AiToolDefinition[]> {
+    return this.getJson('/api/V1/ai/tools');
   }
 
   usage(): Promise<AiUsageSummary> {
