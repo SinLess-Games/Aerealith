@@ -8,6 +8,7 @@ import {
   sanitizeUrl,
   setDatadogSessionReplayAllowed,
   setDatadogTrackingAllowed,
+  trackDatadogFeatureFlag,
   trackDatadogView,
 } from './datadog-rum';
 
@@ -27,6 +28,7 @@ const mocks = vi.hoisted(() => ({
   },
   rum: {
     addError: vi.fn(),
+    addFeatureFlagEvaluation: vi.fn(),
     init: vi.fn(),
     setTrackingConsent: vi.fn(),
     startSessionReplayRecording: vi.fn(),
@@ -65,6 +67,7 @@ describe('Datadog RUM integration', () => {
         applicationId: 'application-id',
         clientToken: 'client-token',
         defaultPrivacyLevel: 'mask-user-input',
+        enableExperimentalFeatures: ['feature_flags'],
         trackingConsent: 'not-granted',
         service: 'frontend',
         trackLongTasks: true,
@@ -115,6 +118,21 @@ describe('Datadog RUM integration', () => {
     setDatadogSessionReplayAllowed(false);
     setDatadogSessionReplayAllowed(false);
     expect(mocks.rum.stopSessionReplayRecording).toHaveBeenCalledTimes(1);
+  });
+
+  it('tracks feature flag evaluations only with tracking consent', async () => {
+    await initializeDatadogRum();
+
+    trackDatadogFeatureFlag('ai-studio', true);
+    expect(mocks.rum.addFeatureFlagEvaluation).not.toHaveBeenCalled();
+
+    setDatadogTrackingAllowed(true);
+    trackDatadogFeatureFlag('ai-studio', true);
+
+    expect(mocks.rum.addFeatureFlagEvaluation).toHaveBeenCalledWith(
+      'ai-studio',
+      true,
+    );
   });
 
   it('tracks views and global errors only after initialization', async () => {
