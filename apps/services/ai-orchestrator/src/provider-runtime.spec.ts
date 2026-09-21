@@ -33,6 +33,8 @@ describe('AI provider runtime', () => {
       'rerank',
       'image',
       'audio',
+      'video',
+      'music',
       'analytics',
       'prediction',
     ]);
