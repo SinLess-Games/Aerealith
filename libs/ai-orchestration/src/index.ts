@@ -1,3 +1,4 @@
+export * from './tool-execution-service';
 export * from './task-outputs';
 export * from './task-inputs';
 export * from './text-chunker';
