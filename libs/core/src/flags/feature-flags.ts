@@ -10,6 +10,23 @@ export const FeatureFlag = {
   Authentication: 'authentication',
   Registration: 'registration',
   Waitlist: 'waitlist',
+
+  // AI Studio release controls. Backend capability discovery still decides
+  // whether a model/provider can actually execute a capability; these flags
+  // control product exposure and rollout.
+  AiStudio: 'ai-studio',
+  AiChat: 'ai-chat',
+  AiStreaming: 'ai-streaming',
+  AiModelSelector: 'ai-model-selector',
+  AiCode: 'ai-code',
+  AiImage: 'ai-image',
+  AiAudio: 'ai-audio',
+  AiVideo: 'ai-video',
+  AiMusic: 'ai-music',
+  AiAnalytics: 'ai-analytics',
+  AiPrediction: 'ai-prediction',
+  AiKnowledge: 'ai-knowledge',
+  AiTools: 'ai-tools',
 } as const;
 
 export type FeatureFlagKey = (typeof FeatureFlag)[keyof typeof FeatureFlag];
@@ -25,6 +42,22 @@ export const FeatureFlagDefaults = {
   [FeatureFlag.Authentication]: true,
   [FeatureFlag.Registration]: false,
   [FeatureFlag.Waitlist]: false,
+
+  // AI is fail-closed until the corresponding Flagship flags exist and are
+  // explicitly enabled for the desired rollout audience.
+  [FeatureFlag.AiStudio]: false,
+  [FeatureFlag.AiChat]: false,
+  [FeatureFlag.AiStreaming]: false,
+  [FeatureFlag.AiModelSelector]: false,
+  [FeatureFlag.AiCode]: false,
+  [FeatureFlag.AiImage]: false,
+  [FeatureFlag.AiAudio]: false,
+  [FeatureFlag.AiVideo]: false,
+  [FeatureFlag.AiMusic]: false,
+  [FeatureFlag.AiAnalytics]: false,
+  [FeatureFlag.AiPrediction]: false,
+  [FeatureFlag.AiKnowledge]: false,
+  [FeatureFlag.AiTools]: false,
 } as const satisfies Record<FeatureFlagKey, boolean>;
 
 export type FeatureFlagValues = Record<FeatureFlagKey, boolean>;
