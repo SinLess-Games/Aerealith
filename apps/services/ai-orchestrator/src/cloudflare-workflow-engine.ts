@@ -8,6 +8,7 @@ import type { WorkflowBinding, WorkflowRunParams } from './bindings';
 import type {
   OrchestrationEngine,
   OrchestrationSubmissionOptions,
+  OrchestrationSubmissionResult,
 } from './orchestrator';
 
 type AtomicRunStore = RunStore & {
@@ -27,7 +28,7 @@ export class CloudflareWorkflowOrchestrationEngine
   async submit(
     request: OrchestrationRequest,
     options: OrchestrationSubmissionOptions = {},
-  ): Promise<RunRecord> {
+  ): Promise<OrchestrationSubmissionResult> {
     const runId = options.runId ?? crypto.randomUUID();
     const timestamp = new Date().toISOString();
     const run: RunRecord = {
@@ -49,7 +50,7 @@ export class CloudflareWorkflowOrchestrationEngine
       : { run, created: true };
 
     if (!claim.created) {
-      return claim.run;
+      return claim;
     }
 
     try {
@@ -69,6 +70,6 @@ export class CloudflareWorkflowOrchestrationEngine
       throw error;
     }
 
-    return claim.run;
+    return claim;
   }
 }
