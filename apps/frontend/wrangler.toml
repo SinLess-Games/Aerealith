@@ -94,6 +94,11 @@ VITE_CLOUDFLARE_WEB_ANALYTICS_ENABLED = "false"
 VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN = ""
 
 
+# AI provider credentials are intentionally not bound to this Worker.
+# The browser calls the AI orchestrator through a private service binding.
+# QDRANT_API_KEY remains in Cloudflare Secrets Store on
+# aerealith-ai-orchestrator, preserving least privilege.
+
 # ---------------------------------------------------------------
 # Workers
 # ---------------------------------------------------------------
