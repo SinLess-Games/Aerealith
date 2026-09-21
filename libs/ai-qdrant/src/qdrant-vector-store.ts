@@ -1,6 +1,9 @@
 import type {
   RetrievalMatch,
   RetrievalQuery,
+  VectorDistance,
+  VectorIndexConfiguration,
+  VectorIndexManager,
   VectorStore,
 } from '@aerealith-ai/ai-orchestration';
 
@@ -34,7 +37,7 @@ export class QdrantVectorStoreError extends Error {
   }
 }
 
-export class QdrantVectorStore implements VectorStore {
+export class QdrantVectorStore implements VectorStore, VectorIndexManager {
   private readonly baseUrl: string;
   private readonly apiKey?: string;
   private readonly collectionPrefix: string;
@@ -50,6 +53,49 @@ export class QdrantVectorStore implements VectorStore {
     if (!this.baseUrl) {
       throw new QdrantVectorStoreError('A Qdrant base URL is required.');
     }
+  }
+
+  async ensureIndex(
+    namespace: string,
+    configuration: VectorIndexConfiguration,
+  ): Promise<void> {
+    if (
+      !Number.isInteger(configuration.dimensions) ||
+      configuration.dimensions <= 0
+    ) {
+      throw new QdrantVectorStoreError(
+        'Qdrant vector dimensions must be a positive integer.',
+      );
+    }
+
+    const collectionUrl = this.collectionPath(namespace);
+    const existing = await this.fetch(collectionUrl, { method: 'GET' });
+
+    if (existing.ok) {
+      return;
+    }
+
+    if (existing.status !== 404) {
+      throw new QdrantVectorStoreError(
+        `Qdrant collection lookup failed with HTTP ${existing.status}.`,
+      );
+    }
+
+    await this.request(collectionUrl, {
+      method: 'PUT',
+      body: JSON.stringify({
+        vectors: {
+          size: configuration.dimensions,
+          distance: toQdrantDistance(configuration.distance ?? 'cosine'),
+        },
+      }),
+    });
+  }
+
+  async deleteIndex(namespace: string): Promise<void> {
+    await this.request(this.collectionPath(namespace), {
+      method: 'DELETE',
+    });
   }
 
   async search(query: RetrievalQuery): Promise<readonly RetrievalMatch[]> {
@@ -80,8 +126,7 @@ export class QdrantVectorStore implements VectorStore {
           ? (payload[TEXT_FIELD] as string)
           : undefined;
       const metadataValue = payload[METADATA_FIELD];
-      const metadata =
-        isRecord(metadataValue) ? metadataValue : undefined;
+      const metadata = isRecord(metadataValue) ? metadataValue : undefined;
 
       return {
         id: String(point.id),
@@ -103,24 +148,21 @@ export class QdrantVectorStore implements VectorStore {
   ): Promise<void> {
     if (records.length === 0) return;
 
-    await this.request(
-      this.collectionPath(namespace, '/points?wait=true'),
-      {
-        method: 'PUT',
-        body: JSON.stringify({
-          points: records.map((record) => ({
-            id: record.id,
-            vector: [...record.vector],
-            payload: {
-              ...(record.text ? { [TEXT_FIELD]: record.text } : {}),
-              ...(record.metadata
-                ? { [METADATA_FIELD]: record.metadata }
-                : {}),
-            },
-          })),
-        }),
-      },
-    );
+    await this.request(this.collectionPath(namespace, '/points?wait=true'), {
+      method: 'PUT',
+      body: JSON.stringify({
+        points: records.map((record) => ({
+          id: record.id,
+          vector: [...record.vector],
+          payload: {
+            ...(record.text ? { [TEXT_FIELD]: record.text } : {}),
+            ...(record.metadata
+              ? { [METADATA_FIELD]: record.metadata }
+              : {}),
+          },
+        })),
+      }),
+    });
   }
 
   async delete(namespace: string, ids: readonly string[]): Promise<void> {
@@ -135,7 +177,7 @@ export class QdrantVectorStore implements VectorStore {
     );
   }
 
-  private collectionPath(namespace: string, suffix: string): string {
+  private collectionPath(namespace: string, suffix = ''): string {
     const normalized = namespace.trim();
     if (!normalized) {
       throw new QdrantVectorStoreError('A Qdrant namespace is required.');
@@ -149,17 +191,7 @@ export class QdrantVectorStore implements VectorStore {
     url: string,
     init: RequestInit,
   ): Promise<T> {
-    const headers = new Headers(init.headers);
-    headers.set('content-type', 'application/json');
-
-    if (this.apiKey) {
-      headers.set('api-key', this.apiKey);
-    }
-
-    const response = await this.fetchImplementation(url, {
-      ...init,
-      headers,
-    });
+    const response = await this.fetch(url, init);
 
     if (!response.ok) {
       throw new QdrantVectorStoreError(
@@ -172,6 +204,40 @@ export class QdrantVectorStore implements VectorStore {
     }
 
     return (await response.json()) as T;
+  }
+
+  private fetch(url: string, init: RequestInit): Promise<Response> {
+    const headers = new Headers(init.headers);
+
+    if (init.body !== undefined) {
+      headers.set('content-type', 'application/json');
+    }
+
+    if (this.apiKey) {
+      headers.set('api-key', this.apiKey);
+    }
+
+    return this.fetchImplementation(url, {
+      ...init,
+      headers,
+    });
+  }
+}
+
+function toQdrantDistance(distance: VectorDistance):
+  | 'Cosine'
+  | 'Dot'
+  | 'Euclid'
+  | 'Manhattan' {
+  switch (distance) {
+    case 'cosine':
+      return 'Cosine';
+    case 'dot':
+      return 'Dot';
+    case 'euclid':
+      return 'Euclid';
+    case 'manhattan':
+      return 'Manhattan';
   }
 }
 
