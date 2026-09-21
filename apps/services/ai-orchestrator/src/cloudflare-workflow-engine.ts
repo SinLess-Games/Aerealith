@@ -5,7 +5,10 @@ import type {
 } from '@aerealith-ai/ai-orchestration';
 
 import type { WorkflowBinding, WorkflowRunParams } from './bindings';
-import type { OrchestrationEngine } from './orchestrator';
+import type {
+  OrchestrationEngine,
+  OrchestrationSubmissionOptions,
+} from './orchestrator';
 
 export class CloudflareWorkflowOrchestrationEngine
   implements OrchestrationEngine
@@ -15,13 +18,19 @@ export class CloudflareWorkflowOrchestrationEngine
     private readonly runs?: RunStore,
   ) {}
 
-  async submit(request: OrchestrationRequest): Promise<RunRecord> {
-    const runId = crypto.randomUUID();
+  async submit(
+    request: OrchestrationRequest,
+    options: OrchestrationSubmissionOptions = {},
+  ): Promise<RunRecord> {
+    const runId = options.runId ?? crypto.randomUUID();
     const timestamp = new Date().toISOString();
     const run: RunRecord = {
       id: runId,
       ...(request.tenantId ? { tenantId: request.tenantId } : {}),
       ...(request.actorId ? { actorId: request.actorId } : {}),
+      ...(options.requestFingerprint
+        ? { requestFingerprint: options.requestFingerprint }
+        : {}),
       status: 'accepted',
       capability: request.capability,
       createdAt: timestamp,
