@@ -1,10 +1,9 @@
 import {
   CapabilityRoutingPolicy,
+  OrchestrationExecutor,
   type ArtifactReference,
   type CodeGenerationInput,
   type CodeGenerationOutput,
-  type ModelDescriptor,
-  type ModelProvider,
   type OrchestrationOutput,
   type OrchestrationRequest,
   type TextGenerationOutput,
@@ -87,18 +86,17 @@ export async function executeCodeAgent(
 
   try {
     const context = await collectRepositoryContext(session, input);
-    const { provider, model } = await selectCodeTarget(bindings, request);
-    const planResult = await provider.execute(
-      {
-        ...request,
-        capability: 'code',
-        input: {
-          mode: 'generate',
-          instruction: buildAgentPrompt(input, context),
-        } satisfies CodeGenerationInput,
-      },
-      model,
-    );
+    const planResult = await new OrchestrationExecutor(
+      createProviderRegistry(bindings),
+      new CapabilityRoutingPolicy(),
+    ).execute({
+      ...request,
+      capability: 'code',
+      input: {
+        mode: 'generate',
+        instruction: buildAgentPrompt(input, context),
+      } satisfies CodeGenerationInput,
+    });
     const planText = (planResult.content as CodeGenerationOutput).summary;
     const plan = parseCodePlan(planText);
 
@@ -276,39 +274,6 @@ function parseCodePlan(value: string) {
 
   const parsed = JSON.parse(withoutFence.slice(start, end + 1));
   return codePlanSchema.parse(parsed);
-}
-
-async function selectCodeTarget(
-  bindings: AiOrchestratorBindings,
-  request: OrchestrationRequest,
-): Promise<{
-  provider: ModelProvider;
-  model: ModelDescriptor;
-}> {
-  const providers = createProviderRegistry(bindings);
-  const routing = new CapabilityRoutingPolicy();
-  const models = await providers.modelsFor('code');
-  const route = routing.select(request, models);
-  const provider = providers.get(route.providerId);
-
-  if (!provider) {
-    throw new Error(
-      `Code provider "${route.providerId}" is not registered.`,
-    );
-  }
-
-  const available = await provider.listModels();
-  const model = available.find(
-    (candidate) => candidate.id === route.modelId,
-  );
-
-  if (!model) {
-    throw new Error(
-      `Code model "${route.modelId}" is not available.`,
-    );
-  }
-
-  return { provider, model };
 }
 
 async function prepareGitDiff(
