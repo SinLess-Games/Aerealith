@@ -14,6 +14,7 @@ import {
   recordAiRunSucceeded,
 } from './ai-telemetry';
 import type { AiOrchestratorBindings } from './bindings';
+import { ConversationStore } from './conversation-runtime';
 import { createProviderRegistry } from './provider-runtime';
 import type { DurableObjectRunStore } from './run-store';
 import { AiUsageStore } from './usage-ledger';
@@ -221,6 +222,28 @@ async function trackStreamingResponse(
       await new AiUsageStore(bindings.AI_USAGE).recordUsage(
         request.tenantId,
         usage,
+      );
+    }
+
+    if (
+      request.tenantId &&
+      request.metadata?.conversationId &&
+      bindings.AI_CONVERSATION_STATE &&
+      bindings.AI_CONVERSATION_INDEX &&
+      text
+    ) {
+      await new ConversationStore(
+        bindings.AI_CONVERSATION_STATE,
+        bindings.AI_CONVERSATION_INDEX,
+      ).append(
+        request.tenantId,
+        request.metadata.conversationId,
+        {
+          role: 'assistant',
+          content: text,
+          runId: run.id,
+          id: `assistant:${run.id}`,
+        },
       );
     }
 
