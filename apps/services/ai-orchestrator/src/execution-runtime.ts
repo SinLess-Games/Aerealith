@@ -29,6 +29,7 @@ import {
 } from './code-agent-runtime';
 import type { AiOrchestratorBindings } from './bindings';
 import { createProviderRegistry } from './provider-runtime';
+import { executeToolRequest } from './tool-runtime';
 import {
   createVectorStore,
   vectorStoreStatus,
@@ -89,6 +90,10 @@ export function executableCapabilities(
     }
   }
 
+  if (bindings.AI_CODE_SANDBOX) {
+    direct.add('tool');
+  }
+
   if (!bindings.AI_ARTIFACTS) {
     direct.delete('image');
     direct.delete('audio');
@@ -136,6 +141,8 @@ export async function executeOrchestrationRequest(
       return executeKnowledgeIngestion(bindings, request);
     case 'retrieval':
       return executeRetrieval(bindings, request);
+    case 'tool':
+      return executeToolRequest(bindings, request);
     default:
       break;
   }
