@@ -159,7 +159,7 @@ export class OpenAiCompatibleProvider implements ModelProvider {
     };
   }
 
-  private executeCode(
+  private async executeCode(
     request: OrchestrationRequest,
     model: ModelDescriptor,
   ): Promise<OrchestrationOutput> {
@@ -178,7 +178,7 @@ export class OpenAiCompatibleProvider implements ModelProvider {
             .join('\n')}`
         : '';
 
-    return this.executeText(
+    const result = await this.executeText(
       {
         ...request,
         capability: 'text',
@@ -198,6 +198,15 @@ export class OpenAiCompatibleProvider implements ModelProvider {
       },
       model,
     );
+
+    const textOutput = result.content as TextGenerationOutput;
+
+    return {
+      ...result,
+      content: {
+        summary: textOutput.text,
+      },
+    };
   }
 
   private async executeEmbedding(
@@ -357,13 +366,20 @@ function usageFromTokens(
       ? undefined
       : (inputUnits ?? 0) + (outputUnits ?? 0));
 
+  const canEstimateCost =
+    (inputUnits === undefined ||
+      model.inputCostPerMillionUnitsUsd !== undefined) &&
+    (outputUnits === undefined ||
+      model.outputCostPerMillionUnitsUsd !== undefined);
+
   const estimatedCostUsd =
-    inputUnits === undefined && outputUnits === undefined
-      ? undefined
-      : ((inputUnits ?? 0) / 1_000_000) *
+    canEstimateCost &&
+    (inputUnits !== undefined || outputUnits !== undefined)
+      ? ((inputUnits ?? 0) / 1_000_000) *
           (model.inputCostPerMillionUnitsUsd ?? 0) +
         ((outputUnits ?? 0) / 1_000_000) *
-          (model.outputCostPerMillionUnitsUsd ?? 0);
+          (model.outputCostPerMillionUnitsUsd ?? 0)
+      : undefined;
 
   return {
     ...(inputUnits === undefined ? {} : { inputUnits }),
