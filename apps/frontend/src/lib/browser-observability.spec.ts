@@ -2,7 +2,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { faro, initializeFaro, pause, pushError, pushEvent, unpause } = vi.hoisted(
   () => ({
-    faro: { api: undefined as undefined | { pushError: typeof pushError; pushEvent: typeof pushEvent } },
+    faro: {
+      api: undefined as
+        | undefined
+        | {
+            pushError: (...args: unknown[]) => unknown;
+            pushEvent: (...args: unknown[]) => unknown;
+          },
+    },
     initializeFaro: vi.fn(),
     pause: vi.fn(),
     pushError: vi.fn(),
