@@ -92,6 +92,14 @@ export interface UsageLedgerNamespace {
         estimatedCostUsd: number;
       };
     }>;
+    releaseRun(): Promise<{
+      day: string;
+      runs: number;
+      inputUnits: number;
+      outputUnits: number;
+      totalUnits: number;
+      estimatedCostUsd: number;
+    }>;
     recordUsage(
       usage?: import('@aerealith-ai/ai-orchestration').Usage,
     ): Promise<{
