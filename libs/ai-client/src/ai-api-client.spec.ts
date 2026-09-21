@@ -109,6 +109,44 @@ describe('AiApiClient', () => {
     } satisfies Partial<AiApiError>);
   });
 
+  it('streams text and returns the durable run id', async () => {
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(
+          new TextEncoder().encode(
+            'data: {"choices":[{"delta":{"content":"Hi"}}]}\n\n',
+          ),
+        );
+        controller.close();
+      },
+    });
+    const fetchImplementation = vi.fn(async () =>
+      new Response(stream, {
+        headers: {
+          'content-type': 'text/event-stream',
+          'x-ai-run-id': 'run-stream-1',
+        },
+      }),
+    );
+    const client = new AiApiClient({ fetchImplementation });
+
+    const result = await client.streamText({
+      capability: 'text',
+      tenantId: 'must-not-leak',
+      input: {
+        messages: [{ role: 'user', content: 'hello' }],
+      },
+    });
+
+    expect(result.runId).toBe('run-stream-1');
+    await expect(new Response(result.stream).text()).resolves.toContain(
+      '"content":"Hi"',
+    );
+
+    const [, init] = fetchImplementation.mock.calls[0] ?? [];
+    expect(JSON.parse(String(init?.body))).not.toHaveProperty('tenantId');
+  });
+
   it('returns an authenticated run-event stream', async () => {
     const body = new ReadableStream<Uint8Array>({
       start(controller) {
