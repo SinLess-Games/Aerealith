@@ -231,9 +231,15 @@ export class CloudflareWorkersAiProvider implements ModelProvider {
     model: ModelDescriptor,
   ): Promise<OrchestrationOutput> {
     const input = request.input as ImageGenerationInput;
-    if (input.count !== undefined && input.count !== 1) {
+    if (
+      input.count !== undefined && input.count !== 1 ||
+      input.negativePrompt !== undefined ||
+      input.width !== undefined ||
+      input.height !== undefined ||
+      (input.referenceArtifactIds?.length ?? 0) > 0
+    ) {
       throw new CloudflareWorkersAiProviderError(
-        'Cloudflare FLUX generation currently supports one image per run.',
+        'The selected Cloudflare FLUX model currently supports prompt, seed, and a single generated image only.',
       );
     }
 
@@ -267,9 +273,14 @@ export class CloudflareWorkersAiProvider implements ModelProvider {
   ): Promise<OrchestrationOutput> {
     const input = request.input as AudioGenerationInput;
 
-    if (!input.text) {
+    if (
+      !input.text ||
+      input.prompt !== undefined ||
+      input.language !== undefined ||
+      input.durationSeconds !== undefined
+    ) {
       throw new CloudflareWorkersAiProviderError(
-        'Cloudflare Aura audio generation currently requires text input.',
+        'Cloudflare Aura audio generation requires text input and currently supports voice plus output-format controls only.',
       );
     }
 
