@@ -145,6 +145,7 @@ export async function executeCodeAgent(
       if (result.exitCode !== 0) break;
     }
 
+    await prepareGitDiff(session);
     const changedFiles = await gitChangedFiles(session);
     const patch = await gitPatch(session);
     const patchArtifact = patch
@@ -310,6 +311,20 @@ async function selectCodeTarget(
   return { provider, model };
 }
 
+async function prepareGitDiff(
+  session: Awaited<
+    ReturnType<CloudflareCodeSandboxProvider['create']>
+  >,
+): Promise<void> {
+  await session.execute({
+    command: 'git',
+    args: ['add', '--intent-to-add', '--all'],
+    limits: {
+      timeoutMs: 30_000,
+    },
+  }).catch(() => undefined);
+}
+
 async function gitChangedFiles(
   session: Awaited<
     ReturnType<CloudflareCodeSandboxProvider['create']>
@@ -317,7 +332,7 @@ async function gitChangedFiles(
 ): Promise<readonly string[]> {
   const result = await session.execute({
     command: 'git',
-    args: ['diff', '--name-only'],
+    args: ['diff', '--name-only', 'HEAD'],
     limits: {
       timeoutMs: 30_000,
     },
@@ -339,7 +354,7 @@ async function gitPatch(
 ): Promise<string | undefined> {
   const result = await session.execute({
     command: 'git',
-    args: ['diff', '--no-color', '--binary'],
+    args: ['diff', '--no-color', '--binary', 'HEAD'],
     limits: {
       timeoutMs: 30_000,
     },
