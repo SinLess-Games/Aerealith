@@ -73,6 +73,15 @@ export class AiCodeSandbox extends DurableObject<AiOrchestratorBindings> {
     await this.touch();
 
     if (!repositoryUrl) {
+      const existingRepository = await this.run(
+        ['test', '-d', `${REPOSITORY_ROOT}/.git`],
+        { timeoutMs: 10_000 },
+      );
+
+      if (existingRepository.exitCode === 0) {
+        return { root: REPOSITORY_ROOT };
+      }
+
       await this.run(['mkdir', '-p', WORKSPACE_ROOT], {
         timeoutMs: 30_000,
       });
