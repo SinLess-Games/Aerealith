@@ -128,6 +128,7 @@ async function executeKnowledgeIngestion(
   const { provider, model } = await selectEmbeddingTarget(
     bindings,
     request,
+    true,
   );
   const dimensions = model.embeddingDimensions;
 
@@ -235,13 +236,21 @@ async function executeRetrieval(
 async function selectEmbeddingTarget(
   bindings: AiOrchestratorBindings,
   request: OrchestrationRequest,
+  requireDimensions = false,
 ): Promise<{
   provider: ModelProvider;
   model: ModelDescriptor;
 }> {
   const providers = createProviderRegistry(bindings);
   const routing = new CapabilityRoutingPolicy();
-  const embeddingModels = await providers.modelsFor('embedding');
+  const availableEmbeddingModels = await providers.modelsFor('embedding');
+  const embeddingModels = requireDimensions
+    ? availableEmbeddingModels.filter(
+        (model) =>
+          Number.isInteger(model.embeddingDimensions) &&
+          (model.embeddingDimensions ?? 0) > 0,
+      )
+    : availableEmbeddingModels;
   const embeddingRequest: OrchestrationRequest = {
     ...request,
     capability: 'embedding',
