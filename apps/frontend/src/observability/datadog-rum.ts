@@ -69,6 +69,7 @@ export function setDatadogTrackingAllowed(allowed: boolean) {
 
 export function setDatadogSessionReplayAllowed(allowed: boolean) {
   if (!rum || !initialized) return;
+  if (allowed && !trackingAllowed) return;
   if (allowed && !replayRunning) {
     rum.startSessionReplayRecording();
     replayRunning = true;
