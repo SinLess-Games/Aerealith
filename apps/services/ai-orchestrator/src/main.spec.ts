@@ -134,6 +134,7 @@ describe('AI orchestrator service', () => {
       data: {
         configuredProviders: 1,
         totalProviders: 1,
+        capabilities: ['text', 'code'],
         providers: [
           {
             id: 'primary',
@@ -274,6 +275,21 @@ describe('AI orchestrator service', () => {
         ENVIRONMENT: 'production',
         AI_ORCHESTRATION_WORKFLOW: { create },
         AI_RUN_STATE: namespace,
+        AI_PROVIDER_CATALOG: JSON.stringify([
+          {
+            id: 'primary',
+            kind: 'openai-compatible',
+            baseUrl: 'https://models.example.test/v1',
+            apiKeyBinding: 'PRIMARY_MODEL_API_KEY',
+            models: [
+              {
+                id: 'chat-model',
+                capabilities: ['text', 'code'],
+              },
+            ],
+          },
+        ]),
+        PRIMARY_MODEL_API_KEY: 'provider-secret',
       },
     );
 
@@ -291,6 +307,50 @@ describe('AI orchestrator service', () => {
       | undefined;
 
     expect(options?.params.request.capability).toBe('text');
+  });
+
+  it('rejects production runs when no provider supports the capability', async () => {
+    const create = vi.fn(
+      async (_options: { id?: string; params: WorkflowRunParams }) => undefined,
+    );
+    const { namespace } = createRunStateNamespace();
+
+    const response = await app.request(
+      'http://localhost/api/V1/ai/runs',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          capability: 'image',
+          input: {
+            prompt: 'A mountain at sunrise',
+          },
+        }),
+      },
+      {
+        ENVIRONMENT: 'production',
+        AI_ORCHESTRATION_WORKFLOW: { create },
+        AI_RUN_STATE: namespace,
+        AI_PROVIDER_CATALOG: JSON.stringify([
+          {
+            id: 'primary',
+            kind: 'openai-compatible',
+            baseUrl: 'https://models.example.test/v1',
+            apiKeyBinding: 'PRIMARY_MODEL_API_KEY',
+            models: [
+              {
+                id: 'chat-model',
+                capabilities: ['text'],
+              },
+            ],
+          },
+        ]),
+        PRIMARY_MODEL_API_KEY: 'provider-secret',
+      },
+    );
+
+    expect(response.status).toBe(503);
+    expect(create).not.toHaveBeenCalled();
   });
 
   it('returns durable run status by run id', async () => {
