@@ -48,7 +48,10 @@ import { createRunIndexStore, createRunStore } from './run-store';
 import { startStreamingTextRun } from './streaming-runtime';
 import { sandboxToolDefinitions } from './tool-runtime';
 import { AiUsageStore } from './usage-ledger';
-import { vectorStoreStatus } from './vector-store';
+import {
+  createVectorStore,
+  vectorStoreStatus,
+} from './vector-store';
 
 type AiOrchestratorEnv = ApiEnv<ApiRequestContext, AiOrchestratorBindings>;
 
@@ -68,6 +71,24 @@ const app = createApiApp<AiOrchestratorEnv>({
 });
 
 const runIdSchema = z.uuid();
+
+const knowledgeBaseCreateSchema = z.object({
+  name: z.string().min(1).max(200),
+  description: z.string().max(2_000).optional(),
+});
+
+const knowledgeDocumentsSchema = z.object({
+  documents: z
+    .array(
+      z.object({
+        id: z.string().min(1).max(512),
+        text: z.string().min(1).max(1_000_000),
+        metadata: z.record(z.string().max(128), z.unknown()).optional(),
+      }),
+    )
+    .min(1)
+    .max(256),
+});
 
 const conversationCreateSchema = z.object({
   title: z.string().min(1).max(200).optional(),
@@ -114,6 +135,9 @@ app.get('/ready', (c) => {
   const conversationIndexConfigured = Boolean(
     c.env.AI_CONVERSATION_INDEX,
   );
+  const knowledgeCatalogConfigured = Boolean(
+    c.env.AI_KNOWLEDGE_CATALOG,
+  );
   const artifactStore = artifactStoreStatus(c.env);
   const vectorStore = vectorStoreStatus(c.env);
   const providers = providerRuntimeStatus(c.env);
@@ -129,6 +153,7 @@ app.get('/ready', (c) => {
     ...(codeSandboxConfigured ? [] : ['AI_CODE_SANDBOX']),
     ...(conversationStateConfigured ? [] : ['AI_CONVERSATION_STATE']),
     ...(conversationIndexConfigured ? [] : ['AI_CONVERSATION_INDEX']),
+    ...(knowledgeCatalogConfigured ? [] : ['AI_KNOWLEDGE_CATALOG']),
     ...(artifactStore.configured ? [] : ['AI_ARTIFACTS']),
     ...(vectorStore.configured ? [] : ['QDRANT']),
     ...(providers.configuredProviders > 0 ? [] : ['AI']),
@@ -154,6 +179,7 @@ app.get('/ready', (c) => {
           codeSandboxConfigured,
           conversationStateConfigured,
           conversationIndexConfigured,
+          knowledgeCatalogConfigured,
           artifactStore,
           vectorStore: {
             provider: vectorStore.provider,
@@ -184,6 +210,7 @@ app.get('/ready', (c) => {
       codeSandboxConfigured,
       conversationStateConfigured,
       conversationIndexConfigured,
+      knowledgeCatalogConfigured,
       artifactStore,
       vectorStore: {
         provider: vectorStore.provider,
@@ -257,6 +284,214 @@ app.get('/api/V1/ai/capabilities', (c) =>
     },
     meta: responseMeta(c.get('apiContext')),
   }),
+);
+
+app.get('/api/V1/ai/knowledge-bases', async (c) => {
+  const principal = await requirePrincipal(c.req.raw, c.env);
+  const catalog = requireKnowledgeCatalog(c.env, principal.id);
+
+  return c.json({
+    ok: true,
+    data: await catalog.listKnowledgeBases(),
+    meta: responseMeta(c.get('apiContext')),
+  });
+});
+
+app.post('/api/V1/ai/knowledge-bases', async (c) => {
+  const principal = await requirePrincipal(c.req.raw, c.env);
+
+  let body: unknown;
+  try {
+    body = await c.req.json();
+  } catch (error) {
+    throw new ApiError('A valid JSON body is required.', {
+      code: ApiErrorCode.BadRequest,
+      status: HttpStatus.BadRequest,
+      cause: error,
+    });
+  }
+
+  const parsed = knowledgeBaseCreateSchema.safeParse(body);
+  if (!parsed.success) {
+    throw new ApiError('The knowledge-base request is invalid.', {
+      code: ApiErrorCode.ValidationFailed,
+      status: HttpStatus.UnprocessableEntity,
+    });
+  }
+
+  const knowledgeBase = await requireKnowledgeCatalog(
+    c.env,
+    principal.id,
+  ).createKnowledgeBase({
+    tenantId: principal.id,
+    name: parsed.data.name,
+    ...(parsed.data.description
+      ? { description: parsed.data.description }
+      : {}),
+  });
+
+  return c.json(
+    {
+      ok: true,
+      data: knowledgeBase,
+      meta: responseMeta(c.get('apiContext')),
+    },
+    HttpStatus.Created,
+  );
+});
+
+app.get('/api/V1/ai/knowledge-bases/:knowledgeBaseId', async (c) => {
+  const principal = await requirePrincipal(c.req.raw, c.env);
+  const knowledgeBaseId = parseUuid(
+    c.req.param('knowledgeBaseId'),
+    'knowledge-base',
+  );
+  const knowledgeBase = await requireKnowledgeCatalog(
+    c.env,
+    principal.id,
+  ).getKnowledgeBase(knowledgeBaseId);
+
+  if (!knowledgeBase || knowledgeBase.tenantId !== principal.id) {
+    throw new ApiError('The AI knowledge base was not found.', {
+      code: ApiErrorCode.NotFound,
+      status: HttpStatus.NotFound,
+    });
+  }
+
+  return c.json({
+    ok: true,
+    data: knowledgeBase,
+    meta: responseMeta(c.get('apiContext')),
+  });
+});
+
+app.get(
+  '/api/V1/ai/knowledge-bases/:knowledgeBaseId/documents',
+  async (c) => {
+    const principal = await requirePrincipal(c.req.raw, c.env);
+    const knowledgeBaseId = parseUuid(
+      c.req.param('knowledgeBaseId'),
+      'knowledge-base',
+    );
+    const knowledgeBase = await requireKnowledgeCatalog(
+      c.env,
+      principal.id,
+    ).getKnowledgeBase(knowledgeBaseId);
+
+    if (!knowledgeBase || knowledgeBase.tenantId !== principal.id) {
+      throw new ApiError('The AI knowledge base was not found.', {
+        code: ApiErrorCode.NotFound,
+        status: HttpStatus.NotFound,
+      });
+    }
+
+    return c.json({
+      ok: true,
+      data: knowledgeBase.documents,
+      meta: responseMeta(c.get('apiContext')),
+    });
+  },
+);
+
+app.post(
+  '/api/V1/ai/knowledge-bases/:knowledgeBaseId/documents',
+  async (c) => {
+    const principal = await requirePrincipal(c.req.raw, c.env);
+    const knowledgeBaseId = parseUuid(
+      c.req.param('knowledgeBaseId'),
+      'knowledge-base',
+    );
+    const catalog = requireKnowledgeCatalog(c.env, principal.id);
+    const knowledgeBase = await catalog.getKnowledgeBase(knowledgeBaseId);
+
+    if (!knowledgeBase || knowledgeBase.tenantId !== principal.id) {
+      throw new ApiError('The AI knowledge base was not found.', {
+        code: ApiErrorCode.NotFound,
+        status: HttpStatus.NotFound,
+      });
+    }
+
+    let body: unknown;
+    try {
+      body = await c.req.json();
+    } catch (error) {
+      throw new ApiError('A valid JSON body is required.', {
+        code: ApiErrorCode.BadRequest,
+        status: HttpStatus.BadRequest,
+        cause: error,
+      });
+    }
+
+    const parsed = knowledgeDocumentsSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new ApiError('The knowledge documents are invalid.', {
+        code: ApiErrorCode.ValidationFailed,
+        status: HttpStatus.UnprocessableEntity,
+      });
+    }
+
+    const run = await submitDurableRun(
+      c.env,
+      principal,
+      {
+        capability: 'knowledge-ingest',
+        tenantId: principal.id,
+        actorId: principal.id,
+        input: {
+          namespace: knowledgeBaseId,
+          documents: parsed.data.documents,
+        },
+        metadata: {
+          knowledgeBaseId,
+        },
+      },
+      c.req.header('idempotency-key'),
+    );
+
+    return c.json(
+      {
+        ok: true,
+        data: run,
+        meta: responseMeta(c.get('apiContext')),
+      },
+      HttpStatus.Accepted,
+    );
+  },
+);
+
+app.delete(
+  '/api/V1/ai/knowledge-bases/:knowledgeBaseId',
+  async (c) => {
+    const principal = await requirePrincipal(c.req.raw, c.env);
+    const knowledgeBaseId = parseUuid(
+      c.req.param('knowledgeBaseId'),
+      'knowledge-base',
+    );
+    const catalog = requireKnowledgeCatalog(c.env, principal.id);
+    const knowledgeBase = await catalog.getKnowledgeBase(knowledgeBaseId);
+
+    if (!knowledgeBase || knowledgeBase.tenantId !== principal.id) {
+      throw new ApiError('The AI knowledge base was not found.', {
+        code: ApiErrorCode.NotFound,
+        status: HttpStatus.NotFound,
+      });
+    }
+
+    const vectorStore = await createVectorStore(c.env);
+    if (!vectorStore) {
+      throw new ApiError('AI vector storage is not configured.', {
+        code: ApiErrorCode.InternalError,
+        status: HttpStatus.ServiceUnavailable,
+      });
+    }
+
+    await vectorStore.deleteIndex(
+      `user:${principal.id}:knowledge:${knowledgeBaseId}`,
+    );
+    await catalog.deleteKnowledgeBase(knowledgeBaseId);
+
+    return new Response(null, { status: HttpStatus.NoContent });
+  },
 );
 
 app.get('/api/V1/ai/conversations', async (c) => {
@@ -880,6 +1115,21 @@ async function submitDurableRun(
   }
 }
 
+function requireKnowledgeCatalog(
+  bindings: AiOrchestratorBindings,
+  tenantId: string,
+) {
+  if (!bindings.AI_KNOWLEDGE_CATALOG) {
+    throw new ApiError('AI knowledge catalog is not configured.', {
+      code: ApiErrorCode.InternalError,
+      status: HttpStatus.ServiceUnavailable,
+    });
+  }
+
+  const id = bindings.AI_KNOWLEDGE_CATALOG.idFromName(tenantId);
+  return bindings.AI_KNOWLEDGE_CATALOG.get(id);
+}
+
 function requireConversationStore(
   bindings: AiOrchestratorBindings,
 ): ConversationStore {
@@ -1164,6 +1414,7 @@ function responseMeta(context: ApiRequestContext) {
 export { AiCodeSandbox } from './code-sandbox-container';
 export { AiConversationIndex } from './conversation-index';
 export { AiConversationState } from './conversation-state';
+export { AiKnowledgeCatalog } from './knowledge-catalog';
 export { AiRateLimit } from './rate-limit';
 export { AiRunIndex } from './run-index';
 export { AiRunState } from './run-state';
