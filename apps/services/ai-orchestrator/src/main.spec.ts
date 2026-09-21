@@ -39,7 +39,7 @@ describe('AI orchestrator service', () => {
       {
         QDRANT_URL: 'https://qdrant.example.test',
         QDRANT_API_KEY: 'super-secret',
-        QDRANT_COLLECTION_PREFIX: 'aerealith-test-',
+        QDRANT_COLLECTION: 'aerealith-test-knowledge',
       },
     );
 
@@ -51,7 +51,7 @@ describe('AI orchestrator service', () => {
       data: {
         provider: 'qdrant',
         configured: true,
-        collectionPrefix: 'aerealith-test-',
+        collection: 'aerealith-test-knowledge',
       },
     });
     expect(JSON.stringify(body)).not.toContain('super-secret');
