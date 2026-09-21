@@ -39,7 +39,7 @@ export const cloudflareWorkersAiModelCatalog: readonly ModelDescriptor[] = [
     priority: 100,
     contextWindow: 4_096,
     embeddingDimensions: 1_024,
-    inputCostPerMillionUnitsUsd: 0.0118,
+    inputCostPerMillionUnitsUsd: 0.012,
   },
   {
     id: CloudflareWorkersAiModels.rerank,
