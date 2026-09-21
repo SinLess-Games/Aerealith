@@ -103,6 +103,51 @@ describe('AI orchestrator service', () => {
     });
   });
 
+  it('reports configured model providers without exposing provider secrets', async () => {
+    const response = await app.request(
+      'http://localhost/api/V1/ai/providers',
+      undefined,
+      {
+        AI_PROVIDER_CATALOG: JSON.stringify([
+          {
+            id: 'primary',
+            kind: 'openai-compatible',
+            baseUrl: 'https://models.example.test/v1',
+            apiKeyBinding: 'PRIMARY_MODEL_API_KEY',
+            models: [
+              {
+                id: 'chat-model',
+                capabilities: ['text', 'code'],
+              },
+            ],
+          },
+        ]),
+        PRIMARY_MODEL_API_KEY: 'provider-secret',
+      } as never,
+    );
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+
+    expect(body).toMatchObject({
+      ok: true,
+      data: {
+        configuredProviders: 1,
+        totalProviders: 1,
+        providers: [
+          {
+            id: 'primary',
+            configured: true,
+            modelCount: 1,
+            capabilities: ['code', 'text'],
+          },
+        ],
+      },
+    });
+    expect(JSON.stringify(body)).not.toContain('provider-secret');
+    expect(JSON.stringify(body)).not.toContain('models.example.test');
+  });
+
   it('reports Qdrant vector-store configuration without exposing credentials', async () => {
     const response = await app.request(
       'http://localhost/api/V1/ai/vector-store',
@@ -140,7 +185,11 @@ describe('AI orchestrator service', () => {
     await expect(response.json()).resolves.toMatchObject({
       service: 'ai-orchestrator',
       status: 'not_ready',
-      missing: ['AI_ORCHESTRATION_WORKFLOW', 'AI_RUN_STATE'],
+      missing: [
+        'AI_ORCHESTRATION_WORKFLOW',
+        'AI_RUN_STATE',
+        'AI_PROVIDER_CATALOG',
+      ],
     });
   });
 
