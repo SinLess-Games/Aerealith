@@ -8,10 +8,11 @@ Cloudflare-first orchestration entry point for Aerealith AI.
 - Authenticate callers through the private `aerealith-auth` Worker binding.
 - Derive tenant and actor identity from authenticated server context.
 - Route work by capability rather than provider.
+- Use Cloudflare Workers AI as the built-in inference provider.
 - Start durable Cloudflare Workflow instances for production runs.
 - Persist per-run state in SQLite-backed Durable Objects.
-- Route across configured providers and models with fallback support.
 - Integrate Qdrant through a provider-neutral vector-store boundary.
+- Persist generated media and large outputs to R2.
 - Support knowledge ingestion and retrieval with tenant-isolated namespaces.
 - Preserve request and correlation IDs across the API boundary.
 
@@ -29,15 +30,47 @@ Reusable provider-neutral orchestration code lives in:
 libs/ai-orchestration
 ```
 
-Current infrastructure/provider adapters include:
+Current adapters include:
 
 ```text
+libs/ai-cloudflare-workers
 libs/ai-qdrant
 libs/ai-openai-compatible
 ```
 
-Cloudflare types remain in the service boundary rather than leaking into the
-orchestration library.
+Cloudflare runtime details remain behind service/adaptor boundaries instead of
+leaking into the orchestration domain.
+
+## Cloudflare Workers AI
+
+The orchestrator uses a native Workers AI binding:
+
+```toml
+[ai]
+binding = "AI"
+```
+
+Cloudflare-hosted models do not require provider API keys. The current built-in
+model catalog is:
+
+| Capability | Model |
+| --- | --- |
+| General text, analytics, prediction, code fallback | `@cf/zai-org/glm-4.7-flash` |
+| Code generation | `@cf/qwen/qwen2.5-coder-32b-instruct` |
+| Embeddings | `@cf/qwen/qwen3-embedding-0.6b` |
+| Reranking | `@cf/baai/bge-reranker-base` |
+| Image generation | `@cf/black-forest-labs/flux-1-schnell` |
+| Text-to-speech | `@cf/deepgram/aura-2-en` |
+
+The embedding model is configured as a 1,024-dimension cosine embedding model
+for Qdrant knowledge indexes.
+
+Video and music remain declared Aerealith capabilities but are not advertised
+as executable until a compatible runtime provider is added.
+
+Optional OpenAI-compatible providers can still be registered through
+`AI_PROVIDER_CATALOG`, but they are no longer required for the Cloudflare
+deployment.
 
 ## Current API
 
@@ -83,9 +116,6 @@ The state layer:
 - marks Workflow-dispatch failures explicitly;
 - supports Workflow termination for cancellation.
 
-Large generated outputs should be written to artifact storage rather than
-embedded in run state.
-
 ## Authentication and tenant isolation
 
 The Worker uses:
@@ -101,7 +131,7 @@ Authenticated identity is resolved through `GET /api/V1/auth/me`.
 Clients cannot submit `tenantId` or `actorId`. The service derives both from
 trusted authentication context before starting a run.
 
-Knowledge namespaces are also server-scoped. A client namespace such as:
+Knowledge namespaces are server-scoped. A client namespace such as:
 
 ```text
 project-docs
@@ -115,94 +145,22 @@ user:<authenticated-user-id>:knowledge:project-docs
 
 This prevents one caller from selecting another caller's Qdrant namespace.
 
-## Model provider catalog
-
-Providers are configured through `AI_PROVIDER_CATALOG`. Provider endpoints and
-model metadata are ordinary configuration; credentials remain secret bindings.
-
-The current adapter supports OpenAI-compatible HTTP APIs for:
-
-- text generation;
-- code-generation tasks;
-- embeddings.
-
-Example catalog:
-
-```json
-[
-  {
-    "id": "primary",
-    "kind": "openai-compatible",
-    "baseUrl": "https://models.example.invalid/v1",
-    "apiKeyBinding": "PRIMARY_MODEL_API_KEY",
-    "models": [
-      {
-        "id": "chat-model",
-        "capabilities": ["text", "code"],
-        "priority": 100,
-        "contextWindow": 128000
-      },
-      {
-        "id": "embedding-model",
-        "capabilities": ["embedding"],
-        "priority": 100,
-        "embeddingDimensions": 1536
-      }
-    ]
-  }
-]
-```
-
-The referenced credential is created separately:
-
-```bash
-cd apps/services/ai-orchestrator
-pnpm exec wrangler secret put PRIMARY_MODEL_API_KEY
-```
-
-The provider status endpoint reports only safe metadata such as provider ID,
-capabilities, model count, and configured state. It does not expose base URLs
-or credentials.
-
-Production run submission fails closed when no configured runtime path can
-execute the requested capability.
-
 ## Knowledge ingestion and retrieval
 
 Knowledge operations use the same durable run API.
-
-Example ingestion body:
-
-```json
-{
-  "capability": "knowledge-ingest",
-  "input": {
-    "namespace": "project-docs",
-    "documents": [
-      {
-        "id": "document-1",
-        "text": "Document contents",
-        "metadata": {
-          "source": "documentation"
-        }
-      }
-    ]
-  }
-}
-```
 
 The runtime:
 
 1. validates document and chunking limits;
 2. derives the authenticated tenant namespace;
 3. chunks documents;
-4. selects a configured embedding model;
-5. creates embeddings;
+4. selects the Workers AI embedding model;
+5. creates 1,024-dimension embeddings;
 6. verifies/provisions the Qdrant collection schema;
 7. upserts deterministic tenant-scoped points.
 
-Retrieval similarly embeds the query first and then searches Qdrant with a
-mandatory server-derived tenant filter.
+Retrieval embeds the query first and then searches Qdrant with a mandatory
+server-derived tenant filter.
 
 ## Qdrant Cloud
 
@@ -212,56 +170,83 @@ The configured Aerealith Qdrant Cloud endpoint is:
 https://6f069294-5f27-4777-9c34-128b132ab175.australia-southeast1-0.gcp.cloud.qdrant.io
 ```
 
-The endpoint and shared collection name are ordinary Wrangler variables. The
-API key remains a Cloudflare secret:
+The endpoint and collection name are ordinary Wrangler variables.
 
-```bash
-cd apps/services/ai-orchestrator
-pnpm exec wrangler secret put QDRANT_API_KEY
+`QDRANT_API_KEY` is an account-level Cloudflare Secrets Store binding and is
+resolved asynchronously with `env.QDRANT_API_KEY.get()`. No Qdrant
+credential is committed or stored as a per-Worker plaintext variable.
+
+The shared collection is currently:
+
+```text
+aerealith-knowledge-v1
 ```
 
-Current runtime configuration:
+The Qdrant adapter uses payload-based multitenancy, a tenant keyword index,
+deterministic UUID point IDs, mandatory namespace filtering, and live
+embedding-schema compatibility checks.
 
-- `QDRANT_URL` — Qdrant Cloud cluster URL.
-- `QDRANT_API_KEY` — secret used for Qdrant authentication.
-- `QDRANT_COLLECTION` — currently `aerealith-knowledge-v1`.
+## Artifact storage
 
-The Qdrant adapter uses one shared, versioned collection with payload-based
-multitenancy instead of creating a collection for every user.
+Generated binary media and oversized outputs are stored in the existing
+`aerealith-ai` R2 bucket through the `AI_ARTIFACTS` binding.
 
-Every point stores its logical namespace. Every query injects the namespace
-constraint. The collection provisions the namespace field as a keyword tenant
-index. Application record IDs are mapped to deterministic UUID point IDs while
-the original IDs remain in payload.
+Artifacts are scoped to a hashed tenant namespace and are never exposed by raw
+R2 key.
 
-The adapter also validates the live collection's vector dimensions and distance
-metric before ingestion. An incompatible embedding schema fails before vectors
-are written, making migration to `aerealith-knowledge-v2` or later explicit.
+Workers AI image and audio results are materialized to R2 before the Workflow
+step returns, so Durable Object state stores serializable artifact references
+rather than large binary payloads.
+
+## Cloudflare Secrets Store
+
+Production credentials use the account-level Secrets Store.
+
+The orchestrator currently binds:
+
+- `QDRANT_API_KEY`
+- `OTEL_EXPORTER_OTLP_HEADERS`
+- `PROMETHEUS_TOKEN`
+- `LOKI_TOKEN`
+- `TEMPO_TOKEN`
+- `PYROSCOPE_TOKEN`
+
+The store ID is referenced by Wrangler configuration, while secret values stay
+outside the repository.
+
+`ADMIN_PASSWORD`, `DATABASE_URL`, and `RESEND_API_KEY` remain available
+in the account store but are not bound to the AI orchestrator because this
+service does not need them.
 
 ## Grafana Cloud
 
-Cloudflare Workers observability is enabled for invocation logs and traces.
+Cloudflare Worker invocation logs and traces are enabled.
 
-Grafana credentials are not committed. Grafana Cloud tokens should remain in
-Cloudflare Secrets Store or Cloudflare observability-destination configuration.
+The supplied Grafana Cloud metrics, OTLP, Loki, Tempo, and Pyroscope endpoints
+are non-secret Wrangler variables. Their authentication material remains in
+Secrets Store.
 
-The project already has the supplied Grafana Cloud metrics, Loki, Tempo, and
-Pyroscope endpoint information available for the observability integration.
-The Worker-specific export path should use OTLP/Cloudflare observability
-destinations where possible, while containerized/self-hosted execution can use
-the direct stack endpoints.
+The next observability pass will add AI-specific telemetry such as:
+
+- capability and model selection;
+- provider latency;
+- run duration;
+- token/usage counts;
+- estimated inference cost;
+- Qdrant latency;
+- Workflow failures and retries;
+- artifact size and generation time.
 
 ## Next runtime work
 
-1. Add R2-backed artifact storage for generated media and large run results.
-2. Add media-provider adapters for image, audio, video, and music.
-3. Add tool execution workers and the code-sandbox implementation.
-4. Add server-enforced quotas, per-tenant rate limits, and cost budgets.
-5. Add AI-specific Grafana metrics/traces and cost attribution.
-6. Add reranking and richer retrieval policies.
-7. Add organization/workspace ownership above the current user-scoped tenancy
-   model.
-8. Add preview/staging resource isolation and production deployment validation.
+1. Add direct Workers AI reranking into the retrieval pipeline.
+2. Add AI-specific Grafana metrics, traces, and cost attribution.
+3. Add server-enforced quotas, per-tenant rate limits, and cost budgets.
+4. Add tool execution workers and the code-sandbox implementation.
+5. Add organization/workspace ownership above current user-scoped tenancy.
+6. Add preview/staging resource isolation and production deployment validation.
+7. Add video/music providers only when a suitable Cloudflare-native or
+   explicitly configured provider is available.
 
-Secrets, model API keys, Grafana tokens, and Qdrant credentials must remain
-outside source control.
+Secrets, Grafana tokens, and Qdrant credentials must remain outside source
+control.
