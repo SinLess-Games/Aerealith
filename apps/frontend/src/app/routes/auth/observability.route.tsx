@@ -61,9 +61,9 @@ export function ObservabilityRoute() {
         <StatusCard
           icon={FiActivity}
           label="Faro SDK"
-          value={active ? 'Active' : 'Inactive'}
+          value={active ? 'Loaded' : 'Not loaded'}
           healthy={active}
-          detail="Starts only after rollout and consent"
+          detail="Sending remains controlled by rollout and consent"
         />
         <StatusCard
           icon={FiEye}
