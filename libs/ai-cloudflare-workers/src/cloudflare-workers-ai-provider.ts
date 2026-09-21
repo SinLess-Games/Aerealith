@@ -245,6 +245,13 @@ export class CloudflareWorkersAiProvider implements ModelProvider {
     model: ModelDescriptor,
   ): Promise<OrchestrationOutput> {
     const input = request.input as ImageGenerationInput;
+
+    if (input.prompt.length > 2_048) {
+      throw new CloudflareWorkersAiProviderError(
+        'The selected Cloudflare FLUX model accepts prompts up to 2,048 characters.',
+      );
+    }
+
     if (
       input.count !== undefined && input.count !== 1 ||
       input.negativePrompt !== undefined ||
@@ -329,6 +336,12 @@ export class CloudflareWorkersAiProvider implements ModelProvider {
   ): Promise<OrchestrationOutput> {
     const input = request.input as VideoGenerationInput;
 
+    if (input.prompt.length > 2_000) {
+      throw new CloudflareWorkersAiProviderError(
+        'The selected Cloudflare Seedance model accepts prompts up to 2,000 characters.',
+      );
+    }
+
     if (
       input.negativePrompt !== undefined ||
       (input.referenceArtifactIds?.length ?? 0) > 0
@@ -388,6 +401,12 @@ export class CloudflareWorkersAiProvider implements ModelProvider {
     model: ModelDescriptor,
   ): Promise<OrchestrationOutput> {
     const input = request.input as MusicGenerationInput;
+
+    if (input.prompt.length > 2_000 || (input.lyrics?.length ?? 0) > 3_500) {
+      throw new CloudflareWorkersAiProviderError(
+        'The selected Cloudflare MiniMax model accepts prompts up to 2,000 characters and lyrics up to 3,500 characters.',
+      );
+    }
 
     if (
       input.durationSeconds !== undefined ||
