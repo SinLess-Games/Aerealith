@@ -7,6 +7,7 @@ import type {
 import type {
   RetrievalMatch,
   RetrievalQuery,
+  VectorIndexManager,
   VectorStore,
 } from './retrieval';
 
@@ -22,6 +23,7 @@ export class KnowledgeIngestionService {
     private readonly chunker: DocumentChunker,
     private readonly embeddings: EmbeddingGenerator,
     private readonly vectorStore: VectorStore,
+    private readonly indexManager?: VectorIndexManager,
   ) {}
 
   async ingest(
@@ -52,27 +54,37 @@ export class KnowledgeIngestionService {
       );
     }
 
-    await this.vectorStore.upsert(
-      request.namespace,
-      chunks.map((chunk, index) => {
-        const vector = vectors[index];
-        if (!vector || vector.length === 0) {
-          throw new KnowledgeIngestionError(
-            `Embedding generator returned an empty vector for chunk "${chunk.id}".`,
-          );
-        }
+    const records = chunks.map((chunk, index) => {
+      const vector = vectors[index];
+      if (!vector || vector.length === 0) {
+        throw new KnowledgeIngestionError(
+          `Embedding generator returned an empty vector for chunk "${chunk.id}".`,
+        );
+      }
 
-        return {
-          id: chunk.id,
-          vector,
-          text: chunk.text,
-          metadata: {
-            documentId: chunk.documentId,
-            ...(chunk.metadata ?? {}),
-          },
-        };
-      }),
-    );
+      if (vector.length !== this.embeddings.dimensions) {
+        throw new KnowledgeIngestionError(
+          `Embedding vector for chunk "${chunk.id}" has ${vector.length} dimensions; expected ${this.embeddings.dimensions}.`,
+        );
+      }
+
+      return {
+        id: chunk.id,
+        vector,
+        text: chunk.text,
+        metadata: {
+          documentId: chunk.documentId,
+          ...(chunk.metadata ?? {}),
+        },
+      };
+    });
+
+    await this.indexManager?.ensureIndex(request.namespace, {
+      dimensions: this.embeddings.dimensions,
+      distance: 'cosine',
+    });
+
+    await this.vectorStore.upsert(request.namespace, records);
 
     return {
       namespace: request.namespace,
@@ -104,6 +116,12 @@ export class KnowledgeRetrievalService {
     if (!vector || vector.length === 0) {
       throw new KnowledgeIngestionError(
         'Embedding generator returned no vector for the retrieval query.',
+      );
+    }
+
+    if (vector.length !== this.embeddings.dimensions) {
+      throw new KnowledgeIngestionError(
+        `Embedding query vector has ${vector.length} dimensions; expected ${this.embeddings.dimensions}.`,
       );
     }
 
