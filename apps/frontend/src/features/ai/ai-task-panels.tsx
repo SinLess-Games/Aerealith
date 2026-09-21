@@ -231,10 +231,10 @@ export function AiMediaPanel({
                   type="button"
                   disabled={task.pending}
                   className={[
-                    'min-h-10 rounded-lg border px-3 text-sm font-semibold capitalize',
+                    'min-h-11 rounded-xl border px-4 text-sm font-semibold capitalize transition-all duration-200',
                     value === activeCapability
-                      ? 'border-[var(--ae-primary)] bg-[var(--ae-primary-subtle)]'
-                      : 'border-[var(--ae-border)] bg-[var(--ae-background-elevated)] text-[var(--ae-foreground-muted)]',
+                      ? 'border-[var(--ae-primary)] bg-[var(--ae-primary-subtle)] text-[var(--ae-foreground)] shadow-[0_0_24px_color-mix(in_srgb,var(--ae-primary)_16%,transparent)]'
+                      : 'border-[var(--ae-border)] bg-[var(--ae-background-elevated)] text-[var(--ae-foreground-muted)] hover:-translate-y-0.5 hover:border-[var(--ae-primary)] hover:text-[var(--ae-foreground)]',
                   ].join(' ')}
                   onClick={() => {
                     setCapability(value);
@@ -549,7 +549,7 @@ export function AiToolsPanel() {
           </label>
 
           {selected?.requiresApproval ? (
-            <label className="flex items-start gap-3 rounded-lg border border-[var(--ae-border)] bg-[var(--ae-surface-muted)] p-3 text-sm">
+            <label className="flex items-start gap-3 rounded-2xl border border-[var(--ae-border)] bg-[var(--ae-surface-muted)] p-4 text-sm shadow-[var(--ae-shadow-sm)]">
               <input
                 type="checkbox"
                 checked={approved}
@@ -592,7 +592,7 @@ export function AiToolsPanel() {
 
 function ToolDescription({ tool }: { tool: AiToolDefinition }) {
   return (
-    <div className="rounded-xl border border-[var(--ae-border)] bg-[var(--ae-background-elevated)] p-4">
+    <div className="rounded-2xl border border-[var(--ae-border)] bg-[var(--ae-background-elevated)] p-4 shadow-[var(--ae-shadow-sm)]">
       <div className="flex items-center gap-2">
         <span className="font-semibold">{tool.name}</span>
         {tool.requiresApproval ? (
@@ -672,8 +672,17 @@ function TaskResult({
 
   if (!run) {
     return (
-      <aside className="flex min-h-64 items-center justify-center rounded-xl border border-dashed border-[var(--ae-border)] bg-[var(--ae-background-elevated)] p-6 text-center text-sm text-[var(--ae-foreground-muted)]">
-        Results from the next run will appear here.
+      <aside className="relative flex min-h-72 overflow-hidden rounded-[24px] border border-dashed border-[var(--ae-border)] bg-[var(--ae-background-elevated)] p-6">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,var(--ae-primary-subtle),transparent_48%)] opacity-70" />
+        <div className="relative m-auto max-w-xs text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--ae-border)] bg-[var(--ae-surface)] text-lg text-[var(--ae-primary)] shadow-[var(--ae-shadow-sm)]">
+            <FiPlay aria-hidden="true" />
+          </div>
+          <p className="mt-4 font-semibold text-[var(--ae-foreground)]">Ready for a run</p>
+          <p className="mt-1 text-sm leading-relaxed text-[var(--ae-foreground-muted)]">
+            Configure the task on the left. Output, routing details, and downloadable artifacts will appear here.
+          </p>
+        </div>
       </aside>
     );
   }
@@ -682,7 +691,9 @@ function TaskResult({
   const text = runOutputText(run);
 
   return (
-    <aside className="rounded-xl border border-[var(--ae-border)] bg-[var(--ae-background-elevated)] p-5">
+    <aside className="relative overflow-hidden rounded-[24px] border border-[var(--ae-border)] bg-[var(--ae-background-elevated)] p-5 shadow-[var(--ae-shadow-sm)]">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_50%_0%,var(--ae-primary-subtle),transparent_70%)] opacity-70" />
+      <div className="relative">
       <div className="flex items-center gap-2">
         <RunStatus status={run.status} />
         <span className="ml-auto font-mono text-[11px] text-[var(--ae-foreground-muted)]">
@@ -720,7 +731,7 @@ function TaskResult({
               href={aiApi.artifactUrl(artifactId)}
               target="_blank"
               rel="noreferrer"
-              className="flex min-h-11 items-center gap-3 rounded-lg border border-[var(--ae-border)] bg-[var(--ae-surface)] px-3 text-sm font-semibold no-underline transition-colors hover:border-[var(--ae-primary)]"
+              className="flex min-h-12 items-center gap-3 rounded-xl border border-[var(--ae-border)] bg-[var(--ae-surface)] px-4 text-sm font-semibold no-underline transition-all hover:-translate-y-0.5 hover:border-[var(--ae-primary)] hover:shadow-[var(--ae-shadow-sm)]"
             >
               <FiDownload
                 aria-hidden="true"
@@ -731,6 +742,7 @@ function TaskResult({
           ))}
         </div>
       ) : null}
+      </div>
     </aside>
   );
 }
@@ -775,19 +787,23 @@ function Panel({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-[var(--ae-border)] bg-[var(--ae-surface)] p-5 shadow-[var(--ae-shadow-sm)] sm:p-6">
-      <div className="mb-6 flex items-start gap-4">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--ae-primary)] bg-[var(--ae-primary-subtle)] text-xl text-[var(--ae-primary)]">
+    <section className="relative overflow-hidden rounded-[28px] border border-[var(--ae-border)] bg-[var(--ae-surface)] p-5 shadow-[var(--ae-shadow-sm)] sm:p-6">
+      <div className="pointer-events-none absolute -right-24 -top-28 h-72 w-72 rounded-full bg-[var(--ae-primary-subtle)] blur-3xl opacity-70" />
+      <div className="relative mb-7 flex items-start gap-4">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[var(--ae-primary)] bg-[var(--ae-primary-subtle)] text-xl text-[var(--ae-primary)] shadow-[0_0_28px_color-mix(in_srgb,var(--ae-primary)_14%,transparent)]">
           <Icon aria-hidden="true" />
         </div>
-        <div>
-          <h2 className="text-xl font-semibold">{title}</h2>
+        <div className="min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--ae-primary)]">
+            Aerealith workspace
+          </p>
+          <h2 className="mt-1 text-xl font-semibold sm:text-2xl">{title}</h2>
           <p className="mt-1 max-w-3xl text-sm leading-relaxed text-[var(--ae-foreground-muted)]">
             {description}
           </p>
         </div>
       </div>
-      {children}
+      <div className="relative">{children}</div>
     </section>
   );
 }
@@ -836,7 +852,7 @@ function PrimaryAction({
     <button
       type="button"
       disabled={disabled}
-      className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-[var(--ae-primary)] px-5 py-2.5 text-sm font-semibold text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+      className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[var(--ae-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_10px_30px_color-mix(in_srgb,var(--ae-primary)_22%,transparent)] transition-all hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-40"
       onClick={onClick}
     >
       <FiPlay aria-hidden="true" />
@@ -869,7 +885,7 @@ function shortModelName(value: string): string {
 }
 
 const inputClass =
-  'mt-2 min-h-11 w-full rounded-lg border border-[var(--ae-border)] bg-[var(--ae-background-elevated)] px-3 text-sm outline-none focus:border-[var(--ae-primary)] focus:ring-2 focus:ring-[var(--ae-primary-subtle)] disabled:opacity-60';
+  'mt-2 min-h-12 w-full rounded-xl border border-[var(--ae-border)] bg-[var(--ae-background-elevated)] px-4 text-sm outline-none transition-all placeholder:text-[var(--ae-foreground-muted)] focus:border-[var(--ae-primary)] focus:ring-4 focus:ring-[var(--ae-primary-subtle)] disabled:opacity-60';
 
 const textareaClass =
-  'mt-2 w-full resize-y rounded-lg border border-[var(--ae-border)] bg-[var(--ae-background-elevated)] px-3 py-3 text-sm leading-relaxed outline-none focus:border-[var(--ae-primary)] focus:ring-2 focus:ring-[var(--ae-primary-subtle)] disabled:opacity-60';
+  'mt-2 w-full resize-y rounded-2xl border border-[var(--ae-border)] bg-[var(--ae-background-elevated)] px-4 py-3.5 text-sm leading-relaxed outline-none transition-all placeholder:text-[var(--ae-foreground-muted)] focus:border-[var(--ae-primary)] focus:ring-4 focus:ring-[var(--ae-primary-subtle)] disabled:opacity-60';
