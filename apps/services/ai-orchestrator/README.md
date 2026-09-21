@@ -40,6 +40,7 @@ available.
 - `GET /api/V1/services/ai-orchestrator`
 - `GET /api/V1/ai/capabilities`
 - `GET /api/V1/ai/vector-store`
+- `GET /api/V1/ai/runs/:runId`
 - `POST /api/V1/ai/runs`
 
 ## Qdrant Cloud
@@ -67,6 +68,22 @@ endpoint or API key through its status API.
 
 The Qdrant adapter uses one shared knowledge collection with payload-based multitenancy. Every vector is tagged with its logical namespace, every search injects the namespace filter, and the collection provisions a tenant keyword index for that field. This avoids a collection-per-user design while preserving isolation at the vector-store boundary. The production collection is versioned so embedding-schema migrations can move to a new collection without mutating live data in place.
 
+## Durable run state
+
+Each AI run is keyed by its generated run UUID and persisted in a
+SQLite-backed Cloudflare Durable Object through the `AI_RUN_STATE` binding.
+
+The durable state layer:
+
+- writes the `accepted` state before starting the Workflow;
+- records Workflow transitions such as `planning` and `queued`;
+- validates allowed run-state transitions;
+- marks dispatch failures as `failed`;
+- makes run status queryable through `GET /api/V1/ai/runs/:runId`;
+- keeps each run isolated in its own Durable Object.
+
+Durable Object migration `v1` creates the `AiRunState` SQLite-backed class.
+
 ## Grafana Cloud
 
 Cloudflare Workers observability is enabled in Wrangler.
@@ -84,13 +101,13 @@ created.
 ## Next runtime integrations
 
 1. Authenticated tenant and actor context.
-2. Provider/model catalog and provider adapters.
-3. Durable run persistence.
-4. Embedding provider integration for Qdrant knowledge ingestion/retrieval.
-5. Durable run persistence.
+2. Production provider/model catalog and provider credentials.
+3. Execute selected providers from the durable Workflow lifecycle.
+4. Production embedding-provider configuration for Qdrant ingestion/retrieval.
+5. Run result persistence and cancellation.
 6. Server-enforced quotas, cost budgets, and rate limits.
 7. Grafana Cloud OTLP destination wiring and AI-specific telemetry.
-8. Artifact storage for generated image, audio, video, and other binary output.
+8. R2 artifact storage for generated image, audio, video, and other binary output.
 
 Secrets, model API keys, Grafana tokens, and Qdrant credentials must remain
 outside source control.
