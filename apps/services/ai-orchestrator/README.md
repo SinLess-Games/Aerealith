@@ -61,12 +61,14 @@ model catalog is:
 | Reranking | `@cf/baai/bge-reranker-base` |
 | Image generation | `@cf/black-forest-labs/flux-1-schnell` |
 | Text-to-speech | `@cf/deepgram/aura-2-en` |
+| Video generation | `bytedance/seedance-2.0-mini` |
+| Music generation | `minimax/music-2.6` |
 
 The embedding model is configured as a 1,024-dimension cosine embedding model
 for Qdrant knowledge indexes.
 
-Video and music remain declared Aerealith capabilities but are not advertised
-as executable until a compatible runtime provider is added.
+Video and music use Cloudflare's unified AI binding and are materialized into
+tenant-scoped R2 artifacts before durable run state is persisted.
 
 Optional OpenAI-compatible providers can still be registered through
 `AI_PROVIDER_CATALOG`, but they are no longer required for the Cloudflare
@@ -80,6 +82,7 @@ deployment.
 - `GET /api/V1/ai/capabilities`
 - `GET /api/V1/ai/providers`
 - `GET /api/V1/ai/models`
+- `GET /api/V1/ai/tools`
 - `GET /api/V1/ai/vector-store`
 - `GET /api/V1/ai/usage`
 - `GET /api/V1/ai/runs`
@@ -213,9 +216,9 @@ Generated binary media and oversized outputs are stored in the existing
 Artifacts are scoped to a hashed tenant namespace and are never exposed by raw
 R2 key.
 
-Workers AI image and audio results are materialized to R2 before the Workflow
-step returns, so Durable Object state stores serializable artifact references
-rather than large binary payloads.
+Image, audio, video, and music results are materialized to R2 before the
+Workflow step returns, so Durable Object state stores serializable artifact
+references rather than large binary payloads.
 
 ## Cloudflare Secrets Store
 
@@ -245,21 +248,20 @@ not the Worker environment.
 
 Current AI-specific telemetry includes:
 
-- capability and model selection;
-- provider latency;
-- run duration;
-- token/usage counts;
-- estimated inference cost;
-- Qdrant latency;
-- Workflow failures and retries;
-- artifact size and generation time.
+- run capability;
+- selected provider and model;
+- end-to-end run duration;
+- token/usage counts when reported by the model provider;
+- estimated inference cost when pricing metadata is available;
+- generated artifact count;
+- normalized execution failure codes.
 
 ## Typed UI client
 
 `libs/ai-client` provides the stable frontend/server client for the AI API.
 It currently wraps:
 
-- capability, provider, and model discovery;
+- capability, provider, model, and tool discovery;
 - usage reporting;
 - retry-safe run creation with `Idempotency-Key`;
 - run history and status;
@@ -282,18 +284,44 @@ The API now includes:
 - SSE run lifecycle events for responsive UIs;
 - model/capability discovery;
 - authenticated artifact retrieval and deletion;
-- Workflow cancellation.
+- Workflow cancellation;
+- isolated Cloudflare Container coding-agent execution;
+- tenant-scoped persistent coding/tool workspaces with idle teardown;
+- approval-gated sandbox write/exec tools;
+- R2 patch artifacts for repository editing tasks;
+- Cloudflare unified video and music generation.
 
 Daily run and cost limits default to unlimited until product-tier limits are
 configured, while the per-minute limiter defaults to 60 runs/minute.
 
-## Remaining runtime work
+## Coding agent and tools
 
-1. Implement the Cloudflare Sandbox-backed coding-agent execution service.
-2. Configure Grafana Cloud account-level log/trace destinations.
-3. Add organization/workspace ownership above current user-scoped tenancy.
-4. Add preview/staging resource isolation and production deployment validation.
-5. Add video/music providers only when a suitable runtime provider is selected.
+Repository-aware `code` runs execute in isolated Cloudflare Containers.
+A run can clone a credential-free HTTPS repository, inspect relevant files,
+request a structured implementation plan from the selected code model, write
+complete replacement files, run allowlisted test/build commands, and return a
+binary-safe Git patch as an R2 artifact.
+
+Direct tool execution is exposed through the `tool` capability. Read-only
+tools can list, read, and search a tenant-scoped workspace. File writes and
+command execution require explicit request approval. User-controlled commands
+are restricted to an allowlist and are passed as argv rather than through a
+shell.
+
+Persistent workspaces automatically destroy their container after 20 minutes
+of inactivity. Ephemeral coding runs destroy their container immediately after
+completion.
+
+## Deployment validation
+
+The API implementation is feature-complete for the current Cloudflare-first
+scope. Production release still requires normal deployment validation:
+Wrangler dry-run/deploy checks, green CI/security checks, and account-level
+Grafana Cloud observability destinations.
+
+Organization-level tenancy and additional product-tier policy are expansion
+work above the current authenticated-user tenancy model, not blockers for the
+v1 AI API.
 
 Secrets, Grafana tokens, and Qdrant credentials must remain outside source
 control.
