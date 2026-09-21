@@ -16,6 +16,7 @@
     "@aerealith-ai/api-platform": "workspace:*",
     "@aerealith-ai/core": "workspace:*",
     "@aerealith-ai/observability": "workspace:*",
+    "@cloudflare/sandbox": "0.12.9",
     "hono": "4.13.8",
     "zod": "4.4.3"
   }
