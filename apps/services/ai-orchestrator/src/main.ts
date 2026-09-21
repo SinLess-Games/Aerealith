@@ -3,14 +3,14 @@ import { Hono } from 'hono';
 import { secureHeaders } from 'hono/secure-headers';
 import { z } from 'zod';
 
-import { BasicOrchestrationEngine } from './orchestrator';
+import type { AiOrchestratorBindings } from './bindings';
+import { CloudflareWorkflowOrchestrationEngine } from './cloudflare-workflow-engine';
+import {
+  BasicOrchestrationEngine,
+  type OrchestrationEngine,
+} from './orchestrator';
 
-type Bindings = {
-  ENVIRONMENT?: string;
-};
-
-const app = new Hono<{ Bindings: Bindings }>();
-const engine = new BasicOrchestrationEngine();
+const app = new Hono<{ Bindings: AiOrchestratorBindings }>();
 
 const requestSchema = z.object({
   capability: z.enum(capabilityKinds),
@@ -39,6 +39,28 @@ app.get('/health', (c) =>
     environment: c.env.ENVIRONMENT ?? 'development',
   }),
 );
+
+app.get('/ready', (c) => {
+  const environment = c.env.ENVIRONMENT ?? 'development';
+  const workflowConfigured = Boolean(c.env.AI_ORCHESTRATION_WORKFLOW);
+
+  if (environment === 'production' && !workflowConfigured) {
+    return c.json(
+      {
+        service: 'ai-orchestrator',
+        status: 'not_ready',
+        reason: 'AI_ORCHESTRATION_WORKFLOW binding is required in production.',
+      },
+      503,
+    );
+  }
+
+  return c.json({
+    service: 'ai-orchestrator',
+    status: 'ready',
+    workflowConfigured,
+  });
+});
 
 app.get('/api/V1/services/ai-orchestrator', (c) =>
   c.json({
@@ -73,6 +95,7 @@ app.post('/api/V1/ai/runs', async (c) => {
     );
   }
 
+  const engine = resolveEngine(c.env);
   const result = await engine.submit(parsed.data);
   return c.json({ ok: true, data: result }, 202);
 });
@@ -91,4 +114,15 @@ app.onError((error, c) => {
   );
 });
 
+function resolveEngine(bindings: AiOrchestratorBindings): OrchestrationEngine {
+  if (bindings.AI_ORCHESTRATION_WORKFLOW) {
+    return new CloudflareWorkflowOrchestrationEngine(
+      bindings.AI_ORCHESTRATION_WORKFLOW,
+    );
+  }
+
+  return new BasicOrchestrationEngine();
+}
+
+export { AiOrchestrationWorkflow } from './workflow';
 export default app;
