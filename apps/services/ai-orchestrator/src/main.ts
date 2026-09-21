@@ -21,6 +21,7 @@ import {
 import type { AiOrchestratorBindings } from './bindings';
 import { CloudflareWorkflowOrchestrationEngine } from './cloudflare-workflow-engine';
 import { executableCapabilities } from './execution-runtime';
+import { createIdempotentRunIdentity } from './idempotency';
 import {
   BasicOrchestrationEngine,
   type OrchestrationEngine,
@@ -477,6 +478,64 @@ app.post('/api/V1/ai/runs', async (c) => {
     });
   }
 
+  const request = {
+    ...parsed.data,
+    tenantId: principal.id,
+    actorId: principal.id,
+  };
+  const idempotencyKey = c.req.header('idempotency-key');
+  let submissionOptions:
+    | {
+        runId: string;
+        requestFingerprint: string;
+      }
+    | undefined;
+
+  if (idempotencyKey !== undefined) {
+    try {
+      submissionOptions = await createIdempotentRunIdentity(
+        principal.id,
+        idempotencyKey,
+        request,
+      );
+    } catch (error) {
+      throw new ApiError('The Idempotency-Key header is invalid.', {
+        code: ApiErrorCode.ValidationFailed,
+        status: HttpStatus.UnprocessableEntity,
+        cause: error,
+      });
+    }
+
+    const runs = createRunStore(c.env);
+    const existing = runs
+      ? await runs.get(submissionOptions.runId)
+      : undefined;
+
+    if (existing) {
+      if (
+        existing.requestFingerprint !==
+        submissionOptions.requestFingerprint
+      ) {
+        throw new ApiError(
+          'The Idempotency-Key was already used for a different request.',
+          {
+            code: ApiErrorCode.Conflict,
+            status: HttpStatus.Conflict,
+          },
+        );
+      }
+
+      return c.json(
+        {
+          ok: true,
+          data: existing,
+          meta: responseMeta(c.get('apiContext')),
+        },
+        HttpStatus.Accepted,
+      );
+    }
+  }
+
   assertRunSubmissionReady(c.env, parsed.data.capability);
   await enforceRunRateLimit(c.env, principal.id);
   const usageReserved = await enforceDailyUsageLimits(
@@ -487,11 +546,7 @@ app.post('/api/V1/ai/runs', async (c) => {
   const engine = resolveEngine(c.env);
 
   try {
-    const result = await engine.submit({
-      ...parsed.data,
-      tenantId: principal.id,
-      actorId: principal.id,
-    });
+    const result = await engine.submit(request, submissionOptions);
 
     return c.json(
       {
