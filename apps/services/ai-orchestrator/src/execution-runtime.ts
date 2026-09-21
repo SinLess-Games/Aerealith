@@ -1,6 +1,8 @@
 import {
+  capabilityKinds,
   CapabilityRoutingPolicy,
   OrchestrationExecutor,
+  type CapabilityKind,
   type EmbeddingOutput,
   type OrchestrationOutput,
   type OrchestrationRequest,
@@ -17,6 +19,35 @@ export class VectorStoreUnavailableError extends Error {
     super('The vector store is not configured.');
     this.name = 'VectorStoreUnavailableError';
   }
+}
+
+export function executableCapabilities(
+  bindings: AiOrchestratorBindings,
+): readonly CapabilityKind[] {
+  const providers = createProviderRegistry(bindings);
+  const direct = new Set<CapabilityKind>();
+
+  for (const provider of providers.list()) {
+    const models = provider.listModels();
+
+    if (models instanceof Promise) {
+      // Runtime catalogs currently use synchronous model lists. Async provider
+      // discovery is intentionally excluded from readiness evaluation.
+      continue;
+    }
+
+    for (const model of models) {
+      for (const capability of model.capabilities) {
+        direct.add(capability);
+      }
+    }
+  }
+
+  if (direct.has('embedding') && createVectorStore(bindings)) {
+    direct.add('retrieval');
+  }
+
+  return capabilityKinds.filter((capability) => direct.has(capability));
 }
 
 export async function executeOrchestrationRequest(
