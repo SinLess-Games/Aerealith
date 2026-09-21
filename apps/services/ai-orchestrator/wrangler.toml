@@ -36,23 +36,10 @@ AI_DAILY_COST_BUDGET_USD = "0"
 QDRANT_URL = "https://6f069294-5f27-4777-9c34-128b132ab175.australia-southeast1-0.gcp.cloud.qdrant.io"
 QDRANT_COLLECTION = "aerealith-knowledge-v1"
 
-OTEL_EXPORTER_OTLP_ENDPOINT = "https://otlp-gateway-prod-us-west-0.grafana.net/otlp"
-OTEL_EXPORTER_OTLP_PROTOCOL = "http/protobuf"
-OTEL_SERVICE_NAMESPACE = "aerealith"
-OTEL_SERVICE_NAME = "ai-orchestrator"
-
-PROMETHEUS_METRICS_URL = "https://prometheus-prod-67-prod-us-west-0.grafana.net/api/prom/push"
-PROMETHEUS_USER_ID = "3406144"
-
-LOKI_LOGGING_URL = "https://logs-prod-021.grafana.net"
-LOKI_USER_ID = "1698747"
-
-TEMPO_TRACING_URL = "https://tempo-prod-15-prod-us-west-0.grafana.net/tempo"
-TEMPO_USER_ID = "1693048"
-
-PYROSCOPE_URL = "https://profiles-prod-008.grafana.net"
-PYROSCOPE_USER_ID = "1740960"
-
+# Grafana Cloud logs/traces are exported through account-level Cloudflare
+# Workers Observability destinations, not Worker runtime credentials.
+# After destinations are created, add their names under observability.logs
+# and observability.traces.
 [[workflows]]
 name = "aerealith-ai-orchestration"
 binding = "AI_ORCHESTRATION_WORKFLOW"
