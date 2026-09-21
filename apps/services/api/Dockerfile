@@ -64,7 +64,7 @@ RUN --mount=type=cache,id=aerealith-pnpm,target=/pnpm/store,sharing=locked \
   pnpm install \
   --frozen-lockfile \
   --ignore-scripts \
-  --store-dir=/pnpm/store \ \
+  --store-dir=/pnpm/store \
   && pnpm rebuild nx
 
 
