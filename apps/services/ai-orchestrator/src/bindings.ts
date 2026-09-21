@@ -152,12 +152,4 @@ export type AiOrchestratorBindings = {
    */
   QDRANT_COLLECTION?: string;
 
-  /**
-   * Grafana Cloud credentials are account-level Secrets Store bindings.
-   */
-  OTEL_EXPORTER_OTLP_HEADERS?: SecretStoreBinding | string;
-  PROMETHEUS_TOKEN?: SecretStoreBinding | string;
-  LOKI_TOKEN?: SecretStoreBinding | string;
-  TEMPO_TOKEN?: SecretStoreBinding | string;
-  PYROSCOPE_TOKEN?: SecretStoreBinding | string;
 };
