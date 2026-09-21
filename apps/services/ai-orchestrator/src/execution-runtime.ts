@@ -21,6 +21,7 @@ import {
   type RetrievalMatch,
   type RetrievalOutput,
   type RerankOutput,
+  type Usage,
 } from '@aerealith-ai/ai-orchestration';
 
 import { createArtifactStore } from './artifact-runtime';
@@ -397,6 +398,7 @@ async function executeKnowledgeIngestion(
     content,
     providerId: embeddings.providerId,
     modelId: result.embeddingModelId,
+    ...(embeddings.usage ? { usage: embeddings.usage } : {}),
   };
 }
 
@@ -450,6 +452,7 @@ async function executeRetrieval(
     content,
     providerId: embeddings.providerId,
     modelId: embeddings.modelId,
+    ...(embeddings.usage ? { usage: embeddings.usage } : {}),
   };
 }
 
@@ -520,6 +523,7 @@ async function rerankMatches(
 class RoutingEmbeddingGenerator implements EmbeddingGenerator {
   private activeProviderId: string;
   private activeModelId: string;
+  private activeUsage: Usage | undefined;
 
   constructor(
     private readonly targets: readonly {
@@ -544,6 +548,10 @@ class RoutingEmbeddingGenerator implements EmbeddingGenerator {
 
   get modelId(): string {
     return this.activeModelId;
+  }
+
+  get usage(): Usage | undefined {
+    return this.activeUsage;
   }
 
   async embed(
@@ -584,6 +592,7 @@ class RoutingEmbeddingGenerator implements EmbeddingGenerator {
 
         this.activeProviderId = result.providerId;
         this.activeModelId = result.modelId;
+        this.activeUsage = result.usage;
         return content.vectors;
       } catch (error) {
         failures.push({
