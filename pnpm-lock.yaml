@@ -54,6 +54,15 @@ importers:
         specifier: ^2.3.0
         version: 2.8.1
 
+  libs/ai-openai-compatible:
+    dependencies:
+      '@aerealith-ai/ai-orchestration':
+        specifier: workspace:*
+        version: link:../ai-orchestration
+      tslib:
+        specifier: ^2.3.0
+        version: 2.8.1
+
   libs/ai-qdrant:
     dependencies:
       '@aerealith-ai/ai-orchestration':
