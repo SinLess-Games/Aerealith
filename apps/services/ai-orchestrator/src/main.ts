@@ -17,6 +17,7 @@ import {
   BasicOrchestrationEngine,
   type OrchestrationEngine,
 } from './orchestrator';
+import { vectorStoreStatus } from './vector-store';
 
 type AiOrchestratorEnv = ApiEnv<ApiRequestContext, AiOrchestratorBindings>;
 
@@ -69,6 +70,7 @@ app.get('/health', (c) =>
 app.get('/ready', (c) => {
   const environment = c.env.ENVIRONMENT ?? 'development';
   const workflowConfigured = Boolean(c.env.AI_ORCHESTRATION_WORKFLOW);
+  const vectorStore = vectorStoreStatus(c.env);
 
   if (environment === 'production' && !workflowConfigured) {
     return c.json(
@@ -76,6 +78,12 @@ app.get('/ready', (c) => {
         service: 'ai-orchestrator',
         status: 'not_ready',
         reason: 'AI_ORCHESTRATION_WORKFLOW binding is required in production.',
+        dependencies: {
+          vectorStore: {
+            provider: vectorStore.provider,
+            configured: vectorStore.configured,
+          },
+        },
         meta: responseMeta(c.get('apiContext')),
       },
       HttpStatus.ServiceUnavailable,
@@ -86,6 +94,12 @@ app.get('/ready', (c) => {
     service: 'ai-orchestrator',
     status: 'ready',
     workflowConfigured,
+    dependencies: {
+      vectorStore: {
+        provider: vectorStore.provider,
+        configured: vectorStore.configured,
+      },
+    },
     meta: responseMeta(c.get('apiContext')),
   });
 });
@@ -98,6 +112,20 @@ app.get('/api/V1/services/ai-orchestrator', (c) =>
     meta: responseMeta(c.get('apiContext')),
   }),
 );
+
+app.get('/api/V1/ai/vector-store', (c) => {
+  const status = vectorStoreStatus(c.env);
+
+  return c.json({
+    ok: true,
+    data: {
+      provider: status.provider,
+      configured: status.configured,
+      collectionPrefix: status.collectionPrefix,
+    },
+    meta: responseMeta(c.get('apiContext')),
+  });
+});
 
 app.get('/api/V1/ai/capabilities', (c) =>
   c.json({
