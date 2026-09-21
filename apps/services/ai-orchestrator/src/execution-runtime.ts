@@ -5,9 +5,10 @@ import {
   FixedWindowTextChunker,
   KnowledgeIngestionService,
   OrchestrationExecutor,
-  ProviderEmbeddingGenerator,
+  ProviderExecutionError,
   type CapabilityKind,
   type CodeGenerationInput,
+  type EmbeddingGenerator,
   type EmbeddingOutput,
   type KnowledgeIngestionInput,
   type KnowledgeIngestionOutput,
@@ -361,21 +362,9 @@ async function executeKnowledgeIngestion(
     tenantId,
     input.namespace,
   );
-  const { provider, model } = await selectEmbeddingTarget(
+  const embeddings = await createRoutingEmbeddingGenerator(
     bindings,
     request,
-    true,
-  );
-  const dimensions = model.embeddingDimensions;
-
-  if (!dimensions) {
-    throw new EmbeddingDimensionsRequiredError(model.id);
-  }
-
-  const embeddings = new ProviderEmbeddingGenerator(
-    provider,
-    model,
-    dimensions,
   );
   const chunker = new FixedWindowTextChunker({
     ...(input.chunking?.maxCharacters === undefined
@@ -406,8 +395,8 @@ async function executeKnowledgeIngestion(
 
   return {
     content,
-    providerId: provider.id,
-    modelId: model.id,
+    providerId: embeddings.providerId,
+    modelId: result.embeddingModelId,
   };
 }
 
@@ -427,24 +416,11 @@ async function executeRetrieval(
     tenantId,
     input.namespace,
   );
-  const { provider, model } = await selectEmbeddingTarget(
+  const embeddings = await createRoutingEmbeddingGenerator(
     bindings,
     request,
   );
-
-  const embeddingResult = await provider.execute(
-    {
-      ...request,
-      capability: 'embedding',
-      input: {
-        texts: [input.query],
-      },
-      preferences: embeddingPreferences(request),
-    },
-    model,
-  );
-  const embeddingOutput = embeddingResult.content as EmbeddingOutput;
-  const vector = embeddingOutput.vectors[0];
+  const [vector] = await embeddings.embed([input.query]);
 
   if (!vector || vector.length === 0) {
     throw new Error('Embedding provider returned no retrieval query vector.');
@@ -472,9 +448,8 @@ async function executeRetrieval(
 
   return {
     content,
-    providerId: embeddingResult.providerId,
-    modelId: embeddingResult.modelId,
-    ...(embeddingResult.usage ? { usage: embeddingResult.usage } : {}),
+    providerId: embeddings.providerId,
+    modelId: embeddings.modelId,
   };
 }
 
@@ -542,49 +517,161 @@ async function rerankMatches(
     .slice(0, limit);
 }
 
-async function selectEmbeddingTarget(
+class RoutingEmbeddingGenerator implements EmbeddingGenerator {
+  private activeProviderId: string;
+  private activeModelId: string;
+
+  constructor(
+    private readonly targets: readonly {
+      provider: ModelProvider;
+      model: ModelDescriptor;
+    }[],
+    readonly dimensions: number,
+    private readonly request: OrchestrationRequest,
+  ) {
+    const primary = targets[0];
+    if (!primary) {
+      throw new Error('No embedding route is available.');
+    }
+
+    this.activeProviderId = primary.provider.id;
+    this.activeModelId = primary.model.id;
+  }
+
+  get providerId(): string {
+    return this.activeProviderId;
+  }
+
+  get modelId(): string {
+    return this.activeModelId;
+  }
+
+  async embed(
+    texts: readonly string[],
+  ): Promise<readonly (readonly number[])[]> {
+    const failures: Array<{
+      providerId: string;
+      modelId: string;
+      error: unknown;
+    }> = [];
+
+    for (const target of this.targets) {
+      try {
+        const result = await target.provider.execute(
+          {
+            ...this.request,
+            capability: 'embedding',
+            input: { texts },
+            preferences: embeddingPreferences(this.request),
+          },
+          target.model,
+        );
+        const content = result.content as EmbeddingOutput;
+
+        if (
+          !content ||
+          !Array.isArray(content.vectors) ||
+          content.dimensions !== this.dimensions ||
+          content.vectors.length !== texts.length ||
+          content.vectors.some(
+            (vector) => vector.length !== this.dimensions,
+          )
+        ) {
+          throw new Error(
+            `Embedding model "${target.model.id}" returned an unexpected vector shape.`,
+          );
+        }
+
+        this.activeProviderId = result.providerId;
+        this.activeModelId = result.modelId;
+        return content.vectors;
+      } catch (error) {
+        failures.push({
+          providerId: target.provider.id,
+          modelId: target.model.id,
+          error,
+        });
+      }
+    }
+
+    throw new ProviderExecutionError(
+      `All ${this.targets.length} eligible embedding route(s) failed.`,
+      failures,
+    );
+  }
+}
+
+async function createRoutingEmbeddingGenerator(
   bindings: AiOrchestratorBindings,
   request: OrchestrationRequest,
-  requireDimensions = false,
-): Promise<{
-  provider: ModelProvider;
-  model: ModelDescriptor;
-}> {
+): Promise<RoutingEmbeddingGenerator> {
   const providers = createProviderRegistry(bindings);
   const routing = new CapabilityRoutingPolicy();
-  const availableEmbeddingModels = await providers.modelsFor('embedding');
-  const embeddingModels = requireDimensions
-    ? availableEmbeddingModels.filter(
-        (model) =>
-          Number.isInteger(model.embeddingDimensions) &&
-          (model.embeddingDimensions ?? 0) > 0,
-      )
-    : availableEmbeddingModels;
+  const candidates = (await providers.modelsFor('embedding')).filter(
+    (model) =>
+      Number.isInteger(model.embeddingDimensions) &&
+      (model.embeddingDimensions ?? 0) > 0,
+  );
   const embeddingRequest: OrchestrationRequest = {
     ...request,
     capability: 'embedding',
     input: { texts: ['routing-probe'] },
     preferences: embeddingPreferences(request),
   };
-  const route = routing.select(embeddingRequest, embeddingModels);
-  const provider = providers.get(route.providerId);
+  const ranked = routing.rank(embeddingRequest, candidates);
+  const selectedRoutes =
+    request.preferences?.allowFallback === false
+      ? ranked.slice(0, 1)
+      : ranked;
+  const primaryRoute = selectedRoutes[0];
 
-  if (!provider) {
-    throw new Error(
-      `Embedding provider "${route.providerId}" is not registered.`,
+  if (!primaryRoute) {
+    throw new Error('No embedding route is available.');
+  }
+
+  const primaryModel = candidates.find(
+    (candidate) =>
+      candidate.providerId === primaryRoute.providerId &&
+      candidate.id === primaryRoute.modelId,
+  );
+  const dimensions = primaryModel?.embeddingDimensions;
+
+  if (!primaryModel || !dimensions) {
+    throw new EmbeddingDimensionsRequiredError(
+      primaryRoute.modelId,
     );
   }
 
-  const models = await provider.listModels();
-  const model = models.find((candidate) => candidate.id === route.modelId);
+  const targets: Array<{
+    provider: ModelProvider;
+    model: ModelDescriptor;
+  }> = [];
 
-  if (!model) {
-    throw new Error(
-      `Embedding model "${route.modelId}" is not available.`,
+  for (const route of selectedRoutes) {
+    const provider = providers.get(route.providerId);
+    if (!provider) continue;
+
+    const models = await provider.listModels();
+    const model = models.find(
+      (candidate) =>
+        candidate.id === route.modelId &&
+        candidate.embeddingDimensions === dimensions,
     );
+
+    if (model) {
+      targets.push({ provider, model });
+    }
   }
 
-  return { provider, model };
+  if (targets.length === 0) {
+    throw new Error('No compatible embedding route is available.');
+  }
+
+  return new RoutingEmbeddingGenerator(
+    targets,
+    dimensions,
+    embeddingRequest,
+  );
 }
 
 function embeddingPreferences(
