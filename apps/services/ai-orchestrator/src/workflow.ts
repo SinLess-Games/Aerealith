@@ -40,6 +40,12 @@ export class AiOrchestrationWorkflow extends WorkflowEntrypoint<
       const timestamp = new Date().toISOString();
       const run: RunRecord = {
         id: event.payload.runId,
+        ...(event.payload.request.tenantId
+          ? { tenantId: event.payload.request.tenantId }
+          : {}),
+        ...(event.payload.request.actorId
+          ? { actorId: event.payload.request.actorId }
+          : {}),
         status: 'planning',
         capability: event.payload.request.capability,
         createdAt: timestamp,
