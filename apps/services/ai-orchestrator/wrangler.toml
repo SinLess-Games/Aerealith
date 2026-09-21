@@ -9,3 +9,8 @@ head_sampling_rate = 1.0
 
 [vars]
 ENVIRONMENT = "production"
+
+[[workflows]]
+name = "aerealith-ai-orchestration"
+binding = "AI_ORCHESTRATION_WORKFLOW"
+class_name = "AiOrchestrationWorkflow"
