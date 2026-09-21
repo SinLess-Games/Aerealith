@@ -183,7 +183,10 @@ app.get('/api/V1/ai/vector-store', (c) => {
 app.get('/api/V1/ai/capabilities', (c) =>
   c.json({
     ok: true,
-    data: capabilityKinds,
+    data: {
+      declared: capabilityKinds,
+      executable: executableCapabilities(c.env),
+    },
     meta: responseMeta(c.get('apiContext')),
   }),
 );
