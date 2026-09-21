@@ -478,24 +478,38 @@ app.post('/api/V1/ai/runs', async (c) => {
   }
 
   assertRunSubmissionReady(c.env, parsed.data.capability);
-  await enforceDailyUsageLimits(c.env, principal.id);
   await enforceRunRateLimit(c.env, principal.id);
+  const usageReserved = await enforceDailyUsageLimits(
+    c.env,
+    principal.id,
+  );
 
   const engine = resolveEngine(c.env);
-  const result = await engine.submit({
-    ...parsed.data,
-    tenantId: principal.id,
-    actorId: principal.id,
-  });
 
-  return c.json(
-    {
-      ok: true,
-      data: result,
-      meta: responseMeta(c.get('apiContext')),
-    },
-    HttpStatus.Accepted,
-  );
+  try {
+    const result = await engine.submit({
+      ...parsed.data,
+      tenantId: principal.id,
+      actorId: principal.id,
+    });
+
+    return c.json(
+      {
+        ok: true,
+        data: result,
+        meta: responseMeta(c.get('apiContext')),
+      },
+      HttpStatus.Accepted,
+    );
+  } catch (error) {
+    if (usageReserved && c.env.AI_USAGE) {
+      await new AiUsageStore(c.env.AI_USAGE)
+        .releaseRun(principal.id)
+        .catch(() => undefined);
+    }
+
+    throw error;
+  }
 });
 
 async function requirePrincipal(
@@ -527,7 +541,7 @@ async function requirePrincipal(
 async function enforceDailyUsageLimits(
   bindings: AiOrchestratorBindings,
   tenantId: string,
-): Promise<void> {
+): Promise<boolean> {
   if (!bindings.AI_USAGE) {
     if ((bindings.ENVIRONMENT ?? 'development') === 'production') {
       throw new ApiError('AI usage tracking is not configured.', {
@@ -536,7 +550,7 @@ async function enforceDailyUsageLimits(
       });
     }
 
-    return;
+    return false;
   }
 
   const dailyRunLimit = parseNonNegativeInteger(
@@ -570,6 +584,8 @@ async function enforceDailyUsageLimits(
       },
     );
   }
+
+  return true;
 }
 
 async function enforceRunRateLimit(
