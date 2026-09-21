@@ -44,3 +44,7 @@ new_sqlite_classes = ["AiRunState"]
 [[services]]
 binding = "AUTH_WORKER"
 service = "aerealith-auth"
+
+[[r2_buckets]]
+binding = "AI_ARTIFACTS"
+bucket_name = "aerealith-ai"
