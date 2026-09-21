@@ -80,7 +80,7 @@ describe('AI execution runtime', () => {
 
           expect(body.filter.must[0]).toEqual({
             key: 'namespace',
-            match: { value: 'tenant-a:knowledge' },
+            match: { value: 'user:user-123:knowledge:tenant-a:knowledge' },
           });
 
           return new Response(
@@ -119,6 +119,8 @@ describe('AI execution runtime', () => {
       configuredBindings(),
       {
         capability: 'retrieval',
+        tenantId: 'user-123',
+        actorId: 'user-123',
         input: {
           namespace: 'tenant-a:knowledge',
           query: 'What is Aerealith?',
