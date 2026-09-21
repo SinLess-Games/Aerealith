@@ -1,8 +1,8 @@
+import { capabilityKinds } from '@aerealith-ai/ai-orchestration';
 import { Hono } from 'hono';
 import { secureHeaders } from 'hono/secure-headers';
 import { z } from 'zod';
 
-import { capabilityKinds } from './domain';
 import { BasicOrchestrationEngine } from './orchestrator';
 
 type Bindings = {
@@ -15,7 +15,18 @@ const engine = new BasicOrchestrationEngine();
 const requestSchema = z.object({
   capability: z.enum(capabilityKinds),
   input: z.unknown(),
-  model: z.string().min(1).optional(),
+  tenantId: z.string().min(1).optional(),
+  actorId: z.string().min(1).optional(),
+  priority: z.enum(['interactive', 'background', 'batch']).optional(),
+  preferences: z
+    .object({
+      provider: z.string().min(1).optional(),
+      model: z.string().min(1).optional(),
+      allowFallback: z.boolean().optional(),
+      maxCostUsd: z.number().nonnegative().optional(),
+      maxLatencyMs: z.number().int().positive().optional(),
+    })
+    .optional(),
   metadata: z.record(z.string(), z.string()).optional(),
 });
 
@@ -34,6 +45,13 @@ app.get('/api/V1/services/ai-orchestrator', (c) =>
     service: 'ai-orchestrator',
     status: 'ok',
     capabilities: capabilityKinds,
+  }),
+);
+
+app.get('/api/V1/ai/capabilities', (c) =>
+  c.json({
+    ok: true,
+    data: capabilityKinds,
   }),
 );
 
