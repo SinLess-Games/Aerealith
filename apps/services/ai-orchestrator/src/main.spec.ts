@@ -182,7 +182,8 @@ function createRunIndexNamespace() {
 
       return {
         async upsertRun(run) {
-          const { output: _output, ...indexed } = run;
+          const { output, ...indexed } = run;
+          void output;
           const current = runsByTenant.get(tenantId) ?? [];
           runsByTenant.set(tenantId, [
             indexed,
@@ -257,6 +258,10 @@ function createUsageNamespace(options?: {
             allowed: true,
             usage: { ...state },
           };
+        },
+        async releaseRun() {
+          state.runs = Math.max(0, state.runs - 1);
+          return { ...state };
         },
         async recordUsage(usage?: {
           inputUnits?: number;
