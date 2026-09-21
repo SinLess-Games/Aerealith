@@ -8,6 +8,11 @@ import {
   type WorkflowStep,
 } from 'cloudflare:workers';
 
+import {
+  recordAiRunFailed,
+  recordAiRunStarted,
+  recordAiRunSucceeded,
+} from './ai-telemetry';
 import { externalizeLargeOutput } from './artifact-runtime';
 import type {
   AiOrchestratorBindings,
@@ -70,8 +75,13 @@ export class AiOrchestrationWorkflow extends WorkflowEntrypoint<
     });
 
     const startedAt = new Date().toISOString();
+    const startedAtMs = Date.now();
     await runs?.updateStatus(event.payload.runId, 'running', {
       startedAt,
+    });
+    recordAiRunStarted({
+      runId: event.payload.runId,
+      capability: event.payload.request.capability,
     });
 
     try {
@@ -104,6 +114,13 @@ export class AiOrchestrationWorkflow extends WorkflowEntrypoint<
         );
       }
 
+      recordAiRunSucceeded({
+        runId: event.payload.runId,
+        capability: event.payload.request.capability,
+        durationMs: Date.now() - startedAtMs,
+        output,
+      });
+
       return {
         ...queued,
         status: 'succeeded',
@@ -117,9 +134,17 @@ export class AiOrchestrationWorkflow extends WorkflowEntrypoint<
     } catch (error) {
       const completedAt = new Date().toISOString();
 
+      const errorCode = classifyExecutionError(error);
       await runs?.updateStatus(event.payload.runId, 'failed', {
-        errorCode: classifyExecutionError(error),
+        errorCode,
         completedAt,
+      });
+
+      recordAiRunFailed({
+        runId: event.payload.runId,
+        capability: event.payload.request.capability,
+        durationMs: Date.now() - startedAtMs,
+        errorCode,
       });
 
       throw error;
