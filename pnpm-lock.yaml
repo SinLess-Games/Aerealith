@@ -24,6 +24,28 @@ overrides:
 
 importers:
 
+  apps/services/ai-orchestrator:
+    dependencies:
+      '@aerealith-ai/ai-orchestration':
+        specifier: workspace:*
+        version: link:../../../libs/ai-orchestration
+      '@aerealith-ai/observability':
+        specifier: workspace:*
+        version: link:../../../libs/observability
+      hono:
+        specifier: 4.13.8
+        version: 4.13.8
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
+
+  libs/ai-orchestration:
+    dependencies:
+      tslib:
+        specifier: ^2.3.0
+        version: 2.8.1
+
+
   .:
     dependencies:
       '@base-ui/react':
