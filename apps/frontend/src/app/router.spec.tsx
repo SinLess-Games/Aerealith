@@ -33,10 +33,10 @@ beforeEach(() => {
 
 afterEach(() => vi.unstubAllGlobals());
 
-function renderAt(path: string) {
+function renderAt(path: string, waitForRemoteFeatureFlags = false) {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <AppProviders>
+      <AppProviders waitForRemoteFeatureFlags={waitForRemoteFeatureFlags}>
         <AppRoutes />
       </AppProviders>
     </MemoryRouter>,
@@ -106,11 +106,11 @@ describe('AppRoutes', () => {
     ).toBeTruthy();
   });
 
-  it('opens account creation as a modal', () => {
-    renderAt('/sign-up');
+  it('opens account creation as a modal', async () => {
+    renderAt('/sign-up', true);
 
     expect(
-      screen.getByRole('dialog', { name: 'Create an account' }),
+      await screen.findByRole('dialog', { name: 'Create an account' }),
     ).toBeTruthy();
   });
 
@@ -192,7 +192,7 @@ describe('AppRoutes', () => {
   });
 
   it('supports the common signup URL alias', async () => {
-    renderAt('/signup');
+    renderAt('/signup', true);
 
     expect(
       await screen.findByRole('dialog', { name: 'Create an account' }),
