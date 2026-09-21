@@ -61,6 +61,16 @@ class_name = "AiRateLimit"
 name = "AI_USAGE"
 class_name = "AiUsageLedger"
 
+[[durable_objects.bindings]]
+name = "AI_CODE_SANDBOX"
+class_name = "AiCodeSandbox"
+
+[[containers]]
+class_name = "AiCodeSandbox"
+image = "./Dockerfile.sandbox"
+instance_type = "standard-1"
+max_instances = 20
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["AiRunState"]
@@ -76,6 +86,10 @@ new_sqlite_classes = ["AiRateLimit"]
 [[migrations]]
 tag = "v4"
 new_sqlite_classes = ["AiUsageLedger"]
+
+[[migrations]]
+tag = "v5"
+new_sqlite_classes = ["AiCodeSandbox"]
 
 [[services]]
 binding = "AUTH_WORKER"
