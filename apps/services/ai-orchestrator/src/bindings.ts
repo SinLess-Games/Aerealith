@@ -13,8 +13,14 @@ export interface WorkerFetcher {
   fetch(request: Request): Promise<Response>;
 }
 
+export interface WorkflowInstance {
+  status(): Promise<unknown>;
+  terminate(): Promise<void>;
+}
+
 export interface WorkflowBinding<TParams> {
   create(options: { id?: string; params: TParams }): Promise<unknown>;
+  get?(id: string): Promise<WorkflowInstance>;
 }
 
 export interface RunStateStub {
