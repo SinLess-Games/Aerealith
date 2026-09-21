@@ -15,6 +15,7 @@ import type {
 } from './bindings';
 import { executeOrchestrationRequest } from './execution-runtime';
 import { createRunStore } from './run-store';
+import { AiUsageStore } from './usage-ledger';
 
 export class AiOrchestrationWorkflow extends WorkflowEntrypoint<
   AiOrchestratorBindings,
@@ -95,6 +96,13 @@ export class AiOrchestrationWorkflow extends WorkflowEntrypoint<
         output,
         completedAt,
       });
+
+      if (this.env.AI_USAGE && event.payload.request.tenantId) {
+        await new AiUsageStore(this.env.AI_USAGE).recordUsage(
+          event.payload.request.tenantId,
+          output.usage,
+        );
+      }
 
       return {
         ...queued,
