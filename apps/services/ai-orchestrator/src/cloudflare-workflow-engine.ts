@@ -20,6 +20,8 @@ export class CloudflareWorkflowOrchestrationEngine
     const timestamp = new Date().toISOString();
     const run: RunRecord = {
       id: runId,
+      ...(request.tenantId ? { tenantId: request.tenantId } : {}),
+      ...(request.actorId ? { actorId: request.actorId } : {}),
       status: 'accepted',
       capability: request.capability,
       createdAt: timestamp,
