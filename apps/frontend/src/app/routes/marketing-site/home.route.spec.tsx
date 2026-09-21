@@ -8,7 +8,32 @@ import { describe, expect, it, vi } from 'vitest';
 import { StaticFeatureFlagsProvider } from '../../../features/flags/feature-flags';
 import { HomeRoute } from './home.route';
 
-describe('HomeRoute waitlist', () => {
+describe('HomeRoute', () => {
+  it('renders the investor video from the R2 streaming endpoint', () => {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <MemoryRouter>
+          <StaticFeatureFlagsProvider
+            values={{ [FeatureFlag.Waitlist]: false }}
+          >
+            <HomeRoute />
+          </StaticFeatureFlagsProvider>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    const video = screen.getByLabelText<HTMLVideoElement>(
+      'A Call to Investors',
+    );
+    expect(video.tagName).toBe('VIDEO');
+    expect(video.getAttribute('src')).toBe(
+      '/api/V1/cdn/videos/investor_video.mp4',
+    );
+    expect(video.controls).toBe(true);
+    expect(video.playsInline).toBe(true);
+    expect(video.querySelector('track[kind="captions"]')).not.toBeNull();
+  });
+
   it('submits the waitlist form with explicit newsletter consent', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       status: 200,

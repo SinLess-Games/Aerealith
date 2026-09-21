@@ -8,18 +8,18 @@
  * @decorator content
  */
 export type CrowdfundingVideoContent = {
-  id?: string
-  title?: string
-  description?: string
-  src: string
-  poster?: string
-  controls?: boolean
-  muted?: boolean
-  loop?: boolean
-  autoPlay?: boolean
-  playsInline?: boolean
-  preload?: 'none' | 'metadata' | 'auto'
-}
+  id?: string;
+  title?: string;
+  description?: string;
+  src: string;
+  poster?: string;
+  controls?: boolean;
+  muted?: boolean;
+  loop?: boolean;
+  autoPlay?: boolean;
+  playsInline?: boolean;
+  preload?: 'none' | 'metadata' | 'auto';
+};
 
 /**
  * Crowdfunding section content configuration.
@@ -29,14 +29,14 @@ export type CrowdfundingVideoContent = {
  * @decorator section
  */
 export type CrowdfundingSectionContent = {
-  id?: string
-  eyebrow?: string
-  title?: string
-  description?: string
-  body?: string
-  footnote?: string
-  videos?: readonly CrowdfundingVideoContent[]
-}
+  id?: string;
+  eyebrow?: string;
+  title?: string;
+  description?: string;
+  body?: string;
+  footnote?: string;
+  videos?: readonly CrowdfundingVideoContent[];
+};
 
 /**
  * Default video playback options used by crowdfunding videos.
@@ -53,13 +53,12 @@ export const crowdfundingVideoBaseOptions = {
   autoPlay: false,
   playsInline: true,
   preload: 'metadata',
-} as const satisfies Partial<CrowdfundingVideoContent>
+} as const satisfies Partial<CrowdfundingVideoContent>;
 
 /**
  * Crowdfunding and investor-support videos.
  *
- * CDN video URLs may still point to the existing Cloudinary account/folder
- * until the media library is renamed or migrated.
+ * Videos stream from the R2 bucket through the API's CDN video endpoint.
  *
  * @public
  * @constant
@@ -72,7 +71,7 @@ export const crowdfundingVideos = [
     title: 'A Call to Investors',
     description:
       'A short investor-focused overview introducing Aerealith AI as a secure, extensible command center for automation, analytics, integrations, memory, and digital workflow intelligence.',
-    src: 'https://res.cloudinary.com/aerealith-ai/video/upload/v1779161862/Aerealith_AI_Investor_wvztbl.mp4',
+    src: '/api/V1/cdn/videos/investor_video.mp4',
     ...crowdfundingVideoBaseOptions,
   },
 
@@ -89,7 +88,7 @@ export const crowdfundingVideos = [
    *   ...crowdfundingVideoBaseOptions,
    * },
    */
-] as const satisfies readonly CrowdfundingVideoContent[]
+] as const satisfies readonly CrowdfundingVideoContent[];
 
 /**
  * Crowdfunding section long-form description.
@@ -100,7 +99,7 @@ export const crowdfundingVideos = [
  * @decorator content
  */
 export const crowdfundingDescription =
-  'Aerealith AI is being built as a long-term platform, not a quick chatbot wrapper. Crowdfunding, aligned investor support, and early community backing help fund the infrastructure, engineering, security, design, integrations, documentation, and production systems needed to turn Aerealith AI into a reliable command center for users, creators, developers, communities, teams, and organizations.'
+  'Aerealith AI is being built as a long-term platform, not a quick chatbot wrapper. Crowdfunding, aligned investor support, and early community backing help fund the infrastructure, engineering, security, design, integrations, documentation, and production systems needed to turn Aerealith AI into a reliable command center for users, creators, developers, communities, teams, and organizations.';
 
 /**
  * Crowdfunding section content.
@@ -118,7 +117,7 @@ export const crowdfundingSection = {
     'Support the infrastructure, engineering, security, design, integrations, documentation, and production systems needed to bring Aerealith AI to life.',
   body: crowdfundingDescription,
   videos: crowdfundingVideos,
-} as const satisfies CrowdfundingSectionContent
+} as const satisfies CrowdfundingSectionContent;
 
 /**
  * Legacy carousel-compatible media objects.
@@ -133,7 +132,7 @@ export const crowdfundingSection = {
 export const crowdfundingMediaItems = crowdfundingVideos.map((video) => ({
   ...video,
   type: 'video' as const,
-}))
+}));
 
 /**
  * Backwards-compatible uppercase exports.
@@ -145,8 +144,8 @@ export const crowdfundingMediaItems = crowdfundingVideos.map((video) => ({
  * @readonly
  * @decorator alias
  */
-export const CROWDFUNDING_VIDEO_BASE_OPTIONS = crowdfundingVideoBaseOptions
-export const CROWDFUNDING_VIDEOS = crowdfundingVideos
-export const CROWDFUNDING_MEDIA_ITEMS = crowdfundingMediaItems
-export const CROWDFUNDING_DESCRIPTION = crowdfundingDescription
-export const CROWDFUNDING_SECTION = crowdfundingSection
+export const CROWDFUNDING_VIDEO_BASE_OPTIONS = crowdfundingVideoBaseOptions;
+export const CROWDFUNDING_VIDEOS = crowdfundingVideos;
+export const CROWDFUNDING_MEDIA_ITEMS = crowdfundingMediaItems;
+export const CROWDFUNDING_DESCRIPTION = crowdfundingDescription;
+export const CROWDFUNDING_SECTION = crowdfundingSection;
