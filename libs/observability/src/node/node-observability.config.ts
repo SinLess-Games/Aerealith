@@ -39,6 +39,10 @@ export function resolveNodeObservabilityConfiguration(
     environment['OTEL_SERVICE_NAMESPACE']?.trim() || 'aerealith';
   const pyroscopeServerAddress =
     environment['PYROSCOPE_SERVER_ADDRESS']?.trim();
+  const pyroscopeBasicAuthUser =
+    environment['PYROSCOPE_BASIC_AUTH_USER']?.trim();
+  const pyroscopeBasicAuthPassword =
+    environment['PYROSCOPE_BASIC_AUTH_PASSWORD']?.trim();
   const pyroscopeEnabled =
     pyroscopeServerAddress !== undefined &&
     parseBoolean(environment['PYROSCOPE_ENABLED'], true);
@@ -69,17 +73,11 @@ export function resolveNodeObservabilityConfiguration(
             applicationName:
               environment['PYROSCOPE_APPLICATION_NAME']?.trim() ||
               `${namespace}.${service}`,
-            ...(environment['PYROSCOPE_BASIC_AUTH_USER']?.trim()
-              ? {
-                  basicAuthUser:
-                    environment['PYROSCOPE_BASIC_AUTH_USER']!.trim(),
-                }
+            ...(pyroscopeBasicAuthUser
+              ? { basicAuthUser: pyroscopeBasicAuthUser }
               : {}),
-            ...(environment['PYROSCOPE_BASIC_AUTH_PASSWORD']?.trim()
-              ? {
-                  basicAuthPassword:
-                    environment['PYROSCOPE_BASIC_AUTH_PASSWORD']!.trim(),
-                }
+            ...(pyroscopeBasicAuthPassword
+              ? { basicAuthPassword: pyroscopeBasicAuthPassword }
               : {}),
             flushIntervalMs: parsePositiveInteger(
               environment['PYROSCOPE_FLUSH_INTERVAL_MS'],
