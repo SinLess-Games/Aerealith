@@ -1,4 +1,5 @@
-import { EntitySchemas } from '@aerealith-ai/core';
+import type { ApiRequestObserver } from '@aerealith-ai/api-platform';
+import { EntitySchemas, type Logger } from '@aerealith-ai/core';
 import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
@@ -25,6 +26,8 @@ export type CreateApiServiceAppOptions = {
    * success or 503 when the check fails.
    */
   readinessCheck?: () => Promise<void>;
+  logger?: Logger;
+  requestObserver?: ApiRequestObserver;
 };
 
 const allowedOrigins = [
