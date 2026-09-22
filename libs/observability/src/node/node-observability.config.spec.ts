@@ -7,16 +7,12 @@ import {
 } from './node-observability.config';
 
 describe('node observability configuration', () => {
-  it('enables Grafana OTLP and Pyroscope only with complete credentials', () => {
+  it('enables Grafana OTLP with complete exporter configuration', () => {
     const configuration = resolveNodeObservabilityConfiguration('auth', {
       NODE_ENV: 'production',
       OTEL_EXPORTER_OTLP_ENDPOINT: 'https://otlp-gateway.example.com/otlp/',
       OTEL_EXPORTER_OTLP_HEADERS:
         'Authorization=Basic%20encoded,X-Custom=value',
-      PYROSCOPE_SERVER_ADDRESS: 'https://profiles.example.com/',
-      PYROSCOPE_APPLICATION_NAME: 'aerealith-auth',
-      PYROSCOPE_BASIC_AUTH_USER: '123',
-      PYROSCOPE_BASIC_AUTH_PASSWORD: 'secret',
     });
 
     expect(configuration).toMatchObject({
@@ -29,13 +25,6 @@ describe('node observability configuration', () => {
           'X-Custom': 'value',
         },
       },
-      pyroscope: {
-        applicationName: 'aerealith-auth',
-        endpoint: 'https://profiles.example.com',
-        user: '123',
-        password: 'secret',
-        collectCpuTime: true,
-      },
     });
   });
 
@@ -44,8 +33,6 @@ describe('node observability configuration', () => {
       resolveNodeObservabilityConfiguration('auth', {
         OTEL_SDK_DISABLED: 'true',
         OTEL_EXPORTER_OTLP_ENDPOINT: 'https://otlp.example.com',
-        PYROSCOPE_SERVER_ADDRESS: 'https://profiles.example.com',
-        PYROSCOPE_BASIC_AUTH_USER: '123',
       }),
     ).toEqual({
       service: 'auth',
