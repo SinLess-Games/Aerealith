@@ -197,7 +197,7 @@ Supported service telemetry includes:
 * OpenTelemetry traces
 * distributed trace correlation
 * optional Loki log export
-* optional profiling
+* Kubernetes continuous CPU profiling through the external Alloy eBPF DaemonSet
 
 Observability configuration is provided through environment variables rather
 than hard-coded service configuration.
