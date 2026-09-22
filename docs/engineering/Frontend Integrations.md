@@ -7,7 +7,7 @@ Last Updated: 2026-07-30
 ## Overview
 
 The frontend has opt-in loaders for Google Tag Manager, Google AdSense,
-Datadog Browser RUM, Cloudflare Web Analytics, Google Search Console
+Grafana Browser RUM, Cloudflare Web Analytics, Google Search Console
 verification, and Cloudflare Turnstile. Missing configuration disables each
 integration safely. Browser variables beginning with `VITE_` are public and
 must never contain server API keys or secrets.
@@ -39,10 +39,10 @@ free documentation.
 Replace `apps/frontend/public/ads.txt` with the exact publisher record Google
 provides. The repository deliberately contains no invented publisher record.
 
-## Datadog Browser RUM
+## Grafana Browser RUM
 
 Set the documented `VITE_DATADOG_*` variables. The client token and application
-ID are designed for browser exposure; a Datadog API key is not. RUM is disabled
+ID are designed for browser exposure; a Grafana API key is not. RUM is disabled
 in development and tests and initializes only after analytics consent.
 
 Inputs are masked by default, URLs lose queries and fragments before reporting,
@@ -84,7 +84,7 @@ must allow only the integrations actually enabled. Relevant origins are:
   `https://googleads.g.doubleclick.net`
 - Turnstile scripts and frames: `https://challenges.cloudflare.com`
 - Cloudflare Web Analytics: `https://static.cloudflareinsights.com`
-- Datadog: the intake origins for the selected `VITE_DATADOG_SITE`
+- Grafana: the intake origins for the selected `VITE_DATADOG_SITE`
 
 Do not add `unsafe-eval`, broad wildcards, or weaken frame protections.
 
