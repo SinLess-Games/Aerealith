@@ -1,0 +1,70 @@
+name: zz · Observability validation
+
+on:
+  push:
+    branches:
+      - feat/platform-observability
+    paths:
+      - 'libs/observability/**'
+      - 'apps/services/api/**'
+      - 'apps/services/auth/**'
+      - 'apps/services/ai-orchestrator/**'
+      - 'apps/frontend/src/worker*'
+      - 'apps/frontend/wrangler.toml'
+      - 'tools/generators/service/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/zz-observability-validation.yaml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: observability-targeted-validation
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 26.5.0
+          package-manager-cache: false
+
+      - name: Set up pnpm
+        shell: bash
+        run: npm install --global pnpm@11.13.1
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build observability library
+        run: pnpm nx run observability:build
+
+      - name: Test observability library
+        run: pnpm nx test observability
+
+      - name: Typecheck instrumented applications
+        run: pnpm nx run-many -t typecheck --projects=service-api,service-auth,service-ai-orchestrator,frontend --parallel=2
+
+      - name: Test instrumented services
+        run: pnpm nx run-many -t test --projects=service-api,service-auth,service-ai-orchestrator --parallel=2
+
+      - name: Validate service generator
+        run: pnpm nx run-many -t lint,build --projects=service-generator --parallel=1
+
+      - name: Dry-run Workers
+        shell: bash
+        run: |
+          pnpm nx run service-api:worker-dry-run
+          pnpm nx run service-auth:worker-dry-run
+          pnpm nx run service-ai-orchestrator:worker-dry-run
