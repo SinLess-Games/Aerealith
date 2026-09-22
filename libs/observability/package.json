@@ -18,5 +18,23 @@
     "@opentelemetry/sdk-node": "^0.221.0",
     "@pyroscope/nodejs": "^0.6.1",
     "tslib": "^2.3.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./logger": {
+      "types": "./src/logger/index.d.ts",
+      "default": "./src/logger/index.js"
+    },
+    "./node": {
+      "types": "./src/node/index.d.ts",
+      "default": "./src/node/index.js"
+    },
+    "./worker": {
+      "types": "./src/worker/index.d.ts",
+      "default": "./src/worker/index.js"
+    }
   }
 }
