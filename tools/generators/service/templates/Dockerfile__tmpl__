@@ -34,9 +34,8 @@ RUN npm install \
 FROM base AS build
 
 # Native compilation support is isolated to the build stage and is never
-# copied into the production image.
-#
-# This is required by optional native observability/profiling dependencies.
+# copied into the production image. It remains available for workspace
+# dependencies that require native lifecycle scripts.
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
       g++ \
