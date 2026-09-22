@@ -162,7 +162,7 @@ LABEL org.opencontainers.image.title="Aerealith API" \
 #   Handles PID 1 duties and forwards termination signals correctly.
 #
 # libstdc++:
-#   Provides the runtime C++ library required by native profiling modules
+#   Provides the runtime C++ library required by native runtime dependencies
 #   without shipping the compiler toolchain.
 #
 # npm/npx are removed from the production image because the running service
