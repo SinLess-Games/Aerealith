@@ -99,6 +99,15 @@ Low-cardinality fields such as service and environment are labels. User IDs,
 request IDs, session IDs, and resource IDs remain structured fields rather
 than labels.
 
+## Pyroscope native profiling dependency
+
+Aerealith does not use Datadog as an observability service, exporter, RUM
+provider, APM backend, or CI integration. Grafana's official
+`@pyroscope/nodejs` SDK currently uses `@datadog/pprof` internally as its
+native pprof engine. That transitive package is permitted solely to make
+Pyroscope CPU/wall profiling work and must not be used directly by Aerealith
+application code.
+
 ## Runtime behavior
 
 - Missing credentials disable only the affected exporter.
