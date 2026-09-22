@@ -2036,7 +2036,6 @@ Examples:
 ```text
 AI provider
 Discord integration
-Datadog
 Grafana Cloud
 Cloudinary
 Resend for non-required email
