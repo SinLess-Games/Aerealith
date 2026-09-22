@@ -1,4 +1,5 @@
 import type { ApiRequestObserver } from '@aerealith-ai/api-platform';
+import type { WorkerAnalyticsDataset } from '@aerealith-ai/observability/worker';
 import { EntitySchemas, type Logger } from '@aerealith-ai/core';
 import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
@@ -14,6 +15,7 @@ type SecretBinding = string | { get(): Promise<string> };
 export type ApiWorkerBindings = {
   AEREALITH_AI: R2Bucket;
   DATABASE_URL?: SecretBinding;
+  AEREALITH_ANALYTICS?: WorkerAnalyticsDataset;
 };
 
 type ApiEnvironment = { Bindings: ApiWorkerBindings };
