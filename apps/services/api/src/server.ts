@@ -93,7 +93,7 @@ async function main(): Promise<void> {
         context: {
           port: listeningPort,
           telemetryEnabled: observability.enabled,
-          profilingEnabled: observability.profilingEnabled,
+          profilingMode: observability.profilingMode,
         },
       });
     },
