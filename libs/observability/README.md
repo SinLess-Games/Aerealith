@@ -1,9 +1,10 @@
 # Aerealith Observability
 
-Aerealith uses a vendor-neutral OpenTelemetry/Grafana stack. Datadog is not part of the runtime or CI observability architecture.
+Aerealith uses a vendor-neutral OpenTelemetry/Grafana stack.
 
 `@aerealith-ai/observability` provides structured logging plus Node.js metrics,
-distributed tracing, automatic instrumentation, and continuous profiling.
+distributed tracing, and automatic instrumentation. Continuous profiling is
+owned by Grafana Alloy eBPF at the Kubernetes infrastructure layer.
 
 ## Grafana Cloud signals
 
@@ -12,7 +13,7 @@ distributed tracing, automatic instrumentation, and continuous profiling.
 | Structured logs               | Loki push API      | Loki                   |
 | Metrics                       | OTLP/HTTP protobuf | Prometheus/Mimir       |
 | Traces                        | OTLP/HTTP protobuf | Tempo                  |
-| CPU and wall profiles         | Pyroscope SDK      | Grafana Cloud Profiles |
+| Continuous CPU profiles       | Alloy eBPF         | Grafana Pyroscope      |
 | Browser errors and Web Vitals | Faro collector     | Frontend Observability |
 
 Grafana Cloud's unified OTLP gateway is used for metrics and traces. The SDK
@@ -21,7 +22,7 @@ automatically uses `/v1/metrics` and `/v1/traces` below the configured
 
 ## Service coverage
 
-Every Node service must initialize this package before loading its HTTP runtime. The API and auth services are instrumented today, and the service generator emits the same logs, metrics, traces, profiling, request RED metrics, and graceful exporter shutdown for every new Node service. Cloudflare Worker services use structured logging and platform-native telemetry where Node SDKs/profilers cannot run.
+Every Node service must initialize this package before loading its HTTP runtime. The API and auth services are instrumented today, and the service generator emits the same logs, metrics, traces, request RED metrics, and graceful exporter shutdown for every new Node service. Kubernetes profiling is collected externally by a node-level Alloy eBPF DaemonSet. Cloudflare Worker services use structured logging and platform-native telemetry where native eBPF profiling cannot run.
 
 ## Cloudflare Worker bootstrap
 
@@ -46,8 +47,9 @@ indexed dimension; HTTP method, normalized route, status, and outcome are
 bounded blob dimensions.
 
 Native continuous profilers cannot execute in Worker isolates. Use Workers
-CPU-time/invocation metrics and traces there; use the Node/container runtime
-with Pyroscope when continuous flame graphs are required.
+CPU-time/invocation metrics and traces there. Kubernetes Node/container
+workloads are profiled externally by Grafana Alloy eBPF and stored in
+Pyroscope.
 
 ## Node service bootstrap
 
@@ -64,7 +66,8 @@ const { createServer } = await import('./server-implementation');
 ```
 
 Call `observability.shutdown()` during `SIGINT` and `SIGTERM` handling so
-buffered spans, metrics, and profiles are flushed.
+buffered OpenTelemetry spans and metrics are flushed. Profiling is independent
+of application shutdown because Alloy observes the process externally.
 
 Use `createNodeLogger()` to enable the existing console logger and
 automatically add the Loki sink when all Loki credentials are configured.
@@ -89,9 +92,6 @@ LOKI_LOGGING_URL=https://logs.example.com
 LOKI_USER_ID=stack_user
 LOKI_TOKEN=cloud_access_policy_token
 
-PYROSCOPE_SERVER_ADDRESS=https://profiles.example.com
-PYROSCOPE_BASIC_AUTH_USER=stack_user
-PYROSCOPE_BASIC_AUTH_PASSWORD=cloud_access_policy_token
 ```
 
 Never commit Grafana Cloud tokens or a completed authorization header.
@@ -102,12 +102,12 @@ than labels.
 ## Runtime behavior
 
 - Missing credentials disable only the affected exporter.
-- Exporter and profiler failures do not prevent the application from starting.
+- Exporter failures do not prevent the application from starting.
 - Filesystem auto-instrumentation is disabled to reduce noise and overhead.
 - Process uptime and memory usage are recorded as observable metrics.
 - API RED metrics use bounded route, method, status, operation, and outcome
   dimensions.
-- Pyroscope CPU-time collection is enabled unless explicitly disabled.
+- Kubernetes CPU profiling is performed by the Alloy eBPF DaemonSet.
 - Shutdown errors are reported through the caller-provided callback.
 
 ## Browser observability
