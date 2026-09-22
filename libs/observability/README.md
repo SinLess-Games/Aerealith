@@ -23,6 +23,32 @@ automatically uses `/v1/metrics` and `/v1/traces` below the configured
 
 Every Node service must initialize this package before loading its HTTP runtime. The API and auth services are instrumented today, and the service generator emits the same logs, metrics, traces, profiling, request RED metrics, and graceful exporter shutdown for every new Node service. Cloudflare Worker services use structured logging and platform-native telemetry where Node SDKs/profilers cannot run.
 
+## Cloudflare Worker bootstrap
+
+Workers use Cloudflare Workers Observability for platform logs/traces and the
+shared Worker request observer for application request metrics:
+
+```ts
+const response = await app.fetch(request, environment, executionContext);
+
+recordWorkerRequest({
+  service: 'api',
+  request,
+  status: response.status,
+  durationMs: performance.now() - startedAt,
+  analytics: environment.AEREALITH_ANALYTICS,
+});
+```
+
+All Worker deployments write request metrics to the shared
+`AerealithServiceMetrics` Analytics Engine dataset. The service name is the
+indexed dimension; HTTP method, normalized route, status, and outcome are
+bounded blob dimensions.
+
+Native continuous profilers cannot execute in Worker isolates. Use Workers
+CPU-time/invocation metrics and traces there; use the Node/container runtime
+with Pyroscope when continuous flame graphs are required.
+
 ## Node service bootstrap
 
 Observability must start before importing an HTTP framework so automatic
