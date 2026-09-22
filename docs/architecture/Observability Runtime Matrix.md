@@ -24,9 +24,9 @@ Node OpenTelemetry SDK or native profilers.
 | API Worker | Structured Workers logs | Cloudflare Workers traces | Cloudflare invocation metrics + Analytics Engine request RED signals | Cloudflare CPU-time/runtime metrics; no native continuous profiler |
 | Auth Worker | Structured Workers logs | Cloudflare Workers traces | Cloudflare invocation metrics + Analytics Engine request RED signals | Cloudflare CPU-time/runtime metrics; no native continuous profiler |
 | AI orchestrator Worker | Structured Workers logs | Cloudflare Workers traces | Cloudflare invocation metrics + Analytics Engine request RED signals | Cloudflare CPU-time/runtime metrics; no native continuous profiler |
-| API Node/container | Console + Loki | OpenTelemetry OTLP -> Tempo | OpenTelemetry OTLP -> Prometheus/Mimir | Pyroscope continuous CPU/wall profiles |
-| Auth Node/container | Console + Loki | OpenTelemetry OTLP -> Tempo | OpenTelemetry OTLP -> Prometheus/Mimir | Pyroscope continuous CPU/wall profiles |
-| Generated Node service | Console + Loki | OpenTelemetry OTLP -> Tempo | OpenTelemetry OTLP -> Prometheus/Mimir | Pyroscope continuous CPU/wall profiles |
+| API Node/container | Console + Loki | OpenTelemetry OTLP -> Tempo | OpenTelemetry OTLP -> Prometheus/Mimir | Alloy eBPF -> Pyroscope continuous CPU profiles |
+| Auth Node/container | Console + Loki | OpenTelemetry OTLP -> Tempo | OpenTelemetry OTLP -> Prometheus/Mimir | Alloy eBPF -> Pyroscope continuous CPU profiles |
+| Generated Node service | Console + Loki | OpenTelemetry OTLP -> Tempo | OpenTelemetry OTLP -> Prometheus/Mimir | Alloy eBPF -> Pyroscope continuous CPU profiles |
 
 ## Worker standard
 
@@ -55,11 +55,12 @@ runtime:
 
 - `createNodeLogger()` for structured console + Loki logs;
 - `startNodeObservability()` for OpenTelemetry auto-instrumentation, traces,
-  runtime metrics, and Pyroscope;
+  and runtime metrics;
 - `createApiRequestObserver()` for RED request metrics and active-span
   enrichment;
 - `createOperationObserver()` for important transport-independent operations;
-- graceful shutdown that flushes the logger, OTel SDK, and Pyroscope profiler.
+- graceful shutdown that flushes the logger and OTel SDK;
+- Kubernetes deployment with the Alloy eBPF profiler for continuous CPU profiles.
 
 The service generator must preserve this standard so new services are
 observable by default.
@@ -72,7 +73,7 @@ observable by default.
 | Application logs | Grafana Loki |
 | Distributed traces | Grafana Tempo |
 | Application and infrastructure metrics | Prometheus / Grafana Mimir |
-| Continuous Node profiles | Grafana Pyroscope |
+| Continuous Kubernetes profiles | Grafana Alloy eBPF -> Grafana Pyroscope |
 | Worker request metrics | Cloudflare Analytics Engine |
 | Worker platform traces/logs | Cloudflare Workers Observability |
 
