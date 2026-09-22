@@ -1383,7 +1383,6 @@ Dependabot
 Renovate
 Meticulous AI
 SonarQube or SonarLint
-Datadog
 Grafana Cloud
 ```
 
@@ -1402,7 +1401,6 @@ Grafana Cloud
 | Dependabot    | Security alerts and dependency updates.                  |
 | Renovate      | Dependency update policy and automation.                 |
 | Meticulous AI | Visual regression status.                                |
-| Datadog       | Runtime and service telemetry.                           |
 | Grafana Cloud | Metrics, logs, traces, profiles, dashboards, and alerts. |
 
 These tools should publish release and deployment metadata where supported.
@@ -2703,7 +2701,6 @@ AEREALITH_OTEL_TRACE_SAMPLE_RATE
 AEREALITH_LOG_LEVEL
 AEREALITH_PROFILING_ENABLED
 AEREALITH_GRAFANA_CLOUD_ENDPOINT
-AEREALITH_DATADOG_ENABLED
 ```
 
 Provider credentials must remain secret-managed.
@@ -2759,24 +2756,25 @@ Do not duplicate high-volume telemetry without a documented reason.
 
 ---
 
-## Vendor Ownership Model
+## Signal Ownership Model
 
-Aerealith should define which platform is authoritative for each operational function.
+Aerealith defines one primary backend per operational signal to avoid duplicate
+paging, inconsistent retention, and unnecessary telemetry cost.
 
-Example direction:
+| Function | Primary Platform |
+| --- | --- |
+| Metrics dashboards | Prometheus / Grafana Mimir |
+| Logs | Grafana Loki |
+| Traces | Grafana Tempo |
+| Profiles | Grafana Pyroscope |
+| Browser telemetry | Grafana Faro |
+| Worker platform telemetry | Cloudflare Workers Observability |
+| Worker request metrics | Cloudflare Analytics Engine |
+| Paging | Grafana Alerting / Alertmanager |
 
-| Function                 | Primary Platform             | Secondary Platform          |
-| ------------------------ | ---------------------------- | --------------------------- |
-| Metrics dashboards       | Grafana Cloud                | Datadog                     |
-| Logs                     | Grafana Cloud Loki           | Datadog selected pipelines  |
-| Traces                   | Grafana Cloud Tempo          | Datadog APM where justified |
-| Profiles                 | Grafana Cloud Pyroscope      | None initially              |
-| Runtime security signals | Datadog where configured     | Grafana dashboards          |
-| Paging                   | One selected owner per alert | Secondary visibility only   |
-
-The exact ownership model should be finalized in RFC 0017.
-
----
+OpenTelemetry remains the portability boundary. Cloudflare-native signals are
+used for Worker runtimes where the Node SDK and native profiling agents cannot
+run.
 
 ## Privacy and Observability
 
@@ -2898,7 +2896,6 @@ Observability failures should degrade safely.
 | Profiling unavailable        | Disable profiling and preserve runtime behavior.                 |
 | Dashboard unavailable        | Preserve telemetry ingestion where possible.                     |
 | Alert router unavailable     | Use documented secondary escalation path for critical incidents. |
-| Datadog unavailable          | Preserve Grafana Cloud telemetry.                                |
 | Grafana Cloud unavailable    | Preserve selected Datadog telemetry where configured.            |
 | AI unavailable               | Keep deterministic operational dashboards and alerts.            |
 
@@ -3236,7 +3233,6 @@ Potential infrastructure paths:
 infrastructure/observability/
 ├── otel-collector/
 ├── grafana/
-├── datadog/
 ├── dashboards/
 ├── alerts/
 ├── runbooks/
@@ -3461,7 +3457,6 @@ notification delivery metrics
 audit-consumer metrics
 AI usage and cost metrics
 Grafana Cloud dashboards
-Datadog integration where justified
 alert ownership
 runbooks
 sampling and redaction
@@ -3535,7 +3530,6 @@ trace sampling policy
 log sampling policy
 retention by signal
 Grafana Cloud ownership
-Datadog ownership
 alert-routing ownership
 SLO definitions
 error-budget policy
@@ -3545,7 +3539,7 @@ frontend RUM policy
 profiling policy
 ```
 
-Before dual-provider export is expanded, Aerealith must finalize:
+Before multi-destination export is expanded, Aerealith must finalize:
 
 ```text
 which signals are duplicated
@@ -3807,7 +3801,6 @@ The observability architecture supports self-hosting through:
 OpenTelemetry standards
 replaceable collectors
 Grafana-compatible backends
-Datadog-optional behavior
 structured stdout logs
 Docker support
 Kubernetes support
@@ -3818,7 +3811,6 @@ A self-hosted deployment may choose:
 
 ```text
 Grafana stack
-Datadog
 another OpenTelemetry-compatible backend
 local-only observability
 ```
