@@ -1,3 +1,4 @@
+import * as Pyroscope from '@pyroscope/nodejs';
 import { metrics, trace, type Meter, type Tracer } from '@opentelemetry/api';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-proto';
@@ -19,7 +20,7 @@ export interface StartNodeObservabilityOptions {
 
 export interface NodeObservability {
   readonly enabled: boolean;
-  readonly profilingMode: 'external-alloy';
+  readonly profilingMode: 'pyroscope-sdk' | 'disabled';
   readonly meter: Meter;
   readonly tracer: Tracer;
   shutdown(): Promise<void>;
@@ -36,6 +37,27 @@ export async function startNodeObservability(
   const meter = metrics.getMeter(options.service, configuration.version);
   const tracer = trace.getTracer(options.service, configuration.version);
   let sdk: NodeSDK | undefined;
+  let profilerStarted = false;
+
+  if (configuration.pyroscope) {
+    try {
+      Pyroscope.init({
+        serverAddress: configuration.pyroscope.serverAddress,
+        appName: configuration.pyroscope.applicationName,
+        basicAuthUser: configuration.pyroscope.basicAuthUser,
+        basicAuthPassword: configuration.pyroscope.basicAuthPassword,
+        flushIntervalMs: configuration.pyroscope.flushIntervalMs,
+        tags: { ...configuration.pyroscope.tags },
+        wall: {
+          collectCpuTime: configuration.pyroscope.collectCpuTime,
+        },
+      });
+      Pyroscope.start();
+      profilerStarted = true;
+    } catch (error) {
+      options.onError?.(error);
+    }
+  }
 
   if (configuration.otlp) {
     const exporterOptions = {
@@ -67,13 +89,14 @@ export async function startNodeObservability(
   }
 
   return {
-    enabled: sdk !== undefined,
-    profilingMode: 'external-alloy',
+    enabled: sdk !== undefined || profilerStarted,
+    profilingMode: profilerStarted ? 'pyroscope-sdk' : 'disabled',
     meter,
     tracer,
     async shutdown(): Promise<void> {
       const results = await Promise.allSettled([
         ...(sdk ? [sdk.shutdown()] : []),
+        ...(profilerStarted ? [Pyroscope.stop()] : []),
       ]);
       for (const result of results) {
         if (result.status === 'rejected') options.onError?.(result.reason);
