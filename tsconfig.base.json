@@ -56,6 +56,9 @@
       "@aerealith-ai/observability/logger": [
         "./libs/observability/src/logger/index.ts"
       ],
+      "@aerealith-ai/observability/worker": [
+        "./libs/observability/src/worker/index.ts"
+      ],
       "@aerealith-ai/api": [
         "./libs/api/src/index.ts"
       ],
