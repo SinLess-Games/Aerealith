@@ -22,7 +22,7 @@ For Node/container services:
 - Metrics: Prometheus / Grafana Mimir.
 - Logs: Grafana Loki.
 - Traces: Grafana Tempo.
-- Profiles: Grafana Pyroscope.
+- Profiles: Grafana Pyroscope, collected by the `alloy-profiling` DaemonSet.
 - Browser failures: Grafana Faro.
 
 Use `ops/observability/grafana/service-overview.dashboard.json` as the default
@@ -61,7 +61,7 @@ Check:
 - active-request growth;
 - database/query traces;
 - outbound provider spans;
-- Node CPU and Pyroscope flame graphs;
+- Node/container CPU flame graphs in Pyroscope from Alloy eBPF;
 - Worker CPU time and invocation duration.
 
 Prefer rollback when latency started directly after a deployment and the cause
@@ -75,7 +75,8 @@ Check:
 
 - OTLP endpoint and authorization for Node services;
 - Loki credentials;
-- Pyroscope endpoint/credentials;
+- `pyroscope` HelmRelease, PVC, readiness, and service;
+- `alloy-profiling` DaemonSet status on every Kubernetes node;
 - Cloudflare Workers Observability status;
 - `AEREALITH_ANALYTICS` binding presence;
 - named Wrangler environment bindings;
