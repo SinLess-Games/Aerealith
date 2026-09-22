@@ -1671,7 +1671,7 @@ Examples:
 
 ```text
 AI unavailable -> API may remain ready with AI degraded
-Datadog unavailable -> service remains ready
+optional telemetry exporter unavailable -> service remains ready
 Discord token invalid -> Discord runtime remains unready
 database unavailable -> database-backed API remains unready
 ```
@@ -1880,7 +1880,6 @@ Services may export telemetry to:
 local OpenTelemetry Collector
 shared cluster collector
 Grafana Cloud
-Datadog adapter
 ```
 
 Compose example:
@@ -3846,7 +3845,6 @@ The core platform should not require:
 Aerealith-managed Cloudflare account
 Aerealith-managed AI provider
 Aerealith-managed email provider
-production Datadog
 production Grafana Cloud
 ```
 
