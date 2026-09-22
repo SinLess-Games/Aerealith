@@ -417,7 +417,7 @@ blocking operations
 unexpected runtime cost
 ```
 
-Pyroscope or a compatible profiler may be used where runtime support permits.
+Kubernetes processes are continuously CPU-profiled out-of-process by Grafana Alloy eBPF and stored in Pyroscope. Cloudflare Worker isolates use platform CPU-time and trace telemetry because host eBPF access is unavailable.
 
 Profiles must avoid capturing sensitive payloads.
 
@@ -442,7 +442,8 @@ flowchart TD
   Mimir["Grafana Cloud Metrics / Mimir"]
   Loki["Grafana Cloud Logs / Loki"]
   Tempo["Grafana Cloud Traces / Tempo"]
-  Pyroscope["Grafana Cloud Profiles / Pyroscope"]
+  Alloy["Grafana Alloy eBPF Profiler"]
+  Pyroscope["Grafana Pyroscope"]
   Kiali["Kiali"]
   Alerts["Alerting and Incident Routing"]
 
@@ -459,7 +460,11 @@ flowchart TD
   Collector --> Mimir
   Collector --> Loki
   Collector --> Tempo
-  Collector --> Pyroscope
+  API --> Alloy
+  Services --> Alloy
+  Integrations --> Alloy
+  Workers --> Alloy
+  Alloy --> Pyroscope
 
   Mimir --> Alerts
   Loki --> Alerts
@@ -516,7 +521,6 @@ libs/observability/src/
 ├── logging/
 ├── metrics/
 ├── tracing/
-├── profiling/
 ├── health/
 ├── redaction/
 ├── exporters/
