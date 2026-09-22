@@ -538,7 +538,7 @@ export default defineConfig(({ mode }) => {
               {
                 name: 'observability',
 
-                test: /node_modules[\\/](?:@sentry|@datadog|web-vitals|@opentelemetry)[\\/]/,
+                test: /node_modules[\\/](?:@sentry|web-vitals|@opentelemetry)[\\/]/,
 
                 priority: 65,
 
@@ -1121,7 +1121,7 @@ export default defineConfig(({ mode }) => {
               {
                 name: 'observability',
 
-                test: /node_modules[\\/](?:@sentry|@datadog|web-vitals|@opentelemetry)[\\/]/,
+                test: /node_modules[\\/](?:@sentry|web-vitals|@opentelemetry)[\\/]/,
 
                 priority: 65,
 
