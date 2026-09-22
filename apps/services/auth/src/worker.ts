@@ -47,7 +47,7 @@ export default {
     request: Request,
     environment: AuthWorkerEnvironment,
   ): Promise<Response> {
-    const startedAt = performance.now();
+  const startedAt = performance.now();
 
     try {
       const response = await handleAuthRequest(request, environment);
@@ -77,18 +77,18 @@ async function handleAuthRequest(
   request: Request,
   environment: AuthWorkerEnvironment,
 ): Promise<Response> {
-    const url = new URL(request.url);
+  const url = new URL(request.url);
 
-    if (HealthPaths.has(url.pathname)) {
+  if (HealthPaths.has(url.pathname)) {
       return fetchAuthApplication(request, environment);
     }
 
-    const context = {
+  const context = {
       path: url.pathname,
       country: request.headers.get('cf-ipcountry') ?? 'unknown',
     };
 
-    if (url.pathname === FlagsPath) {
+  if (url.pathname === FlagsPath) {
       const flags = await resolveFeatureFlags(
         environment.FLAGSHIP_FLAGS,
         context,
@@ -105,11 +105,11 @@ async function handleAuthRequest(
       });
     }
 
-    const sensitiveOperations = await classifySensitiveAuthOperations(request);
-    const rateLimiter = new CloudflareRequestRateLimiter(
+  const sensitiveOperations = await classifySensitiveAuthOperations(request);
+  const rateLimiter = new CloudflareRequestRateLimiter(
       environment.AUTH_SENSITIVE_RATE_LIMIT,
     );
-    for (const operation of sensitiveOperations) {
+  for (const operation of sensitiveOperations) {
       if (!(await rateLimiter.allow(request, operation))) {
         return unavailable(
           'RATE_LIMITED',
@@ -119,50 +119,33 @@ async function handleAuthRequest(
       }
     }
 
-    const maintenanceMode = await evaluate(
+  const maintenanceMode = await evaluate(
       environment,
       FeatureFlag.MaintenanceMode,
       context,
     );
 
-    const authenticationEnabled = await evaluate(
+  const authenticationEnabled = await evaluate(
       environment,
       FeatureFlag.Authentication,
       context,
     );
 
-    const observabilityEnabled = await evaluate(
-      environment,
-      FeatureFlag.Observability,
-      context,
-    );
-
-    if (observabilityEnabled) {
-      console.info(
-        JSON.stringify({
-          event: 'auth.request',
-          method: request.method,
-          path: url.pathname,
-          country: context.country,
-        }),
-      );
-    }
-
-    if (maintenanceMode) {
+  if (maintenanceMode) {
       return unavailable(
         'MAINTENANCE_MODE',
         'Authentication is temporarily unavailable during maintenance.',
       );
     }
 
-    if (!authenticationEnabled) {
+  if (!authenticationEnabled) {
       return unavailable(
         'AUTHENTICATION_DISABLED',
         'Authentication is not currently available.',
       );
     }
 
-    if (
+  if (
       url.pathname === SignUpPath &&
       environment.LOCAL_REGISTRATION_ENABLED !== 'true' &&
       !(await evaluate(environment, FeatureFlag.Registration, context))
@@ -181,7 +164,7 @@ async function handleAuthRequest(
       );
     }
 
-    if (
+  if (
       url.pathname === SignUpPath &&
       !(await verifyRegistrationTurnstile(request, environment))
     ) {
@@ -199,7 +182,7 @@ async function handleAuthRequest(
       );
     }
 
-    return fetchAuthApplication(request, environment);
+  return fetchAuthApplication(request, environment);
 }
 
 /**
@@ -227,7 +210,7 @@ async function fetchPersistentAuthApplication(
   try {
     databaseUrl = await resolveSecret(environment.DATABASE_URL);
   } catch {
-    return Response.json(
+  return Response.json(
       {
         error: {
           code: 'SERVICE_CONFIGURATION_UNAVAILABLE',
@@ -259,7 +242,7 @@ async function fetchPersistentAuthApplication(
   });
 
   try {
-    return await app.fetch(request);
+  return await app.fetch(request);
   } finally {
     await Promise.all([application.close(), authorization.close()]);
   }
@@ -281,10 +264,10 @@ async function resolveOptionalSecret(
   binding: SecretBinding | undefined,
 ): Promise<string | undefined> {
   try {
-    const value = typeof binding === 'string' ? binding : await binding?.get();
-    return value?.trim() || undefined;
+  const value = typeof binding === 'string' ? binding : await binding?.get();
+  return value?.trim() || undefined;
   } catch {
-    return undefined;
+  return undefined;
   }
 }
 
@@ -300,7 +283,7 @@ function evaluate(
   const fallback = FeatureFlagDefaults[key];
 
   if (!environment.FLAGSHIP_FLAGS) {
-    return Promise.resolve(fallback);
+  return Promise.resolve(fallback);
   }
 
   return environment.FLAGSHIP_FLAGS.getBooleanValue(key, fallback, context);
