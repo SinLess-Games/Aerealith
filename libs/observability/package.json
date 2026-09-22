@@ -16,7 +16,6 @@
     "@opentelemetry/exporter-trace-otlp-proto": "^0.221.0",
     "@opentelemetry/sdk-metrics": "^2.10.0",
     "@opentelemetry/sdk-node": "^0.221.0",
-    "tslib": "^2.3.0",
-    "@pyroscope/nodejs": "^0.6.3"
+    "tslib": "^2.3.0"
   }
 }
