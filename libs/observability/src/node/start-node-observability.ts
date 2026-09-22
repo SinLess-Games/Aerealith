@@ -1,4 +1,3 @@
-import * as Pyroscope from '@pyroscope/nodejs';
 import { metrics, trace, type Meter, type Tracer } from '@opentelemetry/api';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-proto';
@@ -37,10 +36,13 @@ export async function startNodeObservability(
   const meter = metrics.getMeter(options.service, configuration.version);
   const tracer = trace.getTracer(options.service, configuration.version);
   let sdk: NodeSDK | undefined;
-  let profilerStarted = false;
+  let profiler:
+    | typeof import('@pyroscope/nodejs')
+    | undefined;
 
   if (configuration.pyroscope) {
     try {
+      const Pyroscope = await import('@pyroscope/nodejs');
       Pyroscope.init({
         serverAddress: configuration.pyroscope.serverAddress,
         appName: configuration.pyroscope.applicationName,
@@ -53,7 +55,7 @@ export async function startNodeObservability(
         },
       });
       Pyroscope.start();
-      profilerStarted = true;
+      profiler = Pyroscope;
     } catch (error) {
       options.onError?.(error);
     }
@@ -89,14 +91,14 @@ export async function startNodeObservability(
   }
 
   return {
-    enabled: sdk !== undefined || profilerStarted,
-    profilingMode: profilerStarted ? 'pyroscope-sdk' : 'disabled',
+    enabled: sdk !== undefined || profiler !== undefined,
+    profilingMode: profiler ? 'pyroscope-sdk' : 'disabled',
     meter,
     tracer,
     async shutdown(): Promise<void> {
       const results = await Promise.allSettled([
         ...(sdk ? [sdk.shutdown()] : []),
-        ...(profilerStarted ? [Pyroscope.stop()] : []),
+        ...(profiler ? [profiler.stop()] : []),
       ]);
       for (const result of results) {
         if (result.status === 'rejected') options.onError?.(result.reason);
