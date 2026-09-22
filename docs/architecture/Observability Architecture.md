@@ -2255,19 +2255,9 @@ An alert without an owner is just a haunted notification.
 
 ## Duplicate Alert Prevention
 
-When both Grafana Cloud and Datadog monitor the same signal, one system should own paging.
-
-The other may provide:
-
-```text
-secondary visibility
-correlation
-backup detection
-```
-
-Avoid duplicate paging for the same incident.
-
----
+One alerting path owns paging for each signal. Secondary dashboards and
+correlation views may observe the same condition, but they must not create
+duplicate pages for the same incident.
 
 ## Alert Grouping
 
@@ -2746,9 +2736,9 @@ Telemetry may route by signal and environment.
 Example:
 
 ```text
-metrics -> Grafana Cloud and selected Datadog monitors
-logs -> Loki and selected Datadog security pipelines
-traces -> Tempo and Datadog APM where justified
+metrics -> Grafana Cloud and selected Grafana Cloud monitors
+logs -> Loki and selected Grafana Cloud security pipelines
+traces -> Tempo and Grafana Cloud APM where justified
 profiles -> Pyroscope
 ```
 
@@ -2896,7 +2886,7 @@ Observability failures should degrade safely.
 | Profiling unavailable        | Disable profiling and preserve runtime behavior.                 |
 | Dashboard unavailable        | Preserve telemetry ingestion where possible.                     |
 | Alert router unavailable     | Use documented secondary escalation path for critical incidents. |
-| Grafana Cloud unavailable    | Preserve selected Datadog telemetry where configured.            |
+| Grafana Cloud unavailable    | Preserve selected Grafana Cloud telemetry where configured.            |
 | AI unavailable               | Keep deterministic operational dashboards and alerts.            |
 
 ---
@@ -3493,7 +3483,7 @@ Recommended implementation order:
 10. Add queue propagation and consumer telemetry.
 11. Add release metadata.
 12. Add Grafana Cloud export.
-13. Add Datadog export where justified.
+13. Add Grafana Cloud export where justified.
 14. Define primary alert ownership.
 15. Build platform overview dashboard.
 16. Build API and database dashboards.
@@ -3844,7 +3834,7 @@ critical alerts have runbooks
 duplicate paging is controlled
 telemetry cost is measurable
 observability outages do not crash product behavior
-Grafana Cloud and Datadog remain replaceable infrastructure
+Grafana Cloud and Grafana Cloud remain replaceable infrastructure
 Cloudflare Workers remain supported
 Docker and Kubernetes remain viable
 80% coverage is enforced
