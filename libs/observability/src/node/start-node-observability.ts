@@ -46,8 +46,12 @@ export async function startNodeObservability(
       Pyroscope.init({
         serverAddress: configuration.pyroscope.serverAddress,
         appName: configuration.pyroscope.applicationName,
-        basicAuthUser: configuration.pyroscope.basicAuthUser,
-        basicAuthPassword: configuration.pyroscope.basicAuthPassword,
+        ...(configuration.pyroscope.basicAuthUser
+          ? { basicAuthUser: configuration.pyroscope.basicAuthUser }
+          : {}),
+        ...(configuration.pyroscope.basicAuthPassword
+          ? { basicAuthPassword: configuration.pyroscope.basicAuthPassword }
+          : {}),
         flushIntervalMs: configuration.pyroscope.flushIntervalMs,
         tags: { ...configuration.pyroscope.tags },
         wall: {
