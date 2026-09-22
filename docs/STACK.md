@@ -91,7 +91,7 @@ alone means installed, not implemented.
 | Email                 | Resend                     | Installed   | Transactional email                       |
 | Media                 | Cloudinary                 | Adopted     | Managed media storage and delivery        |
 | Frontend telemetry    | Grafana Faro               | Installed   | Browser telemetry and monitoring          |
-| Managed observability | Datadog                    | Adopted     | Logs, metrics, traces, and alerts         |
+| Managed observability | Grafana Cloud              | Adopted     | Logs, metrics, traces, profiles, alerts   |
 | Logging               | Pino                       | Installed   | Structured application logs               |
 | Unit testing          | Vitest                     | Implemented | Unit and integration tests                |
 | Browser testing       | Playwright                 | Implemented | End-to-end browser tests                  |
