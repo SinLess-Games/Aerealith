@@ -63,6 +63,7 @@ RUN --mount=type=cache,id=aerealith-pnpm,target=/pnpm/store,sharing=locked \
   --frozen-lockfile \
   --ignore-scripts \
   --store-dir=/pnpm/store \
+  && pnpm rebuild @datadog/pprof \
   && pnpm rebuild nx
 
 
