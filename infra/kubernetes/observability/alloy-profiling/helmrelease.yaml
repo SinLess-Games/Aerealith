@@ -1,0 +1,47 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: alloy-profiling
+  namespace: profiling-system
+  labels:
+    app.kubernetes.io/name: alloy-profiling
+    app.kubernetes.io/component: profiling
+    app.kubernetes.io/part-of: aerealith-platform
+    app.kubernetes.io/managed-by: flux
+spec:
+  interval: 30m
+  releaseName: alloy-profiling
+  targetNamespace: profiling-system
+  storageNamespace: profiling-system
+
+  chart:
+    spec:
+      chart: alloy
+      version: "1.12.1"
+      sourceRef:
+        kind: HelmRepository
+        name: grafana
+        namespace: flux-system
+      interval: 12h
+
+  valuesFrom:
+    - kind: ConfigMap
+      name: alloy-profiling-values
+      valuesKey: values.yaml
+
+  install:
+    createNamespace: false
+    remediation:
+      retries: 3
+
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+      strategy: rollback
+
+  rollback:
+    cleanupOnFail: true
+    timeout: 10m
+
+  timeout: 10m
