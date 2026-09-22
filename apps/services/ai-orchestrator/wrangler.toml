@@ -1,7 +1,7 @@
 "$schema" = "../../../node_modules/wrangler/config-schema.json"
 
 name = "aerealith-ai-orchestrator"
-main = "src/main.ts"
+main = "src/worker.ts"
 compatibility_date = "2026-09-20"
 compatibility_flags = ["nodejs_compat"]
 workers_dev = false
@@ -9,6 +9,10 @@ upload_source_maps = true
 
 [ai]
 binding = "AI"
+
+[[analytics_engine_datasets]]
+binding = "AEREALITH_ANALYTICS"
+dataset = "AerealithServiceMetrics"
 
 [observability]
 enabled = true
