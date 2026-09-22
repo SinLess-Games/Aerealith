@@ -119,9 +119,9 @@ the chance of collecting user-entered data.
 
 ## Grafana operations
 
-Import the dashboard and alert definitions under `ops/observability/grafana`.
-The associated auth incident procedure is under
-`ops/observability/runbooks/auth-service.md`.
+Import `ops/observability/grafana/service-overview.dashboard.json` and
+`ops/observability/grafana/service-alerts.yaml`. The shared incident procedure
+is `ops/observability/runbooks/service-observability.md`.
 
 ## Validation
 
