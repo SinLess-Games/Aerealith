@@ -1,5 +1,7 @@
 # Aerealith Observability
 
+Aerealith uses a vendor-neutral OpenTelemetry/Grafana stack. Datadog is not part of the runtime or CI observability architecture.
+
 `@aerealith-ai/observability` provides structured logging plus Node.js metrics,
 distributed tracing, automatic instrumentation, and continuous profiling.
 
@@ -16,6 +18,10 @@ distributed tracing, automatic instrumentation, and continuous profiling.
 Grafana Cloud's unified OTLP gateway is used for metrics and traces. The SDK
 automatically uses `/v1/metrics` and `/v1/traces` below the configured
 `OTEL_EXPORTER_OTLP_ENDPOINT`.
+
+## Service coverage
+
+Every Node service must initialize this package before loading its HTTP runtime. The API and auth services are instrumented today, and the service generator emits the same logs, metrics, traces, profiling, request RED metrics, and graceful exporter shutdown for every new Node service. Cloudflare Worker services use structured logging and platform-native telemetry where Node SDKs/profilers cannot run.
 
 ## Node service bootstrap
 
