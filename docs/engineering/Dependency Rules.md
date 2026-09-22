@@ -453,7 +453,6 @@ Cloudinary adapter
 GitHub adapter
 Google adapter
 AI model adapter
-Datadog exporter
 Grafana Cloud exporter
 ```
 
@@ -1423,7 +1422,6 @@ safe telemetry context
 Feature code should not depend directly on:
 
 ```text
-Datadog SDK
 Grafana SDK
 Loki client
 Tempo client
@@ -1440,7 +1438,6 @@ Vendor-specific dependencies remain inside the observability boundary.
 The following are infrastructure or engineering dependencies:
 
 ```text
-Datadog
 Snyk
 Semgrep
 Codecov
@@ -2181,7 +2178,6 @@ Examples:
 | AI provider unavailable     | Core features continue without AI.                                |
 | Discord unavailable         | Discord capabilities degrade; account and web functions continue. |
 | Resend unavailable          | In-app notification persists; email retries safely.               |
-| Datadog unavailable         | Application continues with alternate or local telemetry.          |
 | Cloudinary unavailable      | Media operations fail safely; unrelated features continue.        |
 | Workflow worker unavailable | New work queues; API remains available where safe.                |
 
@@ -2316,7 +2312,6 @@ Examples:
 | GitHub SDK      | GitHub integration         |
 | Google SDK      | Google integration         |
 | AI provider SDK | AI provider adapter        |
-| Datadog SDK     | Observability adapter      |
 
 ---
 
