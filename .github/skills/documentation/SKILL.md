@@ -729,8 +729,8 @@ The intended or active stack may include:
 
 ## Quality and Observability
 
-- Datadog
-- Grafana-compatible observability
+- Grafana Cloud
+- OpenTelemetry-compatible observability
 - Codecov
 - Meticulous AI
 
