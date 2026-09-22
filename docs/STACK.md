@@ -646,21 +646,19 @@ remains planned. That integration is intended to provide:
 
 Telemetry must respect privacy and data-minimization requirements.
 
-### Datadog
+### Grafana Cloud Observability
 
-**Status:** Adopted
+**Status:** Implemented
 
-Datadog is approved as a primary managed observability platform for:
+Grafana Cloud is the managed observability backend for Aerealith. The platform uses standards-based instrumentation and routes telemetry to:
 
-- logs
-- metrics
-- traces
-- dashboards
-- alerts
-- service health
-- incident investigation
+- Prometheus/Mimir for metrics
+- Loki for logs
+- Tempo for distributed traces
+- Pyroscope for continuous profiling where runtime support permits
+- Grafana Faro for browser telemetry
 
-Instrumentation should remain standards-based where practical.
+OpenTelemetry is the default instrumentation and transport standard. Application code must not depend on vendor-specific observability SDKs.
 
 ### Pino
 
@@ -934,8 +932,7 @@ As of 2026-07-18:
 - PostgreSQL is the active database target.
 - CockroachDB remains a compatibility goal requiring validation.
 - Resend is installed but not yet wired into active email delivery.
-- Grafana Faro and Pino are installed but not yet wired into active telemetry or
-  application logging.
+- Grafana Faro is wired into consent-aware frontend telemetry, and shared observability provides structured logging, OpenTelemetry metrics/traces, and Pyroscope profiling for supported Node runtimes.
 - Vitest, Playwright, Testing Library, axe-core, and MSW are installed.
 - ESLint, Prettier, markdownlint, Husky, lint-staged, and Commitlint are installed.
 - Cloudflare Workers and Vite tooling are installed.
