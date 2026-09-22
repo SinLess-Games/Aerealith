@@ -1,4 +1,5 @@
 import type { WorkersAiBinding } from '@aerealith-ai/ai-cloudflare-workers';
+import type { WorkerAnalyticsDataset } from '@aerealith-ai/observability/worker';
 import type {
   OrchestrationRequest,
   RunRecord,
@@ -224,6 +225,7 @@ export type AiOrchestratorBindings = {
   [binding: string]: unknown;
 
   ENVIRONMENT?: string;
+  AEREALITH_ANALYTICS?: WorkerAnalyticsDataset;
 
   AI?: WorkersAiBinding;
   AUTH_WORKER?: WorkerFetcher;
