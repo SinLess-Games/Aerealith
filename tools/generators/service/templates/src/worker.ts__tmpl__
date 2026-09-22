@@ -1,8 +1,14 @@
+import {
+  recordWorkerRequest,
+  type WorkerAnalyticsDataset,
+} from '@aerealith-ai/observability/worker';
 import { Hono } from 'hono';
 
 import serviceApp from './main';
 
-export type ServiceWorkerBindings = Record<string, unknown>;
+export type ServiceWorkerBindings = Record<string, unknown> & {
+  AEREALITH_ANALYTICS?: WorkerAnalyticsDataset;
+};
 
 export interface ServiceWorkerEnvironment {
   Bindings: ServiceWorkerBindings;
@@ -89,17 +95,7 @@ workerApp.notFound((context) => {
  * Prevent unexpected failures from exposing stack traces or implementation
  * details through the public Worker response.
  */
-workerApp.onError((error, context) => {
-  console.error(
-    JSON.stringify({
-      event: `${SERVICE_NAME}.worker.request.failed`,
-      service: SERVICE_NAME,
-      method: context.req.method,
-      path: context.req.path,
-      error: error instanceof Error ? error.message : String(error),
-    }),
-  );
-
+workerApp.onError((_error, context) => {
   return context.json(
     {
       error: 'Internal Server Error',
@@ -111,4 +107,41 @@ workerApp.onError((error, context) => {
 
 export { workerApp };
 
-export default workerApp;
+export default {
+  async fetch(
+    request: Request,
+    environment: ServiceWorkerBindings,
+    executionContext: ExecutionContext,
+  ): Promise<Response> {
+    const startedAt = performance.now();
+
+    try {
+      const response = await workerApp.fetch(
+        request,
+        environment,
+        executionContext,
+      );
+
+      recordWorkerRequest({
+        service: SERVICE_NAME,
+        request,
+        status: response.status,
+        durationMs: performance.now() - startedAt,
+        analytics: environment.AEREALITH_ANALYTICS,
+      });
+
+      return response;
+    } catch (error) {
+      recordWorkerRequest({
+        service: SERVICE_NAME,
+        request,
+        status: 500,
+        durationMs: performance.now() - startedAt,
+        error,
+        analytics: environment.AEREALITH_ANALYTICS,
+      });
+
+      throw error;
+    }
+  },
+};
