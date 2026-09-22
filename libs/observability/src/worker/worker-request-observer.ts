@@ -76,7 +76,11 @@ export function normalizeWorkerRoute(route: string): string {
       /\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(?=\/|$)/giu,
       '/:id',
     )
-    .replace(/\/\d+(?=\/|$)/gu, '/:id');
+    .replace(/\/\d+(?=\/|$)/gu, '/:id')
+    .replace(
+      /\/(runs|conversations|knowledge-bases|documents|artifacts|files|sessions|users)\/[^/]+/giu,
+      '/$1/:id',
+    );
 }
 
 function roundMetric(value: number): number {
