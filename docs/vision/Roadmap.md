@@ -213,7 +213,7 @@ The 20-week plan assumes:
 - Discord is the first flagship integration
 - Every deployable service receives a Dockerfile
 - GitHub Actions provides CI foundations
-- Datadog and related tools may provide operational telemetry
+- Grafana Cloud and OpenTelemetry provide operational telemetry
 - Snyk, Semgrep, Codecov, Dependabot, Renovate, and related tools support quality
   and security
 - Documentation is developed alongside implementation
@@ -1547,7 +1547,7 @@ services.
 - Add ticket workflow metrics
 - Add authentication metrics
 - Add frontend telemetry
-- Integrate Datadog and selected observability providers
+- Integrate OpenTelemetry, Grafana Cloud, Faro, and Pyroscope
 - Add error reporting
 - Add service dashboards
 - Add API dashboards
@@ -2388,7 +2388,9 @@ Make the platform measurable, diagnosable, secure, recoverable, and supportable.
 - Structured logging
 - Metrics
 - Tracing
-- Datadog
+- OpenTelemetry
+- Grafana Cloud
+- Pyroscope
 - Error reporting
 - Dashboards
 - Alerts
@@ -2734,7 +2736,6 @@ control.
 - GitHub
 - Google
 - Cloudflare
-- Datadog
 - Grafana
 - Home Assistant
 - Advanced webhooks
