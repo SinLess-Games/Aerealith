@@ -417,9 +417,6 @@ async function resolveBooleanFeatureFlag(
   return provider.getBooleanValue(flag, defaultValue, context);
 }
 
-/**
- * Safely read a string value from the extensible feature-flag context.
- */
 function shouldServeMaintenancePage(
   pathname: string,
   maintenanceMode: boolean,
