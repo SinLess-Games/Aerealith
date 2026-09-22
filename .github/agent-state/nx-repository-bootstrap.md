@@ -1102,7 +1102,7 @@ seed-admin runs tsx script to seed database with platform owner user via seeder 
 
 ## Observability stack (from libs/observability inspection)
 
-Logger barrel export pattern suggests observability library provides centralized logging configuration for frontend services including Datadog or similar integration patterns using @datadog/pprof dependency listed in pnpm-workspace.yaml overrides section as allowed native build package
+Observability now provides runtime-specific logging, OpenTelemetry metrics/traces, Cloudflare Worker request telemetry, and Pyroscope profiling. Native Pyroscope builds are explicitly allowed in pnpm-workspace.yaml for Node/container services.
 --- ARCHITECTURE OVERVIEW SECTION ---
 API Platform Library Grouping: Provides API layer abstraction and backend communication utilities connecting auth endpoints to service-auth workers, integrates RBAC/authorization logic with frontend components for access control flows
 
