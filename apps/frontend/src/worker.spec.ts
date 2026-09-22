@@ -303,18 +303,26 @@ describe('frontend worker', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('emits structured request telemetry only when observability is on', async () => {
+  it('emits structured completion telemetry and request metrics', async () => {
     const info = vi.spyOn(console, 'info').mockImplementation(() => undefined);
+    const writeDataPoint = vi.fn();
+
     await worker.fetch(new Request('https://aerealith.com/about'), {
       ...createEnvironment(new Response('asset')),
-      FLAGSHIP_FLAGS: {
-        getBooleanValue: vi.fn(async (key: string, fallback: boolean) =>
-          key === 'observability' ? true : fallback,
-        ),
-      },
+      AEREALITH_ANALYTICS: { writeDataPoint },
     });
+
     expect(info).toHaveBeenCalledWith(
-      expect.stringContaining('"event":"frontend.request"'),
+      expect.stringContaining('"event":"worker.request.completed"'),
+    );
+    expect(info).toHaveBeenCalledWith(
+      expect.stringContaining('"service":"frontend"'),
+    );
+    expect(writeDataPoint).toHaveBeenCalledWith(
+      expect.objectContaining({
+        indexes: ['frontend'],
+        blobs: expect.arrayContaining(['http_request', 'GET', '/about', '200']),
+      }),
     );
     info.mockRestore();
   });
