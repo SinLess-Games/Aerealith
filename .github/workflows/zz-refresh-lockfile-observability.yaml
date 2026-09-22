@@ -4,9 +4,18 @@ on:
   push:
     branches:
       - feat/platform-observability
+    paths:
+      - 'libs/observability/package.json'
+      - 'pnpm-workspace.yaml'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/zz-refresh-lockfile-observability.yaml'
 
 permissions:
   contents: write
+
+concurrency:
+  group: observability-lockfile-refresh
+  cancel-in-progress: true
 
 jobs:
   refresh:
