@@ -10,7 +10,7 @@ describe('startNodeObservability', () => {
     });
 
     expect(observability.enabled).toBe(false);
-    expect(observability.profilingEnabled).toBe(false);
+    expect(observability.profilingMode).toBe('external-alloy');
     await expect(observability.shutdown()).resolves.toBeUndefined();
   });
 });
