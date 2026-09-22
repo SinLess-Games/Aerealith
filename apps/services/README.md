@@ -73,8 +73,9 @@ Every service must document:
 ## Observability Standard
 
 Node/container services initialize `@aerealith-ai/observability` before their
-HTTP runtime and provide Loki logs, OpenTelemetry metrics/traces, request RED
-metrics, and Pyroscope profiles.
+HTTP runtime and provide Loki logs, OpenTelemetry metrics/traces, and request
+RED metrics. Kubernetes continuous CPU profiles are collected externally by
+the Grafana Alloy eBPF DaemonSet and stored in Pyroscope.
 
 Cloudflare Workers enable Wrangler logs/traces and use
 `recordWorkerRequest()` with the shared `AEREALITH_ANALYTICS` binding for
