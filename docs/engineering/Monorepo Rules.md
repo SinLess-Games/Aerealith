@@ -1177,7 +1177,7 @@ telemetry context
 
 Vendor-specific telemetry SDKs should remain behind observability adapters.
 
-Feature libraries should depend on Aerealith observability interfaces rather than Datadog or Grafana-specific APIs.
+Feature libraries should depend on Aerealith observability interfaces rather than vendor-specific Grafana, Loki, Tempo, Mimir, or Pyroscope APIs.
 
 ---
 
