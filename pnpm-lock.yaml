@@ -102,9 +102,6 @@ importers:
       '@base-ui/react':
         specifier: 1.6.0
         version: 1.6.0(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@datadog/browser-rum':
-        specifier: ^7.6.1
-        version: 7.6.1
       '@fontsource-variable/cormorant-garamond':
         specifier: 5.2.6
         version: 5.2.6
