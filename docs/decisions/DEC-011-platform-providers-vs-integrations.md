@@ -26,7 +26,6 @@ A **platform provider** supplies infrastructure used to run Aerealith. Examples
 include:
 
 - Cloudflare deployment and edge services.
-- Datadog managed logs, metrics, traces, and alerts.
 - Grafana Faro and Grafana-compatible telemetry.
 - PostgreSQL hosting.
 - CI, security, and coverage providers.
