@@ -206,9 +206,6 @@ jobs:
             '{{dependabot_status}}'
             '{{dependabot_summary}}'
             '{{dependabot_evidence}}'
-            '{{datadog_status}}'
-            '{{datadog_summary}}'
-            '{{datadog_evidence}}'
             '{{codeball_status}}'
             '{{codeball_summary}}'
             '{{codeball_evidence}}'
@@ -647,10 +644,6 @@ jobs:
           dependabot_summary='Dependabot alert status was not queried by this release workflow.'
           dependabot_evidence='Not available'
 
-          datadog_status='⏭️ Not run'
-          datadog_summary='No runtime or deployment health review was collected from Datadog.'
-          datadog_evidence='Not available'
-
           codeball_status='⏭️ Not run'
           codeball_summary='Codeball review results were not collected by this release workflow.'
           codeball_evidence='Not available'
@@ -890,9 +883,6 @@ jobs:
               "{{dependabot_status}}": $dependabot_status,
               "{{dependabot_summary}}": $dependabot_summary,
               "{{dependabot_evidence}}": $dependabot_evidence,
-              "{{datadog_status}}": $datadog_status,
-              "{{datadog_summary}}": $datadog_summary,
-              "{{datadog_evidence}}": $datadog_evidence,
               "{{codeball_status}}": $codeball_status,
               "{{codeball_summary}}": $codeball_summary,
               "{{codeball_evidence}}": $codeball_evidence,
