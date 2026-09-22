@@ -12,6 +12,10 @@ import {
   resolveFeatureFlags,
   type BooleanFeatureFlagProvider,
 } from '@aerealith-ai/core';
+import {
+  recordWorkerRequest,
+  type WorkerAnalyticsDataset,
+} from '@aerealith-ai/observability/worker';
 
 export interface FrontendWorkerEnvironment {
   ASSETS: WorkerFetcher;
@@ -22,6 +26,7 @@ export interface FrontendWorkerEnvironment {
   AUTH_SERVICE_URL?: string;
   AI_ORCHESTRATOR_SERVICE_URL?: string;
   FLAGSHIP_FLAGS?: BooleanFeatureFlagProvider;
+  AEREALITH_ANALYTICS?: WorkerAnalyticsDataset;
 }
 
 interface WorkerFetcher {
@@ -49,7 +54,6 @@ type FeatureFlagName = keyof typeof FeatureFlagDefaults;
 
 interface RuntimeFeatureFlags {
   readonly maintenanceMode: boolean;
-  readonly observabilityEnabled: boolean;
 }
 
 const HealthPath = '/__aerealith/health';
@@ -82,7 +86,34 @@ const AuthApiRoots = [
 const AuthTransportRoots = ['/graphql', '/trpc'] as const;
 
 export default {
-  fetch: handleRequest,
+  async fetch(
+    request: Request,
+    environment: FrontendWorkerEnvironment,
+  ): Promise<Response> {
+    const startedAt = performance.now();
+
+    try {
+      const response = await handleRequest(request, environment);
+      recordWorkerRequest({
+        service: 'frontend',
+        request,
+        status: response.status,
+        durationMs: performance.now() - startedAt,
+        analytics: environment.AEREALITH_ANALYTICS,
+      });
+      return response;
+    } catch (error) {
+      recordWorkerRequest({
+        service: 'frontend',
+        request,
+        status: 500,
+        durationMs: performance.now() - startedAt,
+        error,
+        analytics: environment.AEREALITH_ANALYTICS,
+      });
+      throw error;
+    }
+  },
 };
 
 /**
@@ -125,13 +156,6 @@ async function handleRequest(
   const runtimeFlags = await resolveRuntimeFeatureFlags(
     environment.FLAGSHIP_FLAGS,
     flagContext,
-  );
-
-  logRequestWhenEnabled(
-    request,
-    url,
-    flagContext,
-    runtimeFlags.observabilityEnabled,
   );
 
   if (shouldServeMaintenancePage(url.pathname, runtimeFlags.maintenanceMode)) {
@@ -362,22 +386,14 @@ async function resolveRuntimeFeatureFlags(
   provider: BooleanFeatureFlagProvider | undefined,
   context: FeatureFlagContext,
 ): Promise<RuntimeFeatureFlags> {
-  const [maintenanceMode, observabilityEnabled] = await Promise.all([
-    resolveBooleanFeatureFlag(
-      provider,
-      FeatureFlag.MaintenanceMode,
-      context,
-    ),
-    resolveBooleanFeatureFlag(
-      provider,
-      FeatureFlag.Observability,
-      context,
-    ),
-  ]);
+  const maintenanceMode = await resolveBooleanFeatureFlag(
+    provider,
+    FeatureFlag.MaintenanceMode,
+    context,
+  );
 
   return {
     maintenanceMode,
-    observabilityEnabled,
   };
 }
 
@@ -401,43 +417,9 @@ async function resolveBooleanFeatureFlag(
   return provider.getBooleanValue(flag, defaultValue, context);
 }
 
-function logRequestWhenEnabled(
-  request: Request,
-  url: URL,
-  flagContext: FeatureFlagContext,
-  observabilityEnabled: boolean,
-): void {
-  if (!observabilityEnabled) {
-    return;
-  }
-
-  console.info(
-    JSON.stringify({
-      event: 'frontend.request',
-      method: request.method,
-      path: url.pathname,
-      country: getContextString(flagContext, 'country', 'unknown'),
-    }),
-  );
-}
-
 /**
  * Safely read a string value from the extensible feature-flag context.
  */
-function getContextString(
-  context: FeatureFlagContext,
-  key: string,
-  fallback: string,
-): string {
-  const value = context[key];
-
-  if (typeof value === 'string') {
-    return value;
-  }
-
-  return fallback;
-}
-
 function shouldServeMaintenancePage(
   pathname: string,
   maintenanceMode: boolean,
