@@ -28,6 +28,49 @@ describe('node observability configuration', () => {
     });
   });
 
+  it('configures Pyroscope continuous profiling independently of OTLP', () => {
+    expect(
+      resolveNodeObservabilityConfiguration('api', {
+        NODE_ENV: 'production',
+        OTEL_SERVICE_NAMESPACE: 'aerealith',
+        OTEL_SERVICE_VERSION: '1.2.3',
+        PYROSCOPE_SERVER_ADDRESS: 'https://profiles.example.com/',
+        PYROSCOPE_BASIC_AUTH_USER: 'stack-user',
+        PYROSCOPE_BASIC_AUTH_PASSWORD: 'profile-token',
+        PYROSCOPE_FLUSH_INTERVAL_MS: '30000',
+        PYROSCOPE_WALL_COLLECT_CPU_TIME: 'true',
+      }),
+    ).toMatchObject({
+      service: 'api',
+      environment: 'production',
+      pyroscope: {
+        serverAddress: 'https://profiles.example.com',
+        applicationName: 'aerealith.api',
+        basicAuthUser: 'stack-user',
+        basicAuthPassword: 'profile-token',
+        flushIntervalMs: 30000,
+        collectCpuTime: true,
+        tags: {
+          service: 'api',
+          environment: 'production',
+          namespace: 'aerealith',
+          version: '1.2.3',
+        },
+      },
+    });
+  });
+
+  it('allows Pyroscope to be explicitly disabled without disabling OTLP', () => {
+    const configuration = resolveNodeObservabilityConfiguration('auth', {
+      PYROSCOPE_ENABLED: 'false',
+      PYROSCOPE_SERVER_ADDRESS: 'https://profiles.example.com',
+      OTEL_EXPORTER_OTLP_ENDPOINT: 'https://otlp.example.com',
+    });
+
+    expect(configuration.pyroscope).toBeUndefined();
+    expect(configuration.otlp?.endpoint).toBe('https://otlp.example.com');
+  });
+
   it('leaves exporters disabled when secrets are absent', () => {
     expect(
       resolveNodeObservabilityConfiguration('auth', {
