@@ -33,7 +33,6 @@ RUN npm install \
 
 FROM base AS build
 
-# Native build dependencies required by the profiling runtime remain isolated to this build stage.
 RUN apk add --no-cache \
   g++ \
   make \
@@ -65,7 +64,6 @@ RUN --mount=type=cache,id=aerealith-pnpm,target=/pnpm/store,sharing=locked \
   --frozen-lockfile \
   --ignore-scripts \
   --store-dir=/pnpm/store \
-  && pnpm rebuild @pyroscope/nodejs
   && pnpm rebuild nx
 
 
