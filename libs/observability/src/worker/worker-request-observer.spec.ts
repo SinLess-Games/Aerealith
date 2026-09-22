@@ -80,5 +80,13 @@ describe('normalizeWorkerRoute', () => {
         '/api/V1/runs/123e4567-e89b-42d3-a456-426614174000/items/123',
       ),
     ).toBe('/api/V1/runs/:id/items/:id');
+    expect(
+      normalizeWorkerRoute(
+        '/api/V1/ai/knowledge-bases/base-slug/documents/customer-upload-abc',
+      ),
+    ).toBe('/api/V1/ai/knowledge-bases/:id/documents/:id');
+    expect(normalizeWorkerRoute('/api/V1/auth/sessions/session-token-like-id')).toBe(
+      '/api/V1/auth/sessions/:id',
+    );
   });
 });
