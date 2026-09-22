@@ -56,7 +56,7 @@ Every service must document:
 - Configuration and secrets.
 - Health, readiness, and graceful shutdown.
 - Retry, timeout, idempotency, and failure behavior.
-- Logging, metrics, traces, request IDs, and trace IDs.
+- Logging, metrics, traces, profiling, request IDs, and trace IDs appropriate to the runtime.
 - Development, testing, build, and deployment commands.
 - Rollback behavior.
 
@@ -68,3 +68,18 @@ Every service must document:
 - Services do not import another service's internal source.
 - External input is validated before use.
 - Meaningful actions follow permission, risk, approval, and audit rules.
+
+
+## Observability Standard
+
+Node/container services initialize `@aerealith-ai/observability` before their
+HTTP runtime and provide Loki logs, OpenTelemetry metrics/traces, request RED
+metrics, and Pyroscope profiles.
+
+Cloudflare Workers enable Wrangler logs/traces and use
+`recordWorkerRequest()` with the shared `AEREALITH_ANALYTICS` binding for
+request rate, latency, status, and failure metrics. Worker isolates cannot run
+native continuous profilers; Cloudflare CPU-time and runtime telemetry are the
+profiling signal for Worker-only deployments.
+
+See [Observability Runtime Matrix](../../docs/architecture/Observability%20Runtime%20Matrix.md).
