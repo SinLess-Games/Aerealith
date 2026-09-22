@@ -59,9 +59,11 @@ Configure the `OTEL_*`, `LOKI_*`, and `PYROSCOPE_*` variables documented in
 `.env`, deployment secrets, or a secret manager. Shutdown handlers flush
 telemetry and profiles before the process exits.
 
-Import `ops/observability/grafana/auth-overview.dashboard.json`, load
-`ops/observability/grafana/auth-alerts.yaml` through your metrics rule
-deployment, and publish the linked runbook before enabling alert notifications.
+Import `ops/observability/grafana/service-overview.dashboard.json`, load
+`ops/observability/grafana/service-alerts.yaml` through your metrics rule
+deployment, and publish
+`ops/observability/runbooks/service-observability.md` before enabling alert
+notifications.
 
 ## Super-administrator seed
 
@@ -83,7 +85,7 @@ projection.
 The Worker uses `wrangler.toml` and the shared Cloudflare Flagship app.
 `authentication` is the service-wide kill switch, `registration` controls
 signup, `maintenance-mode` returns a temporary outage response, and
-`observability` enables structured request telemetry.
+structured request telemetry is an operator-level platform signal and remains enabled independently of product feature flags.
 
 The Wrangler environments bind account-level Cloudflare secrets:
 
