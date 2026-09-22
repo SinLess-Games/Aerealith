@@ -44,6 +44,65 @@ const JoinWaitlistSchema = EntitySchemas.CreateWaitlistEntitySchema.extend({
 export function createApiServiceApp(options: CreateApiServiceAppOptions = {}) {
   const app = new Hono<ApiEnvironment>();
 
+  if (options.requestObserver || options.logger) {
+    app.use('*', async (context, next) => {
+      const startedAt = performance.now();
+      const requestId = context.req.header('X-Request-ID') ?? crypto.randomUUID();
+      const route = new URL(context.req.url).pathname;
+      const observation = {
+        service: 'api',
+        method: context.req.method,
+        route,
+        requestId,
+      };
+      const traceContext = options.requestObserver?.requestStarted(observation);
+
+      try {
+        await next();
+        const outcome = {
+          ...observation,
+          status: context.res.status,
+          durationMs: performance.now() - startedAt,
+        };
+        options.requestObserver?.requestCompleted(outcome);
+        options.logger?.info({
+          event: 'api.request.completed',
+          message: 'API request completed.',
+          component: 'api-service',
+          context: {
+            method: observation.method,
+            route,
+            status: outcome.status,
+            durationMs: outcome.durationMs,
+            requestId,
+            ...(traceContext ?? {}),
+          },
+        });
+      } catch (error) {
+        const outcome = {
+          ...observation,
+          status: 500,
+          durationMs: performance.now() - startedAt,
+        };
+        options.requestObserver?.requestFailed(outcome, error);
+        options.logger?.error({
+          event: 'api.request.failed',
+          message: 'API request failed.',
+          component: 'api-service',
+          error,
+          context: {
+            method: observation.method,
+            route,
+            durationMs: outcome.durationMs,
+            requestId,
+            ...(traceContext ?? {}),
+          },
+        });
+        throw error;
+      }
+    });
+  }
+
   app.use('*', secureHeaders());
   app.use(
     '*',
