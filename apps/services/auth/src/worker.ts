@@ -3,6 +3,10 @@ import {
   FeatureFlagDefaults,
   resolveFeatureFlags,
 } from '@aerealith-ai/core';
+import {
+  recordWorkerRequest,
+  type WorkerAnalyticsDataset,
+} from '@aerealith-ai/observability/worker';
 
 import { LazyAuthApplication } from './auth/lazy-auth-application';
 import { LazyAuthorizationService } from './auth/lazy-authorization.service';
@@ -30,6 +34,7 @@ export type AuthWorkerEnvironment = Omit<
     DATABASE_URL: SecretBinding;
     RESEND_API_KEY?: SecretBinding;
     LOCAL_REGISTRATION_ENABLED?: string;
+    AEREALITH_ANALYTICS?: WorkerAnalyticsDataset;
   };
 
 const HealthPaths = new Set(['/health', '/api/V1/services/auth']);
@@ -42,6 +47,36 @@ export default {
     request: Request,
     environment: AuthWorkerEnvironment,
   ): Promise<Response> {
+    const startedAt = performance.now();
+
+    try {
+      const response = await handleAuthRequest(request, environment);
+      recordWorkerRequest({
+        service: 'auth',
+        request,
+        status: response.status,
+        durationMs: performance.now() - startedAt,
+        analytics: environment.AEREALITH_ANALYTICS,
+      });
+      return response;
+    } catch (error) {
+      recordWorkerRequest({
+        service: 'auth',
+        request,
+        status: 500,
+        durationMs: performance.now() - startedAt,
+        error,
+        analytics: environment.AEREALITH_ANALYTICS,
+      });
+      throw error;
+    }
+  },
+};
+
+async function handleAuthRequest(
+  request: Request,
+  environment: AuthWorkerEnvironment,
+): Promise<Response> {
     const url = new URL(request.url);
 
     if (HealthPaths.has(url.pathname)) {
@@ -165,8 +200,7 @@ export default {
     }
 
     return fetchAuthApplication(request, environment);
-  },
-};
+}
 
 /**
  * Route every environment to the persistent authentication application.
