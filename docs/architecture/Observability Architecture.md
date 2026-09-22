@@ -147,12 +147,7 @@ business-operational signals
 
 Telemetry is routed through provider-neutral adapters and collectors to one or more backends.
 
-Primary observability platforms include:
-
-```text
-Grafana Cloud
-Datadog
-```
+The primary observability platform is Grafana Cloud, backed by provider-neutral OpenTelemetry instrumentation.
 
 The broader Grafana-oriented stack may include:
 
@@ -165,19 +160,7 @@ Grafana Alerting for alerts
 Kiali for service-mesh visibility
 ```
 
-Datadog may provide complementary:
-
-```text
-APM
-infrastructure monitoring
-log analysis
-real-user monitoring
-synthetic monitoring
-security monitoring
-incident correlation
-```
-
-Aerealith should avoid duplicating every signal through two independent SDK stacks.
+Aerealith intentionally avoids parallel vendor-specific SDK stacks. Instrumentation is owned by Aerealith and OpenTelemetry-compatible libraries, with Grafana backends selected at the export layer.
 
 The preferred direction is:
 
@@ -185,7 +168,7 @@ The preferred direction is:
 Application Instrumentation
 → OpenTelemetry SDK or Runtime Adapter
 → OpenTelemetry Collector or Edge Export Adapter
-→ Grafana Cloud and/or Datadog
+→ Grafana Cloud
 ```
 
 Provider-specific exporters remain infrastructure configuration.
@@ -460,7 +443,6 @@ flowchart TD
   Loki["Grafana Cloud Logs / Loki"]
   Tempo["Grafana Cloud Traces / Tempo"]
   Pyroscope["Grafana Cloud Profiles / Pyroscope"]
-  Datadog["Datadog"]
   Kiali["Kiali"]
   Alerts["Alerting and Incident Routing"]
 
@@ -478,12 +460,10 @@ flowchart TD
   Collector --> Loki
   Collector --> Tempo
   Collector --> Pyroscope
-  Collector --> Datadog
 
   Mimir --> Alerts
   Loki --> Alerts
   Tempo --> Alerts
-  Datadog --> Alerts
   Kiali --> Alerts
 ```
 
@@ -741,8 +721,8 @@ feature-flag evaluation
 Potential tools include:
 
 ```text
-OpenTelemetry browser instrumentation
-Datadog RUM
+Grafana Faro
+OpenTelemetry-compatible browser instrumentation
 synthetic monitoring
 Web Vitals
 ```
