@@ -154,14 +154,33 @@ describe('auth Cloudflare Worker', () => {
     });
   });
 
-  it('emits structured telemetry when observability is on', async () => {
+  it('emits structured completion telemetry and request metrics', async () => {
     const info = vi.spyOn(console, 'info').mockImplementation(() => undefined);
+    const workerEnvironment = environment({ authentication: false });
+    const writeDataPoint = vi.fn();
+    workerEnvironment.AEREALITH_ANALYTICS = { writeDataPoint };
+
     await worker.fetch(
       new Request('https://auth.aerealith.com/api/V1/auth/login'),
-      environment({ authentication: false, observability: true }),
+      workerEnvironment,
+    );
+
+    expect(info).toHaveBeenCalledWith(
+      expect.stringContaining('"event":"worker.request.completed"'),
     );
     expect(info).toHaveBeenCalledWith(
-      expect.stringContaining('"event":"auth.request"'),
+      expect.stringContaining('"service":"auth"'),
+    );
+    expect(writeDataPoint).toHaveBeenCalledWith(
+      expect.objectContaining({
+        indexes: ['auth'],
+        blobs: expect.arrayContaining([
+          'http_request',
+          'GET',
+          '/api/V1/auth/login',
+          '503',
+        ]),
+      }),
     );
   });
 });
