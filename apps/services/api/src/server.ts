@@ -1,7 +1,6 @@
 import { existsSync } from 'node:fs';
 
 import {
-  createApiRequestObserver,
   createNodeLogger,
   startNodeObservability,
 } from '@aerealith-ai/observability';
@@ -70,10 +69,7 @@ async function main(): Promise<void> {
    * waitlist routes, error handling, and Cloudflare-compatible application
    * logic remain defined in createApiServiceApp().
    */
-  const app = createApiServiceApp({
-    logger,
-    requestObserver: createApiRequestObserver(observability.meter),
-  });
+  const app = createApiServiceApp();
 
   /*
    * Start the Node HTTP server.
