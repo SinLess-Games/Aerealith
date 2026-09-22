@@ -67,7 +67,7 @@ remote = true
 
 [[analytics_engine_datasets]]
 binding = "AEREALITH_ANALYTICS"
-dataset = "Aerealith"
+dataset = "AerealithServiceMetrics"
 
 # ---------------------------------------------------------------
 # Cache
