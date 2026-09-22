@@ -8,22 +8,12 @@ export interface OtlpConfiguration {
   readonly metricExportIntervalMs: number;
 }
 
-export interface PyroscopeConfiguration {
-  readonly applicationName: string;
-  readonly endpoint: string;
-  readonly user: string;
-  readonly password: string;
-  readonly flushIntervalMs: number;
-  readonly collectCpuTime: boolean;
-}
-
 export interface NodeObservabilityConfiguration {
   readonly service: string;
   readonly environment: string;
   readonly version?: string;
   readonly namespace: string;
   readonly otlp?: OtlpConfiguration;
-  readonly pyroscope?: PyroscopeConfiguration;
 }
 
 export function resolveNodeObservabilityConfiguration(
@@ -34,15 +24,6 @@ export function resolveNodeObservabilityConfiguration(
     environment['NODE_ENV']?.trim() || 'development';
   const version = environment['OTEL_SERVICE_VERSION']?.trim();
   const endpoint = environment['OTEL_EXPORTER_OTLP_ENDPOINT']?.trim();
-  const pyroscopeEndpoint =
-    environment['PYROSCOPE_SERVER_ADDRESS']?.trim() ||
-    environment['PYROSCOPE_URL']?.trim();
-  const pyroscopeUser =
-    environment['PYROSCOPE_BASIC_AUTH_USER']?.trim() ||
-    environment['PYROSCOPE_USER_ID']?.trim();
-  const pyroscopePassword =
-    environment['PYROSCOPE_BASIC_AUTH_PASSWORD']?.trim() ||
-    environment['PYROSCOPE_TOKEN']?.trim();
 
   return {
     service,
@@ -62,27 +43,7 @@ export function resolveNodeObservabilityConfiguration(
             ),
           },
         }
-      : {}),
-    ...(pyroscopeEndpoint &&
-    pyroscopeUser &&
-    pyroscopePassword &&
-    environment['PYROSCOPE_ENABLED'] !== 'false'
-      ? {
-          pyroscope: {
-            applicationName:
-              environment['PYROSCOPE_APPLICATION_NAME']?.trim() || service,
-            endpoint: trimTrailingSlashes(pyroscopeEndpoint),
-            user: pyroscopeUser,
-            password: pyroscopePassword,
-            flushIntervalMs: parsePositiveInteger(
-              environment['PYROSCOPE_FLUSH_INTERVAL_MS'],
-              60_000,
-            ),
-            collectCpuTime:
-              environment['PYROSCOPE_WALL_COLLECT_CPU_TIME'] !== 'false',
-          },
-        }
-      : {}),
+      : {}),,
   };
 }
 
