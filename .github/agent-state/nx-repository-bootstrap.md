@@ -1016,8 +1016,8 @@ API and permission layer connecting auth endpoints to service-auth workers; like
 
 ### @aerealith-ai/observability (libs/observability)
 
-**Purpose**: Centralized logging configuration, Datadog/profiling integration exports
-**Public API**: logger barrel from libs/observability/src/logger/index.ts; node runtime utilities for observability instrumentation in Cloudflare Workers environments
+**Purpose**: Centralized Grafana/OpenTelemetry logging, metrics, tracing, Worker telemetry, and Pyroscope profiling exports
+**Public API**: logger barrel from libs/observability/src/logger/index.ts; separate node and worker runtime utilities for observability instrumentation
 **Dependency direction**: Used by all apps/services and frontend via path alias @aerealith-ai/observability/imported at build time
 
 - Tags: scope:core type:lib
