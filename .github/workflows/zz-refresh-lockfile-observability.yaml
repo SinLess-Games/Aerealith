@@ -20,7 +20,7 @@ concurrency:
 jobs:
   refresh:
     if: github.actor != 'github-actions[bot]'
-    runs-on: [self-hosted, linux, x64, aerealith, docker]
+    runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
