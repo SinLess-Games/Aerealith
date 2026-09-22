@@ -19,24 +19,10 @@ export interface StartNodeObservabilityOptions {
 
 export interface NodeObservability {
   readonly enabled: boolean;
-  readonly profilingEnabled: boolean;
+  readonly profilingMode: 'external-alloy';
   readonly meter: Meter;
   readonly tracer: Tracer;
   shutdown(): Promise<void>;
-}
-
-interface PyroscopeRuntime {
-  init(config: {
-    appName: string;
-    serverAddress: string;
-    basicAuthUser: string;
-    basicAuthPassword: string;
-    flushIntervalMs: number;
-    tags: Record<string, string>;
-    wall: { collectCpuTime: boolean };
-  }): void;
-  start(): void;
-  stop(): Promise<void>;
 }
 
 export async function startNodeObservability(
@@ -50,7 +36,6 @@ export async function startNodeObservability(
   const meter = metrics.getMeter(options.service, configuration.version);
   const tracer = trace.getTracer(options.service, configuration.version);
   let sdk: NodeSDK | undefined;
-  let pyroscope: PyroscopeRuntime | undefined;
 
   if (configuration.otlp) {
     const exporterOptions = {
@@ -81,38 +66,13 @@ export async function startNodeObservability(
     registerRuntimeMetrics(meter);
   }
 
-  if (configuration.pyroscope) {
-    try {
-      pyroscope = (await import('@pyroscope/nodejs')) as PyroscopeRuntime;
-      pyroscope.init({
-        appName: configuration.pyroscope.applicationName,
-        serverAddress: configuration.pyroscope.endpoint,
-        basicAuthUser: configuration.pyroscope.user,
-        basicAuthPassword: configuration.pyroscope.password,
-        flushIntervalMs: configuration.pyroscope.flushIntervalMs,
-        tags: {
-          environment: configuration.environment,
-          namespace: configuration.namespace,
-          ...(configuration.version ? { version: configuration.version } : {}),
-        },
-        wall: {
-          collectCpuTime: configuration.pyroscope.collectCpuTime,
-        },
-      });
-      pyroscope.start();
-    } catch (error) {
-      options.onError?.(error);
-    }
-  }
-
   return {
     enabled: sdk !== undefined,
-    profilingEnabled: pyroscope !== undefined,
+    profilingMode: 'external-alloy',
     meter,
     tracer,
     async shutdown(): Promise<void> {
       const results = await Promise.allSettled([
-        ...(pyroscope ? [pyroscope.stop()] : []),
         ...(sdk ? [sdk.shutdown()] : []),
       ]);
       for (const result of results) {
