@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: profiling-system
+  labels:
+    app.kubernetes.io/name: profiling-system
+    app.kubernetes.io/component: profiling
+    app.kubernetes.io/part-of: aerealith-platform
+    app.kubernetes.io/managed-by: flux
+
+    # Grafana Alloy's eBPF profiler requires host PID visibility and elevated
+    # kernel access. Keep this exception isolated from normal workloads.
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
