@@ -153,9 +153,6 @@ importers:
       '@opentelemetry/sdk-node':
         specifier: 0.221.0
         version: 0.221.0(@opentelemetry/api@1.9.1)
-      '@pyroscope/nodejs':
-        specifier: 0.6.1
-        version: 0.6.1(express@4.22.2)
       '@tanstack/react-query':
         specifier: 5.101.2
         version: 5.101.2(react@19.2.7)
@@ -650,9 +647,6 @@ importers:
       '@opentelemetry/sdk-node':
         specifier: ^0.221.0
         version: 0.221.0(@opentelemetry/api@1.9.1)
-      '@pyroscope/nodejs':
-        specifier: ^0.6.1
-        version: 0.6.1(express@4.22.2)
       tslib:
         specifier: ^2.3.0
         version: 2.8.1
@@ -1768,27 +1762,6 @@ packages:
   '@csstools/css-tokenizer@4.0.0':
     resolution: {integrity: sha512-QxULHAm7cNu72w97JUNCBFODFaXpbDg+dP8b/oWFAZ2MTRppA3U00Y2L1HqaS4J6yBqxwa/Y3nMBaxVKbB/NsA==}
     engines: {node: '>=20.19.0'}
-
-  '@datadog/browser-core@7.6.1':
-    resolution: {integrity: sha512-xfExkTuolUYO/OXOVX+8NY3qi0BQAD9D+FWG85VzkI+921HBpVuo79YRnKtIJlTIplSyJaBKF48voX6he9kpXw==}
-
-  '@datadog/browser-rum-core@7.6.1':
-    resolution: {integrity: sha512-Dlk8ZRPZ/yjFKUq/swbWPHFg21YYzMPQEwNgdX9fmwWb4Z/Tpd8Tfjehe3Z7cy4SYYHwV8NuwjvseTaYHM4w7g==}
-
-  '@datadog/browser-rum@7.6.1':
-    resolution: {integrity: sha512-nNaAlRqW5estVXfayl+WSWyTGtue5l0VPyEJGHWsok2zd9BwlGZ62i1XgON9Mi/cP5U9IlUeRKfOkhq5DWcfNg==}
-    peerDependencies:
-      '@datadog/browser-logs': 7.6.1
-    peerDependenciesMeta:
-      '@datadog/browser-logs':
-        optional: true
-
-  '@datadog/js-core@0.0.7':
-    resolution: {integrity: sha512-zthB0nZQ+spdeueG7doqdIxY1BVeOvCPqBDJjm2hyZNuci/wErLzfg/OW/3SvzPGeg8QJryMWIGgPyyw8owqkw==}
-
-  '@datadog/pprof@5.14.4':
-    resolution: {integrity: sha512-egEZDD9v98RBI8ijbHyaWQeY8rW0WEu004As5D7SUkdqSMORhrnh7ZdsM46PUzQgAc85IaEZoukWS9UhMvWn9w==}
-    engines: {node: '>=16'}
 
   '@drizzle-team/brocli@0.10.2':
     resolution: {integrity: sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w==}
@@ -3952,18 +3925,6 @@ packages:
 
   '@protobufjs/utf8@1.1.2':
     resolution: {integrity: sha512-b1UQwcEZ4yCnMCD8DAL1VlbvBJE9/IX4FTIp7BG1xYpf29SLazLSrqUkj4w7Y5y7cCVP6E5tcqqcI0xemPkHug==}
-
-  '@pyroscope/nodejs@0.6.1':
-    resolution: {integrity: sha512-6CiE3Vs+q99flTeJlus03d4cGphYnqPgJLEYbhpRWVtwdvPWYqft0XdTyMi97kFcTTOWjcEHXXhzGUmFQfDTHQ==}
-    engines: {node: '>=20.20.2'}
-    peerDependencies:
-      express: ^4.0.0 || ^5.0.0
-      fastify: ^5.8.5
-    peerDependenciesMeta:
-      express:
-        optional: true
-      fastify:
-        optional: true
 
   '@renovatebot/pep440@5.0.0':
     resolution: {integrity: sha512-91cFM32/pnOAvC7W1W1kPPI9QM2y6OrYCeomz7pop4A+3Ksh2XnZXGznUMlzR7YbOQlg7X/MNlF27s9Yt9hhTA==}
@@ -12131,29 +12092,6 @@ snapshots:
 
   '@csstools/css-tokenizer@4.0.0': {}
 
-  '@datadog/browser-core@7.6.1':
-    dependencies:
-      '@datadog/js-core': 0.0.7
-
-  '@datadog/browser-rum-core@7.6.1':
-    dependencies:
-      '@datadog/browser-core': 7.6.1
-      '@datadog/js-core': 0.0.7
-
-  '@datadog/browser-rum@7.6.1':
-    dependencies:
-      '@datadog/browser-core': 7.6.1
-      '@datadog/browser-rum-core': 7.6.1
-      '@datadog/js-core': 0.0.7
-
-  '@datadog/js-core@0.0.7': {}
-
-  '@datadog/pprof@5.14.4':
-    dependencies:
-      node-gyp-build: 4.8.4
-      pprof-format: 2.3.0
-      source-map: 0.7.6
-
   '@drizzle-team/brocli@0.10.2': {}
 
   '@emnapi/core@1.10.0':
@@ -14700,19 +14638,6 @@ snapshots:
   '@protobufjs/pool@1.1.0': {}
 
   '@protobufjs/utf8@1.1.2': {}
-
-  '@pyroscope/nodejs@0.6.1(express@4.22.2)':
-    dependencies:
-      '@datadog/pprof': 5.14.4
-      debug: 4.4.3(supports-color@7.2.0)
-      p-limit: 7.3.1
-      pprof-format: 2.3.0
-      regenerator-runtime: 0.14.1
-      source-map: 0.7.6
-    optionalDependencies:
-      express: 4.22.2
-    transitivePeerDependencies:
-      - supports-color
 
   '@renovatebot/pep440@5.0.0': {}
 
