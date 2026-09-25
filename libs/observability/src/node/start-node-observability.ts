@@ -36,7 +36,7 @@ export async function startNodeObservability(
   const meter = metrics.getMeter(options.service, configuration.version);
   const tracer = trace.getTracer(options.service, configuration.version);
   let sdk: NodeSDK | undefined;
-  let profiler: typeof import('@pyroscope/nodejs') | undefined;
+  let stopProfiler: (() => Promise<void>) | undefined;
 
   if (configuration.pyroscope) {
     try {
@@ -57,7 +57,7 @@ export async function startNodeObservability(
         },
       });
       Pyroscope.start();
-      profiler = Pyroscope;
+      stopProfiler = () => Pyroscope.stop();
     } catch (error) {
       options.onError?.(error);
     }
@@ -93,14 +93,14 @@ export async function startNodeObservability(
   }
 
   return {
-    enabled: sdk !== undefined || profiler !== undefined,
-    profilingMode: profiler ? 'pyroscope-sdk' : 'disabled',
+    enabled: sdk !== undefined || stopProfiler !== undefined,
+    profilingMode: stopProfiler ? 'pyroscope-sdk' : 'disabled',
     meter,
     tracer,
     async shutdown(): Promise<void> {
       const results = await Promise.allSettled([
         ...(sdk ? [sdk.shutdown()] : []),
-        ...(profiler ? [profiler.stop()] : []),
+        ...(stopProfiler ? [stopProfiler()] : []),
       ]);
       for (const result of results) {
         if (result.status === 'rejected') options.onError?.(result.reason);
