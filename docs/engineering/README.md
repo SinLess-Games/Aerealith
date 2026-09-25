@@ -930,7 +930,7 @@ A controlled operation exposed by the platform.
 
 A product-facing connection to an external provider.
 
-Cloudflare and Datadog are infrastructure unless explicitly exposed as product integrations.
+Cloudflare and Grafana Cloud are infrastructure unless explicitly exposed as product integrations.
 
 ### Module
 

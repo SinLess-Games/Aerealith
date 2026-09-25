@@ -1,0 +1,34 @@
+{
+  "name": "ai-openai-compatible",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/ai-openai-compatible/src",
+  "projectType": "library",
+  "tags": ["scope:ai", "type:lib", "integration:model-provider"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "tsc --noEmit -p libs/ai-openai-compatible/tsconfig.lib.json",
+          "tsc --noEmit -p libs/ai-openai-compatible/tsconfig.spec.json"
+        ],
+        "parallel": false
+      }
+    },
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/ai-openai-compatible",
+        "main": "libs/ai-openai-compatible/src/index.ts",
+        "tsConfig": "libs/ai-openai-compatible/tsconfig.lib.json"
+      }
+    },
+    "test": {
+      "executor": "@nx/vitest:test",
+      "options": {
+        "configFile": "libs/ai-openai-compatible/vitest.config.mts"
+      }
+    }
+  }
+}

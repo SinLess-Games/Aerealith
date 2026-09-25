@@ -72,10 +72,49 @@ a command exists.
 pnpm nx e2e frontend-e2e
 ```
 
+## AI Studio
+
+The authenticated AI Studio lives at `/app/ai`. Browser requests remain
+same-origin and are routed by the frontend Worker through the private
+`AI_ORCHESTRATOR_WORKER` service binding to `aerealith-ai-orchestrator`.
+
+The UI never receives provider credentials, Qdrant credentials, Grafana
+credentials, or Cloudflare account tokens. The AI orchestrator resolves
+`QDRANT_API_KEY` from Cloudflare Secrets Store server-side. Workers AI and
+Flagship use native Cloudflare bindings and do not require a browser secret.
+
+AI product exposure is controlled by Cloudflare Flagship. Backend
+`/api/V1/ai/capabilities` discovery is intersected with those rollout flags,
+so a UI surface appears only when both the rollout and runtime capability are
+available.
+
+Current AI flags are:
+
+- `ai-studio`
+- `ai-chat`
+- `ai-streaming`
+- `ai-model-selector`
+- `ai-code`
+- `ai-image`
+- `ai-audio`
+- `ai-video`
+- `ai-music`
+- `ai-analytics`
+- `ai-prediction`
+- `ai-knowledge`
+- `ai-tools`
+
+All AI flags fail closed by default.
+
 ## Configuration
 
 Public browser variables must be explicitly classified and safe to expose.
 Server-only secrets must never be included in the client bundle.
+
+Do not move a server secret into a `VITE_*` variable to make it available to
+React. Vite values are embedded in the browser bundle. If a future frontend
+Worker operation needs a server-only credential, bind that credential from
+Cloudflare Secrets Store to the Worker and consume it only in `worker.ts`.
 
 ## Verification
 

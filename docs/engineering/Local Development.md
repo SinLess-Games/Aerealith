@@ -148,7 +148,6 @@ Discord credentials
 AI provider credentials
 Resend credentials
 Cloudinary credentials
-Datadog credentials
 Grafana Cloud credentials
 production Cloudflare access
 production databases
@@ -1934,7 +1933,6 @@ Every external provider should support at least one local-safe mode.
 | AI provider           | Deterministic fake         |
 | Resend                | Local mail sink or fake    |
 | Cloudinary            | Local file adapter or fake |
-| Datadog               | Disabled                   |
 | Grafana Cloud         | Disabled                   |
 | GitHub integration    | Fake                       |
 | Google integration    | Fake                       |
@@ -2304,7 +2302,6 @@ Optional exporters may include:
 ```text
 OpenTelemetry Collector
 local Grafana stack
-Datadog development environment
 Grafana Cloud development environment
 ```
 
@@ -2452,22 +2449,6 @@ pnpm dev:observability
 ```
 
 The observability profile should not be required for ordinary frontend or API development.
-
----
-
-## Datadog Development
-
-Datadog may be used for selected development or staging diagnostics.
-
-Local Datadog use should:
-
-```text
-use development credentials
-tag all telemetry as local
-avoid private payloads
-remain disabled by default
-avoid sending every developer's routine logs
-```
 
 ---
 

@@ -48,7 +48,6 @@
 
 | Check     | Status               | Result                | Evidence               |
 | --------- | -------------------- | --------------------- | ---------------------- |
-| Datadog   | {{datadog_status}}   | {{datadog_summary}}   | {{datadog_evidence}}   |
 | Herculese | {{herculese_status}} | {{herculese_summary}} | {{herculese_evidence}} |
 
 ## 🚦 Release Gate Summary

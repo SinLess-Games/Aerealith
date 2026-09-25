@@ -9,6 +9,8 @@ import {
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { Link } from 'react-router';
 
+import { recordBrowserError } from '../../lib/browser-observability';
+
 type ErrorRouteProps = { error?: unknown; reset?: () => void };
 type BoundaryProps = { children: ReactNode };
 type BoundaryState = { error?: unknown };
@@ -151,6 +153,10 @@ export class GlobalErrorBoundary extends Component<
 
   componentDidCatch(error: unknown, info: ErrorInfo) {
     console.error('Unhandled frontend route error', error, info.componentStack);
+    recordBrowserError(error, {
+      surface: 'global-route-boundary',
+      hasComponentStack: info.componentStack ? 'true' : 'false',
+    });
   }
 
   private reset = () => {

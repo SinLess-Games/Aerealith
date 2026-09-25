@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import app from './worker';
+import { app } from './worker';
 import { createApiServiceApp } from './main';
 
 describe('api service', () => {

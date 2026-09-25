@@ -1,0 +1,35 @@
+{
+  "name": "ai-orchestration",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/ai-orchestration/src",
+  "projectType": "library",
+  "tags": ["scope:ai", "type:lib"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "tsc --noEmit -p libs/ai-orchestration/tsconfig.lib.json",
+          "tsc --noEmit -p libs/ai-orchestration/tsconfig.spec.json"
+        ],
+        "parallel": false
+      }
+    },
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/ai-orchestration",
+        "main": "libs/ai-orchestration/src/index.ts",
+        "tsConfig": "libs/ai-orchestration/tsconfig.lib.json",
+        "assets": ["libs/ai-orchestration/*.md"]
+      }
+    },
+    "test": {
+      "executor": "@nx/vitest:test",
+      "options": {
+        "configFile": "libs/ai-orchestration/vitest.config.mts"
+      }
+    }
+  }
+}

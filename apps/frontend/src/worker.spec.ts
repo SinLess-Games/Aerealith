@@ -142,6 +142,52 @@ describe('frontend worker', () => {
     expect(apiWorker.fetch).toHaveBeenCalledWith(request);
   });
 
+  it('routes AI API requests to the AI orchestrator binding when Flagship enables AI Studio', async () => {
+    const boundResponse = Response.json({
+      service: 'ai-orchestrator',
+      status: 'ok',
+    });
+    const aiWorker = {
+      fetch: vi.fn().mockResolvedValue(boundResponse),
+    };
+    const request = new Request(
+      'https://aerealith.com/api/V1/ai/capabilities',
+    );
+
+    const response = await worker.fetch(request, {
+      ...createEnvironment(new Response('asset')),
+      AI_ORCHESTRATOR_WORKER: aiWorker,
+      FLAGSHIP_FLAGS: {
+        getBooleanValue: vi.fn(async (key: string, fallback: boolean) =>
+          key === 'ai-studio' ? true : fallback,
+        ),
+      },
+    });
+
+    expect(response).toBe(boundResponse);
+    expect(aiWorker.fetch).toHaveBeenCalledWith(request);
+  });
+
+  it('fails closed for the AI API when AI Studio is disabled', async () => {
+    const aiWorker = {
+      fetch: vi.fn().mockResolvedValue(Response.json({ ok: true })),
+    };
+
+    const response = await worker.fetch(
+      new Request('https://aerealith.com/api/V1/ai/models'),
+      {
+        ...createEnvironment(new Response('asset')),
+        AI_ORCHESTRATOR_WORKER: aiWorker,
+      },
+    );
+
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: 'FEATURE_DISABLED' },
+    });
+    expect(aiWorker.fetch).not.toHaveBeenCalled();
+  });
+
   it('does not retain a lowercase API compatibility route', async () => {
     const environment = createEnvironment(new Response('asset'));
     const request = new Request(
@@ -170,6 +216,52 @@ describe('frontend worker', () => {
       registration: true,
     });
     expect(response.headers.get('cache-control')).toContain('no-store');
+  });
+
+  it('adds authenticated identity to Flagship targeting context', async () => {
+    const getBooleanValue = vi.fn(
+      async (_key: string, fallback: boolean) => fallback,
+    );
+    const authWorker = {
+      fetch: vi.fn(async () =>
+        Response.json({
+          ok: true,
+          data: {
+            id: 'user-42',
+            username: 'tester',
+            email: 'private@example.test',
+            emailVerified: true,
+            role: 'user',
+            createdAt: '2026-09-21T00:00:00.000Z',
+            updatedAt: '2026-09-21T00:00:00.000Z',
+          },
+        }),
+      ),
+    };
+
+    const response = await worker.fetch(
+      new Request('https://aerealith.com/api/V1/flags', {
+        headers: { cookie: 'aerealith_session=opaque' },
+      }),
+      {
+        ...createEnvironment(new Response('asset')),
+        AUTH_WORKER: authWorker,
+        FLAGSHIP_FLAGS: { getBooleanValue },
+      },
+    );
+
+    expect(response.status).toBe(200);
+    expect(authWorker.fetch).toHaveBeenCalledTimes(1);
+    expect(getBooleanValue).toHaveBeenCalledWith(
+      'ai-studio',
+      false,
+      expect.objectContaining({
+        targetingKey: 'user-42',
+        userId: 'user-42',
+        role: 'user',
+        emailVerified: true,
+      }),
+    );
   });
 
   it('serves maintenance mode before application assets', async () => {
@@ -211,18 +303,26 @@ describe('frontend worker', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('emits structured request telemetry only when observability is on', async () => {
+  it('emits structured completion telemetry and request metrics', async () => {
     const info = vi.spyOn(console, 'info').mockImplementation(() => undefined);
+    const writeDataPoint = vi.fn();
+
     await worker.fetch(new Request('https://aerealith.com/about'), {
       ...createEnvironment(new Response('asset')),
-      FLAGSHIP_FLAGS: {
-        getBooleanValue: vi.fn(async (key: string, fallback: boolean) =>
-          key === 'observability' ? true : fallback,
-        ),
-      },
+      AEREALITH_ANALYTICS: { writeDataPoint },
     });
+
     expect(info).toHaveBeenCalledWith(
-      expect.stringContaining('"event":"frontend.request"'),
+      expect.stringContaining('"event":"worker.request.completed"'),
+    );
+    expect(info).toHaveBeenCalledWith(
+      expect.stringContaining('"service":"frontend"'),
+    );
+    expect(writeDataPoint).toHaveBeenCalledWith(
+      expect.objectContaining({
+        indexes: ['frontend'],
+        blobs: expect.arrayContaining(['http_request', 'GET', '/about', '200']),
+      }),
     );
     info.mockRestore();
   });

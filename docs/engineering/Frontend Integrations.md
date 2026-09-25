@@ -7,7 +7,7 @@ Last Updated: 2026-07-30
 ## Overview
 
 The frontend has opt-in loaders for Google Tag Manager, Google AdSense,
-Datadog Browser RUM, Cloudflare Web Analytics, Google Search Console
+Grafana Browser RUM, Cloudflare Web Analytics, Google Search Console
 verification, and Cloudflare Turnstile. Missing configuration disables each
 integration safely. Browser variables beginning with `VITE_` are public and
 must never contain server API keys or secrets.
@@ -39,15 +39,17 @@ free documentation.
 Replace `apps/frontend/public/ads.txt` with the exact publisher record Google
 provides. The repository deliberately contains no invented publisher record.
 
-## Datadog Browser RUM
+## Grafana Faro Browser Telemetry
 
-Set the documented `VITE_DATADOG_*` variables. The client token and application
-ID are designed for browser exposure; a Datadog API key is not. RUM is disabled
-in development and tests and initializes only after analytics consent.
+Configure `VITE_GRAFANA_FARO_URL`, `VITE_APP_ENVIRONMENT`, and
+`VITE_APP_VERSION`. Faro starts only when the Observability feature flag is
+enabled and analytics consent has been granted.
 
-Inputs are masked by default, URLs lose queries and fragments before reporting,
-and session replay requires separate consent. Never attach passwords, tokens,
-API keys, prompts, private messages/documents, or payment details to RUM events.
+Aerealith disables console capture, strips query strings and fragments from page
+URLs, ignores resource URLs carrying sensitive parameter names, and uses
+non-persistent sessions. Custom events must remain low-cardinality and must not
+contain prompts, model output, passwords, tokens, API keys, email addresses,
+private messages/documents, or payment details.
 
 ## Cloudflare Turnstile
 
@@ -84,7 +86,7 @@ must allow only the integrations actually enabled. Relevant origins are:
   `https://googleads.g.doubleclick.net`
 - Turnstile scripts and frames: `https://challenges.cloudflare.com`
 - Cloudflare Web Analytics: `https://static.cloudflareinsights.com`
-- Datadog: the intake origins for the selected `VITE_DATADOG_SITE`
+- Grafana Faro: the configured collector origin from `VITE_GRAFANA_FARO_URL`
 
 Do not add `unsafe-eval`, broad wildcards, or weaken frame protections.
 

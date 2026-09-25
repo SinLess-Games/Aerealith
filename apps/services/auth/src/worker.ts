@@ -3,6 +3,10 @@ import {
   FeatureFlagDefaults,
   resolveFeatureFlags,
 } from '@aerealith-ai/core';
+import {
+  recordWorkerRequest,
+  type WorkerAnalyticsDataset,
+} from '@aerealith-ai/observability/worker';
 
 import { LazyAuthApplication } from './auth/lazy-auth-application';
 import { LazyAuthorizationService } from './auth/lazy-authorization.service';
@@ -30,10 +34,10 @@ export type AuthWorkerEnvironment = Omit<
     DATABASE_URL: SecretBinding;
     RESEND_API_KEY?: SecretBinding;
     LOCAL_REGISTRATION_ENABLED?: string;
+    AEREALITH_ANALYTICS?: WorkerAnalyticsDataset;
   };
 
 const HealthPaths = new Set(['/health', '/api/V1/services/auth']);
-
 const FlagsPath = '/api/V1/flags';
 const SignUpPath = '/api/V1/auth/sign-up';
 
@@ -42,131 +46,144 @@ export default {
     request: Request,
     environment: AuthWorkerEnvironment,
   ): Promise<Response> {
-    const url = new URL(request.url);
+    const startedAt = performance.now();
 
-    if (HealthPaths.has(url.pathname)) {
-      return fetchAuthApplication(request, environment);
-    }
-
-    const context = {
-      path: url.pathname,
-      country: request.headers.get('cf-ipcountry') ?? 'unknown',
-    };
-
-    if (url.pathname === FlagsPath) {
-      const flags = await resolveFeatureFlags(
-        environment.FLAGSHIP_FLAGS,
-        context,
-      );
-
-      if (environment.LOCAL_REGISTRATION_ENABLED === 'true') {
-        flags[FeatureFlag.Registration] = true;
-      }
-
-      return Response.json(flags, {
-        headers: {
-          'cache-control': 'private, no-store',
-        },
+    try {
+      const response = await handleAuthRequest(request, environment);
+      recordWorkerRequest({
+        service: 'auth',
+        request,
+        status: response.status,
+        durationMs: performance.now() - startedAt,
+        analytics: environment.AEREALITH_ANALYTICS,
       });
+      return response;
+    } catch (error) {
+      recordWorkerRequest({
+        service: 'auth',
+        request,
+        status: 500,
+        durationMs: performance.now() - startedAt,
+        error,
+        analytics: environment.AEREALITH_ANALYTICS,
+      });
+      throw error;
     }
-
-    const sensitiveOperations = await classifySensitiveAuthOperations(request);
-    const rateLimiter = new CloudflareRequestRateLimiter(
-      environment.AUTH_SENSITIVE_RATE_LIMIT,
-    );
-    for (const operation of sensitiveOperations) {
-      if (!(await rateLimiter.allow(request, operation))) {
-        return unavailable(
-          'RATE_LIMITED',
-          'Too many requests. Please try again later.',
-          429,
-        );
-      }
-    }
-
-    const maintenanceMode = await evaluate(
-      environment,
-      FeatureFlag.MaintenanceMode,
-      context,
-    );
-
-    const authenticationEnabled = await evaluate(
-      environment,
-      FeatureFlag.Authentication,
-      context,
-    );
-
-    const observabilityEnabled = await evaluate(
-      environment,
-      FeatureFlag.Observability,
-      context,
-    );
-
-    if (observabilityEnabled) {
-      console.info(
-        JSON.stringify({
-          event: 'auth.request',
-          method: request.method,
-          path: url.pathname,
-          country: context.country,
-        }),
-      );
-    }
-
-    if (maintenanceMode) {
-      return unavailable(
-        'MAINTENANCE_MODE',
-        'Authentication is temporarily unavailable during maintenance.',
-      );
-    }
-
-    if (!authenticationEnabled) {
-      return unavailable(
-        'AUTHENTICATION_DISABLED',
-        'Authentication is not currently available.',
-      );
-    }
-
-    if (
-      url.pathname === SignUpPath &&
-      environment.LOCAL_REGISTRATION_ENABLED !== 'true' &&
-      !(await evaluate(environment, FeatureFlag.Registration, context))
-    ) {
-      return Response.json(
-        {
-          ok: false,
-          error: {
-            code: 'REGISTRATION_DISABLED',
-            message: 'Registration is not currently available.',
-          },
-        },
-        {
-          status: 404,
-        },
-      );
-    }
-
-    if (
-      url.pathname === SignUpPath &&
-      !(await verifyRegistrationTurnstile(request, environment))
-    ) {
-      return Response.json(
-        {
-          ok: false,
-          error: {
-            code: 'BOT_VERIFICATION_FAILED',
-            message: 'Bot verification failed. Please try again.',
-          },
-        },
-        {
-          status: 403,
-        },
-      );
-    }
-
-    return fetchAuthApplication(request, environment);
   },
 };
+
+async function handleAuthRequest(
+  request: Request,
+  environment: AuthWorkerEnvironment,
+): Promise<Response> {
+  const url = new URL(request.url);
+
+  if (HealthPaths.has(url.pathname)) {
+    return fetchAuthApplication(request, environment);
+  }
+
+  const context = {
+    path: url.pathname,
+    country: request.headers.get('cf-ipcountry') ?? 'unknown',
+  };
+
+  if (url.pathname === FlagsPath) {
+    const flags = await resolveFeatureFlags(
+      environment.FLAGSHIP_FLAGS,
+      context,
+    );
+
+    if (environment.LOCAL_REGISTRATION_ENABLED === 'true') {
+      flags[FeatureFlag.Registration] = true;
+    }
+
+    return Response.json(flags, {
+      headers: {
+        'cache-control': 'private, no-store',
+      },
+    });
+  }
+
+  const sensitiveOperations = await classifySensitiveAuthOperations(request);
+  const rateLimiter = new CloudflareRequestRateLimiter(
+    environment.AUTH_SENSITIVE_RATE_LIMIT,
+  );
+
+  for (const operation of sensitiveOperations) {
+    if (!(await rateLimiter.allow(request, operation))) {
+      return unavailable(
+        'RATE_LIMITED',
+        'Too many requests. Please try again later.',
+        429,
+      );
+    }
+  }
+
+  const maintenanceMode = await evaluate(
+    environment,
+    FeatureFlag.MaintenanceMode,
+    context,
+  );
+
+  const authenticationEnabled = await evaluate(
+    environment,
+    FeatureFlag.Authentication,
+    context,
+  );
+
+  if (maintenanceMode) {
+    return unavailable(
+      'MAINTENANCE_MODE',
+      'Authentication is temporarily unavailable during maintenance.',
+    );
+  }
+
+  if (!authenticationEnabled) {
+    return unavailable(
+      'AUTHENTICATION_DISABLED',
+      'Authentication is not currently available.',
+    );
+  }
+
+  if (
+    url.pathname === SignUpPath &&
+    environment.LOCAL_REGISTRATION_ENABLED !== 'true' &&
+    !(await evaluate(environment, FeatureFlag.Registration, context))
+  ) {
+    return Response.json(
+      {
+        ok: false,
+        error: {
+          code: 'REGISTRATION_DISABLED',
+          message: 'Registration is not currently available.',
+        },
+      },
+      {
+        status: 404,
+      },
+    );
+  }
+
+  if (
+    url.pathname === SignUpPath &&
+    !(await verifyRegistrationTurnstile(request, environment))
+  ) {
+    return Response.json(
+      {
+        ok: false,
+        error: {
+          code: 'BOT_VERIFICATION_FAILED',
+          message: 'Bot verification failed. Please try again.',
+        },
+      },
+      {
+        status: 403,
+      },
+    );
+  }
+
+  return fetchAuthApplication(request, environment);
+}
 
 /**
  * Route every environment to the persistent authentication application.
@@ -205,6 +222,7 @@ async function fetchPersistentAuthApplication(
       },
     );
   }
+
   const resendApiKey = await resolveOptionalSecret(environment.RESEND_API_KEY);
 
   const application = new LazyAuthApplication({
@@ -218,9 +236,7 @@ async function fetchPersistentAuthApplication(
   const app = createAuthServiceApp({
     application,
     authorization,
-
     environment: environment.NODE_ENV,
-
     allowedOrigins: [environment.FRONTEND_URL],
   });
 
@@ -286,7 +302,6 @@ function unavailable(code: string, message: string, status = 503): Response {
     },
     {
       status,
-
       headers: {
         'retry-after': status === 429 ? '60' : '300',
       },

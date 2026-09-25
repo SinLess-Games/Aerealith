@@ -92,6 +92,31 @@ describe('API errors', () => {
     });
   });
 
+  it('applies public-safe response headers from ApiError', async () => {
+    const app = new Hono<ApiEnv>();
+    app.onError(createHonoErrorHandler<ApiEnv>());
+    app.get('/limited', () => {
+      throw new ApiError('Too many requests.', {
+        code: ApiErrorCode.RateLimited,
+        status: HttpStatus.TooManyRequests,
+        headers: {
+          'retry-after': '42',
+        },
+      });
+    });
+
+    const response = await app.request('/limited');
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get('retry-after')).toBe('42');
+    await expect(response.json()).resolves.toMatchObject({
+      error: {
+        code: ApiErrorCode.RateLimited,
+        message: 'Too many requests.',
+      },
+    });
+  });
+
   it('handles failures even when request context was not installed', async () => {
     const app = new Hono<ApiEnv>();
     app.onError(createHonoErrorHandler<ApiEnv>());

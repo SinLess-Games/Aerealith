@@ -360,8 +360,8 @@ The intended or active technology direction may include:
 
 ## Observability and Quality
 
-- Datadog
-- Grafana-compatible observability
+- Grafana Cloud
+- OpenTelemetry-compatible observability
 - Codecov
 - Meticulous AI
 

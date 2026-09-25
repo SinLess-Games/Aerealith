@@ -6,6 +6,7 @@ import { useState, type ReactNode } from 'react';
 
 import { ConsentProvider } from '../../consent/consent-context';
 import { FeatureFlagsProvider } from '../../features/flags/feature-flags';
+import { BrowserObservabilityGate } from '../../features/observability/browser-observability-gate';
 
 /**
  * App-wide context providers:
@@ -13,7 +14,13 @@ import { FeatureFlagsProvider } from '../../features/flags/feature-flags';
  * - `AccessibilityProvider` applies contrast/motion/reading preferences.
  * - `QueryClientProvider` supplies TanStack Query for server state (auth, etc.).
  */
-export function AppProviders({ children }: Readonly<{ children: ReactNode }>) {
+export function AppProviders({
+  children,
+  waitForRemoteFeatureFlags,
+}: Readonly<{
+  children: ReactNode;
+  waitForRemoteFeatureFlags?: boolean;
+}>) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -24,7 +31,8 @@ export function AppProviders({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <QueryClientProvider client={queryClient}>
       <ConsentProvider>
-        <FeatureFlagsProvider>
+        <FeatureFlagsProvider waitForRemote={waitForRemoteFeatureFlags}>
+          <BrowserObservabilityGate />
           <ThemeProvider>
             <AccessibilityProvider>{children}</AccessibilityProvider>
           </ThemeProvider>

@@ -21,6 +21,10 @@ export function createHonoErrorHandler<
         status: normalized.status,
       },
     });
+    for (const [name, value] of Object.entries(normalized.headers ?? {})) {
+      honoContext.header(name, value);
+    }
+
     return honoContext.json<ApiErrorResponse>(
       {
         error: {

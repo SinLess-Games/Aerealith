@@ -16,7 +16,29 @@
     "@opentelemetry/exporter-trace-otlp-proto": "^0.221.0",
     "@opentelemetry/sdk-metrics": "^2.10.0",
     "@opentelemetry/sdk-node": "^0.221.0",
-    "@pyroscope/nodejs": "^0.6.1",
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "@pyroscope/nodejs": "^0.6.3"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "require": "./src/index.js",
+      "default": "./src/index.js"
+    },
+    "./logger": {
+      "types": "./src/logger/index.d.ts",
+      "require": "./src/logger/index.js",
+      "default": "./src/logger/index.js"
+    },
+    "./node": {
+      "types": "./src/node/index.d.ts",
+      "require": "./src/node/index.js",
+      "default": "./src/node/index.js"
+    },
+    "./worker": {
+      "types": "./src/worker/index.d.ts",
+      "require": "./src/worker/index.js",
+      "default": "./src/worker/index.js"
+    }
   }
 }

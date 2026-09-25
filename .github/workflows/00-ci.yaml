@@ -223,7 +223,7 @@ jobs:
           set -o pipefail
 
           pnpm exec nx affected \
-            --targets=lint,typecheck,test,build \
+            --targets=lint,typecheck,test,build,worker-dry-run \
             --base="$NX_BASE" \
             --head="$NX_HEAD" \
             --parallel=3 \
@@ -277,7 +277,7 @@ jobs:
             echo "| Nx installation | ${NX_VERIFY:-unknown} |"
             echo "| Nx workspace reset | ${NX_RESET:-unknown} |"
             echo "| Git comparison range | ${RANGE:-unknown} |"
-            echo "| Nx affected lint, typecheck, test, build | ${AFFECTED_VALIDATION:-unknown} |"
+            echo "| Nx affected lint, typecheck, test, build, Worker dry-run | ${AFFECTED_VALIDATION:-unknown} |"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload CI logs
@@ -469,7 +469,7 @@ jobs:
               '',
               `- Base SHA: \`${process.env.BASE_SHA || 'unavailable'}\``,
               `- Head SHA: \`${process.env.HEAD_SHA || 'unavailable'}\``,
-              '- Validation targets: `lint`, `typecheck`, `test`, `build`',
+              '- Validation targets: `lint`, `typecheck`, `test`, `build`, `worker-dry-run`',
               '- Logs: download the `ci-logs` artifact from the workflow run.',
               '',
               '</details>',

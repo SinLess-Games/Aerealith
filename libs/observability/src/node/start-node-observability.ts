@@ -19,24 +19,10 @@ export interface StartNodeObservabilityOptions {
 
 export interface NodeObservability {
   readonly enabled: boolean;
-  readonly profilingEnabled: boolean;
+  readonly profilingMode: 'pyroscope-sdk' | 'disabled';
   readonly meter: Meter;
   readonly tracer: Tracer;
   shutdown(): Promise<void>;
-}
-
-interface PyroscopeRuntime {
-  init(config: {
-    appName: string;
-    serverAddress: string;
-    basicAuthUser: string;
-    basicAuthPassword: string;
-    flushIntervalMs: number;
-    tags: Record<string, string>;
-    wall: { collectCpuTime: boolean };
-  }): void;
-  start(): void;
-  stop(): Promise<void>;
 }
 
 export async function startNodeObservability(
@@ -50,7 +36,32 @@ export async function startNodeObservability(
   const meter = metrics.getMeter(options.service, configuration.version);
   const tracer = trace.getTracer(options.service, configuration.version);
   let sdk: NodeSDK | undefined;
-  let pyroscope: PyroscopeRuntime | undefined;
+  let stopProfiler: (() => Promise<void>) | undefined;
+
+  if (configuration.pyroscope) {
+    try {
+      const Pyroscope = await import('@pyroscope/nodejs');
+      Pyroscope.init({
+        serverAddress: configuration.pyroscope.serverAddress,
+        appName: configuration.pyroscope.applicationName,
+        ...(configuration.pyroscope.basicAuthUser
+          ? { basicAuthUser: configuration.pyroscope.basicAuthUser }
+          : {}),
+        ...(configuration.pyroscope.basicAuthPassword
+          ? { basicAuthPassword: configuration.pyroscope.basicAuthPassword }
+          : {}),
+        flushIntervalMs: configuration.pyroscope.flushIntervalMs,
+        tags: { ...configuration.pyroscope.tags },
+        wall: {
+          collectCpuTime: configuration.pyroscope.collectCpuTime,
+        },
+      });
+      Pyroscope.start();
+      stopProfiler = () => Pyroscope.stop();
+    } catch (error) {
+      options.onError?.(error);
+    }
+  }
 
   if (configuration.otlp) {
     const exporterOptions = {
@@ -81,39 +92,15 @@ export async function startNodeObservability(
     registerRuntimeMetrics(meter);
   }
 
-  if (configuration.pyroscope) {
-    try {
-      pyroscope = (await import('@pyroscope/nodejs')) as PyroscopeRuntime;
-      pyroscope.init({
-        appName: configuration.pyroscope.applicationName,
-        serverAddress: configuration.pyroscope.endpoint,
-        basicAuthUser: configuration.pyroscope.user,
-        basicAuthPassword: configuration.pyroscope.password,
-        flushIntervalMs: configuration.pyroscope.flushIntervalMs,
-        tags: {
-          environment: configuration.environment,
-          namespace: configuration.namespace,
-          ...(configuration.version ? { version: configuration.version } : {}),
-        },
-        wall: {
-          collectCpuTime: configuration.pyroscope.collectCpuTime,
-        },
-      });
-      pyroscope.start();
-    } catch (error) {
-      options.onError?.(error);
-    }
-  }
-
   return {
-    enabled: sdk !== undefined,
-    profilingEnabled: pyroscope !== undefined,
+    enabled: sdk !== undefined || stopProfiler !== undefined,
+    profilingMode: stopProfiler ? 'pyroscope-sdk' : 'disabled',
     meter,
     tracer,
     async shutdown(): Promise<void> {
       const results = await Promise.allSettled([
-        ...(pyroscope ? [pyroscope.stop()] : []),
         ...(sdk ? [sdk.shutdown()] : []),
+        ...(stopProfiler ? [stopProfiler()] : []),
       ]);
       for (const result of results) {
         if (result.status === 'rejected') options.onError?.(result.reason);

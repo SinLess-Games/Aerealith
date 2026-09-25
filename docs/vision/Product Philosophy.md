@@ -182,7 +182,6 @@ Examples of systems Aerealith may integrate with include:
 - GitHub
 - Home Assistant
 - Bitwarden or other credential providers
-- Datadog
 - Grafana
 - Docker
 - Kubernetes
@@ -447,7 +446,6 @@ flowchart TD
     Storage --> ObjectStorage["S3-Compatible Storage"]
     Storage --> MinIO
 
-    Observability --> Datadog
     Observability --> GrafanaCloud["Grafana Cloud"]
     Observability --> GrafanaOSS["Grafana OSS"]
 

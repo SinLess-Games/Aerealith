@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router';
 
 import { useConsent } from '../consent/consent-context';
-import { trackDatadogView } from '../observability/datadog-rum';
 import { trackEvent } from './google-tag-manager';
 
 const sensitiveParameters = new Set([
@@ -41,7 +40,6 @@ export function RouteTracker() {
       page_path: path,
       page_title: document.title,
     });
-    trackDatadogView(path);
   }, [location.pathname, location.search, preferences.analytics]);
 
   return null;

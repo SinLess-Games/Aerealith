@@ -9,12 +9,13 @@ export interface OtlpConfiguration {
 }
 
 export interface PyroscopeConfiguration {
+  readonly serverAddress: string;
   readonly applicationName: string;
-  readonly endpoint: string;
-  readonly user: string;
-  readonly password: string;
+  readonly basicAuthUser?: string;
+  readonly basicAuthPassword?: string;
   readonly flushIntervalMs: number;
   readonly collectCpuTime: boolean;
+  readonly tags: Readonly<Record<string, string>>;
 }
 
 export interface NodeObservabilityConfiguration {
@@ -34,21 +35,23 @@ export function resolveNodeObservabilityConfiguration(
     environment['NODE_ENV']?.trim() || 'development';
   const version = environment['OTEL_SERVICE_VERSION']?.trim();
   const endpoint = environment['OTEL_EXPORTER_OTLP_ENDPOINT']?.trim();
-  const pyroscopeEndpoint =
-    environment['PYROSCOPE_SERVER_ADDRESS']?.trim() ||
-    environment['PYROSCOPE_URL']?.trim();
-  const pyroscopeUser =
-    environment['PYROSCOPE_BASIC_AUTH_USER']?.trim() ||
-    environment['PYROSCOPE_USER_ID']?.trim();
-  const pyroscopePassword =
-    environment['PYROSCOPE_BASIC_AUTH_PASSWORD']?.trim() ||
-    environment['PYROSCOPE_TOKEN']?.trim();
+  const namespace =
+    environment['OTEL_SERVICE_NAMESPACE']?.trim() || 'aerealith';
+  const pyroscopeServerAddress =
+    environment['PYROSCOPE_SERVER_ADDRESS']?.trim();
+  const pyroscopeBasicAuthUser =
+    environment['PYROSCOPE_BASIC_AUTH_USER']?.trim();
+  const pyroscopeBasicAuthPassword =
+    environment['PYROSCOPE_BASIC_AUTH_PASSWORD']?.trim();
+  const pyroscopeEnabled =
+    pyroscopeServerAddress !== undefined &&
+    parseBoolean(environment['PYROSCOPE_ENABLED'], true);
 
   return {
     service,
     environment: deploymentEnvironment,
     ...(version ? { version } : {}),
-    namespace: environment['OTEL_SERVICE_NAMESPACE']?.trim() || 'aerealith',
+    namespace,
     ...(endpoint && environment['OTEL_SDK_DISABLED'] !== 'true'
       ? {
           otlp: {
@@ -63,23 +66,33 @@ export function resolveNodeObservabilityConfiguration(
           },
         }
       : {}),
-    ...(pyroscopeEndpoint &&
-    pyroscopeUser &&
-    pyroscopePassword &&
-    environment['PYROSCOPE_ENABLED'] !== 'false'
+    ...(pyroscopeEnabled && pyroscopeServerAddress
       ? {
           pyroscope: {
+            serverAddress: trimTrailingSlashes(pyroscopeServerAddress),
             applicationName:
-              environment['PYROSCOPE_APPLICATION_NAME']?.trim() || service,
-            endpoint: trimTrailingSlashes(pyroscopeEndpoint),
-            user: pyroscopeUser,
-            password: pyroscopePassword,
+              environment['PYROSCOPE_APPLICATION_NAME']?.trim() ||
+              `${namespace}.${service}`,
+            ...(pyroscopeBasicAuthUser
+              ? { basicAuthUser: pyroscopeBasicAuthUser }
+              : {}),
+            ...(pyroscopeBasicAuthPassword
+              ? { basicAuthPassword: pyroscopeBasicAuthPassword }
+              : {}),
             flushIntervalMs: parsePositiveInteger(
               environment['PYROSCOPE_FLUSH_INTERVAL_MS'],
               60_000,
             ),
-            collectCpuTime:
-              environment['PYROSCOPE_WALL_COLLECT_CPU_TIME'] !== 'false',
+            collectCpuTime: parseBoolean(
+              environment['PYROSCOPE_WALL_COLLECT_CPU_TIME'],
+              true,
+            ),
+            tags: {
+              service,
+              environment: deploymentEnvironment,
+              namespace,
+              ...(version ? { version } : {}),
+            },
           },
         }
       : {}),
@@ -132,4 +145,23 @@ function parsePositiveInteger(
 ): number {
   const parsed = Number(value);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function parseBoolean(
+  value: string | undefined,
+  fallback: boolean,
+): boolean {
+  if (value === undefined) return fallback;
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'true' || normalized === '1' || normalized === 'yes') {
+    return true;
+  }
+  if (
+    normalized === 'false' ||
+    normalized === '0' ||
+    normalized === 'no'
+  ) {
+    return false;
+  }
+  return fallback;
 }

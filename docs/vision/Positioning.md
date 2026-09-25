@@ -632,7 +632,7 @@ Examples:
 | ------------------------------------------------- | ---------------------------------------------------------------------------- |
 | Discord                                           | Enhance and manage communities                                               |
 | GitHub                                            | Summarize, explain, automate, and assist development workflows               |
-| Datadog or Grafana                                | Surface insights, telemetry, alerts, and operational context                 |
+| Grafana                                           | Surface insights, telemetry, alerts, and operational context                 |
 | Snyk or Semgrep                                   | Connect security findings to explanations, prioritization, and workflows     |
 | Codecov                                           | Surface coverage context and reporting                                       |
 | Home Assistant                                    | Connect home automation to broader workflows                                 |

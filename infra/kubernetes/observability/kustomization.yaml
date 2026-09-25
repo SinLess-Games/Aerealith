@@ -5,3 +5,5 @@ resources:
   - namespace.yaml
   - ./kube-prometheus-stack
   - ./kiali
+  - ./pyroscope
+  - ./alloy-profiling

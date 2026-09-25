@@ -1,0 +1,157 @@
+{
+  "id": null,
+  "uid": "aerealith-service-overview",
+  "title": "Aerealith Service Overview",
+  "tags": [
+    "aerealith",
+    "services",
+    "observability"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "prometheus",
+        "type": "datasource",
+        "query": "prometheus",
+        "label": "Metrics",
+        "current": {}
+      },
+      {
+        "name": "service",
+        "type": "query",
+        "datasource": "$prometheus",
+        "query": {
+          "query": "label_values(aerealith_api_server_requests_total, service_name)",
+          "refId": "service"
+        },
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".*",
+        "refresh": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Request rate",
+      "datasource": "$prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (service_name) (rate(aerealith_api_server_requests_total{service_name=~\"$service\"}[5m]))",
+          "legendFormat": "{{service_name}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Error rate",
+      "datasource": "$prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (service_name) (rate(aerealith_api_server_failures_total{service_name=~\"$service\"}[5m])) / clamp_min(sum by (service_name) (rate(aerealith_api_server_requests_total{service_name=~\"$service\"}[5m])), 0.000001)",
+          "legendFormat": "{{service_name}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "p95 request latency",
+      "datasource": "$prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le, service_name) (rate(aerealith_api_server_duration_bucket{service_name=~\"$service\"}[5m])))",
+          "legendFormat": "{{service_name}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Active requests",
+      "datasource": "$prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (service_name) (aerealith_api_server_active_requests{service_name=~\"$service\"})",
+          "legendFormat": "{{service_name}}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Node memory",
+      "datasource": "$prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (service_name, type) (process_runtime_nodejs_memory_usage{service_name=~\"$service\"})",
+          "legendFormat": "{{service_name}} {{type}}"
+        }
+      ]
+    }
+  ]
+}

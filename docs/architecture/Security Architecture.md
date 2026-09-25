@@ -2145,7 +2145,6 @@ Gitleaks
 Trivy
 SonarQube or SonarLint
 Codecov
-Datadog
 Grafana Cloud
 Meticulous AI
 ```
@@ -2164,7 +2163,6 @@ Each tool has a distinct role.
 | Trivy               | Container, dependency, configuration, and image scanning.                  |
 | SonarQube/SonarLint | Code-quality and security analysis.                                        |
 | Codecov             | Coverage visibility and enforcement support.                               |
-| Datadog             | Operational telemetry and security-relevant monitoring where configured.   |
 | Grafana Cloud       | Metrics, logs, traces, dashboards, and alerts.                             |
 | Meticulous AI       | Automated visual regression and frontend-change validation.                |
 

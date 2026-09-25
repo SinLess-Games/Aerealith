@@ -147,12 +147,7 @@ business-operational signals
 
 Telemetry is routed through provider-neutral adapters and collectors to one or more backends.
 
-Primary observability platforms include:
-
-```text
-Grafana Cloud
-Datadog
-```
+The primary observability platform is Grafana Cloud, backed by provider-neutral OpenTelemetry instrumentation.
 
 The broader Grafana-oriented stack may include:
 
@@ -165,19 +160,7 @@ Grafana Alerting for alerts
 Kiali for service-mesh visibility
 ```
 
-Datadog may provide complementary:
-
-```text
-APM
-infrastructure monitoring
-log analysis
-real-user monitoring
-synthetic monitoring
-security monitoring
-incident correlation
-```
-
-Aerealith should avoid duplicating every signal through two independent SDK stacks.
+Aerealith intentionally avoids parallel vendor-specific SDK stacks. Instrumentation is owned by Aerealith and OpenTelemetry-compatible libraries, with Grafana backends selected at the export layer.
 
 The preferred direction is:
 
@@ -185,7 +168,7 @@ The preferred direction is:
 Application Instrumentation
 → OpenTelemetry SDK or Runtime Adapter
 → OpenTelemetry Collector or Edge Export Adapter
-→ Grafana Cloud and/or Datadog
+→ Grafana Cloud
 ```
 
 Provider-specific exporters remain infrastructure configuration.
@@ -434,7 +417,7 @@ blocking operations
 unexpected runtime cost
 ```
 
-Pyroscope or a compatible profiler may be used where runtime support permits.
+Kubernetes processes are continuously CPU-profiled out-of-process by Grafana Alloy eBPF and stored in Pyroscope. Cloudflare Worker isolates use platform CPU-time and trace telemetry because host eBPF access is unavailable.
 
 Profiles must avoid capturing sensitive payloads.
 
@@ -459,8 +442,8 @@ flowchart TD
   Mimir["Grafana Cloud Metrics / Mimir"]
   Loki["Grafana Cloud Logs / Loki"]
   Tempo["Grafana Cloud Traces / Tempo"]
-  Pyroscope["Grafana Cloud Profiles / Pyroscope"]
-  Datadog["Datadog"]
+  Alloy["Grafana Alloy eBPF Profiler"]
+  Pyroscope["Grafana Pyroscope"]
   Kiali["Kiali"]
   Alerts["Alerting and Incident Routing"]
 
@@ -477,13 +460,15 @@ flowchart TD
   Collector --> Mimir
   Collector --> Loki
   Collector --> Tempo
-  Collector --> Pyroscope
-  Collector --> Datadog
+  API --> Alloy
+  Services --> Alloy
+  Integrations --> Alloy
+  Workers --> Alloy
+  Alloy --> Pyroscope
 
   Mimir --> Alerts
   Loki --> Alerts
   Tempo --> Alerts
-  Datadog --> Alerts
   Kiali --> Alerts
 ```
 
@@ -536,7 +521,6 @@ libs/observability/src/
 ├── logging/
 ├── metrics/
 ├── tracing/
-├── profiling/
 ├── health/
 ├── redaction/
 ├── exporters/
@@ -741,8 +725,8 @@ feature-flag evaluation
 Potential tools include:
 
 ```text
-OpenTelemetry browser instrumentation
-Datadog RUM
+Grafana Faro
+OpenTelemetry-compatible browser instrumentation
 synthetic monitoring
 Web Vitals
 ```
@@ -1403,7 +1387,6 @@ Dependabot
 Renovate
 Meticulous AI
 SonarQube or SonarLint
-Datadog
 Grafana Cloud
 ```
 
@@ -1422,7 +1405,6 @@ Grafana Cloud
 | Dependabot    | Security alerts and dependency updates.                  |
 | Renovate      | Dependency update policy and automation.                 |
 | Meticulous AI | Visual regression status.                                |
-| Datadog       | Runtime and service telemetry.                           |
 | Grafana Cloud | Metrics, logs, traces, profiles, dashboards, and alerts. |
 
 These tools should publish release and deployment metadata where supported.
@@ -2277,19 +2259,9 @@ An alert without an owner is just a haunted notification.
 
 ## Duplicate Alert Prevention
 
-When both Grafana Cloud and Datadog monitor the same signal, one system should own paging.
-
-The other may provide:
-
-```text
-secondary visibility
-correlation
-backup detection
-```
-
-Avoid duplicate paging for the same incident.
-
----
+One alerting path owns paging for each signal. Secondary dashboards and
+correlation views may observe the same condition, but they must not create
+duplicate pages for the same incident.
 
 ## Alert Grouping
 
@@ -2723,7 +2695,6 @@ AEREALITH_OTEL_TRACE_SAMPLE_RATE
 AEREALITH_LOG_LEVEL
 AEREALITH_PROFILING_ENABLED
 AEREALITH_GRAFANA_CLOUD_ENDPOINT
-AEREALITH_DATADOG_ENABLED
 ```
 
 Provider credentials must remain secret-managed.
@@ -2769,9 +2740,9 @@ Telemetry may route by signal and environment.
 Example:
 
 ```text
-metrics -> Grafana Cloud and selected Datadog monitors
-logs -> Loki and selected Datadog security pipelines
-traces -> Tempo and Datadog APM where justified
+metrics -> Grafana Cloud and selected Grafana Cloud monitors
+logs -> Loki and selected Grafana Cloud security pipelines
+traces -> Tempo and Grafana Cloud APM where justified
 profiles -> Pyroscope
 ```
 
@@ -2779,24 +2750,25 @@ Do not duplicate high-volume telemetry without a documented reason.
 
 ---
 
-## Vendor Ownership Model
+## Signal Ownership Model
 
-Aerealith should define which platform is authoritative for each operational function.
+Aerealith defines one primary backend per operational signal to avoid duplicate
+paging, inconsistent retention, and unnecessary telemetry cost.
 
-Example direction:
+| Function | Primary Platform |
+| --- | --- |
+| Metrics dashboards | Prometheus / Grafana Mimir |
+| Logs | Grafana Loki |
+| Traces | Grafana Tempo |
+| Profiles | Grafana Pyroscope |
+| Browser telemetry | Grafana Faro |
+| Worker platform telemetry | Cloudflare Workers Observability |
+| Worker request metrics | Cloudflare Analytics Engine |
+| Paging | Grafana Alerting / Alertmanager |
 
-| Function                 | Primary Platform             | Secondary Platform          |
-| ------------------------ | ---------------------------- | --------------------------- |
-| Metrics dashboards       | Grafana Cloud                | Datadog                     |
-| Logs                     | Grafana Cloud Loki           | Datadog selected pipelines  |
-| Traces                   | Grafana Cloud Tempo          | Datadog APM where justified |
-| Profiles                 | Grafana Cloud Pyroscope      | None initially              |
-| Runtime security signals | Datadog where configured     | Grafana dashboards          |
-| Paging                   | One selected owner per alert | Secondary visibility only   |
-
-The exact ownership model should be finalized in RFC 0017.
-
----
+OpenTelemetry remains the portability boundary. Cloudflare-native signals are
+used for Worker runtimes where the Node SDK and native profiling agents cannot
+run.
 
 ## Privacy and Observability
 
@@ -2918,8 +2890,7 @@ Observability failures should degrade safely.
 | Profiling unavailable        | Disable profiling and preserve runtime behavior.                 |
 | Dashboard unavailable        | Preserve telemetry ingestion where possible.                     |
 | Alert router unavailable     | Use documented secondary escalation path for critical incidents. |
-| Datadog unavailable          | Preserve Grafana Cloud telemetry.                                |
-| Grafana Cloud unavailable    | Preserve selected Datadog telemetry where configured.            |
+| Grafana Cloud unavailable    | Preserve selected Grafana Cloud telemetry where configured.            |
 | AI unavailable               | Keep deterministic operational dashboards and alerts.            |
 
 ---
@@ -3256,7 +3227,6 @@ Potential infrastructure paths:
 infrastructure/observability/
 ├── otel-collector/
 ├── grafana/
-├── datadog/
 ├── dashboards/
 ├── alerts/
 ├── runbooks/
@@ -3481,7 +3451,6 @@ notification delivery metrics
 audit-consumer metrics
 AI usage and cost metrics
 Grafana Cloud dashboards
-Datadog integration where justified
 alert ownership
 runbooks
 sampling and redaction
@@ -3518,7 +3487,7 @@ Recommended implementation order:
 10. Add queue propagation and consumer telemetry.
 11. Add release metadata.
 12. Add Grafana Cloud export.
-13. Add Datadog export where justified.
+13. Add Grafana Cloud export where justified.
 14. Define primary alert ownership.
 15. Build platform overview dashboard.
 16. Build API and database dashboards.
@@ -3555,7 +3524,6 @@ trace sampling policy
 log sampling policy
 retention by signal
 Grafana Cloud ownership
-Datadog ownership
 alert-routing ownership
 SLO definitions
 error-budget policy
@@ -3565,7 +3533,7 @@ frontend RUM policy
 profiling policy
 ```
 
-Before dual-provider export is expanded, Aerealith must finalize:
+Before multi-destination export is expanded, Aerealith must finalize:
 
 ```text
 which signals are duplicated
@@ -3827,7 +3795,6 @@ The observability architecture supports self-hosting through:
 OpenTelemetry standards
 replaceable collectors
 Grafana-compatible backends
-Datadog-optional behavior
 structured stdout logs
 Docker support
 Kubernetes support
@@ -3838,7 +3805,6 @@ A self-hosted deployment may choose:
 
 ```text
 Grafana stack
-Datadog
 another OpenTelemetry-compatible backend
 local-only observability
 ```
@@ -3872,7 +3838,7 @@ critical alerts have runbooks
 duplicate paging is controlled
 telemetry cost is measurable
 observability outages do not crash product behavior
-Grafana Cloud and Datadog remain replaceable infrastructure
+Grafana Cloud and Grafana Cloud remain replaceable infrastructure
 Cloudflare Workers remain supported
 Docker and Kubernetes remain viable
 80% coverage is enforced

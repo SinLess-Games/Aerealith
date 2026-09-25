@@ -3425,12 +3425,11 @@ Critical audit failures should not disappear into a generic operations dashboard
 
 ---
 
-## Datadog and Grafana Cloud
+## Grafana Cloud
 
 Aerealith may use:
 
 ```text
-Datadog
 Grafana Cloud
 ```
 

@@ -12,14 +12,21 @@ import {
   resolveFeatureFlags,
   type BooleanFeatureFlagProvider,
 } from '@aerealith-ai/core';
+import {
+  recordWorkerRequest,
+  type WorkerAnalyticsDataset,
+} from '@aerealith-ai/observability/worker';
 
 export interface FrontendWorkerEnvironment {
   ASSETS: WorkerFetcher;
   API_WORKER?: WorkerFetcher;
   AUTH_WORKER?: WorkerFetcher;
+  AI_ORCHESTRATOR_WORKER?: WorkerFetcher;
   API_SERVICE_URL?: string;
   AUTH_SERVICE_URL?: string;
+  AI_ORCHESTRATOR_SERVICE_URL?: string;
   FLAGSHIP_FLAGS?: BooleanFeatureFlagProvider;
+  AEREALITH_ANALYTICS?: WorkerAnalyticsDataset;
 }
 
 interface WorkerFetcher {
@@ -47,13 +54,13 @@ type FeatureFlagName = keyof typeof FeatureFlagDefaults;
 
 interface RuntimeFeatureFlags {
   readonly maintenanceMode: boolean;
-  readonly observabilityEnabled: boolean;
 }
 
 const HealthPath = '/__aerealith/health';
 const FlagsPath = '/api/V1/flags';
 const LegacyApiPath = '/api/v1';
 const ApiServicePath = '/api/V1/';
+const AiServiceRoot = '/api/V1/ai';
 
 const RegistrationPaths = new Set<string>([
   '/api/V1/auth/sign-up',
@@ -79,7 +86,34 @@ const AuthApiRoots = [
 const AuthTransportRoots = ['/graphql', '/trpc'] as const;
 
 export default {
-  fetch: handleRequest,
+  async fetch(
+    request: Request,
+    environment: FrontendWorkerEnvironment,
+  ): Promise<Response> {
+    const startedAt = performance.now();
+
+    try {
+      const response = await handleRequest(request, environment);
+      recordWorkerRequest({
+        service: 'frontend',
+        request,
+        status: response.status,
+        durationMs: performance.now() - startedAt,
+        analytics: environment.AEREALITH_ANALYTICS,
+      });
+      return response;
+    } catch (error) {
+      recordWorkerRequest({
+        service: 'frontend',
+        request,
+        status: 500,
+        durationMs: performance.now() - startedAt,
+        error,
+        analytics: environment.AEREALITH_ANALYTICS,
+      });
+      throw error;
+    }
+  },
 };
 
 /**
@@ -98,6 +132,8 @@ export default {
  * maintenance mode
  *   ↓
  * auth service
+ *   ↓
+ * AI orchestrator
  *   ↓
  * API service
  *   ↓
@@ -122,19 +158,38 @@ async function handleRequest(
     flagContext,
   );
 
-  logRequestWhenEnabled(
-    request,
-    url,
-    flagContext,
-    runtimeFlags.observabilityEnabled,
-  );
-
   if (shouldServeMaintenancePage(url.pathname, runtimeFlags.maintenanceMode)) {
     return createMaintenanceResponse();
   }
 
   if (isAuthServicePath(url.pathname)) {
     return handleAuthServiceRequest(request, url, environment, flagContext);
+  }
+
+  if (isPathUnderRoot(url.pathname, AiServiceRoot)) {
+    const aiFlagContext = await createAuthenticatedFeatureFlagContext(
+      request,
+      url,
+      environment,
+    );
+    const aiStudioEnabled = await resolveBooleanFeatureFlag(
+      environment.FLAGSHIP_FLAGS,
+      FeatureFlag.AiStudio,
+      aiFlagContext,
+    );
+
+    if (!aiStudioEnabled) {
+      return createFeatureDisabledResponse();
+    }
+
+    return proxyService(
+      request,
+      url,
+      environment.AI_ORCHESTRATOR_WORKER,
+      environment.AI_ORCHESTRATOR_SERVICE_URL,
+      'AI_SERVICE_UNAVAILABLE',
+      'AI orchestrator',
+    );
   }
 
   if (url.pathname.startsWith(ApiServicePath)) {
@@ -212,7 +267,11 @@ async function createFeatureFlagsResponse(
   url: URL,
   environment: FrontendWorkerEnvironment,
 ): Promise<Response> {
-  const flagContext = createFeatureFlagContext(request, url);
+  const flagContext = await createAuthenticatedFeatureFlagContext(
+    request,
+    url,
+    environment,
+  );
 
   const flags = await resolveFeatureFlags(
     environment.FLAGSHIP_FLAGS,
@@ -241,6 +300,84 @@ function createFeatureFlagContext(
 }
 
 /**
+ * Add a stable authenticated targeting key for Flagship rollouts without
+ * exposing session credentials or account PII to the browser.
+ */
+async function createAuthenticatedFeatureFlagContext(
+  request: Request,
+  url: URL,
+  environment: FrontendWorkerEnvironment,
+): Promise<FeatureFlagContext> {
+  const context = createFeatureFlagContext(request, url);
+  const identity = await resolveAuthenticatedFlagIdentity(
+    request,
+    environment.AUTH_WORKER,
+  );
+
+  return identity
+    ? {
+        ...context,
+        targetingKey: identity.id,
+        userId: identity.id,
+        role: identity.role,
+        emailVerified: identity.emailVerified,
+      }
+    : context;
+}
+
+async function resolveAuthenticatedFlagIdentity(
+  request: Request,
+  authWorker: WorkerFetcher | undefined,
+): Promise<
+  | {
+      id: string;
+      role: string;
+      emailVerified: boolean;
+    }
+  | undefined
+> {
+  if (!authWorker) return undefined;
+
+  try {
+    const url = new URL('/api/V1/auth/me', request.url);
+    const response = await authWorker.fetch(
+      new Request(url, {
+        method: 'GET',
+        headers: request.headers,
+      }),
+    );
+
+    if (!response.ok) return undefined;
+
+    const body = (await response.json()) as {
+      ok?: unknown;
+      data?: {
+        id?: unknown;
+        role?: unknown;
+        emailVerified?: unknown;
+      };
+    };
+
+    if (
+      body.ok !== true ||
+      typeof body.data?.id !== 'string' ||
+      typeof body.data.role !== 'string' ||
+      typeof body.data.emailVerified !== 'boolean'
+    ) {
+      return undefined;
+    }
+
+    return {
+      id: body.data.id,
+      role: body.data.role,
+      emailVerified: body.data.emailVerified,
+    };
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * Resolve the Worker-level feature flags that influence request handling.
  *
  * These evaluations are independent and therefore can run concurrently.
@@ -249,14 +386,14 @@ async function resolveRuntimeFeatureFlags(
   provider: BooleanFeatureFlagProvider | undefined,
   context: FeatureFlagContext,
 ): Promise<RuntimeFeatureFlags> {
-  const [maintenanceMode, observabilityEnabled] = await Promise.all([
-    resolveBooleanFeatureFlag(provider, FeatureFlag.MaintenanceMode, context),
-    resolveBooleanFeatureFlag(provider, FeatureFlag.Observability, context),
-  ]);
+  const maintenanceMode = await resolveBooleanFeatureFlag(
+    provider,
+    FeatureFlag.MaintenanceMode,
+    context,
+  );
 
   return {
     maintenanceMode,
-    observabilityEnabled,
   };
 }
 
@@ -278,43 +415,6 @@ async function resolveBooleanFeatureFlag(
   }
 
   return provider.getBooleanValue(flag, defaultValue, context);
-}
-
-function logRequestWhenEnabled(
-  request: Request,
-  url: URL,
-  flagContext: FeatureFlagContext,
-  observabilityEnabled: boolean,
-): void {
-  if (!observabilityEnabled) {
-    return;
-  }
-
-  console.info(
-    JSON.stringify({
-      event: 'frontend.request',
-      method: request.method,
-      path: url.pathname,
-      country: getContextString(flagContext, 'country', 'unknown'),
-    }),
-  );
-}
-
-/**
- * Safely read a string value from the extensible feature-flag context.
- */
-function getContextString(
-  context: FeatureFlagContext,
-  key: string,
-  fallback: string,
-): string {
-  const value = context[key];
-
-  if (typeof value === 'string') {
-    return value;
-  }
-
-  return fallback;
 }
 
 function shouldServeMaintenancePage(

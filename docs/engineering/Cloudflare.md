@@ -2904,7 +2904,6 @@ Potential destinations include:
 
 ```text
 Grafana Cloud
-Datadog
 object storage
 log-processing pipeline
 ```
@@ -4684,7 +4683,7 @@ Cloudflare telemetry maps into the shared OpenTelemetry and structured-log model
 
 Cloudflare Workers Logs may provide local operational visibility.
 
-Grafana Cloud and Datadog remain supported observability destinations.
+Grafana Cloud is the managed observability destination.
 
 ---
 

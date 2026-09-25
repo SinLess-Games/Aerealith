@@ -15,6 +15,7 @@ export function HeaderAuthNav({
   const { user, isAuthenticated, isLoading } = useSession();
   const logout = useLogout();
   const authenticationEnabled = useFeatureFlag(FeatureFlag.Authentication);
+  const registrationEnabled = useFeatureFlag(FeatureFlag.Registration);
   const dashboardEnabled = useFeatureFlag(FeatureFlag.Dashboard);
 
   if (isLoading) {
@@ -58,11 +59,21 @@ export function HeaderAuthNav({
   }
 
   return authenticationEnabled ? (
-    <NavLink
-      to="/sign-in"
-      className={mobile ? buttonClass + ' text-center' : buttonClass}
-    >
-      Sign in
-    </NavLink>
+    <div className={mobile ? 'grid gap-2' : 'flex items-center gap-2'}>
+      <NavLink
+        to="/sign-in"
+        className={mobile ? buttonClass + ' text-center' : buttonClass}
+      >
+        Sign in
+      </NavLink>
+      {registrationEnabled ? (
+        <NavLink
+          to="/sign-up"
+          className={mobile ? linkClass + ' text-center' : linkClass}
+        >
+          Create account
+        </NavLink>
+      ) : null}
+    </div>
   ) : null;
 }

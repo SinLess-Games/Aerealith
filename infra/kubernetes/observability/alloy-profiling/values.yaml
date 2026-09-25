@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alloy-profiling-values
+  namespace: profiling-system
+  labels:
+    app.kubernetes.io/name: alloy-profiling
+    app.kubernetes.io/component: profiling
+    app.kubernetes.io/part-of: aerealith-platform
+data:
+  values.yaml: |
+    alloy:
+      enableReporting: false
+      listenAddr: 127.0.0.1
+
+      configMap:
+        create: true
+        content: |
+          discovery.kubernetes "local_pods" {
+            selectors {
+              field = "spec.nodeName=" + env("HOSTNAME")
+              role = "pod"
+            }
+            role = "pod"
+          }
+
+          pyroscope.ebpf "aerealith" {
+            forward_to = [pyroscope.write.local.receiver]
+            targets = discovery.kubernetes.local_pods.targets
+          }
+
+          pyroscope.write "local" {
+            endpoint {
+              url = "http://pyroscope.observability.svc.cluster.local:4040"
+            }
+          }
+
+      securityContext:
+        privileged: true
+        runAsUser: 0
+        runAsGroup: 0
+
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: "1"
+          memory: 1Gi
+
+      mounts:
+        extra:
+          - name: symbol-cache
+            mountPath: /tmp/symb-cache
+
+    controller:
+      type: daemonset
+      hostPID: true
+
+      volumes:
+        extra:
+          - name: symbol-cache
+            emptyDir:
+              sizeLimit: 2Gi
+
+    service:
+      enabled: false
+
+    rbac:
+      create: true

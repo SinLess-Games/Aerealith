@@ -1,4 +1,5 @@
-import { EntitySchemas } from '@aerealith-ai/core';
+import type { WorkerAnalyticsDataset } from '@aerealith-ai/observability/worker';
+import { EntitySchemas, type Logger } from '@aerealith-ai/core';
 import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
@@ -10,9 +11,31 @@ import type { WaitlistApplication } from './waitlist/waitlist-application.servic
 
 type SecretBinding = string | { get(): Promise<string> };
 
+interface ApiRequestObservation {
+  readonly service: string;
+  readonly requestId: string;
+  readonly method: string;
+  readonly route: string;
+  readonly startedAt: Date;
+}
+
+interface ApiRequestOutcome extends ApiRequestObservation {
+  readonly durationMs: number;
+  readonly status: number;
+}
+
+interface ApiRequestObserver {
+  requestStarted(observation: ApiRequestObservation):
+    | { readonly traceId?: string; readonly spanId?: string }
+    | void;
+  requestCompleted(outcome: ApiRequestOutcome): void;
+  requestFailed(outcome: ApiRequestOutcome, error: unknown): void;
+}
+
 export type ApiWorkerBindings = {
   AEREALITH_AI: R2Bucket;
   DATABASE_URL?: SecretBinding;
+  AEREALITH_ANALYTICS?: WorkerAnalyticsDataset;
 };
 
 type ApiEnvironment = { Bindings: ApiWorkerBindings };
@@ -25,6 +48,8 @@ export type CreateApiServiceAppOptions = {
    * success or 503 when the check fails.
    */
   readinessCheck?: () => Promise<void>;
+  logger?: Logger;
+  requestObserver?: ApiRequestObserver;
 };
 
 const allowedOrigins = [
@@ -40,6 +65,66 @@ const JoinWaitlistSchema = EntitySchemas.CreateWaitlistEntitySchema.extend({
 
 export function createApiServiceApp(options: CreateApiServiceAppOptions = {}) {
   const app = new Hono<ApiEnvironment>();
+
+  if (options.requestObserver || options.logger) {
+    app.use('*', async (context, next) => {
+      const startedAt = performance.now();
+      const requestId = context.req.header('X-Request-ID') ?? crypto.randomUUID();
+      const route = new URL(context.req.url).pathname;
+      const observation = {
+        service: 'api',
+        method: context.req.method,
+        route,
+        requestId,
+        startedAt: new Date(),
+      };
+      const traceContext = options.requestObserver?.requestStarted(observation);
+
+      try {
+        await next();
+        const outcome = {
+          ...observation,
+          status: context.res.status,
+          durationMs: performance.now() - startedAt,
+        };
+        options.requestObserver?.requestCompleted(outcome);
+        options.logger?.info({
+          event: 'api.request.completed',
+          message: 'API request completed.',
+          component: 'api-service',
+          context: {
+            method: observation.method,
+            route,
+            status: outcome.status,
+            durationMs: outcome.durationMs,
+            requestId,
+            ...(traceContext ?? {}),
+          },
+        });
+      } catch (error) {
+        const outcome = {
+          ...observation,
+          status: 500,
+          durationMs: performance.now() - startedAt,
+        };
+        options.requestObserver?.requestFailed(outcome, error);
+        options.logger?.error({
+          event: 'api.request.failed',
+          message: 'API request failed.',
+          component: 'api-service',
+          error,
+          context: {
+            method: observation.method,
+            route,
+            durationMs: outcome.durationMs,
+            requestId,
+            ...(traceContext ?? {}),
+          },
+        });
+        throw error;
+      }
+    });
+  }
 
   app.use('*', secureHeaders());
   app.use(

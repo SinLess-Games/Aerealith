@@ -1,0 +1,34 @@
+{
+  "name": "ai-cloudflare-workers",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/ai-cloudflare-workers/src",
+  "projectType": "library",
+  "tags": ["scope:ai", "type:lib", "integration:cloudflare-workers-ai"],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "tsc --noEmit -p libs/ai-cloudflare-workers/tsconfig.lib.json",
+          "tsc --noEmit -p libs/ai-cloudflare-workers/tsconfig.spec.json"
+        ],
+        "parallel": false
+      }
+    },
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/ai-cloudflare-workers",
+        "main": "libs/ai-cloudflare-workers/src/index.ts",
+        "tsConfig": "libs/ai-cloudflare-workers/tsconfig.lib.json"
+      }
+    },
+    "test": {
+      "executor": "@nx/vitest:test",
+      "options": {
+        "configFile": "libs/ai-cloudflare-workers/vitest.config.mts"
+      }
+    }
+  }
+}

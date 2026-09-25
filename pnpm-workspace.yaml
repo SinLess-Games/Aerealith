@@ -7,6 +7,7 @@ resolvePeersFromWorkspaceRoot: true
 dedupePeerDependents: true
 dedupeDirectDeps: true
 allowBuilds:
+  # Required transitively by @pyroscope/nodejs for native CPU/wall profiling.
   '@datadog/pprof': true
   '@parcel/watcher': true
   '@swc/core': true

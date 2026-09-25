@@ -1,8 +1,10 @@
+import { FeatureFlag } from '@aerealith-ai/core';
 import { Avatar, ThemeToggle } from '@aerealith-ai/ui';
 import { useQuery } from '@tanstack/react-query';
 import {
   FiActivity,
   FiBookOpen,
+  FiCpu,
   FiDatabase,
   FiGrid,
   FiLogOut,
@@ -20,6 +22,7 @@ import {
   fetchAdminOverview,
 } from '../../features/admin/admin-api';
 import { useLogout, useSession } from '../../features/auth/use-session';
+import { useFeatureFlag } from '../../features/flags/feature-flags';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
@@ -34,14 +37,21 @@ export function DashboardLayout() {
   const { error, isAuthenticated, isError, isLoading, refetch, user } =
     useSession();
   const logout = useLogout();
+  const adminEnabled = useFeatureFlag(FeatureFlag.Admin);
   const adminAccess = useQuery({
     queryKey: ADMIN_OVERVIEW_QUERY_KEY,
     queryFn: fetchAdminOverview,
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && adminEnabled,
     retry: false,
     staleTime: 60_000,
   });
-  const isSuperAdmin = adminAccess.isSuccess;
+  const isSuperAdmin = adminEnabled && adminAccess.isSuccess;
+  const aiStudioEnabled = useFeatureFlag(FeatureFlag.AiStudio);
+  const documentationEnabled = useFeatureFlag(FeatureFlag.Documentation);
+  const accountEnabled = useFeatureFlag(FeatureFlag.Account);
+  const profileEnabled = useFeatureFlag(FeatureFlag.Profile);
+  const securityEnabled = useFeatureFlag(FeatureFlag.Security);
+  const observabilityEnabled = useFeatureFlag(FeatureFlag.Observability);
   const account = useQuery({
     queryKey: ['account'],
     queryFn: fetchAccount,
@@ -133,18 +143,36 @@ export function DashboardLayout() {
               <FiGrid aria-hidden="true" className="text-xl" />
               Overview
             </NavLink>
-            <NavLink to="/app/account" className={navLinkClass}>
-              <FiSettings aria-hidden="true" className="text-xl" />
-              Account
-            </NavLink>
-            <NavLink to="/app/profile" className={navLinkClass}>
-              <FiUser aria-hidden="true" className="text-xl" />
-              Profile
-            </NavLink>
-            <NavLink to="/app/security" className={navLinkClass}>
-              <FiShield aria-hidden="true" className="text-xl" />
-              Security &amp; sessions
-            </NavLink>
+            {aiStudioEnabled ? (
+              <NavLink to="/app/ai" className={navLinkClass}>
+                <FiCpu aria-hidden="true" className="text-xl" />
+                AI Studio
+              </NavLink>
+            ) : null}
+            {accountEnabled ? (
+              <NavLink to="/app/account" className={navLinkClass}>
+                <FiSettings aria-hidden="true" className="text-xl" />
+                Account
+              </NavLink>
+            ) : null}
+            {profileEnabled ? (
+              <NavLink to="/app/profile" className={navLinkClass}>
+                <FiUser aria-hidden="true" className="text-xl" />
+                Profile
+              </NavLink>
+            ) : null}
+            {securityEnabled ? (
+              <NavLink to="/app/security" className={navLinkClass}>
+                <FiShield aria-hidden="true" className="text-xl" />
+                Security &amp; sessions
+              </NavLink>
+            ) : null}
+            {observabilityEnabled ? (
+              <NavLink to="/app/observability" className={navLinkClass}>
+                <FiActivity aria-hidden="true" className="text-xl" />
+                Observability
+              </NavLink>
+            ) : null}
             {isSuperAdmin ? (
               <div className="shrink-0 rounded-lg border border-[var(--ae-border)] p-1.5 md:mt-2">
                 <NavLink to="/app/admin" end className={navLinkClass}>
@@ -181,13 +209,15 @@ export function DashboardLayout() {
       <div className="md:pl-[280px]">
         <header className="sticky top-0 z-40 border-b border-[var(--ae-border)] bg-[var(--ae-glass-background-strong)] backdrop-blur-xl">
           <div className="flex min-h-16 items-center gap-3 px-4 sm:px-8">
-            <NavLink
-              to="/documentation"
-              className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-[var(--ae-foreground-muted)] transition-colors hover:bg-[var(--ae-surface-muted)] hover:text-[var(--ae-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ae-focus-ring)]"
-            >
-              <FiBookOpen aria-hidden="true" />
-              Documentation
-            </NavLink>
+            {documentationEnabled ? (
+              <NavLink
+                to="/documentation"
+                className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-[var(--ae-foreground-muted)] transition-colors hover:bg-[var(--ae-surface-muted)] hover:text-[var(--ae-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ae-focus-ring)]"
+              >
+                <FiBookOpen aria-hidden="true" />
+                Documentation
+              </NavLink>
+            ) : null}
             <div className="ml-auto flex items-center gap-2">
               <ThemeToggle
                 className="rounded-lg"

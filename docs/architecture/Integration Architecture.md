@@ -159,7 +159,6 @@ Examples of infrastructure:
 ```text
 Cloudflare
 Grafana Cloud
-Datadog
 Snyk
 Semgrep
 Codecov

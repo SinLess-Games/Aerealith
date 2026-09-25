@@ -72,12 +72,20 @@ export default defineConfig(({ mode }) => {
       ? 'https://aerealith-api-preview.sinless-deploy.workers.dev'
       : 'http://localhost:8788');
 
+  const aiServiceUrl =
+    environment['AI_ORCHESTRATOR_SERVICE_URL'] ??
+    (isProduction
+      ? 'https://aerealith-ai-orchestrator-preview.sinless-deploy.workers.dev'
+      : 'http://localhost:8789');
+
   const serviceProxy: Record<string, string> = {
     '^/api/V1/(?:auth|users|account|profile|admin)(?:/|$)': authServiceUrl,
 
     '^/api/V1/services/auth(?:/|$)': authServiceUrl,
 
     '^/api/V1/flags$': authServiceUrl,
+
+    '^/api/V1/ai(?:/|$)': aiServiceUrl,
 
     '/api/V1': apiServiceUrl,
 
@@ -534,7 +542,7 @@ export default defineConfig(({ mode }) => {
               {
                 name: 'observability',
 
-                test: /node_modules[\\/](?:@sentry|@datadog|web-vitals|@opentelemetry)[\\/]/,
+                test: /node_modules[\\/](?:@sentry|web-vitals|@opentelemetry)[\\/]/,
 
                 priority: 65,
 

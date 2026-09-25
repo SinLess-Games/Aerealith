@@ -124,7 +124,6 @@
   },
   "dependencies": {
     "@base-ui/react": "1.6.0",
-    "@datadog/browser-rum": "^7.6.1",
     "@fontsource-variable/cormorant-garamond": "5.2.6",
     "@fontsource-variable/inter": "5.2.8",
     "@fontsource-variable/jetbrains-mono": "5.2.8",
@@ -142,7 +141,6 @@
     "@opentelemetry/exporter-trace-otlp-proto": "0.221.0",
     "@opentelemetry/sdk-metrics": "2.10.0",
     "@opentelemetry/sdk-node": "0.221.0",
-    "@pyroscope/nodejs": "0.6.1",
     "@tanstack/react-query": "5.101.2",
     "@trpc/client": "11.18.0",
     "@trpc/react-query": "11.18.0",

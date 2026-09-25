@@ -1,17 +1,16 @@
 // @vitest-environment jsdom
-import { act, render, waitFor } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { IntegrationRuntime } from './integration-runtime';
 
 const mocks = vi.hoisted(() => ({
-  config: { datadog: { enabled: true } },
-  initializeDatadogRum: vi.fn<() => Promise<boolean>>(),
+  initializeBrowserObservability: vi.fn(),
   loadCloudflareWebAnalytics: vi.fn(),
   loadGoogleTagManager: vi.fn(),
+  observabilityEnabled: true,
   preferences: { analytics: false, sessionReplay: false },
-  reportGlobalError: vi.fn(),
-  setDatadogSessionReplayAllowed: vi.fn(),
+  setBrowserObservabilityPaused: vi.fn(),
 }));
 
 vi.mock('../analytics/cloudflare-web-analytics', () => ({
@@ -23,107 +22,51 @@ vi.mock('../analytics/google-tag-manager', () => ({
 vi.mock('../consent/consent-context', () => ({
   useConsent: () => ({ preferences: mocks.preferences }),
 }));
-vi.mock('../observability/datadog-rum', () => ({
-  initializeDatadogRum: mocks.initializeDatadogRum,
-  reportGlobalError: mocks.reportGlobalError,
-  setDatadogSessionReplayAllowed: mocks.setDatadogSessionReplayAllowed,
+vi.mock('../features/flags/feature-flags', () => ({
+  useFeatureFlag: () => mocks.observabilityEnabled,
 }));
-vi.mock('./integration-config', () => ({ integrationConfig: mocks.config }));
+vi.mock('../lib/browser-observability', () => ({
+  initializeBrowserObservability: mocks.initializeBrowserObservability,
+  setBrowserObservabilityPaused: mocks.setBrowserObservabilityPaused,
+}));
 
 describe('IntegrationRuntime', () => {
   beforeEach(() => {
     mocks.preferences.analytics = false;
-    mocks.preferences.sessionReplay = false;
-    mocks.config.datadog.enabled = true;
-    mocks.initializeDatadogRum.mockReset().mockResolvedValue(true);
+    mocks.observabilityEnabled = true;
+    mocks.initializeBrowserObservability.mockReset().mockReturnValue(true);
     mocks.loadCloudflareWebAnalytics.mockReset();
     mocks.loadGoogleTagManager.mockReset();
-    mocks.reportGlobalError.mockReset();
-    mocks.setDatadogSessionReplayAllowed.mockReset();
+    mocks.setBrowserObservabilityPaused.mockReset();
   });
 
   it('keeps optional integrations disabled without analytics consent', () => {
-    const { container } = render(<IntegrationRuntime />);
+    render(<IntegrationRuntime />);
 
-    expect(container.innerHTML).toBe('');
     expect(mocks.loadGoogleTagManager).not.toHaveBeenCalled();
     expect(mocks.loadCloudflareWebAnalytics).not.toHaveBeenCalled();
-    expect(mocks.initializeDatadogRum).not.toHaveBeenCalled();
-    expect(mocks.setDatadogSessionReplayAllowed).toHaveBeenCalledWith(false);
+    expect(mocks.initializeBrowserObservability).not.toHaveBeenCalled();
+    expect(mocks.setBrowserObservabilityPaused).toHaveBeenCalledWith(true);
   });
 
-  it('loads consented integrations and applies replay preference after initialization', async () => {
+  it('loads consented analytics and starts Faro observability', () => {
     mocks.preferences.analytics = true;
-    mocks.preferences.sessionReplay = true;
     render(<IntegrationRuntime />);
 
     expect(mocks.loadGoogleTagManager).toHaveBeenCalled();
     expect(mocks.loadCloudflareWebAnalytics).toHaveBeenCalled();
-    expect(mocks.initializeDatadogRum).toHaveBeenCalled();
-    await waitFor(() =>
-      expect(mocks.setDatadogSessionReplayAllowed).toHaveBeenCalledWith(true),
-    );
+    expect(mocks.initializeBrowserObservability).toHaveBeenCalled();
+    expect(mocks.setBrowserObservabilityPaused).toHaveBeenCalledWith(false);
   });
 
-  it('reports browser errors and rejected promises, including non-Error payloads', () => {
+  it('keeps Faro paused when the observability rollout is off', () => {
     mocks.preferences.analytics = true;
-    const removeEventListener = vi.spyOn(window, 'removeEventListener');
-    const { unmount } = render(<IntegrationRuntime />);
-
-    const browserError = new Error('browser failure');
-    act(() =>
-      window.dispatchEvent(new ErrorEvent('error', { error: browserError })),
-    );
-
-    const rejection = new Event('unhandledrejection') as Event & {
-      reason: unknown;
-    };
-    rejection.reason = new Error('promise failure');
-    act(() => window.dispatchEvent(rejection));
-
-    act(() =>
-      window.dispatchEvent(new ErrorEvent('error', { error: 'failure' })),
-    );
-    const nonErrorRejection = new Event('unhandledrejection') as Event & {
-      reason: unknown;
-    };
-    nonErrorRejection.reason = 'failure';
-    act(() => window.dispatchEvent(nonErrorRejection));
-
-    expect(
-      mocks.reportGlobalError.mock.calls.map(([error]) => error.message),
-    ).toEqual([
-      'browser failure',
-      'promise failure',
-      'Unhandled browser error',
-      'Unhandled promise rejection',
-    ]);
-
-    unmount();
-    expect(removeEventListener).toHaveBeenCalledWith(
-      'error',
-      expect.any(Function),
-    );
-    expect(removeEventListener).toHaveBeenCalledWith(
-      'unhandledrejection',
-      expect.any(Function),
-    );
-  });
-
-  it('does not register global handlers when Datadog is disabled', () => {
-    mocks.preferences.analytics = true;
-    mocks.config.datadog.enabled = false;
-    const addEventListener = vi.spyOn(window, 'addEventListener');
+    mocks.observabilityEnabled = false;
     render(<IntegrationRuntime />);
 
-    expect(mocks.reportGlobalError).not.toHaveBeenCalled();
-    expect(
-      addEventListener.mock.calls.some(([event]) => event === 'error'),
-    ).toBe(false);
-    expect(
-      addEventListener.mock.calls.some(
-        ([event]) => event === 'unhandledrejection',
-      ),
-    ).toBe(false);
+    expect(mocks.loadGoogleTagManager).toHaveBeenCalled();
+    expect(mocks.loadCloudflareWebAnalytics).toHaveBeenCalled();
+    expect(mocks.initializeBrowserObservability).not.toHaveBeenCalled();
+    expect(mocks.setBrowserObservabilityPaused).toHaveBeenCalledWith(true);
   });
 });
