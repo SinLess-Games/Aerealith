@@ -333,6 +333,7 @@ describe('AI orchestrator service', () => {
       {
         headers: { 'x-correlation-id': 'correlation-123' },
       },
+      {},
     );
 
     expect(response.headers.get('x-correlation-id')).toBe('correlation-123');
