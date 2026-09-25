@@ -70,8 +70,9 @@ export function initializeBrowserObservability(
     },
     ignoreUrls: [SensitiveTelemetryUrl],
     beforeSend: (item) => {
-      const pageUrl = item.meta.page?.url;
-      if (pageUrl) item.meta.page.url = sanitizeBrowserTelemetryUrl(pageUrl);
+      const page = item.meta.page;
+      const pageUrl = page?.url;
+      if (page && pageUrl) page.url = sanitizeBrowserTelemetryUrl(pageUrl);
       return item;
     },
     instrumentations: [
