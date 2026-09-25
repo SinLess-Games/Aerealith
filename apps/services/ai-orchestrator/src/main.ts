@@ -1499,7 +1499,9 @@ function createCredentialedCors(
 
     if (allowedOrigins.has(context.req.header('origin') ?? '')) {
       context.res.headers.set('Access-Control-Allow-Credentials', 'true');
-      response?.headers.set('Access-Control-Allow-Credentials', 'true');
+      if (response instanceof Response) {
+        response.headers.set('Access-Control-Allow-Credentials', 'true');
+      }
     }
 
     return response;
