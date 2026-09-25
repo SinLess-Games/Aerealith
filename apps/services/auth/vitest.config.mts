@@ -17,6 +17,12 @@ export default defineConfig({
         ),
       },
       {
+        find: /^@aerealith-ai\/observability\/worker$/,
+        replacement: workspaceFile(
+          '../../../libs/observability/src/worker/index.ts',
+        ),
+      },
+      {
         find: /^@aerealith-ai\/observability$/,
         replacement: workspaceFile('../../../libs/observability/src/index.ts'),
       },
