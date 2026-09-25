@@ -10,6 +10,7 @@ on:
       - 'apps/services/auth/**'
       - 'apps/services/ai-orchestrator/**'
       - 'apps/frontend/src/worker*'
+      - 'apps/frontend/src/lib/browser-observability.ts'
       - 'apps/frontend/wrangler.toml'
       - 'apps/frontend/vite.config.mts'
       - 'tools/generators/service/**'
