@@ -18,6 +18,9 @@ export default defineConfig({
       '@aerealith-ai/observability/logger': workspaceFile(
         '../../../libs/observability/src/logger/index.ts',
       ),
+      '@aerealith-ai/observability/worker': workspaceFile(
+        '../../../libs/observability/src/worker/index.ts',
+      ),
     },
     tsconfigPaths: true,
   },
