@@ -521,6 +521,8 @@ describe('AI execution runtime', () => {
     await expect(
       executeOrchestrationRequest(bindings, {
         capability: 'retrieval',
+        tenantId: 'user-123',
+        actorId: 'user-123',
         input: {
           namespace: 'tenant-a:knowledge',
           query: 'hello',
