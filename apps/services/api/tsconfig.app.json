@@ -24,9 +24,6 @@
       "@aerealith-ai/observability/logger": [
         "../../../dist/libs/observability/src/logger/index.d.ts"
       ],
-      "@aerealith-ai/api-platform": [
-        "../../../dist/libs/api-platform/src/index.d.ts"
-      ],
       "@aerealith-ai/observability/worker": [
         "../../../dist/libs/observability/src/worker/index.d.ts"
       ]
