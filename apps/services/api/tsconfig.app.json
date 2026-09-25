@@ -6,19 +6,37 @@
     "module": "commonjs",
     "moduleResolution": "bundler",
     "declaration": false,
-    "types": ["node", "../../../worker-configuration.d.ts"],
+    "types": [
+      "node",
+      "../../../worker-configuration.d.ts"
+    ],
     "ignoreDeprecations": "6.0",
     "paths": {
-      "@aerealith-ai/core": ["../../../dist/libs/core/src/index.d.ts"],
-      "@aerealith-ai/db": ["../../../dist/libs/db/src/index.d.ts"],
+      "@aerealith-ai/core": [
+        "../../../dist/libs/core/src/index.d.ts"
+      ],
+      "@aerealith-ai/db": [
+        "../../../dist/libs/db/src/index.d.ts"
+      ],
       "@aerealith-ai/observability": [
         "../../../dist/libs/observability/src/index.d.ts"
       ],
       "@aerealith-ai/observability/logger": [
         "../../../dist/libs/observability/src/logger/index.d.ts"
+      ],
+      "@aerealith-ai/api-platform": [
+        "../../../dist/libs/api-platform/src/index.d.ts"
+      ],
+      "@aerealith-ai/observability/worker": [
+        "../../../dist/libs/observability/src/worker/index.d.ts"
       ]
     }
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["src/**/*.spec.ts", "src/**/*.test.ts"]
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "src/**/*.spec.ts",
+    "src/**/*.test.ts"
+  ]
 }
