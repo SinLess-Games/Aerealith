@@ -9,19 +9,32 @@ export default defineConfig({
   root: import.meta.dirname,
 
   resolve: {
-    alias: {
-      '@aerealith-ai/core': workspaceFile('../../../libs/core/src/index.ts'),
-      '@aerealith-ai/db': workspaceFile('../../../libs/db/src/index.ts'),
-      '@aerealith-ai/observability': workspaceFile(
-        '../../../libs/observability/src/index.ts',
-      ),
-      '@aerealith-ai/observability/logger': workspaceFile(
-        '../../../libs/observability/src/logger/index.ts',
-      ),
-      '@aerealith-ai/observability/worker': workspaceFile(
-        '../../../libs/observability/src/worker/index.ts',
-      ),
-    },
+    alias: [
+      {
+        find: /^@aerealith-ai\/observability\/worker$/,
+        replacement: workspaceFile(
+          '../../../libs/observability/src/worker/index.ts',
+        ),
+      },
+      {
+        find: /^@aerealith-ai\/observability\/logger$/,
+        replacement: workspaceFile(
+          '../../../libs/observability/src/logger/index.ts',
+        ),
+      },
+      {
+        find: /^@aerealith-ai\/observability$/,
+        replacement: workspaceFile('../../../libs/observability/src/index.ts'),
+      },
+      {
+        find: /^@aerealith-ai\/core$/,
+        replacement: workspaceFile('../../../libs/core/src/index.ts'),
+      },
+      {
+        find: /^@aerealith-ai\/db$/,
+        replacement: workspaceFile('../../../libs/db/src/index.ts'),
+      },
+    ],
     tsconfigPaths: true,
   },
 
