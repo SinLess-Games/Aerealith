@@ -19,7 +19,7 @@ export interface StartNodeObservabilityOptions {
 
 export interface NodeObservability {
   readonly enabled: boolean;
-  readonly profilingMode: 'external-alloy';
+  readonly profilingMode: 'pyroscope-sdk' | 'disabled';
   readonly meter: Meter;
   readonly tracer: Tracer;
   shutdown(): Promise<void>;
@@ -36,6 +36,32 @@ export async function startNodeObservability(
   const meter = metrics.getMeter(options.service, configuration.version);
   const tracer = trace.getTracer(options.service, configuration.version);
   let sdk: NodeSDK | undefined;
+  let profiler: typeof import('@pyroscope/nodejs') | undefined;
+
+  if (configuration.pyroscope) {
+    try {
+      const Pyroscope = await import('@pyroscope/nodejs');
+      Pyroscope.init({
+        serverAddress: configuration.pyroscope.serverAddress,
+        appName: configuration.pyroscope.applicationName,
+        ...(configuration.pyroscope.basicAuthUser
+          ? { basicAuthUser: configuration.pyroscope.basicAuthUser }
+          : {}),
+        ...(configuration.pyroscope.basicAuthPassword
+          ? { basicAuthPassword: configuration.pyroscope.basicAuthPassword }
+          : {}),
+        flushIntervalMs: configuration.pyroscope.flushIntervalMs,
+        tags: { ...configuration.pyroscope.tags },
+        wall: {
+          collectCpuTime: configuration.pyroscope.collectCpuTime,
+        },
+      });
+      Pyroscope.start();
+      profiler = Pyroscope;
+    } catch (error) {
+      options.onError?.(error);
+    }
+  }
 
   if (configuration.otlp) {
     const exporterOptions = {
@@ -67,13 +93,14 @@ export async function startNodeObservability(
   }
 
   return {
-    enabled: sdk !== undefined,
-    profilingMode: 'external-alloy',
+    enabled: sdk !== undefined || profiler !== undefined,
+    profilingMode: profiler ? 'pyroscope-sdk' : 'disabled',
     meter,
     tracer,
     async shutdown(): Promise<void> {
       const results = await Promise.allSettled([
         ...(sdk ? [sdk.shutdown()] : []),
+        ...(profiler ? [profiler.stop()] : []),
       ]);
       for (const result of results) {
         if (result.status === 'rejected') options.onError?.(result.reason);
