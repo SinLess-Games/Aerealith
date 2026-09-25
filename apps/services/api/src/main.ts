@@ -1,4 +1,3 @@
-import type { ApiRequestObserver } from '@aerealith-ai/api-platform';
 import type { WorkerAnalyticsDataset } from '@aerealith-ai/observability/worker';
 import { EntitySchemas, type Logger } from '@aerealith-ai/core';
 import { Hono, type Context } from 'hono';
@@ -11,6 +10,27 @@ import { LazyWaitlistApplication } from './waitlist/lazy-waitlist-application';
 import type { WaitlistApplication } from './waitlist/waitlist-application.service';
 
 type SecretBinding = string | { get(): Promise<string> };
+
+interface ApiRequestObservation {
+  readonly service: string;
+  readonly requestId: string;
+  readonly method: string;
+  readonly route: string;
+  readonly startedAt: Date;
+}
+
+interface ApiRequestOutcome extends ApiRequestObservation {
+  readonly durationMs: number;
+  readonly status: number;
+}
+
+interface ApiRequestObserver {
+  requestStarted(observation: ApiRequestObservation):
+    | { readonly traceId?: string; readonly spanId?: string }
+    | void;
+  requestCompleted(outcome: ApiRequestOutcome): void;
+  requestFailed(outcome: ApiRequestOutcome, error: unknown): void;
+}
 
 export type ApiWorkerBindings = {
   AEREALITH_AI: R2Bucket;
@@ -56,6 +76,7 @@ export function createApiServiceApp(options: CreateApiServiceAppOptions = {}) {
         method: context.req.method,
         route,
         requestId,
+        startedAt: new Date(),
       };
       const traceContext = options.requestObserver?.requestStarted(observation);
 
