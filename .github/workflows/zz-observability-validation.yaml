@@ -11,6 +11,7 @@ on:
       - 'apps/services/ai-orchestrator/**'
       - 'apps/frontend/src/worker*'
       - 'apps/frontend/wrangler.toml'
+      - 'apps/frontend/vite.config.mts'
       - 'tools/generators/service/**'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
