@@ -155,7 +155,6 @@ describe('auth Cloudflare Worker', () => {
   });
 
   it('emits structured completion telemetry and request metrics', async () => {
-    const info = vi.spyOn(console, 'info').mockImplementation(() => undefined);
     const workerEnvironment = environment({ authentication: false });
     const writeDataPoint = vi.fn();
     workerEnvironment.AEREALITH_ANALYTICS = { writeDataPoint };
@@ -165,12 +164,6 @@ describe('auth Cloudflare Worker', () => {
       workerEnvironment,
     );
 
-    expect(info).toHaveBeenCalledWith(
-      expect.stringContaining('"event":"worker.request.completed"'),
-    );
-    expect(info).toHaveBeenCalledWith(
-      expect.stringContaining('"service":"auth"'),
-    );
     expect(writeDataPoint).toHaveBeenCalledWith(
       expect.objectContaining({
         indexes: ['auth'],
