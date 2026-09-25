@@ -85,6 +85,7 @@ jobs:
           pnpm nx run service-api:worker-dry-run
           pnpm nx run service-auth:worker-dry-run
           pnpm nx run service-ai-orchestrator:worker-dry-run
+          pnpm nx run frontend:build
           (
             cd apps/frontend
             pnpm exec wrangler deploy --dry-run
