@@ -59,7 +59,22 @@ jobs:
         run: pnpm nx run-many -t typecheck --projects=service-api,service-auth,service-ai-orchestrator,frontend --parallel=2
 
       - name: Test instrumented services
-        run: pnpm nx run-many -t test --projects=service-api,service-auth,service-ai-orchestrator --parallel=2
+        shell: bash
+        run: |
+          set +e
+
+          pnpm exec vitest run --config apps/services/api/vitest.config.mts --reporter=verbose
+          api_status=$?
+
+          pnpm exec vitest run --config apps/services/auth/vitest.config.mts --reporter=verbose
+          auth_status=$?
+
+          pnpm exec vitest run --config apps/services/ai-orchestrator/vitest.config.mts --reporter=verbose
+          ai_status=$?
+
+          if [ "$api_status" -ne 0 ] || [ "$auth_status" -ne 0 ] || [ "$ai_status" -ne 0 ]; then
+            exit 1
+          fi
 
       - name: Validate service generator
         run: pnpm nx run-many -t lint,build --projects=service-generator --parallel=1
