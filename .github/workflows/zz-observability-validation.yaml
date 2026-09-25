@@ -85,3 +85,13 @@ jobs:
           pnpm nx run service-api:worker-dry-run
           pnpm nx run service-auth:worker-dry-run
           pnpm nx run service-ai-orchestrator:worker-dry-run
+          (
+            cd apps/frontend
+            pnpm exec wrangler deploy --dry-run
+          )
+
+      - name: Build Pyroscope-enabled service containers
+        shell: bash
+        run: |
+          docker build --file apps/services/api/Dockerfile --tag aerealith-api-observability:ci .
+          docker build --file apps/services/auth/Dockerfile --tag aerealith-auth-observability:ci .
