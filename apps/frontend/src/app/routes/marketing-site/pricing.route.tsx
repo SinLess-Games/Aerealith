@@ -1,9 +1,10 @@
 // apps/frontend/src/app/routes/marketing-site/pricing.route.tsx
 
 import { FeatureFlag } from '@aerealith-ai/core';
-import { useState, type CSSProperties, type ReactNode } from 'react';
+import { useId, useState, type CSSProperties, type ReactNode } from 'react';
 
 import { useFeatureFlag } from '../../../features/flags/feature-flags';
+import { RouteMetadataHead } from '../../util/route-metadata';
 
 type BillingCycle = 'monthly' | 'yearly';
 
@@ -45,6 +46,11 @@ interface ValueProposition {
     | 'globe'
     | 'rocket';
 }
+
+const PRICING_TITLE = 'Aerealith Proposed Plans and Pricing';
+const PRICING_DESCRIPTION =
+  'Review Aerealith’s illustrative plan concepts, proposed features, and possible usage limits while the platform remains in active development. Subscriptions are not currently available.';
+const PRICING_PATH = '/pricing';
 
 const plans: PricingPlan[] = [
   {
@@ -623,585 +629,640 @@ function getPlanPrice(plan: PricingPlan, billingCycle: BillingCycle): number {
   return plan.monthlyPrice;
 }
 
+function formatUsd(amount: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
 export function PricingRoute() {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
   const billingEnabled = useFeatureFlag(FeatureFlag.Billing);
+  const billingCycleLabelId = useId();
 
   const isYearly = billingCycle === 'yearly';
 
   return (
-    <div className="pricing-route relative isolate min-w-0 flex-1 overflow-hidden bg-transparent">
-      <style>{`
-        :root[data-theme='light'] .pricing-route {
-          --pricing-heading: #0f172a;
-          --pricing-text: #334155;
-          --pricing-muted: #64748b;
-          --pricing-panel: rgba(255, 255, 255, 0.72);
-          --pricing-panel-strong: rgba(255, 255, 255, 0.9);
-          --pricing-cell: rgba(248, 250, 252, 0.78);
-          --pricing-cell-alt: rgba(241, 245, 249, 0.82);
-          --pricing-border: rgba(71, 85, 105, 0.2);
-          --pricing-shadow: rgba(15, 23, 42, 0.13);
-          --pricing-sticky: rgba(248, 250, 252, 0.97);
-          --pricing-disabled: rgba(226, 232, 240, 0.8);
-          --pricing-toggle: rgba(241, 245, 249, 0.86);
-          --pricing-toggle-active: rgba(255, 255, 255, 0.98);
-        }
-
-        :root[data-theme='dark'] .pricing-route {
-          --pricing-heading: #f8fafc;
-          --pricing-text: #cbd5e1;
-          --pricing-muted: #94a3b8;
-          --pricing-panel: rgba(2, 6, 23, 0.62);
-          --pricing-panel-strong: rgba(2, 6, 23, 0.88);
-          --pricing-cell: rgba(5, 10, 28, 0.74);
-          --pricing-cell-alt: rgba(8, 15, 36, 0.78);
-          --pricing-border: rgba(148, 163, 184, 0.2);
-          --pricing-shadow: rgba(0, 0, 0, 0.38);
-          --pricing-sticky: rgba(3, 8, 23, 0.97);
-          --pricing-disabled: rgba(15, 23, 42, 0.82);
-          --pricing-toggle: rgba(2, 6, 23, 0.72);
-          --pricing-toggle-active: rgba(30, 41, 59, 0.96);
-        }
-
-        .pricing-route {
-          color: var(--pricing-heading);
-        }
-
-        .pricing-route .pricing-text {
-          color: var(--pricing-text);
-        }
-
-        .pricing-route .pricing-muted {
-          color: var(--pricing-muted);
-        }
-
-        .pricing-route .billing-toggle {
-          border-color: var(--pricing-border);
-          background: var(--pricing-toggle);
-          box-shadow:
-            0 12px 34px var(--pricing-shadow),
-            inset 0 1px 0 rgba(255, 255, 255, 0.08);
-        }
-
-        .pricing-route .billing-option {
-          color: var(--pricing-muted);
-        }
-
-        .pricing-route .billing-option-active {
-          color: var(--pricing-heading);
-          background:
-            linear-gradient(
-              135deg,
-              color-mix(in srgb, #8b5cf6 14%, transparent),
-              color-mix(in srgb, #06b6d4 12%, transparent)
-            ),
-            var(--pricing-toggle-active);
-          box-shadow:
-            0 0 22px rgba(99, 102, 241, 0.18),
-            inset 0 1px 0 rgba(255, 255, 255, 0.08);
-        }
-
-        .pricing-route .plans-grid {
-          display: grid;
-          grid-template-columns: repeat(1, minmax(0, 1fr));
-          gap: 0.75rem;
-          width: 100%;
-          min-width: 0;
-        }
-
-        @media (min-width: 40rem) {
-          .pricing-route .plans-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
-        }
-
-        @media (min-width: 64rem) {
-          .pricing-route .plans-grid {
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-          }
-        }
-
-        @media (min-width: 96rem) {
-          .pricing-route .plans-grid {
-            grid-template-columns: repeat(7, minmax(0, 1fr));
-          }
-        }
-
-        .pricing-route .plan-card {
-          --plan-accent: #00d9ff;
-
-          min-width: 0;
-          border-color: color-mix(
-            in srgb,
-            var(--plan-accent) 60%,
-            var(--pricing-border)
-          );
-
-          background:
-            radial-gradient(
-              circle at 50% 0%,
-              color-mix(in srgb, var(--plan-accent) 13%, transparent),
-              transparent 46%
-            ),
-            var(--pricing-panel);
-
-          box-shadow:
-            0 18px 48px var(--pricing-shadow),
-            0 0 24px
-              color-mix(in srgb, var(--plan-accent) 13%, transparent),
-            inset 0 1px 0 rgba(255, 255, 255, 0.06);
-        }
-
-        .pricing-route .plan-card:hover {
-          border-color: color-mix(
-            in srgb,
-            var(--plan-accent) 84%,
-            transparent
-          );
-
-          box-shadow:
-            0 22px 60px var(--pricing-shadow),
-            0 0 34px
-              color-mix(in srgb, var(--plan-accent) 28%, transparent),
-            inset 0 1px 0 rgba(255, 255, 255, 0.08);
-        }
-
-        .pricing-route .plan-name,
-        .pricing-route .plan-icon {
-          color: var(--plan-accent);
-        }
-
-        .pricing-route .plan-name {
-          overflow-wrap: anywhere;
-        }
-
-        .pricing-route .plan-icon {
-          filter:
-            drop-shadow(
-              0 0 10px
-                color-mix(in srgb, var(--plan-accent) 55%, transparent)
-            );
-        }
-
-        .pricing-route .purchase-button {
-          color: var(--plan-accent);
-
-          border-color: color-mix(
-            in srgb,
-            var(--plan-accent) 52%,
-            transparent
-          );
-
-          background:
-            linear-gradient(
-              135deg,
-              color-mix(in srgb, var(--plan-accent) 7%, transparent),
-              var(--pricing-disabled)
-            );
-
-          cursor: not-allowed;
-          opacity: 0.42;
-          filter: saturate(0.7);
-        }
-
-        .pricing-route .pricing-table-shell {
-          width: 100%;
-          max-width: 100%;
-          min-width: 0;
-          border-color: var(--pricing-border);
-          background: var(--pricing-panel);
-          box-shadow: 0 20px 60px var(--pricing-shadow);
-        }
-
-        .pricing-route .pricing-table-scroller {
-          width: 100%;
-          max-width: 100%;
-          overflow-x: auto;
-          overscroll-behavior-inline: contain;
-          scrollbar-gutter: stable;
-        }
-
-        .pricing-route .pricing-table th,
-        .pricing-route .pricing-table td {
-          border-color: var(--pricing-border);
-        }
-
-        .pricing-route .pricing-table tbody tr:nth-child(odd) td,
-        .pricing-route .pricing-table tbody tr:nth-child(odd) th {
-          background: var(--pricing-cell);
-        }
-
-        .pricing-route .pricing-table tbody tr:nth-child(even) td,
-        .pricing-route .pricing-table tbody tr:nth-child(even) th {
-          background: var(--pricing-cell-alt);
-        }
-
-        .pricing-route .pricing-table tbody tr:hover td,
-        .pricing-route .pricing-table tbody tr:hover th {
-          background:
-            linear-gradient(
-              90deg,
-              color-mix(in srgb, #7c3aed 8%, transparent),
-              color-mix(in srgb, #06b6d4 7%, transparent)
-            ),
-            var(--pricing-panel-strong);
-        }
-
-        .pricing-route .capability-heading {
-          background: var(--pricing-sticky) !important;
-          box-shadow: 8px 0 22px rgba(0, 0, 0, 0.08);
-        }
-
-        .pricing-route .plan-column-heading {
-          color: var(--column-accent);
-
-          background:
-            linear-gradient(
-              180deg,
-              color-mix(in srgb, var(--column-accent) 11%, transparent),
-              var(--pricing-panel-strong)
-            );
-        }
-
-        .pricing-route .plan-column-cell {
-          box-shadow:
-            inset 0 0 18px
-              color-mix(in srgb, var(--column-accent) 3%, transparent);
-        }
-
-        .pricing-route .pricing-check {
-          color: var(--column-accent);
-          font-size: 1.15rem;
-          font-weight: 800;
-
-          text-shadow:
-            0 0 12px
-              color-mix(in srgb, var(--column-accent) 60%, transparent);
-        }
-
-        .pricing-route .pricing-not-included {
-          color: var(--pricing-muted);
-        }
-
-        .pricing-route .value-card {
-          --value-accent: #00d9ff;
-
-          min-width: 0;
-          color: var(--value-accent);
-
-          border-color: color-mix(
-            in srgb,
-            var(--value-accent) 58%,
-            var(--pricing-border)
-          );
-
-          background:
-            radial-gradient(
-              circle at 20% 12%,
-              color-mix(in srgb, var(--value-accent) 12%, transparent),
-              transparent 48%
-            ),
-            var(--pricing-panel);
-
-          box-shadow:
-            0 14px 42px var(--pricing-shadow),
-            0 0 22px
-              color-mix(in srgb, var(--value-accent) 10%, transparent);
-        }
-
-        .pricing-route .value-card:hover {
-          border-color: color-mix(
-            in srgb,
-            var(--value-accent) 82%,
-            transparent
-          );
-
-          box-shadow:
-            0 20px 52px var(--pricing-shadow),
-            0 0 32px
-              color-mix(in srgb, var(--value-accent) 26%, transparent);
-        }
-
-        .pricing-route .value-card-copy {
-          color: var(--pricing-muted);
-        }
-
-        .pricing-route .value-card-heading {
-          max-width: 100%;
-          color: var(--value-accent);
-          overflow-wrap: anywhere;
-          text-wrap: balance;
-        }
-
-        .pricing-route small {
-          display: block;
-          margin-top: 0.15rem;
-          color: var(--pricing-muted);
-          font-size: 0.68rem;
-          line-height: 1.25;
-        }
-      `}</style>
-
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[680px] bg-[radial-gradient(circle_at_20%_12%,rgba(124,58,237,0.13),transparent_34%),radial-gradient(circle_at_82%_18%,rgba(6,182,212,0.11),transparent_32%)]"
+    <>
+      <RouteMetadataHead
+        title={PRICING_TITLE}
+        description={PRICING_DESCRIPTION}
+        path={PRICING_PATH}
+        robots="noindex, nofollow"
       />
 
-      <section className="mx-auto w-full min-w-0 max-w-[1920px] px-4 py-10 sm:px-6 lg:px-8">
-        <header className="mx-auto mb-8 max-w-3xl text-center">
-          <p className="mb-4 text-xs font-semibold tracking-[0.24em] text-cyan-500 uppercase">
-            Pricing &amp; Plans
-          </p>
+      <div className="pricing-route relative isolate min-w-0 flex-1 overflow-hidden bg-transparent">
+        <style>{`
+          :root[data-theme='light'] .pricing-route {
+            --pricing-heading: #0f172a;
+            --pricing-text: #334155;
+            --pricing-muted: #64748b;
+            --pricing-panel: rgba(255, 255, 255, 0.72);
+            --pricing-panel-strong: rgba(255, 255, 255, 0.9);
+            --pricing-cell: rgba(248, 250, 252, 0.78);
+            --pricing-cell-alt: rgba(241, 245, 249, 0.82);
+            --pricing-border: rgba(71, 85, 105, 0.2);
+            --pricing-shadow: rgba(15, 23, 42, 0.13);
+            --pricing-sticky: rgba(248, 250, 252, 0.97);
+            --pricing-disabled: rgba(226, 232, 240, 0.8);
+            --pricing-toggle: rgba(241, 245, 249, 0.86);
+            --pricing-toggle-active: rgba(255, 255, 255, 0.98);
+          }
 
-          <h1 className="text-4xl font-bold tracking-[-0.04em] sm:text-5xl lg:text-6xl">
-            <span>One platform.</span>
-            <span className="block bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-500 bg-clip-text text-transparent">
-              A plan for every workflow.
-            </span>
-          </h1>
+          :root[data-theme='dark'] .pricing-route {
+            --pricing-heading: #f8fafc;
+            --pricing-text: #cbd5e1;
+            --pricing-muted: #94a3b8;
+            --pricing-panel: rgba(2, 6, 23, 0.62);
+            --pricing-panel-strong: rgba(2, 6, 23, 0.88);
+            --pricing-cell: rgba(5, 10, 28, 0.74);
+            --pricing-cell-alt: rgba(8, 15, 36, 0.78);
+            --pricing-border: rgba(148, 163, 184, 0.2);
+            --pricing-shadow: rgba(0, 0, 0, 0.38);
+            --pricing-sticky: rgba(3, 8, 23, 0.97);
+            --pricing-disabled: rgba(15, 23, 42, 0.82);
+            --pricing-toggle: rgba(2, 6, 23, 0.72);
+            --pricing-toggle-active: rgba(30, 41, 59, 0.96);
+          }
 
-          <p className="pricing-text mx-auto mt-5 max-w-2xl text-base leading-7 sm:text-lg">
-            Review the proposed Aerealith plan structure. These illustrative
-            concepts are shown for planning and feedback while the product
-            remains in active development.
-          </p>
+          .pricing-route {
+            color: var(--pricing-heading);
+          }
 
-          <p className="pricing-muted mt-3 text-sm">
-            Subscriptions, listed features, and deployment options are not yet
-            available for purchase. Plan names, prices, limits, and contents are
-            illustrative, may change, and all purchase buttons remain disabled.
-          </p>
-        </header>
+          .pricing-route .pricing-text {
+            color: var(--pricing-text);
+          }
 
-        {billingEnabled ? (
-          <div className="mb-8 flex justify-center">
-            <fieldset
-              className="billing-toggle inline-flex rounded-2xl border p-1.5 backdrop-blur-md"
-              aria-label="Billing cycle"
-            >
-              <button
-                type="button"
-                aria-pressed={billingCycle === 'monthly'}
-                onClick={() => setBillingCycle('monthly')}
-                className={[
-                  'billing-option min-w-28 rounded-xl px-5 py-2.5 text-sm font-semibold transition',
-                  billingCycle === 'monthly'
-                    ? 'billing-option-active'
-                    : 'hover:text-current',
-                ].join(' ')}
-              >
-                Monthly
-              </button>
+          .pricing-route .pricing-muted {
+            color: var(--pricing-muted);
+          }
 
-              <button
-                type="button"
-                aria-pressed={billingCycle === 'yearly'}
-                onClick={() => setBillingCycle('yearly')}
-                className={[
-                  'billing-option min-w-28 rounded-xl px-5 py-2.5 text-sm font-semibold transition',
-                  billingCycle === 'yearly'
-                    ? 'billing-option-active'
-                    : 'hover:text-current',
-                ].join(' ')}
-              >
-                <span>Yearly</span>
-                <span className="ml-2 rounded-md bg-emerald-500/15 px-2 py-0.5 text-[0.65rem] font-bold text-emerald-400">
-                  20% off
-                </span>
-              </button>
-            </fieldset>
-          </div>
-        ) : null}
+          .pricing-route .billing-toggle {
+            border-color: var(--pricing-border);
+            background: var(--pricing-toggle);
+            box-shadow:
+              0 12px 34px var(--pricing-shadow),
+              inset 0 1px 0 rgba(255, 255, 255, 0.08);
+          }
 
-        <div className="plans-grid">
-          {plans.map((plan) => {
-            const displayedPrice = getPlanPrice(plan, billingCycle);
+          .pricing-route .billing-option {
+            color: var(--pricing-muted);
+          }
 
-            return (
-              <article
-                key={plan.id}
-                className="plan-card flex min-h-[325px] min-w-0 flex-col rounded-2xl border p-4 text-center backdrop-blur-md transition duration-300 hover:-translate-y-1 sm:p-5"
-                style={
-                  {
-                    '--plan-accent': plan.accent,
-                  } as CSSProperties
-                }
-              >
-                <h2 className="plan-name min-h-6 text-sm leading-6 font-bold tracking-wide uppercase">
-                  {plan.name}
-                </h2>
+          .pricing-route .billing-option-active {
+            color: var(--pricing-heading);
+            background:
+              linear-gradient(
+                135deg,
+                color-mix(in srgb, #8b5cf6 14%, transparent),
+                color-mix(in srgb, #06b6d4 12%, transparent)
+              ),
+              var(--pricing-toggle-active);
+            box-shadow:
+              0 0 22px rgba(99, 102, 241, 0.18),
+              inset 0 1px 0 rgba(255, 255, 255, 0.08);
+          }
 
-                <div className="plan-icon mx-auto mt-3">
-                  <PlanIcon id={plan.id} />
-                </div>
+          .pricing-route .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 0.75rem;
+            width: 100%;
+            min-width: 0;
+          }
 
-                <div className="mt-3">
-                  <p className="text-3xl leading-none font-semibold">
-                    ${displayedPrice}
-                  </p>
+          @media (min-width: 40rem) {
+            .pricing-route .plans-grid {
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+          }
 
-                  <p className="pricing-muted mt-1 text-xs">
-                    {isYearly ? '/year' : '/month'}
-                  </p>
+          @media (min-width: 64rem) {
+            .pricing-route .plans-grid {
+              grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+          }
 
-                  {isYearly && plan.monthlyPrice > 0 ? (
-                    <div className="mt-2 space-y-1 text-[0.7rem]">
-                      <p className="pricing-muted">
-                        <span className="mr-2 line-through">
-                          ${plan.monthlyPrice * 12}
-                        </span>
-                        <span className="font-semibold text-emerald-400">
-                          Save ${plan.monthlyPrice * 12 - displayedPrice}
-                        </span>
-                      </p>
-                      <p className="pricing-muted">
-                        ${Math.round(plan.monthlyPrice * 0.8)}/month billed
-                        annually
-                      </p>
-                    </div>
-                  ) : null}
+          @media (min-width: 96rem) {
+            .pricing-route .plans-grid {
+              grid-template-columns: repeat(7, minmax(0, 1fr));
+            }
+          }
 
-                  {isYearly && plan.monthlyPrice === 0 ? (
-                    <p className="pricing-muted mt-1 text-[0.7rem]">
-                      Free forever
-                    </p>
-                  ) : null}
-                </div>
-
-                <p className="pricing-text mt-4 flex-1 text-xs leading-5">
-                  {plan.description}
-                </p>
-
-                {billingEnabled ? (
-                  <button
-                    type="button"
-                    disabled
-                    aria-disabled="true"
-                    title="Purchases are coming soon"
-                    className="purchase-button mt-5 min-h-10 w-full rounded-lg border px-3 py-2 text-sm font-semibold"
-                  >
-                    {plan.buttonLabel}
-                  </button>
-                ) : null}
-              </article>
+          .pricing-route .plan-card {
+            --plan-accent: #00d9ff;
+            min-width: 0;
+            border-color: color-mix(
+              in srgb,
+              var(--plan-accent) 60%,
+              var(--pricing-border)
             );
-          })}
-        </div>
+            background:
+              radial-gradient(
+                circle at 50% 0%,
+                color-mix(in srgb, var(--plan-accent) 13%, transparent),
+                transparent 46%
+              ),
+              var(--pricing-panel);
+            box-shadow:
+              0 18px 48px var(--pricing-shadow),
+              0 0 24px
+                color-mix(in srgb, var(--plan-accent) 13%, transparent),
+              inset 0 1px 0 rgba(255, 255, 255, 0.06);
+          }
 
-        <div className="pricing-table-shell mt-6 overflow-hidden rounded-2xl border backdrop-blur-md">
-          <section
-            className="pricing-table-scroller"
-            aria-label="Scrollable pricing comparison"
-          >
-            <table className="pricing-table w-full min-w-[1660px] border-collapse text-left text-xs">
-              <caption className="sr-only">
-                Comparison of all Aerealith subscription plans and capabilities
-              </caption>
+          .pricing-route .plan-card:hover {
+            border-color: color-mix(
+              in srgb,
+              var(--plan-accent) 84%,
+              transparent
+            );
+            box-shadow:
+              0 22px 60px var(--pricing-shadow),
+              0 0 34px
+                color-mix(in srgb, var(--plan-accent) 28%, transparent),
+              inset 0 1px 0 rgba(255, 255, 255, 0.08);
+          }
 
-              <thead>
-                <tr>
-                  <th
-                    scope="col"
-                    className="capability-heading sticky left-0 z-30 w-[285px] min-w-[285px] border-r border-b px-5 py-4 text-xs font-bold tracking-[0.16em] text-violet-500 uppercase"
+          .pricing-route .plan-name,
+          .pricing-route .plan-icon {
+            color: var(--plan-accent);
+          }
+
+          .pricing-route .plan-name {
+            overflow-wrap: anywhere;
+          }
+
+          .pricing-route .plan-icon {
+            filter:
+              drop-shadow(
+                0 0 10px
+                  color-mix(in srgb, var(--plan-accent) 55%, transparent)
+              );
+          }
+
+          .pricing-route .purchase-button {
+            color: var(--plan-accent);
+            border-color: color-mix(
+              in srgb,
+              var(--plan-accent) 52%,
+              transparent
+            );
+            background:
+              linear-gradient(
+                135deg,
+                color-mix(in srgb, var(--plan-accent) 7%, transparent),
+                var(--pricing-disabled)
+              );
+            cursor: not-allowed;
+            opacity: 0.58;
+            filter: saturate(0.7);
+          }
+
+          .pricing-route .pricing-table-shell {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            border-color: var(--pricing-border);
+            background: var(--pricing-panel);
+            box-shadow: 0 20px 60px var(--pricing-shadow);
+          }
+
+          .pricing-route .pricing-table-scroller {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            overscroll-behavior-inline: contain;
+            scrollbar-gutter: stable;
+          }
+
+          .pricing-route .pricing-table th,
+          .pricing-route .pricing-table td {
+            border-color: var(--pricing-border);
+          }
+
+          .pricing-route .pricing-table tbody tr:nth-child(odd) td,
+          .pricing-route .pricing-table tbody tr:nth-child(odd) th {
+            background: var(--pricing-cell);
+          }
+
+          .pricing-route .pricing-table tbody tr:nth-child(even) td,
+          .pricing-route .pricing-table tbody tr:nth-child(even) th {
+            background: var(--pricing-cell-alt);
+          }
+
+          .pricing-route .pricing-table tbody tr:hover td,
+          .pricing-route .pricing-table tbody tr:hover th {
+            background:
+              linear-gradient(
+                90deg,
+                color-mix(in srgb, #7c3aed 8%, transparent),
+                color-mix(in srgb, #06b6d4 7%, transparent)
+              ),
+              var(--pricing-panel-strong);
+          }
+
+          .pricing-route .capability-heading {
+            background: var(--pricing-sticky) !important;
+            box-shadow: 8px 0 22px rgba(0, 0, 0, 0.08);
+          }
+
+          .pricing-route .plan-column-heading {
+            color: var(--column-accent);
+            background:
+              linear-gradient(
+                180deg,
+                color-mix(in srgb, var(--column-accent) 11%, transparent),
+                var(--pricing-panel-strong)
+              );
+          }
+
+          .pricing-route .plan-column-cell {
+            box-shadow:
+              inset 0 0 18px
+                color-mix(in srgb, var(--column-accent) 3%, transparent);
+          }
+
+          .pricing-route .pricing-check {
+            color: var(--column-accent, currentColor);
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-shadow:
+              0 0 12px
+                color-mix(
+                  in srgb,
+                  var(--column-accent, currentColor) 60%,
+                  transparent
+                );
+          }
+
+          .pricing-route .pricing-not-included {
+            color: var(--pricing-muted);
+          }
+
+          .pricing-route .value-card {
+            --value-accent: #00d9ff;
+            min-width: 0;
+            color: var(--value-accent);
+            border-color: color-mix(
+              in srgb,
+              var(--value-accent) 58%,
+              var(--pricing-border)
+            );
+            background:
+              radial-gradient(
+                circle at 20% 12%,
+                color-mix(in srgb, var(--value-accent) 12%, transparent),
+                transparent 48%
+              ),
+              var(--pricing-panel);
+            box-shadow:
+              0 14px 42px var(--pricing-shadow),
+              0 0 22px
+                color-mix(in srgb, var(--value-accent) 10%, transparent);
+          }
+
+          .pricing-route .value-card:hover {
+            border-color: color-mix(
+              in srgb,
+              var(--value-accent) 82%,
+              transparent
+            );
+            box-shadow:
+              0 20px 52px var(--pricing-shadow),
+              0 0 32px
+                color-mix(in srgb, var(--value-accent) 26%, transparent);
+          }
+
+          .pricing-route .value-card-copy {
+            color: var(--pricing-muted);
+          }
+
+          .pricing-route .value-card-heading {
+            max-width: 100%;
+            color: var(--value-accent);
+            overflow-wrap: anywhere;
+            text-wrap: balance;
+          }
+
+          .pricing-route small {
+            display: block;
+            margin-top: 0.15rem;
+            color: var(--pricing-muted);
+            font-size: 0.68rem;
+            line-height: 1.25;
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .pricing-route *,
+            .pricing-route *::before,
+            .pricing-route *::after {
+              scroll-behavior: auto !important;
+              transition-duration: 0.01ms !important;
+              animation-duration: 0.01ms !important;
+              animation-iteration-count: 1 !important;
+            }
+          }
+        `}</style>
+
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[680px] bg-[radial-gradient(circle_at_20%_12%,rgba(124,58,237,0.13),transparent_34%),radial-gradient(circle_at_82%_18%,rgba(6,182,212,0.11),transparent_32%)]"
+        />
+
+        <main className="mx-auto w-full min-w-0 max-w-[1920px] px-4 py-10 sm:px-6 lg:px-8">
+          <header className="mx-auto mb-8 max-w-3xl text-center">
+            <p className="mb-4 text-xs font-semibold tracking-[0.24em] text-cyan-500 uppercase">
+              Proposed pricing and plans
+            </p>
+
+            <h1 className="text-4xl font-bold tracking-[-0.04em] sm:text-5xl lg:text-6xl">
+              <span>One platform.</span>
+              <span className="block bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-500 bg-clip-text text-transparent">
+                A plan for every workflow.
+              </span>
+            </h1>
+
+            <p className="pricing-text mx-auto mt-5 max-w-2xl text-base leading-7 sm:text-lg">
+              Review the proposed Aerealith plan structure. These illustrative
+              concepts are shown for planning and feedback while the product
+              remains in active development.
+            </p>
+
+            <p className="pricing-muted mt-3 text-sm">
+              Subscriptions, listed features, and deployment options are not yet
+              available for purchase. Plan names, prices, limits, and contents
+              are illustrative, may change, and all purchase buttons remain
+              disabled.
+            </p>
+          </header>
+
+          {billingEnabled ? (
+            <div className="mb-8 flex justify-center">
+              <fieldset
+                className="billing-toggle inline-flex rounded-2xl border p-1.5 backdrop-blur-md"
+                aria-describedby={billingCycleLabelId}
+              >
+                <legend className="sr-only">Billing cycle</legend>
+
+                <span id={billingCycleLabelId} className="sr-only">
+                  Pricing display only. Aerealith subscriptions are not yet
+                  available for purchase.
+                </span>
+
+                <button
+                  type="button"
+                  aria-pressed={billingCycle === 'monthly'}
+                  onClick={() => setBillingCycle('monthly')}
+                  className={[
+                    'billing-option min-w-28 rounded-xl px-5 py-2.5 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400',
+                    billingCycle === 'monthly'
+                      ? 'billing-option-active'
+                      : 'hover:text-current',
+                  ].join(' ')}
+                >
+                  Monthly
+                </button>
+
+                <button
+                  type="button"
+                  aria-pressed={billingCycle === 'yearly'}
+                  onClick={() => setBillingCycle('yearly')}
+                  className={[
+                    'billing-option min-w-28 rounded-xl px-5 py-2.5 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400',
+                    billingCycle === 'yearly'
+                      ? 'billing-option-active'
+                      : 'hover:text-current',
+                  ].join(' ')}
+                >
+                  <span>Yearly</span>
+                  <span className="ml-2 rounded-md bg-emerald-500/15 px-2 py-0.5 text-[0.65rem] font-bold text-emerald-400">
+                    20% off
+                  </span>
+                </button>
+              </fieldset>
+            </div>
+          ) : null}
+
+          <section aria-labelledby="proposed-plan-heading">
+            <h2 id="proposed-plan-heading" className="sr-only">
+              Proposed plan cards
+            </h2>
+
+            <div className="plans-grid">
+              {plans.map((plan) => {
+                const displayedPrice = getPlanPrice(plan, billingCycle);
+                const originalYearlyPrice = plan.monthlyPrice * 12;
+                const yearlySavings = originalYearlyPrice - displayedPrice;
+
+                return (
+                  <article
+                    key={plan.id}
+                    className="plan-card flex min-h-[325px] min-w-0 flex-col rounded-2xl border p-4 text-center backdrop-blur-md transition duration-300 hover:-translate-y-1 sm:p-5"
+                    style={
+                      {
+                        '--plan-accent': plan.accent,
+                      } as CSSProperties
+                    }
                   >
-                    What you get
-                  </th>
-
-                  {plans.map((plan) => (
-                    <th
-                      key={plan.id}
-                      scope="col"
-                      className="plan-column-heading min-w-[195px] border-r border-b px-4 py-4 text-center text-sm font-bold uppercase"
-                      style={
-                        {
-                          '--column-accent': plan.accent,
-                        } as CSSProperties
-                      }
-                    >
+                    <h3 className="plan-name min-h-6 text-sm leading-6 font-bold tracking-wide uppercase">
                       {plan.name}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
+                    </h3>
 
-              <tbody>
-                {capabilities.map((capability) => (
-                  <tr key={capability.name}>
-                    <th
-                      scope="row"
-                      className="capability-heading sticky left-0 z-20 border-r border-b px-5 py-3 font-medium"
-                    >
-                      <span>{capability.name}</span>
+                    <div className="plan-icon mx-auto mt-3">
+                      <PlanIcon id={plan.id} />
+                    </div>
 
-                      {capability.description ? (
-                        <span className="pricing-muted ml-1 text-[0.67rem] font-normal">
-                          ({capability.description})
-                        </span>
+                    <div className="mt-3">
+                      <p className="text-3xl leading-none font-semibold">
+                        {formatUsd(displayedPrice)}
+                      </p>
+
+                      <p className="pricing-muted mt-1 text-xs">
+                        {isYearly ? '/year' : '/month'}
+                      </p>
+
+                      {isYearly && plan.monthlyPrice > 0 ? (
+                        <div className="mt-2 space-y-1 text-[0.7rem]">
+                          <p className="pricing-muted">
+                            <span className="mr-2 line-through">
+                              {formatUsd(originalYearlyPrice)}
+                            </span>
+                            <span className="font-semibold text-emerald-400">
+                              Save {formatUsd(yearlySavings)}
+                            </span>
+                          </p>
+
+                          <p className="pricing-muted">
+                            {formatUsd(Math.round(plan.monthlyPrice * 0.8))}
+                            /month billed annually
+                          </p>
+                        </div>
                       ) : null}
+
+                      {isYearly && plan.monthlyPrice === 0 ? (
+                        <p className="pricing-muted mt-1 text-[0.7rem]">
+                          Free forever
+                        </p>
+                      ) : null}
+                    </div>
+
+                    <p className="pricing-text mt-4 flex-1 text-xs leading-5">
+                      {plan.description}
+                    </p>
+
+                    <button
+                      type="button"
+                      disabled
+                      title="Purchases are coming soon"
+                      aria-describedby="pricing-unavailable-notice"
+                      className="purchase-button mt-5 min-h-10 w-full rounded-lg border px-3 py-2 text-sm font-semibold"
+                    >
+                      {plan.buttonLabel}
+                    </button>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+
+          <p id="pricing-unavailable-notice" className="sr-only">
+            Purchases are not currently available. All prices, plan names,
+            features, usage limits, and discounts are illustrative and may
+            change before launch.
+          </p>
+
+          <section
+            className="pricing-table-shell mt-6 overflow-hidden rounded-2xl border backdrop-blur-md"
+            aria-labelledby="plan-comparison-heading"
+          >
+            <h2 id="plan-comparison-heading" className="sr-only">
+              Proposed plan comparison
+            </h2>
+
+            <section
+              className="pricing-table-scroller"
+              aria-label="Scrollable proposed pricing comparison table"
+            >
+              <table className="pricing-table w-full min-w-[1660px] border-collapse text-left text-xs">
+                <caption className="sr-only">
+                  Illustrative comparison of proposed Aerealith plans and
+                  capabilities. These subscriptions are not currently available.
+                </caption>
+
+                <thead>
+                  <tr>
+                    <th
+                      scope="col"
+                      className="capability-heading sticky left-0 z-30 w-[285px] min-w-[285px] border-r border-b px-5 py-4 text-xs font-bold tracking-[0.16em] text-violet-500 uppercase"
+                    >
+                      What you get
                     </th>
 
                     {plans.map((plan) => (
-                      <td
+                      <th
                         key={plan.id}
-                        className="plan-column-cell border-r border-b px-3 py-3 text-center align-middle leading-5"
+                        scope="col"
+                        className="plan-column-heading min-w-[195px] border-r border-b px-4 py-4 text-center text-sm font-bold uppercase"
                         style={
                           {
                             '--column-accent': plan.accent,
                           } as CSSProperties
                         }
                       >
-                        {capability.values[plan.id]}
-                      </td>
+                        {plan.name}
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+
+                <tbody>
+                  {capabilities.map((capability) => (
+                    <tr key={capability.name}>
+                      <th
+                        scope="row"
+                        className="capability-heading sticky left-0 z-20 border-r border-b px-5 py-3 font-medium"
+                      >
+                        <span>{capability.name}</span>
+
+                        {capability.description ? (
+                          <span className="pricing-muted ml-1 text-[0.67rem] font-normal">
+                            ({capability.description})
+                          </span>
+                        ) : null}
+                      </th>
+
+                      {plans.map((plan) => (
+                        <td
+                          key={plan.id}
+                          className="plan-column-cell border-r border-b px-3 py-3 text-center align-middle leading-5"
+                          style={
+                            {
+                              '--column-accent': plan.accent,
+                            } as CSSProperties
+                          }
+                        >
+                          {capability.values[plan.id]}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
           </section>
-        </div>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {valuePropositions
-            .filter((_, index) => [0, 2, 4, 7].includes(index))
-            .map((item) => (
-              <article
-                key={item.title}
-                className="value-card flex min-h-56 min-w-0 flex-col items-center rounded-lg border p-6 text-center transition duration-300 hover:-translate-y-1"
-                style={
-                  {
-                    '--value-accent': item.accent,
-                  } as CSSProperties
-                }
-              >
-                <div className="mb-4">
-                  <ValueIcon name={item.icon} />
-                </div>
+          <section className="mt-8" aria-labelledby="value-proposition-heading">
+            <h2 id="value-proposition-heading" className="sr-only">
+              Aerealith proposed product principles
+            </h2>
 
-                <h2 className="value-card-heading max-w-full text-base leading-6 font-bold uppercase">
-                  {item.title}
-                </h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {valuePropositions
+                .filter((_, index) => [0, 2, 4, 7].includes(index))
+                .map((item) => (
+                  <article
+                    key={item.title}
+                    className="value-card flex min-h-56 min-w-0 flex-col items-center rounded-lg border p-6 text-center transition duration-300 hover:-translate-y-1"
+                    style={
+                      {
+                        '--value-accent': item.accent,
+                      } as CSSProperties
+                    }
+                  >
+                    <div className="mb-4">
+                      <ValueIcon name={item.icon} />
+                    </div>
 
-                <p className="value-card-copy mt-4 text-xs leading-5">
-                  {item.description}
-                </p>
-              </article>
-            ))}
-        </div>
-        <footer className="pricing-muted mt-9 text-center text-sm leading-7">
-          <p>
-            Proposed plans are expected to evolve as Aerealith is implemented
-            and validated with users.
-          </p>
+                    <h3 className="value-card-heading max-w-full text-base leading-6 font-bold uppercase">
+                      {item.title}
+                    </h3>
 
-          <p>
-            Illustrative prices are displayed in USD for planning only. No
-            billing commitment, annual discount, or tax treatment is currently
-            offered.
-          </p>
-        </footer>
-      </section>
-    </div>
+                    <p className="value-card-copy mt-4 text-xs leading-5">
+                      {item.description}
+                    </p>
+                  </article>
+                ))}
+            </div>
+          </section>
+
+          <footer className="pricing-muted mt-9 text-center text-sm leading-7">
+            <p>
+              Proposed plans are expected to evolve as Aerealith is implemented
+              and validated with users.
+            </p>
+
+            <p>
+              Illustrative prices are displayed in USD for planning only. No
+              billing commitment, annual discount, or tax treatment is currently
+              offered.
+            </p>
+          </footer>
+        </main>
+      </div>
+    </>
   );
 }
 

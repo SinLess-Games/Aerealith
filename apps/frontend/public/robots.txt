@@ -1,9 +1,17 @@
-# Aerealith AI robots.txt
+# Aerealith robots.txt
+#
+# Crawl guidance only. Do not use this file to protect sensitive content.
+# Enforce authentication and authorization on every private route.
 
 User-agent: *
 Allow: /
 
-# Prevent crawling private or application-only areas.
+# ------------------------------------------------------------
+# Private or application-only routes
+#
+# These paths must also require authentication / authorization.
+# ------------------------------------------------------------
+
 Disallow: /admin/
 Disallow: /account/
 Disallow: /billing/
@@ -15,9 +23,27 @@ Disallow: /login/
 Disallow: /register/
 Disallow: /settings/
 
-# Avoid crawling common URL parameters.
-Disallow: /*?token=
-Disallow: /*?session=
-Disallow: /*?preview=
+# ------------------------------------------------------------
+# Sensitive query-string URLs
+#
+# Block the named parameter regardless of its position.
+# This covers:
+#   /?token=value
+#   /page?foo=bar&token=value
+#   /page?preview=value&foo=bar
+# ------------------------------------------------------------
 
+Disallow: /*?*token=
+Disallow: /*?*session=
+Disallow: /*?*preview=
+
+# Optional: add only if these routes are real, publicly reachable
+# crawl traps or duplicate-page sources in the production app.
+#
+# Disallow: /search?
+# Disallow: /*?*sort=
+# Disallow: /*?*filter=
+# Disallow: /*?*page=
+
+# Absolute URL only; no Markdown brackets or parentheses.
 Sitemap: https://aerealith.com/sitemap.xml

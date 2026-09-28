@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "Perplexity": {
+      "command": "/usr/bin/node",
+      "args": ["/home/sinless777/.perplexity-mcp/start.mjs"],
+      "env": {}
+    }
+  }
+}

@@ -1,101 +1,45 @@
 <!doctype html>
 <html lang="en-US" data-theme="dark">
   <head>
-    <!-- =========================================================
-         Document metadata
-         ========================================================= -->
-
     <meta charset="utf-8" />
 
-    <!--
-      Ensures correct responsive behavior and supports devices with
-      display cutouts and safe-area insets.
-    -->
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
 
-    <!--
-      Vite and React Router serve the application from the site root.
-      Change this only if Aerealith is deployed beneath a subdirectory.
-    -->
     <base href="/" />
 
-    <title>Aerealith - Your Digital Life, Intelligently Connected</title>
-
+    <!-- Fallback metadata. Replace per public route at build time or SSR/SSG. -->
+    <title>Aerealith — Your Digital Life, Intelligently Connected</title>
     <meta
       name="description"
-      content="Aerealith is a modular, trust-first platform in active development. Planned integrations and automation will be released only after implementation and testing."
+      content="Aerealith is a modular, trust-first platform in active development for connected applications, communities, information, and approved workflows."
     />
 
-    <meta
-      name="keywords"
-      content="Aerealith, Aerealith AI, digital platform, Discord integration, workflow automation, digital assistant, developer tools, privacy"
-    />
+    <!-- Do not include a universal canonical here for a multi-route SPA. -->
+    <!-- Emit exactly one route-specific canonical for each public route. -->
 
     <meta name="author" content="SinLess Games LLC" />
     <meta name="application-name" content="Aerealith" />
-    <meta name="generator" content="Vite" />
 
-    <!--
-      Search engines may index this page and follow its links.
-      Private application routes must still enforce authentication.
-    -->
-    <meta name="robots" content="index, follow" />
-    <meta name="googlebot" content="index, follow" />
-
-    <!-- Canonical production URL -->
-    <link rel="canonical" href="https://aerealith.com/" />
-
-    <!-- =========================================================
-         Browser and operating-system integration
-         ========================================================= -->
-
-    <!--
-      Default browser chrome color. The no-flash theme script below
-      updates this value before the initial paint when possible.
-    -->
     <meta name="theme-color" content="#050a1e" />
-
-    <!-- Indicates that both light and dark native UI controls are supported. -->
     <meta name="color-scheme" content="light dark" />
-
-    <!-- Prevents automatic telephone-number linking on supported devices. -->
     <meta name="format-detection" content="telephone=no" />
-
-    <!-- Limits referrer information sent to other origins. -->
     <meta name="referrer" content="strict-origin-when-cross-origin" />
-
-    <!-- =========================================================
-         Progressive Web App manifest
-         ========================================================= -->
 
     <link rel="manifest" href="/site.webmanifest" />
 
-    <!-- Apple web-app integration -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta
       name="apple-mobile-web-app-status-bar-style"
       content="black-translucent"
     />
     <meta name="apple-mobile-web-app-title" content="Aerealith" />
-
-    <!-- Microsoft pinned-site integration -->
     <meta name="msapplication-TileColor" content="#050a1e" />
-    <meta name="msapplication-config" content="/browserconfig.xml" />
 
-    <!-- =========================================================
-         Icons
-         ========================================================= -->
-
-    <!-- Traditional fallback favicon -->
     <link rel="icon" href="/favicon.ico" sizes="any" />
-
-    <!-- Modern scalable favicon -->
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-
-    <!-- PNG favicon fallbacks -->
     <link
       rel="icon"
       type="image/png"
@@ -108,125 +52,43 @@
       sizes="16x16"
       href="/icons/favicon-16x16.png"
     />
-
-    <!-- iOS and iPadOS home-screen icon -->
     <link
       rel="apple-touch-icon"
       sizes="180x180"
       href="/icons/apple-touch-icon.png"
     />
-
-    <!-- Safari pinned-tab icon -->
     <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#7c3aed" />
 
-    <!-- =========================================================
-         Open Graph metadata
-         ========================================================= -->
-
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Aerealith" />
-    <meta property="og:locale" content="en_US" />
-    <meta property="og:url" content="https://aerealith.com/" />
-
-    <meta
-      property="og:title"
-      content="Aerealith - Your Digital Life, Intelligently Connected"
-    />
-
-    <meta
-      property="og:description"
-      content="A modular, trust-first platform in active development for connected applications, communities, information, and approved workflows."
-    />
-
-    <!--
-      Social preview URLs should be absolute so external crawlers can
-      resolve them without relying on the current document URL.
-    -->
-    <meta
-      property="og:image"
-      content="https://aerealith.com/images/brand/aerealith-social-preview.png"
-    />
-    <meta
-      property="og:image:secure_url"
-      content="https://aerealith.com/images/brand/aerealith-social-preview.png"
-    />
-    <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta
-      property="og:image:alt"
-      content="Aerealith - Your Digital Life, Intelligently Connected"
-    />
-
-    <!-- =========================================================
-         X / Twitter metadata
-         ========================================================= -->
-
-    <meta name="twitter:card" content="summary_large_image" />
-
-    <meta
-      name="twitter:title"
-      content="Aerealith - Your Digital Life, Intelligently Connected"
-    />
-
-    <meta
-      name="twitter:description"
-      content="A modular, trust-first platform in active development for connected services, communities, information, and approved workflows."
-    />
-
-    <meta
-      name="twitter:image"
-      content="https://aerealith.com/images/brand/aerealith-social-preview.png"
-    />
-    <meta
-      name="twitter:image:alt"
-      content="Aerealith - Your Digital Life, Intelligently Connected"
-    />
-
-    <!--
-      Add these after official Aerealith X accounts exist:
-
-      <meta name="twitter:site" content="@AerealithAI" />
-      <meta name="twitter:creator" content="@AerealithAI" />
-    -->
-
-    <!-- =========================================================
-         Structured data
-         ========================================================= -->
-
+    <!-- Organization/WebSite are truthful global entities. -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "Aerealith",
-        "url": "https://aerealith.com/",
-        "applicationCategory": "ProductivityApplication",
-        "operatingSystem": "Web",
-        "description": "A modular, trust-first platform in active development. Aerealith AI is the assistant within the platform.",
-        "publisher": {
-          "@type": "Organization",
-          "name": "SinLess Games LLC",
-          "url": "https://aerealith.com/"
-        }
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://aerealith.com/#organization",
+            "name": "SinLess Games LLC",
+            "url": "https://aerealith.com/",
+            "brand": {
+              "@type": "Brand",
+              "name": "Aerealith",
+              "url": "https://aerealith.com/"
+            }
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://aerealith.com/#website",
+            "name": "Aerealith",
+            "url": "https://aerealith.com/",
+            "publisher": {
+              "@id": "https://aerealith.com/#organization"
+            },
+            "inLanguage": "en-US"
+          }
+        ]
       }
     </script>
 
-    <!-- =========================================================
-         No-flash theme initialization
-         ========================================================= -->
-
-    <!--
-      This script runs before React loads so the correct data-theme
-      attribute is available before the browser performs its first paint.
-
-      Keep the storage key synchronized with:
-        libs/ui/src/styles/theme-provider.tsx
-
-      Supported stored values:
-        light
-        dark
-        system
-    -->
     <script>
       (() => {
         const storageKey = 'aerealith-theme';
@@ -234,17 +96,13 @@
 
         try {
           const storedMode = window.localStorage.getItem(storageKey);
-
           const prefersDark =
             window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? true;
-
           const systemTheme = prefersDark ? 'dark' : 'light';
-
           const resolvedTheme =
             storedMode === 'light' || storedMode === 'dark'
               ? storedMode
               : systemTheme;
-
           const root = document.documentElement;
           const themeColor = resolvedTheme === 'dark' ? '#050a1e' : '#f8f8ff';
 
@@ -256,67 +114,38 @@
             ?.setAttribute('content', themeColor);
         } catch {
           const root = document.documentElement;
-
           root.dataset.theme = fallbackTheme;
           root.style.colorScheme = fallbackTheme;
         }
       })();
     </script>
 
-    <!-- =========================================================
-         Application styles
-         ========================================================= -->
-
-    <!--
-      Vite processes this stylesheet as part of the frontend build.
-      Imported assets may alternatively be loaded through src/main.tsx.
-    -->
     <link rel="stylesheet" href="/src/styles.css" />
 
-    <!-- =========================================================
-         Google Adsense
-         ========================================================= -->
     <meta name="google-adsense-account" content="ca-pub-9610840170359196" />
-
-    <!-- ===============================================================
-         Google tag (gtag.js)
-         =============================================================== -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-45DK3RKSC4"
-    ></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag('js', new Date());
-
-      gtag('config', 'G-45DK3RKSC4');
-    </script>
   </head>
 
   <body>
-    <!--
-      React mounts the Aerealith frontend inside this element.
-      Keep this ID synchronized with src/main.tsx.
-    -->
     <div id="root"></div>
 
-    <!--
-      Displayed only when JavaScript is disabled or unavailable.
-    -->
     <noscript>
       <main>
-        <h1>JavaScript is required</h1>
+        <h1>Aerealith</h1>
         <p>
-          Aerealith requires JavaScript to load its interactive application.
-          Enable JavaScript and refresh this page.
+          Aerealith is a modular, trust-first platform in active development for
+          connected applications, communities, information, and approved
+          workflows.
         </p>
+        <nav aria-label="Public pages">
+          <a href="/pricing">Pricing</a>
+          <a href="/about">About</a>
+          <a href="/contact">Contact</a>
+          <a href="/policies/privacy">Privacy</a>
+          <a href="/policies/terms-of-use">Terms of Use</a>
+        </nav>
       </main>
     </noscript>
 
-    <!-- Vite development and production application entry point -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

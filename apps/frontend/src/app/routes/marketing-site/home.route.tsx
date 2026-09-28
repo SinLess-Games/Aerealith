@@ -1,18 +1,25 @@
-// apps/frontend/src/app/routes/home.route.tsx
+// apps/frontend/src/app/routes/marketing-site/home.route.tsx
 
 import { homeLandingPageContent } from '@aerealith-ai/content';
 import { FeatureFlag } from '@aerealith-ai/core';
 import { useMutation } from '@tanstack/react-query';
 import { useState, type CSSProperties, type SubmitEvent } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router';
 
-import { useFeatureFlag } from '../../../features/flags/feature-flags';
 import { analyticsEvents } from '../../../analytics/analytics-events';
+import { useFeatureFlag } from '../../../features/flags/feature-flags';
 import { joinWaitlist } from '../../../features/waitlist/waitlist-api';
 import { ApiError } from '../../../lib/api-client';
+import { RouteMetadataHead } from '../../util/route-metadata';
 
 const panelClass =
   'home-panel rounded-2xl border shadow-[0_0_30px_rgba(76,29,149,.12),inset_0_1px_0_rgba(255,255,255,.05)] backdrop-blur-md';
+
+const HOME_TITLE = 'Aerealith — Your Digital Life, Intelligently Connected';
+
+const HOME_DESCRIPTION =
+  'Aerealith is a modular, trust-first platform in active development for connected applications, communities, information, and approved workflows.';
 
 export function HomeRoute() {
   const content = homeLandingPageContent;
@@ -20,16 +27,20 @@ export function HomeRoute() {
   const [role, setRole] = useState('');
   const [newsletter, setNewsletter] = useState(false);
   const [waitlistMessage, setWaitlistMessage] = useState('');
+
   const waitlistEnabled = useFeatureFlag(FeatureFlag.Waitlist);
+
   const waitlist = useMutation({
     mutationFn: joinWaitlist,
     onSuccess: (result) => {
       analyticsEvents.waitlistSignupCompleted('landing_page');
+
       setWaitlistMessage(
         result.newsletterSubscribed
           ? 'You’re on the waitlist and subscribed to the newsletter.'
           : 'You’re on the waitlist.',
       );
+
       setEmail('');
       setRole('');
       setNewsletter(false);
@@ -44,829 +55,842 @@ export function HomeRoute() {
   };
 
   return (
-    <div className="home-route relative isolate flex-1 overflow-hidden bg-transparent">
-      <style>{`
-        :root[data-theme='light'] .home-route {
-          --home-heading: var(--ae-foreground);
-          --home-body: var(--ae-foreground);
-          --home-muted: var(--ae-foreground-muted);
-          --home-subtle: var(--ae-foreground-subtle);
-
-          --home-panel: rgba(255, 255, 255, 0.12);
-          --home-panel-hover: rgba(255, 255, 255, 0.22);
-          --home-panel-strong: rgba(255, 255, 255, 0.28);
-
-          --home-card: rgba(255, 255, 255, 0.14);
-          --home-card-hover: rgba(255, 255, 255, 0.28);
-
-          --home-field: rgba(255, 255, 255, 0.34);
-          --home-field-hover: rgba(255, 255, 255, 0.48);
-
-          --home-border: var(--ae-border);
-          --home-border-strong: var(--ae-border-strong);
-
-          --home-shadow: rgba(15, 23, 42, 0.14);
-          --home-inset: rgba(255, 255, 255, 0.7);
-
-          --home-button: rgba(255, 255, 255, 0.2);
-          --home-button-hover: rgba(255, 255, 255, 0.36);
-
-          --home-grid-line: rgba(37, 99, 235, 0.06);
-          --home-blue-glow: rgba(14, 165, 233, 0.1);
-          --home-purple-glow: rgba(168, 85, 247, 0.1);
-
-          --home-select-option: var(--ae-surface-raised);
-          --home-select-text: var(--ae-foreground);
-        }
-
-        :root[data-theme='dark'] .home-route {
-          --home-heading: var(--ae-foreground);
-          --home-body: var(--ae-foreground);
-          --home-muted: var(--ae-foreground-muted);
-          --home-subtle: var(--ae-foreground-subtle);
-
-          --home-panel: rgba(2, 6, 23, 0.12);
-          --home-panel-hover: rgba(2, 6, 23, 0.24);
-          --home-panel-strong: rgba(2, 6, 23, 0.3);
-
-          --home-card: rgba(2, 6, 23, 0.16);
-          --home-card-hover: rgba(2, 6, 23, 0.3);
-
-          --home-field: rgba(2, 6, 23, 0.28);
-          --home-field-hover: rgba(2, 6, 23, 0.42);
-
-          --home-border: var(--ae-border);
-          --home-border-strong: var(--ae-border-strong);
-
-          --home-shadow: rgba(0, 0, 0, 0.34);
-          --home-inset: rgba(255, 255, 255, 0.04);
-
-          --home-button: rgba(2, 6, 23, 0.18);
-          --home-button-hover: rgba(15, 23, 42, 0.42);
-
-          --home-grid-line: rgba(59, 130, 246, 0.04);
-          --home-blue-glow: rgba(37, 99, 235, 0.12);
-          --home-purple-glow: rgba(126, 34, 206, 0.1);
-
-          --home-select-option: var(--ae-surface-raised);
-          --home-select-text: var(--ae-foreground);
-        }
-
-        .home-route {
-          color: var(--home-heading);
-        }
-
-        .home-route .home-decorative-layer {
-          background-image:
-            radial-gradient(
-              circle at 72% 11%,
-              var(--home-purple-glow),
-              transparent 24%
-            ),
-            radial-gradient(
-              circle at 34% 2%,
-              var(--home-blue-glow),
-              transparent 17%
-            ),
-            linear-gradient(
-              var(--home-grid-line) 1px,
-              transparent 1px
-            ),
-            linear-gradient(
-              90deg,
-              var(--home-grid-line) 1px,
-              transparent 1px
-            );
-          background-size:
-            auto,
-            auto,
-            72px 72px,
-            72px 72px;
-        }
-
-        .home-route .home-heading {
-          color: var(--home-heading);
-        }
-
-        .home-route .home-body {
-          color: var(--home-body);
-        }
-
-        .home-route .home-muted {
-          color: var(--home-muted);
-        }
-
-        .home-route .home-subtle {
-          color: var(--home-subtle);
-        }
-
-        .home-route .home-panel {
-          border-color: var(--home-border);
-          background: var(--home-panel);
-          box-shadow:
-            0 16px 46px var(--home-shadow),
-            inset 0 1px 0 var(--home-inset);
-        }
-
-        .home-route .home-panel:hover,
-        .home-route .home-panel:focus-within {
-          border-color: var(--home-border-strong);
-          background: var(--home-panel-hover);
-        }
-
-        .home-route .home-card {
-          border-color: var(--home-border);
-          background: var(--home-card);
-          box-shadow:
-            0 12px 36px var(--home-shadow),
-            inset 0 1px 0 var(--home-inset);
-        }
-
-        .home-route .home-card:hover,
-        .home-route .home-card:focus-within {
-          border-color: var(--home-border-strong);
-          background: var(--home-card-hover);
-        }
-
-        .home-route .home-field {
-          color: var(--home-heading);
-          border-color: var(--home-border);
-          background: var(--home-field);
-        }
-
-        .home-route .home-field:hover {
-          background: var(--home-field-hover);
-        }
-
-        .home-route .home-field::placeholder {
-          color: var(--home-subtle);
-        }
-
-        .home-route .home-field option {
-          color: var(--home-select-text);
-          background: var(--home-select-option);
-        }
-
-        .home-route .home-outline-link {
-          color: var(--home-heading);
-          border-color: var(--home-border);
-          background: var(--home-button);
-        }
-
-        .home-route .home-outline-link:hover {
-          border-color: rgba(139, 92, 246, 0.58);
-          background: var(--home-button-hover);
-        }
-
-        .home-route .home-highlight-card {
-          border-color: rgba(139, 92, 246, 0.58);
-          background:
-            radial-gradient(
-              circle at 80% 90%,
-              rgba(124, 58, 237, 0.22),
-              transparent 60%
-            ),
-            var(--home-card);
-          box-shadow:
-            0 16px 42px var(--home-shadow),
-            0 0 28px rgba(124, 58, 237, 0.16),
-            inset 0 1px 0 var(--home-inset);
-        }
-
-        .home-route .home-video-card {
-          border-color: rgba(139, 92, 246, 0.34);
-          background:
-            radial-gradient(
-              circle at 50% 45%,
-              rgba(82, 42, 255, 0.2),
-              transparent 34%
-            ),
-            var(--home-card);
-          box-shadow:
-            0 16px 46px var(--home-shadow),
-            0 0 30px rgba(82, 42, 255, 0.12),
-            inset 0 1px 0 var(--home-inset);
-        }
-
-        .home-route .home-final-cta {
-          border-color: rgba(139, 92, 246, 0.34);
-          background:
-            linear-gradient(
-              90deg,
-              rgba(37, 99, 235, 0.14),
-              rgba(126, 34, 206, 0.2),
-              rgba(37, 99, 235, 0.14)
-            ),
-            var(--home-panel-strong);
-          box-shadow:
-            0 18px 48px var(--home-shadow),
-            0 0 34px rgba(76, 29, 149, 0.14),
-            inset 0 1px 0 var(--home-inset);
-        }
-
-        .home-route .home-price-card {
-          background: var(--home-card);
-          box-shadow:
-            0 14px 38px var(--home-shadow),
-            0 0 22px
-              color-mix(
-                in srgb,
-                var(--tier-accent) 12%,
-                transparent
-              ),
-            inset 0 1px 0 var(--home-inset);
-        }
-
-        .home-route .home-price-card:hover {
-          background: var(--home-card-hover);
-          box-shadow:
-            0 18px 46px var(--home-shadow),
-            0 0 30px
-              color-mix(
-                in srgb,
-                var(--tier-accent) 24%,
-                transparent
-              ),
-            inset 0 1px 0 var(--home-inset);
-        }
-
-        .home-route .home-detail {
-          border-color: var(--home-border);
-          background: var(--home-card);
-        }
-
-        .home-route .home-detail[open] {
-          border-color: rgba(139, 92, 246, 0.46);
-          background: var(--home-card-hover);
-        }
-
-        .home-route .home-promise {
-          border-color: var(--home-border);
-          background: color-mix(
-            in srgb,
-            var(--home-card) 70%,
-            transparent
-          );
-        }
-
-        .home-route .home-hero-mark-stage {
-          perspective: 900px;
-        }
-
-        .home-route .home-hero-mark {
-          transform-origin: 50% 62%;
-          transform-style: preserve-3d;
-          backface-visibility: hidden;
-          will-change: transform;
-          animation: home-hero-mark-float-twist 6s ease-in-out infinite;
-        }
-
-        .home-route .home-platform-ring-flow {
-          stroke-dashoffset: 0;
-          will-change: stroke-dashoffset;
-          animation: home-platform-ring-rotate 3.4s linear infinite;
-        }
-
-        @keyframes home-hero-mark-float-twist {
-          0%,
-          100% {
-            transform: translate3d(-0.25rem, 0.15rem, 0) rotateY(-11deg)
-              rotateZ(-0.6deg);
-          }
-
-          25% {
-            transform: translate3d(0, -0.7rem, 1rem) rotateY(0deg)
-              rotateZ(0.35deg);
-          }
-
-          50% {
-            transform: translate3d(0.25rem, -0.15rem, 0) rotateY(11deg)
-              rotateZ(0.6deg);
-          }
-
-          75% {
-            transform: translate3d(0, -0.95rem, 1rem) rotateY(0deg)
-              rotateZ(-0.35deg);
-          }
-        }
-
-        @keyframes home-platform-ring-rotate {
-          to {
-            stroke-dashoffset: -100;
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .home-route *,
-          .home-route *::before,
-          .home-route *::after {
-            scroll-behavior: auto !important;
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
-          }
-        }
-      `}</style>
-
-      {/*
-       * Decorative lighting only.
-       *
-       * The route remains transparent so the global background image stays
-       * visible behind the entire page in both light and dark themes.
-       */}
-      <div
-        aria-hidden="true"
-        className="home-decorative-layer pointer-events-none absolute inset-0 -z-10 opacity-70"
+    <>
+      <RouteMetadataHead
+        title={HOME_TITLE}
+        description={HOME_DESCRIPTION}
+        path="/"
       />
 
-      <div className="mx-auto w-full max-w-[1440px] space-y-4 px-5 pt-10 pb-10 sm:px-8 lg:px-12">
-        {/* =========================================================
-            Hero
-            ========================================================= */}
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebPage',
+            '@id': 'https://aerealith.com/#webpage',
+            url: 'https://aerealith.com/',
+            name: HOME_TITLE,
+            description: HOME_DESCRIPTION,
+            isPartOf: {
+              '@id': 'https://aerealith.com/#website',
+            },
+            about: {
+              '@type': 'Brand',
+              name: 'Aerealith',
+              url: 'https://aerealith.com/',
+            },
+            inLanguage: 'en-US',
+          })}
+        </script>
+      </Helmet>
 
-        <section className="grid items-center gap-8 lg:grid-cols-[1.08fr_.92fr]">
-          <div>
-            <p className="inline-flex rounded-full border border-cyan-500/35 bg-cyan-500/5 px-3 py-1 text-[10px] font-semibold tracking-[0.25em] text-cyan-500 uppercase backdrop-blur-md">
-              {content.hero.eyebrow}
-            </p>
+      <div className="home-route relative isolate flex-1 overflow-hidden bg-transparent">
+        <style>{`
+          :root[data-theme='light'] .home-route {
+            --home-heading: var(--ae-foreground);
+            --home-body: var(--ae-foreground);
+            --home-muted: var(--ae-foreground-muted);
+            --home-subtle: var(--ae-foreground-subtle);
 
-            <h1 className="home-heading mt-4 text-4xl leading-[1.05] font-bold tracking-tight sm:text-5xl lg:text-[3.7rem]">
-              {content.hero.title}
+            --home-panel: rgba(255, 255, 255, 0.12);
+            --home-panel-hover: rgba(255, 255, 255, 0.22);
+            --home-panel-strong: rgba(255, 255, 255, 0.28);
 
-              <span className="mt-1 block bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-500 bg-clip-text text-transparent">
-                {content.hero.highlightedTitle}
-              </span>
-            </h1>
+            --home-card: rgba(255, 255, 255, 0.14);
+            --home-card-hover: rgba(255, 255, 255, 0.28);
 
-            <p className="home-body mt-5 max-w-2xl text-sm leading-7 sm:text-base">
-              {content.hero.description}
-            </p>
+            --home-field: rgba(255, 255, 255, 0.34);
+            --home-field-hover: rgba(255, 255, 255, 0.48);
 
-            {/* =====================================================
-                Waitlist
-                ===================================================== */}
+            --home-border: var(--ae-border);
+            --home-border-strong: var(--ae-border-strong);
 
-            {waitlistEnabled ? (
-              <form
-                id="waitlist"
-                aria-label="Join the waitlist"
-                className="home-panel mt-6 rounded-2xl border border-fuchsia-400/45 p-3 shadow-[0_0_30px_rgba(89,46,255,.18),inset_0_0_28px_rgba(28,64,170,.08)] backdrop-blur-xl sm:p-4"
-                onSubmit={submitWaitlist}
-              >
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.25fr)_minmax(8rem,.8fr)_auto_auto] xl:items-center">
-                  <label className="sr-only" htmlFor="waitlist-email">
-                    {content.waitlist.emailLabel}
-                  </label>
+            --home-shadow: rgba(15, 23, 42, 0.14);
+            --home-inset: rgba(255, 255, 255, 0.7);
 
-                  <input
-                    id="waitlist-email"
-                    type="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    placeholder={content.waitlist.emailPlaceholder}
-                    autoComplete="email"
-                    required
-                    className="home-field min-w-0 rounded-lg border px-4 py-3 text-sm outline-none backdrop-blur-md transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                  />
+            --home-button: rgba(255, 255, 255, 0.2);
+            --home-button-hover: rgba(255, 255, 255, 0.36);
 
-                  <label className="sr-only" htmlFor="waitlist-role">
-                    {content.waitlist.roleLabel}
-                  </label>
+            --home-grid-line: rgba(37, 99, 235, 0.06);
+            --home-blue-glow: rgba(14, 165, 233, 0.1);
+            --home-purple-glow: rgba(168, 85, 247, 0.1);
 
-                  <select
-                    id="waitlist-role"
-                    value={role}
-                    onChange={(event) => setRole(event.target.value)}
-                    required
-                    className="home-field rounded-lg border px-4 py-3 text-sm outline-none backdrop-blur-md transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                  >
-                    <option value="" disabled>
-                      {content.waitlist.rolePlaceholder}
-                    </option>
+            --home-select-option: var(--ae-surface-raised);
+            --home-select-text: var(--ae-foreground);
+          }
 
-                    {content.waitlist.roles.map((role) => (
-                      <option key={role} value={role}>
-                        {role}
-                      </option>
-                    ))}
-                  </select>
+          :root[data-theme='dark'] .home-route {
+            --home-heading: var(--ae-foreground);
+            --home-body: var(--ae-foreground);
+            --home-muted: var(--ae-foreground-muted);
+            --home-subtle: var(--ae-foreground-subtle);
 
-                  <label className="home-field flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm backdrop-blur-md transition hover:border-cyan-400">
+            --home-panel: rgba(2, 6, 23, 0.12);
+            --home-panel-hover: rgba(2, 6, 23, 0.24);
+            --home-panel-strong: rgba(2, 6, 23, 0.3);
+
+            --home-card: rgba(2, 6, 23, 0.16);
+            --home-card-hover: rgba(2, 6, 23, 0.3);
+
+            --home-field: rgba(2, 6, 23, 0.28);
+            --home-field-hover: rgba(2, 6, 23, 0.42);
+
+            --home-border: var(--ae-border);
+            --home-border-strong: var(--ae-border-strong);
+
+            --home-shadow: rgba(0, 0, 0, 0.34);
+            --home-inset: rgba(255, 255, 255, 0.04);
+
+            --home-button: rgba(2, 6, 23, 0.18);
+            --home-button-hover: rgba(15, 23, 42, 0.42);
+
+            --home-grid-line: rgba(59, 130, 246, 0.04);
+            --home-blue-glow: rgba(37, 99, 235, 0.12);
+            --home-purple-glow: rgba(126, 34, 206, 0.1);
+
+            --home-select-option: var(--ae-surface-raised);
+            --home-select-text: var(--ae-foreground);
+          }
+
+          .home-route {
+            color: var(--home-heading);
+          }
+
+          .home-route .home-decorative-layer {
+            background-image:
+              radial-gradient(
+                circle at 72% 11%,
+                var(--home-purple-glow),
+                transparent 24%
+              ),
+              radial-gradient(
+                circle at 34% 2%,
+                var(--home-blue-glow),
+                transparent 17%
+              ),
+              linear-gradient(var(--home-grid-line) 1px, transparent 1px),
+              linear-gradient(
+                90deg,
+                var(--home-grid-line) 1px,
+                transparent 1px
+              );
+            background-size:
+              auto,
+              auto,
+              72px 72px,
+              72px 72px;
+          }
+
+          .home-route .home-heading {
+            color: var(--home-heading);
+          }
+
+          .home-route .home-body {
+            color: var(--home-body);
+          }
+
+          .home-route .home-muted {
+            color: var(--home-muted);
+          }
+
+          .home-route .home-subtle {
+            color: var(--home-subtle);
+          }
+
+          .home-route .home-panel {
+            border-color: var(--home-border);
+            background: var(--home-panel);
+            box-shadow:
+              0 16px 46px var(--home-shadow),
+              inset 0 1px 0 var(--home-inset);
+          }
+
+          .home-route .home-panel:hover,
+          .home-route .home-panel:focus-within {
+            border-color: var(--home-border-strong);
+            background: var(--home-panel-hover);
+          }
+
+          .home-route .home-card {
+            border-color: var(--home-border);
+            background: var(--home-card);
+            box-shadow:
+              0 12px 36px var(--home-shadow),
+              inset 0 1px 0 var(--home-inset);
+          }
+
+          .home-route .home-card:hover,
+          .home-route .home-card:focus-within {
+            border-color: var(--home-border-strong);
+            background: var(--home-card-hover);
+          }
+
+          .home-route .home-field {
+            color: var(--home-heading);
+            border-color: var(--home-border);
+            background: var(--home-field);
+          }
+
+          .home-route .home-field:hover {
+            background: var(--home-field-hover);
+          }
+
+          .home-route .home-field::placeholder {
+            color: var(--home-subtle);
+          }
+
+          .home-route .home-field option {
+            color: var(--home-select-text);
+            background: var(--home-select-option);
+          }
+
+          .home-route .home-outline-link {
+            color: var(--home-heading);
+            border-color: var(--home-border);
+            background: var(--home-button);
+          }
+
+          .home-route .home-outline-link:hover {
+            border-color: rgba(139, 92, 246, 0.58);
+            background: var(--home-button-hover);
+          }
+
+          .home-route .home-highlight-card {
+            border-color: rgba(139, 92, 246, 0.58);
+            background:
+              radial-gradient(
+                circle at 80% 90%,
+                rgba(124, 58, 237, 0.22),
+                transparent 60%
+              ),
+              var(--home-card);
+            box-shadow:
+              0 16px 42px var(--home-shadow),
+              0 0 28px rgba(124, 58, 237, 0.16),
+              inset 0 1px 0 var(--home-inset);
+          }
+
+          .home-route .home-video-card {
+            border-color: rgba(139, 92, 246, 0.34);
+            background:
+              radial-gradient(
+                circle at 50% 45%,
+                rgba(82, 42, 255, 0.2),
+                transparent 34%
+              ),
+              var(--home-card);
+            box-shadow:
+              0 16px 46px var(--home-shadow),
+              0 0 30px rgba(82, 42, 255, 0.12),
+              inset 0 1px 0 var(--home-inset);
+          }
+
+          .home-route .home-final-cta {
+            border-color: rgba(139, 92, 246, 0.34);
+            background:
+              linear-gradient(
+                90deg,
+                rgba(37, 99, 235, 0.14),
+                rgba(126, 34, 206, 0.2),
+                rgba(37, 99, 235, 0.14)
+              ),
+              var(--home-panel-strong);
+            box-shadow:
+              0 18px 48px var(--home-shadow),
+              0 0 34px rgba(76, 29, 149, 0.14),
+              inset 0 1px 0 var(--home-inset);
+          }
+
+          .home-route .home-price-card {
+            background: var(--home-card);
+            box-shadow:
+              0 14px 38px var(--home-shadow),
+              0 0 22px
+                color-mix(
+                  in srgb,
+                  var(--tier-accent) 12%,
+                  transparent
+                ),
+              inset 0 1px 0 var(--home-inset);
+          }
+
+          .home-route .home-price-card:hover {
+            background: var(--home-card-hover);
+            box-shadow:
+              0 18px 46px var(--home-shadow),
+              0 0 30px
+                color-mix(
+                  in srgb,
+                  var(--tier-accent) 24%,
+                  transparent
+                ),
+              inset 0 1px 0 var(--home-inset);
+          }
+
+          .home-route .home-detail {
+            border-color: var(--home-border);
+            background: var(--home-card);
+          }
+
+          .home-route .home-detail[open] {
+            border-color: rgba(139, 92, 246, 0.46);
+            background: var(--home-card-hover);
+          }
+
+          .home-route .home-promise {
+            border-color: var(--home-border);
+            background: color-mix(
+              in srgb,
+              var(--home-card) 70%,
+              transparent
+            );
+          }
+
+          .home-route .home-hero-mark-stage {
+            perspective: 900px;
+          }
+
+          .home-route .home-hero-mark {
+            transform-origin: 50% 62%;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            will-change: transform;
+            animation: home-hero-mark-float-twist 6s ease-in-out infinite;
+          }
+
+          .home-route .home-platform-ring-flow {
+            stroke-dashoffset: 0;
+            will-change: stroke-dashoffset;
+            animation: home-platform-ring-rotate 3.4s linear infinite;
+          }
+
+          @keyframes home-hero-mark-float-twist {
+            0%,
+            100% {
+              transform: translate3d(-0.25rem, 0.15rem, 0) rotateY(-11deg)
+                rotateZ(-0.6deg);
+            }
+
+            25% {
+              transform: translate3d(0, -0.7rem, 1rem) rotateY(0deg)
+                rotateZ(0.35deg);
+            }
+
+            50% {
+              transform: translate3d(0.25rem, -0.15rem, 0) rotateY(11deg)
+                rotateZ(0.6deg);
+            }
+
+            75% {
+              transform: translate3d(0, -0.95rem, 1rem) rotateY(0deg)
+                rotateZ(-0.35deg);
+            }
+          }
+
+          @keyframes home-platform-ring-rotate {
+            to {
+              stroke-dashoffset: -100;
+            }
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .home-route *,
+            .home-route *::before,
+            .home-route *::after {
+              scroll-behavior: auto !important;
+              animation-duration: 0.01ms !important;
+              animation-iteration-count: 1 !important;
+              transition-duration: 0.01ms !important;
+            }
+          }
+        `}</style>
+
+        <div
+          aria-hidden="true"
+          className="home-decorative-layer pointer-events-none absolute inset-0 -z-10 opacity-70"
+        />
+
+        <div className="mx-auto w-full max-w-[1440px] space-y-4 px-5 pt-10 pb-10 sm:px-8 lg:px-12">
+          <section
+            id="overview"
+            className="grid items-center gap-8 lg:grid-cols-[1.08fr_.92fr]"
+          >
+            <div>
+              <p className="inline-flex rounded-full border border-cyan-500/35 bg-cyan-500/5 px-3 py-1 text-[10px] font-semibold tracking-[0.25em] text-cyan-500 uppercase backdrop-blur-md">
+                {content.hero.eyebrow}
+              </p>
+
+              <h1 className="home-heading mt-4 text-4xl leading-[1.05] font-bold tracking-tight sm:text-5xl lg:text-[3.7rem]">
+                {content.hero.title}
+
+                <span className="mt-1 block bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-500 bg-clip-text text-transparent">
+                  {content.hero.highlightedTitle}
+                </span>
+              </h1>
+
+              <p className="home-body mt-5 max-w-2xl text-sm leading-7 sm:text-base">
+                {content.hero.description}
+              </p>
+
+              {waitlistEnabled ? (
+                <form
+                  id="waitlist"
+                  aria-busy={waitlist.isPending}
+                  aria-label="Join the waitlist"
+                  className="home-panel mt-6 rounded-2xl border border-fuchsia-400/45 p-3 shadow-[0_0_30px_rgba(89,46,255,.18),inset_0_0_28px_rgba(28,64,170,.08)] backdrop-blur-xl sm:p-4"
+                  onSubmit={submitWaitlist}
+                >
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.25fr)_minmax(8rem,.8fr)_auto_auto] xl:items-center">
+                    <label className="sr-only" htmlFor="waitlist-email">
+                      {content.waitlist.emailLabel}
+                    </label>
+
                     <input
-                      type="checkbox"
-                      checked={newsletter}
-                      onChange={(event) => setNewsletter(event.target.checked)}
-                      className="h-4 w-4 shrink-0 rounded border-[var(--home-border-strong)] accent-cyan-500"
+                      id="waitlist-email"
+                      type="email"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      placeholder={content.waitlist.emailPlaceholder}
+                      autoComplete="email"
+                      required
+                      className="home-field min-w-0 rounded-lg border px-4 py-3 text-sm outline-none backdrop-blur-md transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
                     />
-                    <span>{content.waitlist.newsletterLabel}</span>
-                  </label>
 
-                  <button
-                    type="submit"
-                    disabled={waitlist.isPending}
-                    className="rounded-lg bg-gradient-to-r from-fuchsia-600 via-violet-500 to-cyan-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_0_24px_rgba(99,70,255,.28)] transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400"
-                  >
-                    {waitlist.isPending
-                      ? 'Joining…'
-                      : content.waitlist.submitLabel}
+                    <label className="sr-only" htmlFor="waitlist-role">
+                      {content.waitlist.roleLabel}
+                    </label>
 
-                    <span className="ml-2" aria-hidden="true">
-                      →
-                    </span>
-                  </button>
-                </div>
+                    <select
+                      id="waitlist-role"
+                      value={role}
+                      onChange={(event) => setRole(event.target.value)}
+                      required
+                      className="home-field rounded-lg border px-4 py-3 text-sm outline-none backdrop-blur-md transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+                    >
+                      <option value="" disabled>
+                        {content.waitlist.rolePlaceholder}
+                      </option>
 
-                {waitlistMessage ? (
-                  <output className="mt-3 block text-sm text-[var(--ae-success-foreground)]">
-                    {waitlistMessage}
-                  </output>
-                ) : null}
+                      {content.waitlist.roles.map((role) => (
+                        <option key={role} value={role}>
+                          {role}
+                        </option>
+                      ))}
+                    </select>
 
-                {waitlist.isError ? (
-                  <p
-                    className="mt-3 text-sm text-[var(--ae-danger-foreground)]"
-                    role="alert"
-                  >
-                    {waitlist.error instanceof ApiError
-                      ? waitlist.error.message
-                      : 'We couldn’t add you to the waitlist. Please try again.'}
+                    <label className="home-field flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm backdrop-blur-md transition hover:border-cyan-400">
+                      <input
+                        type="checkbox"
+                        checked={newsletter}
+                        onChange={(event) =>
+                          setNewsletter(event.target.checked)
+                        }
+                        className="h-4 w-4 shrink-0 rounded border-[var(--home-border-strong)] accent-cyan-500"
+                      />
+                      <span>{content.waitlist.newsletterLabel}</span>
+                    </label>
+
+                    <button
+                      type="submit"
+                      disabled={waitlist.isPending}
+                      className="rounded-lg bg-gradient-to-r from-fuchsia-600 via-violet-500 to-cyan-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_0_24px_rgba(99,70,255,.28)] transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {waitlist.isPending
+                        ? 'Joining…'
+                        : content.waitlist.submitLabel}
+
+                      <span className="ml-2" aria-hidden="true">
+                        →
+                      </span>
+                    </button>
+                  </div>
+
+                  {waitlistMessage ? (
+                    <output
+                      className="mt-3 block text-sm text-[var(--ae-success-foreground)]"
+                      aria-live="polite"
+                    >
+                      {waitlistMessage}
+                    </output>
+                  ) : null}
+
+                  {waitlist.isError ? (
+                    <p
+                      className="mt-3 text-sm text-[var(--ae-danger-foreground)]"
+                      role="alert"
+                    >
+                      {waitlist.error instanceof ApiError
+                        ? waitlist.error.message
+                        : 'We couldn’t add you to the waitlist. Please try again.'}
+                    </p>
+                  ) : null}
+
+                  <p className="home-muted mt-3 text-xs">
+                    {content.waitlist.privacyNote}
                   </p>
-                ) : null}
-
-                <p className="home-muted mt-3 text-xs">
-                  {content.waitlist.privacyNote}
-                </p>
-              </form>
-            ) : null}
-          </div>
-
-          {/* =======================================================
-              Holographic hero mark
-              ======================================================= */}
-
-          <div className="home-hero-mark-stage relative mx-auto grid min-h-[420px] w-full max-w-xl place-items-center">
-            <div
-              aria-hidden="true"
-              className="absolute h-80 w-80 rounded-full border border-violet-400/20 bg-violet-600/5 shadow-[0_0_100px_rgba(79,55,255,.3)] backdrop-blur-sm"
-            />
-
-            <div
-              aria-hidden="true"
-              className="absolute h-[19rem] w-[12rem] rotate-[28deg] rounded-[50%] border border-cyan-400/15"
-            />
-
-            <div
-              aria-hidden="true"
-              className="absolute h-[19rem] w-[12rem] -rotate-[28deg] rounded-[50%] border border-violet-400/15"
-            />
-
-            <div
-              aria-hidden="true"
-              className="absolute bottom-8 h-24 w-4/5 rounded-[100%] border border-cyan-400/50 bg-violet-600/10 shadow-[0_0_45px_#4424e8,inset_0_0_24px_#1677ff]"
-            >
-              <svg
-                aria-hidden="true"
-                className="absolute inset-0 h-full w-full overflow-visible"
-                focusable="false"
-                preserveAspectRatio="none"
-                viewBox="0 0 100 100"
-              >
-                <defs>
-                  <linearGradient
-                    id="home-platform-ring-gradient"
-                    x1="0"
-                    x2="1"
-                    y1="0"
-                    y2="1"
-                  >
-                    <stop offset="0" stopColor="#22d3ee" />
-                    <stop offset="0.48" stopColor="#c026d3" />
-                    <stop offset="1" stopColor="#60a5fa" />
-                  </linearGradient>
-                </defs>
-
-                <ellipse
-                  className="home-platform-ring-flow"
-                  cx="50"
-                  cy="50"
-                  fill="none"
-                  pathLength="100"
-                  rx="49.5"
-                  ry="48"
-                  stroke="url(#home-platform-ring-gradient)"
-                  strokeDasharray="24 9 5 11 17 34"
-                  strokeLinecap="round"
-                  strokeWidth="3"
-                  vectorEffect="non-scaling-stroke"
-                />
-              </svg>
+                </form>
+              ) : null}
             </div>
 
-            <div
-              aria-hidden="true"
-              className="absolute bottom-14 h-12 w-3/5 rounded-[100%] border border-violet-400/35 bg-violet-500/5 shadow-[0_0_22px_rgba(168,85,247,.55)]"
-            />
-
-            <div
-              aria-hidden="true"
-              className="absolute bottom-16 h-52 w-px bg-gradient-to-t from-cyan-300 via-violet-400 to-transparent shadow-[0_0_18px_#00d9ff]"
-            />
-
-            <img
-              src={content.hero.image.src}
-              alt={content.hero.image.alt}
-              width={320}
-              height={320}
-              className="home-hero-mark relative z-10 h-64 w-64 object-contain drop-shadow-[0_0_18px_rgba(236,72,153,.65)] drop-shadow-[0_0_28px_rgba(74,165,255,.8)] sm:h-72 sm:w-72"
-            />
-          </div>
-        </section>
-
-        {/* =========================================================
-            Promises
-            ========================================================= */}
-
-        <section className="grid gap-4 py-4 sm:grid-cols-3">
-          {content.promises.map((item, index) => (
-            <article
-              key={item.title}
-              className="home-promise flex items-center gap-4 rounded-xl border px-5 py-4 backdrop-blur-sm sm:rounded-none sm:border-y-0 sm:border-l-0 sm:border-r sm:last:border-r-0"
-            >
-              <span
-                className={[
-                  'text-2xl',
-                  index === 0
-                    ? 'text-fuchsia-500'
-                    : index === 1
-                      ? 'text-violet-500'
-                      : 'text-cyan-500',
-                ].join(' ')}
+            <div className="home-hero-mark-stage relative mx-auto grid min-h-[420px] w-full max-w-xl place-items-center">
+              <div
                 aria-hidden="true"
+                className="absolute h-80 w-80 rounded-full border border-violet-400/20 bg-violet-600/5 shadow-[0_0_100px_rgba(79,55,255,.3)] backdrop-blur-sm"
+              />
+
+              <div
+                aria-hidden="true"
+                className="absolute h-[19rem] w-[12rem] rotate-[28deg] rounded-[50%] border border-cyan-400/15"
+              />
+
+              <div
+                aria-hidden="true"
+                className="absolute h-[19rem] w-[12rem] -rotate-[28deg] rounded-[50%] border border-violet-400/15"
+              />
+
+              <div
+                aria-hidden="true"
+                className="absolute bottom-8 h-24 w-4/5 rounded-[100%] border border-cyan-400/50 bg-violet-600/10 shadow-[0_0_45px_#4424e8,inset_0_0_24px_#1677ff]"
               >
-                {['✧', '□', '◇'][index]}
-              </span>
+                <svg
+                  aria-hidden="true"
+                  className="absolute inset-0 h-full w-full overflow-visible"
+                  focusable="false"
+                  preserveAspectRatio="none"
+                  viewBox="0 0 100 100"
+                >
+                  <defs>
+                    <linearGradient
+                      id="home-platform-ring-gradient"
+                      x1="0"
+                      x2="1"
+                      y1="0"
+                      y2="1"
+                    >
+                      <stop offset="0" stopColor="#22d3ee" />
+                      <stop offset="0.48" stopColor="#c026d3" />
+                      <stop offset="1" stopColor="#60a5fa" />
+                    </linearGradient>
+                  </defs>
 
-              <div>
-                <h2 className="home-heading text-sm font-medium">
-                  {item.title}
-                </h2>
-
-                <p className="home-muted text-xs">{item.description}</p>
+                  <ellipse
+                    className="home-platform-ring-flow"
+                    cx="50"
+                    cy="50"
+                    fill="none"
+                    pathLength="100"
+                    rx="49.5"
+                    ry="48"
+                    stroke="url(#home-platform-ring-gradient)"
+                    strokeDasharray="24 9 5 11 17 34"
+                    strokeLinecap="round"
+                    strokeWidth="3"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                </svg>
               </div>
-            </article>
-          ))}
-        </section>
 
-        {/* =========================================================
-            Story overview
-            ========================================================= */}
+              <div
+                aria-hidden="true"
+                className="absolute bottom-14 h-12 w-3/5 rounded-[100%] border border-violet-400/35 bg-violet-500/5 shadow-[0_0_22px_rgba(168,85,247,.55)]"
+              />
 
-        <section
-          id="overview"
-          className={`${panelClass} grid gap-5 p-5 lg:grid-cols-[260px_1fr]`}
-        >
-          <SectionIntro {...content.story} />
+              <div
+                aria-hidden="true"
+                className="absolute bottom-16 h-52 w-px bg-gradient-to-t from-cyan-300 via-violet-400 to-transparent shadow-[0_0_18px_#00d9ff]"
+              />
 
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-            {content.story.items.map((item, index) => {
-              const copy = 'content' in item ? item.content : item;
+              <img
+                src={content.hero.image.src}
+                alt={content.hero.image.alt}
+                width={320}
+                height={320}
+                fetchPriority="high"
+                decoding="async"
+                className="home-hero-mark relative z-10 h-64 w-64 object-contain drop-shadow-[0_0_18px_rgba(236,72,153,.65)] drop-shadow-[0_0_28px_rgba(74,165,255,.8)] sm:h-72 sm:w-72"
+              />
+            </div>
+          </section>
+
+          <section
+            id="promises"
+            aria-label="Aerealith principles"
+            className="grid gap-4 py-4 sm:grid-cols-3"
+          >
+            {content.promises.map((item, index) => {
+              const colorClass = [
+                'text-fuchsia-500',
+                'text-violet-500',
+                'text-cyan-500',
+              ][index];
 
               return (
                 <article
-                  key={item.id}
-                  className={[
-                    'min-h-48 rounded-xl border p-4 backdrop-blur-lg transition duration-300 hover:-translate-y-1',
-                    index === 0 ? 'home-highlight-card' : 'home-card',
-                  ].join(' ')}
+                  key={item.title}
+                  className="home-promise flex items-center gap-4 rounded-xl border px-5 py-4 backdrop-blur-sm sm:rounded-none sm:border-y-0 sm:border-l-0 sm:border-r sm:last:border-r-0"
                 >
-                  <span className="text-xs font-semibold text-violet-500">
-                    {String(index + 1).padStart(2, '0')}
+                  <span
+                    className={['text-2xl', colorClass].join(' ')}
+                    aria-hidden="true"
+                  >
+                    {['✧', '□', '◇'][index]}
                   </span>
 
-                  <h3 className="home-heading mt-3 text-lg font-semibold">
-                    {copy.title}
-                  </h3>
+                  <div>
+                    <h2 className="home-heading text-sm font-medium">
+                      {item.title}
+                    </h2>
 
-                  <p className="home-muted mt-2 text-xs leading-5">
-                    {copy.description}
-                  </p>
+                    <p className="home-muted text-xs">{item.description}</p>
+                  </div>
                 </article>
               );
             })}
-          </div>
-        </section>
+          </section>
 
-        {/* =========================================================
-            Differentiators
-            ========================================================= */}
+          <section
+            id="platform-overview"
+            className={`${panelClass} grid gap-5 p-5 lg:grid-cols-[260px_1fr]`}
+          >
+            <SectionIntro {...content.story} />
 
-        <section
-          id={content.differentiators.title}
-          className={`${panelClass} grid gap-5 p-5 lg:grid-cols-[260px_1fr]`}
-        >
-          <SectionIntro {...content.differentiators} />
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+              {content.story.items.map((item, index) => {
+                const copy = 'content' in item ? item.content : item;
 
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-            {content.differentiators.items.map((item, index) => (
-              <article
-                key={item.id}
-                className="home-card rounded-xl border p-5 backdrop-blur-lg transition duration-300 hover:-translate-y-1 hover:shadow-[0_0_28px_rgba(124,58,237,.15)]"
-              >
-                <span
-                  className={[
-                    'text-3xl',
-                    [
-                      'text-fuchsia-500',
-                      'text-cyan-500',
-                      'text-lime-500',
-                      'text-violet-500',
-                      'text-amber-500',
-                    ][index],
-                  ].join(' ')}
-                  aria-hidden="true"
+                return (
+                  <article
+                    key={item.id}
+                    className={[
+                      'min-h-48 rounded-xl border p-4 backdrop-blur-lg transition duration-300 hover:-translate-y-1',
+                      index === 0 ? 'home-highlight-card' : 'home-card',
+                    ].join(' ')}
+                  >
+                    <span className="text-xs font-semibold text-violet-500">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+
+                    <h3 className="home-heading mt-3 text-lg font-semibold">
+                      {copy.title}
+                    </h3>
+
+                    <p className="home-muted mt-2 text-xs leading-5">
+                      {copy.description}
+                    </p>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+
+          <section
+            id="differentiators"
+            className={`${panelClass} grid gap-5 p-5 lg:grid-cols-[260px_1fr]`}
+          >
+            <SectionIntro {...content.differentiators} />
+
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+              {content.differentiators.items.map((item, index) => (
+                <article
+                  key={item.id}
+                  className="home-card rounded-xl border p-5 backdrop-blur-lg transition duration-300 hover:-translate-y-1 hover:shadow-[0_0_28px_rgba(124,58,237,.15)]"
                 >
-                  {item.icon}
-                </span>
+                  <span
+                    className={[
+                      'text-3xl',
+                      [
+                        'text-fuchsia-500',
+                        'text-cyan-500',
+                        'text-lime-500',
+                        'text-violet-500',
+                        'text-amber-500',
+                      ][index],
+                    ].join(' ')}
+                    aria-hidden="true"
+                  >
+                    {item.icon}
+                  </span>
 
-                <h3 className="home-heading mt-5 text-base font-semibold">
-                  {item.title}
-                </h3>
+                  <h3 className="home-heading mt-5 text-base font-semibold">
+                    {item.title}
+                  </h3>
 
-                <p className="home-muted mt-2 text-xs leading-5">
-                  {item.description}
-                </p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        {/* =========================================================
-            Community funding
-            ========================================================= */}
-
-        <section
-          className={`${panelClass} grid gap-6 p-5 lg:grid-cols-[.72fr_1.28fr]`}
-        >
-          <div>
-            <SectionIntro {...content.funding} />
-
-            <ul className="mt-4 space-y-2">
-              {content.funding.benefits.map((benefit) => (
-                <li key={benefit} className="home-body text-sm">
-                  <span className="mr-2 text-cyan-500">✓</span>
-                  {benefit}
-                </li>
+                  <p className="home-muted mt-2 text-xs leading-5">
+                    {item.description}
+                  </p>
+                </article>
               ))}
-            </ul>
-
-            <div className="mt-5 flex flex-wrap gap-3">
-              <GradientLink {...content.funding.primaryAction} />
-              <OutlineLink {...content.funding.secondaryAction} />
             </div>
-          </div>
+          </section>
 
-          <article className="home-video-card relative grid min-h-72 place-items-center overflow-hidden rounded-xl border backdrop-blur-xl">
-            <img
-              src={content.funding.video.image}
-              alt=""
-              width={144}
-              height={144}
-              className="h-36 w-36 object-contain opacity-90 drop-shadow-[0_0_25px_#7c3aed]"
-            />
+          <section
+            id="community-funding"
+            className={`${panelClass} grid gap-6 p-5 lg:grid-cols-[.72fr_1.28fr]`}
+          >
+            <div>
+              <SectionIntro {...content.funding} />
 
-            <button
-              type="button"
-              aria-label={content.funding.video.title}
-              className="absolute grid h-16 w-16 place-items-center rounded-full border border-white/20 bg-black/45 text-2xl text-white shadow-[0_0_28px_rgba(0,0,0,.45)] backdrop-blur-md transition hover:scale-105 hover:bg-black/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400"
-            >
-              ▶
-            </button>
+              <ul className="mt-4 space-y-2">
+                {content.funding.benefits.map((benefit) => (
+                  <li key={benefit} className="home-body text-sm">
+                    <span className="mr-2 text-cyan-500" aria-hidden="true">
+                      ✓
+                    </span>
+                    {benefit}
+                  </li>
+                ))}
+              </ul>
 
-            <div className="absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-black/75 via-black/30 to-transparent p-5 text-white">
-              <div>
-                <p className="text-xs text-cyan-300">
-                  {content.funding.video.label}
-                </p>
-
-                <h3 className="font-semibold">{content.funding.video.title}</h3>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <GradientLink {...content.funding.primaryAction} />
+                <OutlineLink {...content.funding.secondaryAction} />
               </div>
+            </div>
 
-              <span className="text-sm text-slate-300">
-                {content.funding.video.duration}
+            <article
+              className="home-video-card relative grid min-h-72 place-items-center overflow-hidden rounded-xl border backdrop-blur-xl"
+              aria-label={content.funding.video.title}
+            >
+              <img
+                src={content.funding.video.image}
+                alt=""
+                width={144}
+                height={144}
+                loading="lazy"
+                decoding="async"
+                className="h-36 w-36 object-contain opacity-90 drop-shadow-[0_0_25px_#7c3aed]"
+              />
+
+              <span
+                aria-hidden="true"
+                className="absolute grid h-16 w-16 place-items-center rounded-full border border-white/20 bg-black/45 text-2xl text-white shadow-[0_0_28px_rgba(0,0,0,.45)] backdrop-blur-md"
+              >
+                ▶
               </span>
+
+              <div className="absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-black/75 via-black/30 to-transparent p-5 text-white">
+                <div>
+                  <p className="text-xs text-cyan-300">
+                    {content.funding.video.label}
+                  </p>
+
+                  <h3 className="font-semibold">
+                    {content.funding.video.title}
+                  </h3>
+                </div>
+
+                <span className="text-sm text-slate-300">
+                  {content.funding.video.duration}
+                </span>
+              </div>
+            </article>
+          </section>
+
+          <section
+            id="faq"
+            className={`${panelClass} grid gap-5 p-5 lg:grid-cols-[260px_1fr]`}
+          >
+            <div>
+              <SectionIntro {...content.faq} />
+
+              <div className="mt-5">
+                <OutlineLink {...content.faq.action} />
+              </div>
             </div>
-          </article>
-        </section>
 
-        {/* =========================================================
-            FAQ
-            ========================================================= */}
-
-        <section
-          className={`${panelClass} grid gap-5 p-5 lg:grid-cols-[260px_1fr]`}
-        >
-          <div>
-            <SectionIntro {...content.faq} />
-
-            <div className="mt-5">
-              <OutlineLink {...content.faq.action} />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            {content.faq.items.map((item) => (
-              <details
-                key={item.id}
-                className="home-detail group rounded-lg border px-4 py-3 backdrop-blur-md transition"
-              >
-                <summary className="home-heading cursor-pointer list-none text-sm font-medium">
-                  {item.question}
-
-                  <span className="home-muted float-right transition-transform group-open:rotate-45">
-                    +
-                  </span>
-                </summary>
-
-                <p className="home-muted mt-3 border-t border-[var(--home-border)] pt-3 text-sm leading-6">
-                  {item.answer}
-                </p>
-              </details>
-            ))}
-          </div>
-        </section>
-
-        {/* =========================================================
-            Pricing preview
-            ========================================================= */}
-
-        <section
-          className={`${panelClass} grid gap-5 p-5 lg:grid-cols-[260px_1fr]`}
-        >
-          <div>
-            <SectionIntro {...content.pricing} />
-
-            <div className="mt-5">
-              <OutlineLink {...content.pricing.action} />
-            </div>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            {content.pricing.tiers.map((tier) => (
-              <article
-                key={tier.name}
-                className="home-price-card relative rounded-xl border p-4 text-center backdrop-blur-lg transition duration-300 hover:-translate-y-1"
-                style={
-                  {
-                    '--tier-accent': tier.accent,
-                    borderColor: tier.accent,
-                  } as CSSProperties
-                }
-              >
-                <p
-                  className="text-xs font-semibold uppercase"
-                  style={{ color: tier.accent }}
+            <div className="space-y-2">
+              {content.faq.items.map((item) => (
+                <details
+                  key={item.id}
+                  className="home-detail group rounded-lg border px-4 py-3 backdrop-blur-md transition"
                 >
-                  {tier.name}
-                </p>
+                  <summary className="home-heading cursor-pointer list-none text-sm font-medium">
+                    {item.question}
 
-                {'badge' in tier ? (
-                  <span className="absolute top-2 right-2 rounded bg-lime-300 px-1 text-[8px] font-bold text-black">
-                    {tier.badge}
-                  </span>
-                ) : null}
+                    <span className="home-muted float-right transition-transform group-open:rotate-45">
+                      +
+                    </span>
+                  </summary>
 
-                <p className="home-heading mt-4 text-3xl">{tier.price}</p>
+                  <p className="home-muted mt-3 border-t border-[var(--home-border)] pt-3 text-sm leading-6">
+                    {item.answer}
+                  </p>
+                </details>
+              ))}
+            </div>
+          </section>
 
-                <p className="home-muted text-[10px]">{tier.cadence}</p>
+          <section
+            id="pricing"
+            className={`${panelClass} grid gap-5 p-5 lg:grid-cols-[260px_1fr]`}
+          >
+            <div>
+              <SectionIntro {...content.pricing} />
 
-                <p className="home-muted mt-4 text-xs leading-5">
-                  {tier.description}
-                </p>
-              </article>
-            ))}
-          </div>
-        </section>
+              <div className="mt-5">
+                <OutlineLink {...content.pricing.action} />
+              </div>
+            </div>
 
-        {/* =========================================================
-            Final CTA
-            ========================================================= */}
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+              {content.pricing.tiers.map((tier) => (
+                <article
+                  key={tier.name}
+                  className="home-price-card relative rounded-xl border p-4 text-center backdrop-blur-lg transition duration-300 hover:-translate-y-1"
+                  style={
+                    {
+                      '--tier-accent': tier.accent,
+                      borderColor: tier.accent,
+                    } as CSSProperties
+                  }
+                >
+                  <p
+                    className="text-xs font-semibold uppercase"
+                    style={{ color: tier.accent }}
+                  >
+                    {tier.name}
+                  </p>
 
-        <section className="home-final-cta flex flex-col items-center gap-5 rounded-xl border p-5 backdrop-blur-xl sm:flex-row">
-          <div>
-            <h2 className="home-heading text-xl font-semibold">
-              {content.finalCta.title}
-            </h2>
+                  {'badge' in tier ? (
+                    <span className="absolute top-2 right-2 rounded bg-lime-300 px-1 text-[8px] font-bold text-black">
+                      {tier.badge}
+                    </span>
+                  ) : null}
 
-            <p className="home-body text-sm">{content.finalCta.description}</p>
-          </div>
+                  <p className="home-heading mt-4 text-3xl">{tier.price}</p>
 
-          <div className="flex w-full flex-col gap-3 sm:ml-auto sm:w-auto sm:flex-row">
-            <GradientLink {...content.finalCta.primaryAction} />
-            <OutlineLink {...content.finalCta.secondaryAction} />
-          </div>
-        </section>
+                  <p className="home-muted text-[10px]">{tier.cadence}</p>
+
+                  <p className="home-muted mt-4 text-xs leading-5">
+                    {tier.description}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section
+            id="get-started"
+            className="home-final-cta flex flex-col items-center gap-5 rounded-xl border p-5 backdrop-blur-xl sm:flex-row"
+          >
+            <div>
+              <h2 className="home-heading text-xl font-semibold">
+                {content.finalCta.title}
+              </h2>
+
+              <p className="home-body text-sm">
+                {content.finalCta.description}
+              </p>
+            </div>
+
+            <div className="flex w-full flex-col gap-3 sm:ml-auto sm:w-auto sm:flex-row">
+              <GradientLink {...content.finalCta.primaryAction} />
+              <OutlineLink {...content.finalCta.secondaryAction} />
+            </div>
+          </section>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

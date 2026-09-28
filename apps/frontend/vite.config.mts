@@ -265,6 +265,10 @@ export default defineConfig(({ mode }) => {
 
       rolldownOptions: {
         output: {
+          // Manual groups can split modules with initialization dependencies
+          // (for example, policy registries). Preserve their execution order.
+          strictExecutionOrder: true,
+
           /**
            * Split large dependency families into separate browser-cacheable
            * files instead of placing the entire application in one bundle.
@@ -274,11 +278,11 @@ export default defineConfig(({ mode }) => {
 
             maxSize: 400_000,
 
-            minModuleSize: 10_000,
-
-            maxModuleSize: 500_000,
-
-            minShareCount: 2,
+            // Dependency groups must also extract modules used by only the
+            // main entry. Shared application groups override this below.
+            // Do not filter by individual module size: both small helpers and
+            // large runtime modules belong in their dependency chunks.
+            minShareCount: 1,
 
             includeDependenciesRecursively: false,
 
@@ -544,7 +548,8 @@ export default defineConfig(({ mode }) => {
               },
 
               /**
-               * Aerealith workspace packages shared across multiple routes.
+               * Aerealith workspace packages, including policy content used
+               * only by the main entry. Split these by size as well.
                */
               {
                 name: 'aerealith-shared',
@@ -553,7 +558,7 @@ export default defineConfig(({ mode }) => {
 
                 priority: 55,
 
-                minShareCount: 2,
+                minShareCount: 1,
 
                 minSize: 10_000,
 

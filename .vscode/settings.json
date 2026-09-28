@@ -57,6 +57,7 @@
   "js/ts.updateImportsOnFileMove.enabled": "always",
 
   "npm.packageManager": "pnpm",
+  "nxConsole.projectViewingStyle": "list",
 
   "files.associations": {
     "*.json5": "jsonc",

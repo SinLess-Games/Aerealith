@@ -1,13 +1,18 @@
+// apps/frontend/src/app/routes/marketing-site/contact.route.tsx
+
 import { ContactDescription, contactOptions } from '@aerealith-ai/content';
 import {
+  useId,
   useState,
   type CSSProperties,
-  type SubmitEvent,
   type ReactNode,
+  type SubmitEvent,
 } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router';
 
 import { analyticsEvents } from '../../../analytics/analytics-events';
+import { RouteMetadataHead } from '../../util/route-metadata';
 
 type IconName =
   | 'arrow'
@@ -22,6 +27,22 @@ type IconName =
   | 'question'
   | 'tag'
   | 'user';
+
+type ContactStatus = 'idle' | 'copied' | 'copy-error' | 'opened-email';
+
+const SITE_URL = 'https://aerealith.com';
+const CONTACT_PATH = '/contact';
+const CONTACT_TITLE = 'Contact Aerealith';
+const CONTACT_DESCRIPTION =
+  'Contact the Aerealith team with questions, feedback, support requests, partnership inquiries, or community collaboration ideas.';
+const supportEmail = 'support@aerealith.com';
+
+const channelMeta = [
+  { icon: 'discord' as const, accent: '#a855f7' },
+  { icon: 'patreon' as const, accent: '#fb4f76' },
+  { icon: 'email' as const, accent: '#06b6d4' },
+  { icon: 'github' as const, accent: '#60a5fa' },
+];
 
 function Icon({
   name,
@@ -40,6 +61,7 @@ function Icon({
     strokeWidth: 1.8,
     viewBox: '0 0 24 24',
   };
+
   const paths: Partial<Record<IconName, ReactNode>> = {
     arrow: (
       <>
@@ -102,43 +124,49 @@ function Icon({
     ),
     patreon: <path d="M5 3v18M14.5 3a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Z" />,
   };
+
   return <svg {...common}>{paths[name]}</svg>;
 }
 
-const channelMeta = [
-  { icon: 'discord' as const, accent: '#a855f7' },
-  { icon: 'patreon' as const, accent: '#fb4f76' },
-  { icon: 'email' as const, accent: '#06b6d4' },
-  { icon: 'github' as const, accent: '#60a5fa' },
-];
-
-type ContactStatus = 'idle' | 'copied' | 'copy-error' | 'opened-email';
-
-const supportEmail = 'support@aerealith.com';
-
 export function ContactRoute() {
   const [contactStatus, setContactStatus] = useState<ContactStatus>('idle');
+  const contactStatusId = useId();
+
   const channels = [
     contactOptions[0],
     contactOptions[2],
     contactOptions[1],
     contactOptions[3],
   ];
+
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    analyticsEvents.contactFormSubmitted();
-    const data = new FormData(event.currentTarget);
-    const name =
-      `${readFormField(data, 'firstName')} ${readFormField(data, 'lastName')}`.trim();
+
+    const form = event.currentTarget;
+
+    if (!form.reportValidity()) {
+      return;
+    }
+
+    const data = new FormData(form);
+    const firstName = readFormField(data, 'firstName');
+    const lastName = readFormField(data, 'lastName');
+    const name = `${firstName} ${lastName}`.trim();
+    const email = readFormField(data, 'email');
     const subject = readFormField(data, 'subject') || 'Contact request';
-    const body = [
-      `From: ${name}`,
-      `Reply to: ${readFormField(data, 'email')}`,
-      '',
-      readFormField(data, 'message'),
-    ].join('\n');
+    const message = readFormField(data, 'message');
+
+    const body = [`From: ${name}`, `Reply to: ${email}`, '', message].join(
+      '\n',
+    );
+
+    const mailtoUrl = `mailto:${supportEmail}?subject=${encodeURIComponent(
+      subject,
+    )}&body=${encodeURIComponent(body)}`;
+
     setContactStatus('opened-email');
-    window.location.href = `mailto:${supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    analyticsEvents.contactFormSubmitted();
+    window.location.assign(mailtoUrl);
   }
 
   async function copySupportEmail() {
@@ -155,284 +183,491 @@ export function ContactRoute() {
   }
 
   return (
-    <div className="contact-route relative isolate flex-1 overflow-hidden bg-transparent">
-      <style>{`
-      :root[data-theme='light'] .contact-route{--ch:#0f172a;--ct:#334155;--cm:#64748b;--cp:rgba(255,255,255,.72);--cf:rgba(248,250,252,.76);--cb:rgba(71,85,105,.23);--cs:rgba(15,23,42,.14)}
-      :root[data-theme='dark'] .contact-route{--ch:#f8fafc;--ct:#cbd5e1;--cm:#94a3b8;--cp:rgba(3,7,24,.66);--cf:rgba(4,9,29,.72);--cb:rgba(148,163,184,.25);--cs:rgba(0,0,0,.38)}
-      .contact-route{color:var(--ch)}.contact-text{color:var(--ct)}.contact-muted{color:var(--cm)}
-      .contact-panel{border-color:var(--cb);background:linear-gradient(145deg,rgba(99,102,241,.08),transparent 45%),var(--cp);box-shadow:0 22px 70px var(--cs),inset 0 1px 0 rgba(255,255,255,.07)}
-      .contact-field{color:var(--ch);border-color:var(--cb);background:var(--cf)}.contact-field::placeholder{color:var(--cm)}.contact-field:focus{border-color:#22d3ee;box-shadow:0 0 0 3px rgba(34,211,238,.12),0 0 24px rgba(34,211,238,.1);outline:none}
-      .contact-channel{--ca:#22d3ee;border-color:color-mix(in srgb,var(--ca) 32%,var(--cb))}.contact-channel:hover,.contact-channel:focus-within{border-color:color-mix(in srgb,var(--ca) 68%,transparent);transform:translateY(-3px);box-shadow:0 18px 46px var(--cs),0 0 28px color-mix(in srgb,var(--ca) 16%,transparent)}
-      .channel-icon{color:var(--ca);border-color:color-mix(in srgb,var(--ca) 48%,transparent);background:color-mix(in srgb,var(--ca) 13%,transparent);box-shadow:0 0 20px color-mix(in srgb,var(--ca) 20%,transparent)}
-      .contact-fallback{border-color:var(--cb);background:color-mix(in srgb,var(--ae-surface) 74%,transparent)}.contact-fallback-link{color:var(--ae-link)}.contact-fallback-link:hover{color:var(--ae-link-hover)}.contact-status-success{color:var(--ae-success)}.contact-status-error{color:var(--ae-danger)}
-    `}</style>
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-20 bg-[radial-gradient(circle_at_14%_40%,rgba(37,99,235,.2),transparent_30%),radial-gradient(circle_at_60%_22%,rgba(126,34,206,.2),transparent_34%),radial-gradient(circle_at_82%_70%,rgba(217,70,239,.14),transparent_30%)]"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 opacity-25 [background-image:linear-gradient(rgba(59,130,246,.18)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,.18)_1px,transparent_1px)] [background-size:64px_64px] [mask-image:linear-gradient(to_bottom,black,transparent_88%)]"
+    <>
+      <RouteMetadataHead
+        title={CONTACT_TITLE}
+        description={CONTACT_DESCRIPTION}
+        path={CONTACT_PATH}
       />
 
-      <section className="mx-auto w-full max-w-[1360px] px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-        <div className="grid items-center gap-10 lg:grid-cols-[.92fr_1.08fr] lg:gap-14">
-          <div>
-            <p className="text-xs font-bold tracking-[.34em] text-cyan-400 uppercase">
-              Contact us
-            </p>
-            <h1 className="mt-5 text-4xl leading-[1.08] font-bold tracking-[-.045em] sm:text-5xl xl:text-6xl">
-              <span>Let&apos;s Build the Future</span>
-              <span className="block bg-gradient-to-r from-fuchsia-500 via-violet-400 to-cyan-400 bg-clip-text text-transparent">
-                Together
-              </span>
-            </h1>
-            <p className="contact-text mt-6 max-w-xl text-base leading-7 sm:text-lg">
-              {ContactDescription}
-            </p>
-            <div className="mt-8 space-y-5">
-              {[
-                {
-                  icon: 'bolt' as const,
-                  title: 'Fast Response',
-                  text: 'We aim to respond within 1-2 business days.',
-                  accent: '#06b6d4',
-                },
-                {
-                  icon: 'lock' as const,
-                  title: 'Your Data is Safe',
-                  text: 'We respect your privacy and never share your information.',
-                  accent: '#a855f7',
-                },
-              ].map((item) => (
-                <div key={item.title} className="flex items-center gap-4">
-                  <span
-                    className="channel-icon grid h-14 w-14 shrink-0 place-items-center rounded-xl border"
-                    style={{ '--ca': item.accent } as CSSProperties}
-                  >
-                    <Icon name={item.icon} className="h-6 w-6" />
-                  </span>
-                  <div>
-                    <h2 className="font-semibold">{item.title}</h2>
-                    <p className="contact-muted mt-1 text-sm">{item.text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'ContactPage',
+            '@id': `${SITE_URL}${CONTACT_PATH}#webpage`,
+            url: `${SITE_URL}${CONTACT_PATH}`,
+            name: CONTACT_TITLE,
+            description: CONTACT_DESCRIPTION,
+            inLanguage: 'en-US',
+            isPartOf: {
+              '@id': `${SITE_URL}/#website`,
+            },
+            about: {
+              '@id': `${SITE_URL}/#organization`,
+            },
+            mainEntity: {
+              '@type': 'Organization',
+              '@id': `${SITE_URL}/#organization`,
+              name: 'SinLess Games LLC',
+              brand: {
+                '@type': 'Brand',
+                name: 'Aerealith',
+              },
+              url: `${SITE_URL}/`,
+              email: supportEmail,
+              contactPoint: {
+                '@type': 'ContactPoint',
+                email: supportEmail,
+                contactType: 'customer support',
+                availableLanguage: ['en'],
+              },
+            },
+          })}
+        </script>
+      </Helmet>
 
-          <form
-            onSubmit={handleSubmit}
-            className="contact-panel rounded-3xl border p-5 backdrop-blur-xl sm:p-7"
-          >
-            <div className="mb-6 flex items-center gap-4">
-              <span
-                className="channel-icon grid h-14 w-14 shrink-0 place-items-center rounded-xl border"
-                style={{ '--ca': '#06b6d4' } as CSSProperties}
+      <div className="contact-route relative isolate flex-1 overflow-hidden bg-transparent">
+        <style>{`
+          :root[data-theme='light'] .contact-route {
+            --ch: #0f172a;
+            --ct: #334155;
+            --cm: #64748b;
+            --cp: rgba(255, 255, 255, 0.72);
+            --cf: rgba(248, 250, 252, 0.76);
+            --cb: rgba(71, 85, 105, 0.23);
+            --cs: rgba(15, 23, 42, 0.14);
+          }
+
+          :root[data-theme='dark'] .contact-route {
+            --ch: #f8fafc;
+            --ct: #cbd5e1;
+            --cm: #94a3b8;
+            --cp: rgba(3, 7, 24, 0.66);
+            --cf: rgba(4, 9, 29, 0.72);
+            --cb: rgba(148, 163, 184, 0.25);
+            --cs: rgba(0, 0, 0, 0.38);
+          }
+
+          .contact-route {
+            color: var(--ch);
+          }
+
+          .contact-text {
+            color: var(--ct);
+          }
+
+          .contact-muted {
+            color: var(--cm);
+          }
+
+          .contact-panel {
+            border-color: var(--cb);
+            background:
+              linear-gradient(145deg, rgba(99, 102, 241, 0.08), transparent 45%),
+              var(--cp);
+            box-shadow:
+              0 22px 70px var(--cs),
+              inset 0 1px 0 rgba(255, 255, 255, 0.07);
+          }
+
+          .contact-field {
+            color: var(--ch);
+            border-color: var(--cb);
+            background: var(--cf);
+          }
+
+          .contact-field::placeholder {
+            color: var(--cm);
+          }
+
+          .contact-field:focus {
+            border-color: #22d3ee;
+            box-shadow:
+              0 0 0 3px rgba(34, 211, 238, 0.12),
+              0 0 24px rgba(34, 211, 238, 0.1);
+            outline: none;
+          }
+
+          .contact-channel {
+            --ca: #22d3ee;
+            border-color: color-mix(in srgb, var(--ca) 32%, var(--cb));
+          }
+
+          .contact-channel:hover,
+          .contact-channel:focus-within {
+            border-color: color-mix(in srgb, var(--ca) 68%, transparent);
+            transform: translateY(-3px);
+            box-shadow:
+              0 18px 46px var(--cs),
+              0 0 28px color-mix(in srgb, var(--ca) 16%, transparent);
+          }
+
+          .channel-icon {
+            color: var(--ca);
+            border-color: color-mix(in srgb, var(--ca) 48%, transparent);
+            background: color-mix(in srgb, var(--ca) 13%, transparent);
+            box-shadow: 0 0 20px color-mix(in srgb, var(--ca) 20%, transparent);
+          }
+
+          .contact-fallback {
+            border-color: var(--cb);
+            background: color-mix(in srgb, var(--ae-surface) 74%, transparent);
+          }
+
+          .contact-fallback-link {
+            color: var(--ae-link);
+          }
+
+          .contact-fallback-link:hover {
+            color: var(--ae-link-hover);
+          }
+
+          .contact-status-success {
+            color: var(--ae-success);
+          }
+
+          .contact-status-error {
+            color: var(--ae-danger);
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .contact-route *,
+            .contact-route *::before,
+            .contact-route *::after {
+              scroll-behavior: auto !important;
+              transition-duration: 0.01ms !important;
+              animation-duration: 0.01ms !important;
+              animation-iteration-count: 1 !important;
+            }
+          }
+        `}</style>
+
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-20 bg-[radial-gradient(circle_at_14%_40%,rgba(37,99,235,.2),transparent_30%),radial-gradient(circle_at_60%_22%,rgba(126,34,206,.2),transparent_34%),radial-gradient(circle_at_82%_70%,rgba(217,70,239,.14),transparent_30%)]"
+        />
+
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10 opacity-25 [background-image:linear-gradient(rgba(59,130,246,.18)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,.18)_1px,transparent_1px)] [background-size:64px_64px] [mask-image:linear-gradient(to_bottom,black,transparent_88%)]"
+        />
+
+        <main className="mx-auto w-full max-w-[1360px] px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+          <div className="grid items-center gap-10 lg:grid-cols-[.92fr_1.08fr] lg:gap-14">
+            <section aria-labelledby="contact-heading">
+              <p className="text-xs font-bold tracking-[.34em] text-cyan-400 uppercase">
+                Contact us
+              </p>
+
+              <h1
+                id="contact-heading"
+                className="mt-5 text-4xl leading-[1.08] font-bold tracking-[-.045em] sm:text-5xl xl:text-6xl"
               >
-                <Icon name="email" className="h-7 w-7" />
-              </span>
-              <div>
-                <h2 className="text-xl font-semibold sm:text-2xl">
-                  Send Us a Message
-                </h2>
-                <p className="contact-muted mt-1 text-sm">
-                  Fill out the form and we&apos;ll open it in your email app.
+                <span>Let&apos;s Build the Future</span>
+                <span className="block bg-gradient-to-r from-fuchsia-500 via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+                  Together
+                </span>
+              </h1>
+
+              <p className="contact-text mt-6 max-w-xl text-base leading-7 sm:text-lg">
+                {ContactDescription}
+              </p>
+
+              <div className="mt-8 space-y-5">
+                {[
+                  {
+                    icon: 'bolt' as const,
+                    title: 'Fast Response',
+                    text: 'We aim to respond within 1–2 business days.',
+                    accent: '#06b6d4',
+                  },
+                  {
+                    icon: 'lock' as const,
+                    title: 'Your Data Is Safe',
+                    text: 'We respect your privacy and never share your information.',
+                    accent: '#a855f7',
+                  },
+                ].map((item) => (
+                  <div key={item.title} className="flex items-center gap-4">
+                    <span
+                      className="channel-icon grid h-14 w-14 shrink-0 place-items-center rounded-xl border"
+                      style={{ '--ca': item.accent } as CSSProperties}
+                    >
+                      <Icon name={item.icon} className="h-6 w-6" />
+                    </span>
+
+                    <div>
+                      <h2 className="font-semibold">{item.title}</h2>
+                      <p className="contact-muted mt-1 text-sm">{item.text}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <form
+              onSubmit={handleSubmit}
+              className="contact-panel rounded-3xl border p-5 backdrop-blur-xl sm:p-7"
+              aria-describedby={contactStatusId}
+            >
+              <div className="mb-6 flex items-center gap-4">
+                <span
+                  className="channel-icon grid h-14 w-14 shrink-0 place-items-center rounded-xl border"
+                  style={{ '--ca': '#06b6d4' } as CSSProperties}
+                >
+                  <Icon name="email" className="h-7 w-7" />
+                </span>
+
+                <div>
+                  <h2 className="text-xl font-semibold sm:text-2xl">
+                    Send Us a Message
+                  </h2>
+
+                  <p className="contact-muted mt-1 text-sm">
+                    Fill out the form and we&apos;ll open it in your email app.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field
+                  name="firstName"
+                  label="First Name"
+                  icon="user"
+                  autoComplete="given-name"
+                />
+
+                <Field
+                  name="lastName"
+                  label="Last Name"
+                  icon="user"
+                  autoComplete="family-name"
+                />
+
+                <Field
+                  name="email"
+                  label="Email Address"
+                  icon="email"
+                  type="email"
+                  autoComplete="email"
+                  wide
+                />
+
+                <Field name="subject" label="Subject" icon="tag" wide />
+
+                <label className="relative sm:col-span-2">
+                  <span className="sr-only">Message</span>
+
+                  <Icon
+                    name="document"
+                    className="contact-muted pointer-events-none absolute top-4 left-4 h-4 w-4"
+                  />
+
+                  <textarea
+                    required
+                    name="message"
+                    rows={5}
+                    minLength={10}
+                    maxLength={5_000}
+                    placeholder="Message"
+                    autoComplete="off"
+                    className="contact-field w-full resize-y rounded-xl border py-3 pr-4 pl-11 text-sm transition"
+                  />
+                </label>
+              </div>
+
+              <p className="contact-muted mt-4 text-xs leading-5">
+                By sending this message, your email application will open with
+                the details you entered. Review Aerealith&apos;s{' '}
+                <Link
+                  to="/policies/privacy"
+                  className="contact-fallback-link font-semibold underline underline-offset-4"
+                >
+                  Privacy Policy
+                </Link>
+                .
+              </p>
+
+              <button
+                type="submit"
+                className="mt-4 inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-fuchsia-600 via-violet-600 to-cyan-500 px-5 font-semibold text-white shadow-[0_0_28px_rgba(99,102,241,.26)] transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400"
+              >
+                Send Message
+                <Icon name="arrow" />
+              </button>
+
+              <div className="contact-fallback mt-4 rounded-xl border p-4 text-sm">
+                <p className="contact-muted leading-6">
+                  If your email app does not open, contact us directly at{' '}
+                  <a
+                    className="contact-fallback-link font-semibold underline underline-offset-4"
+                    href={`mailto:${supportEmail}`}
+                  >
+                    {supportEmail}
+                  </a>
+                  .
+                </p>
+
+                <button
+                  type="button"
+                  className="contact-fallback-link mt-3 inline-flex min-h-10 items-center gap-2 rounded-lg border border-[var(--ae-border)] px-3 font-semibold transition hover:bg-[var(--ae-surface)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ae-focus-ring)]"
+                  onClick={() => void copySupportEmail()}
+                >
+                  Copy support email
+                </button>
+
+                <p
+                  id={contactStatusId}
+                  role="status"
+                  aria-live="polite"
+                  className={`mt-3 min-h-5 text-xs ${
+                    contactStatus === 'copy-error'
+                      ? 'contact-status-error'
+                      : contactStatus === 'idle'
+                        ? 'contact-muted'
+                        : 'contact-status-success'
+                  }`}
+                >
+                  {contactStatus === 'opened-email'
+                    ? 'Your email app should open with your message ready to send.'
+                    : contactStatus === 'copied'
+                      ? 'Support email copied to your clipboard.'
+                      : contactStatus === 'copy-error'
+                        ? 'We could not copy the address. Select the email link above to copy it manually.'
+                        : 'You can use this fallback at any time.'}
                 </p>
               </div>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field
-                name="firstName"
-                label="First Name"
-                icon="user"
-                autoComplete="given-name"
-              />
-              <Field
-                name="lastName"
-                label="Last Name"
-                icon="user"
-                autoComplete="family-name"
-              />
-              <Field
-                name="email"
-                label="Email Address"
-                icon="email"
-                type="email"
-                autoComplete="email"
-                wide
-              />
-              <Field name="subject" label="Subject" icon="tag" wide />
-              <label className="relative sm:col-span-2">
-                <span className="sr-only">Message</span>
-                <Icon
-                  name="document"
-                  className="contact-muted pointer-events-none absolute top-4 left-4 h-4 w-4"
-                />
-                <textarea
-                  required
-                  name="message"
-                  rows={5}
-                  placeholder="Message"
-                  className="contact-field w-full resize-y rounded-xl border py-3 pr-4 pl-11 text-sm transition"
-                />
-              </label>
-            </div>
-            <button
-              type="submit"
-              className="mt-4 inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-fuchsia-600 via-violet-600 to-cyan-500 px-5 font-semibold text-white shadow-[0_0_28px_rgba(99,102,241,.26)] transition hover:brightness-110"
-            >
-              Send Message <Icon name="arrow" />
-            </button>
+            </form>
+          </div>
 
-            <div className="contact-fallback mt-4 rounded-xl border p-4 text-sm">
-              <p className="contact-muted leading-6">
-                If your email app does not open, contact us directly at{' '}
-                <a
-                  className="contact-fallback-link font-semibold underline underline-offset-4"
-                  href={`mailto:${supportEmail}`}
-                >
-                  {supportEmail}
-                </a>
-                {'.'}
-              </p>
-              <button
-                type="button"
-                className="contact-fallback-link mt-3 inline-flex min-h-10 items-center gap-2 rounded-lg border border-[var(--ae-border)] px-3 font-semibold transition hover:bg-[var(--ae-surface)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ae-focus-ring)]"
-                onClick={() => void copySupportEmail()}
-              >
-                Copy support email
-              </button>
-              <p
-                aria-live="polite"
-                className={`mt-3 min-h-5 text-xs ${
-                  contactStatus === 'copy-error'
-                    ? 'contact-status-error'
-                    : contactStatus === 'idle'
-                      ? 'contact-muted'
-                      : 'contact-status-success'
-                }`}
-              >
-                {contactStatus === 'opened-email'
-                  ? 'Your email app should open with your message ready to send.'
-                  : contactStatus === 'copied'
-                    ? 'Support email copied to your clipboard.'
-                    : contactStatus === 'copy-error'
-                      ? 'We could not copy the address. Select the email link above to copy it manually.'
-                      : 'You can use this fallback at any time.'}
+          <section className="mt-10" aria-labelledby="contact-channels-heading">
+            <h2 id="contact-channels-heading" className="sr-only">
+              Ways to contact Aerealith
+            </h2>
+
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {channels.map((channel, index) => {
+                const meta = channelMeta[index];
+                const isExternal = channel.href.startsWith('http');
+
+                return (
+                  <article
+                    key={channel.title}
+                    className="contact-panel contact-channel flex min-h-52 flex-col rounded-2xl border p-5 backdrop-blur-xl transition duration-300"
+                    style={{ '--ca': meta.accent } as CSSProperties}
+                  >
+                    <div className="flex items-start gap-4">
+                      <span className="channel-icon grid h-12 w-12 shrink-0 place-items-center rounded-xl border">
+                        <Icon name={meta.icon} className="h-6 w-6" />
+                      </span>
+
+                      <div>
+                        <h3 className="font-semibold">{channel.title}</h3>
+                        <p className="contact-muted mt-2 line-clamp-3 text-sm leading-6">
+                          {channel.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    <a
+                      href={channel.href}
+                      target={isExternal ? '_blank' : undefined}
+                      rel={isExternal ? 'noopener noreferrer' : undefined}
+                      className="mt-auto inline-flex items-center gap-2 pt-5 text-sm font-semibold focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ae-focus-ring)]"
+                      style={{ color: meta.accent }}
+                    >
+                      {channel.buttonText}
+                      <Icon name="arrow" className="h-4 w-4" />
+                      {isExternal ? (
+                        <span className="sr-only">(opens in a new tab)</span>
+                      ) : null}
+                    </a>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+
+          <section
+            className="contact-panel mt-5 grid gap-6 rounded-2xl border p-6 backdrop-blur-xl md:grid-cols-[1fr_2fr] md:items-center lg:p-8"
+            aria-labelledby="quick-links-heading"
+          >
+            <div>
+              <h2 id="quick-links-heading" className="text-xl font-semibold">
+                Looking for something?
+              </h2>
+
+              <p className="contact-muted mt-2">
+                Here are some quick links that might help.
               </p>
             </div>
-          </form>
-        </div>
 
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {channels.map((channel, index) => {
-            const meta = channelMeta[index];
-            return (
-              <article
-                key={channel.title}
-                className="contact-panel contact-channel flex min-h-52 flex-col rounded-2xl border p-5 backdrop-blur-xl transition duration-300"
-                style={{ '--ca': meta.accent } as CSSProperties}
-              >
-                <div className="flex items-start gap-4">
-                  <span className="channel-icon grid h-12 w-12 shrink-0 place-items-center rounded-xl border">
-                    <Icon name={meta.icon} className="h-6 w-6" />
-                  </span>
-                  <div>
-                    <h2 className="font-semibold">{channel.title}</h2>
-                    <p className="contact-muted mt-2 line-clamp-3 text-sm leading-6">
-                      {channel.description}
-                    </p>
-                  </div>
-                </div>
-                <a
-                  href={channel.href}
-                  target={
-                    channel.href.startsWith('http') ? '_blank' : undefined
-                  }
-                  rel={
-                    channel.href.startsWith('http')
-                      ? 'noopener noreferrer'
-                      : undefined
-                  }
-                  className="mt-auto inline-flex items-center gap-2 pt-5 text-sm font-semibold"
-                  style={{ color: meta.accent }}
+            <div className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+              {[
+                {
+                  to: '/#features',
+                  icon: 'document' as const,
+                  title: 'Features',
+                  text: 'Explore features',
+                },
+                {
+                  to: '/#faq',
+                  icon: 'question' as const,
+                  title: 'FAQ',
+                  text: 'Find answers',
+                },
+                {
+                  to: '/about',
+                  icon: 'map' as const,
+                  title: 'About',
+                  text: 'Learn about Aerealith',
+                },
+                {
+                  to: '/pricing',
+                  icon: 'tag' as const,
+                  title: 'Pricing',
+                  text: 'View proposed plans',
+                },
+              ].map((item) => (
+                <Link
+                  key={item.title}
+                  to={item.to}
+                  className="group flex items-center gap-3 rounded-xl p-2 transition hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ae-focus-ring)]"
                 >
-                  {channel.buttonText}
-                  <Icon name="arrow" className="h-4 w-4" />
-                </a>
-              </article>
-            );
-          })}
-        </div>
+                  <span
+                    className="channel-icon grid h-10 w-10 place-items-center rounded-lg border"
+                    style={{ '--ca': '#22d3ee' } as CSSProperties}
+                  >
+                    <Icon name={item.icon} className="h-5 w-5" />
+                  </span>
 
-        <div className="contact-panel mt-5 grid gap-6 rounded-2xl border p-6 backdrop-blur-xl md:grid-cols-[1fr_2fr] md:items-center lg:p-8">
-          <div>
-            <h2 className="text-xl font-semibold">Looking for something?</h2>
-            <p className="contact-muted mt-2">
-              Here are some quick links that might help.
-            </p>
-          </div>
-          <div className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
-            {[
-              {
-                to: '/#features',
-                icon: 'document' as const,
-                title: 'Features',
-                text: 'Explore features',
-              },
-              {
-                to: '/#faq',
-                icon: 'question' as const,
-                title: 'FAQ',
-                text: 'Find answers',
-              },
-              {
-                to: '/about',
-                icon: 'map' as const,
-                title: 'About',
-                text: 'Learn about Aerealith',
-              },
-              {
-                to: '/pricing',
-                icon: 'tag' as const,
-                title: 'Pricing',
-                text: 'View plans',
-              },
-            ].map((item) => (
-              <Link
-                key={item.title}
-                to={item.to}
-                className="group flex items-center gap-3 rounded-xl p-2 transition hover:bg-white/5"
-              >
-                <span
-                  className="channel-icon grid h-10 w-10 place-items-center rounded-lg border"
-                  style={{ '--ca': '#22d3ee' } as CSSProperties}
-                >
-                  <Icon name={item.icon} className="h-5 w-5" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-semibold">
-                    {item.title}
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold">
+                      {item.title}
+                    </span>
+
+                    <span className="contact-muted text-sm">{item.text}</span>
                   </span>
-                  <span className="contact-muted text-sm">{item.text}</span>
-                </span>
-                <Icon
-                  name="arrow"
-                  className="contact-muted h-4 w-4 transition group-hover:translate-x-1"
-                />
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-    </div>
+
+                  <Icon
+                    name="arrow"
+                    className="contact-muted h-4 w-4 transition group-hover:translate-x-1"
+                  />
+                </Link>
+              ))}
+            </div>
+          </section>
+        </main>
+      </div>
+    </>
   );
 }
 
 function readFormField(data: FormData, name: string): string {
   const value = data.get(name);
-  return typeof value === 'string' ? value : '';
+
+  return typeof value === 'string' ? value.trim() : '';
 }
 
 function Field({
@@ -453,10 +688,12 @@ function Field({
   return (
     <label className={`relative ${wide ? 'sm:col-span-2' : ''}`}>
       <span className="sr-only">{label}</span>
+
       <Icon
         name={icon}
         className="contact-muted pointer-events-none absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2"
       />
+
       <input
         required
         type={type}

@@ -1,180 +1,173 @@
 # ============================================================
-# Aerealith static asset headers
-# Supported by Cloudflare Pages and Netlify.
+# Aerealith response headers
 #
-# Vite copies this file from:
-#   public/_headers
+# Put this file in apps/frontend/public/_headers so Vite copies
+# it verbatim to dist/_headers.
 #
-# Into:
-#   dist/_headers
+# Compatible with Cloudflare Pages and Netlify static hosting.
+# Verify deployed response headers with curl -I after release.
 # ============================================================
 
 
 # ------------------------------------------------------------
-# JPEG images
-# ------------------------------------------------------------
-
-/*.jpg
-  Content-Type: image/jpeg
-  Cache-Control: public, max-age=31536000, immutable
-
-/*.jpeg
-  Content-Type: image/jpeg
-  Cache-Control: public, max-age=31536000, immutable
-
-
-# ------------------------------------------------------------
-# PNG images
-# ------------------------------------------------------------
-
-/*.png
-  Content-Type: image/png
-  Cache-Control: public, max-age=31536000, immutable
-
-
-# ------------------------------------------------------------
-# GIF images
-# ------------------------------------------------------------
-
-/*.gif
-  Content-Type: image/gif
-  Cache-Control: public, max-age=31536000, immutable
-
-
-# ------------------------------------------------------------
-# WebP images
-# ------------------------------------------------------------
-
-/*.webp
-  Content-Type: image/webp
-  Cache-Control: public, max-age=31536000, immutable
-
-
-# ------------------------------------------------------------
-# AVIF images
-# ------------------------------------------------------------
-
-/*.avif
-  Content-Type: image/avif
-  Cache-Control: public, max-age=31536000, immutable
-
-
-# ------------------------------------------------------------
-# SVG images
-# ------------------------------------------------------------
-
-/*.svg
-  Content-Type: image/svg+xml
-  Cache-Control: public, max-age=31536000, immutable
-
-
-# ------------------------------------------------------------
-# ICO files
-# ------------------------------------------------------------
-
-/*.ico
-  Content-Type: image/x-icon
-  Cache-Control: public, max-age=604800
-
-
-# ------------------------------------------------------------
-# MP4 video
-# ------------------------------------------------------------
-
-/*.mp4
-  Content-Type: video/mp4
-  Cache-Control: public, max-age=31536000, immutable
-  Accept-Ranges: bytes
-
-
-# ------------------------------------------------------------
-# WebM video
-# ------------------------------------------------------------
-
-/*.webm
-  Content-Type: video/webm
-  Cache-Control: public, max-age=31536000, immutable
-  Accept-Ranges: bytes
-
-
-# ------------------------------------------------------------
-# Ogg video
-# ------------------------------------------------------------
-
-/*.ogv
-  Content-Type: video/ogg
-  Cache-Control: public, max-age=31536000, immutable
-  Accept-Ranges: bytes
-
-
-# ------------------------------------------------------------
-# QuickTime video
-# ------------------------------------------------------------
-
-/*.mov
-  Content-Type: video/quicktime
-  Cache-Control: public, max-age=31536000, immutable
-  Accept-Ranges: bytes
-
-
-# ------------------------------------------------------------
-# MPEG video
-# ------------------------------------------------------------
-
-/*.mpeg
-  Content-Type: video/mpeg
-  Cache-Control: public, max-age=31536000, immutable
-
-/*.mpg
-  Content-Type: video/mpeg
-  Cache-Control: public, max-age=31536000, immutable
-
-
-# ------------------------------------------------------------
-# JSON files
-# ------------------------------------------------------------
-
-/*.json
-  Content-Type: application/json; charset=utf-8
-  Cache-Control: public, max-age=3600
-
-
-# ------------------------------------------------------------
-# Web manifest
-# ------------------------------------------------------------
-
-/*.webmanifest
-  Content-Type: application/manifest+json; charset=utf-8
-  Cache-Control: public, max-age=86400
-
-
-# ------------------------------------------------------------
-# Fonts
-# ------------------------------------------------------------
-
-/*.woff
-  Content-Type: font/woff
-  Cache-Control: public, max-age=31536000, immutable
-  Access-Control-Allow-Origin: *
-
-/*.woff2
-  Content-Type: font/woff2
-  Cache-Control: public, max-age=31536000, immutable
-  Access-Control-Allow-Origin: *
-
-# ------------------------------------------------------------
-# Caption files
-# ------------------------------------------------------------
-/*.vtt
-  Content-Type: text/vtt; charset=utf-8
-  Cache-Control: public, max-age=31536000, immutable
-
-# ------------------------------------------------------------
-# Default security headers
+# Global security and baseline document behavior
 # ------------------------------------------------------------
 
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: SAMEORIGIN
-  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Permissions-Policy: accelerometer=(), autoplay=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+
+
+# ------------------------------------------------------------
+# Versioned Vite build output
+#
+# Only use this rule if files under /assets/ are fingerprinted
+# in production, e.g. app-Bd3f82a1.js or hero-A1b2C3.avif.
+# Do not place mutable, stable-name files under /assets/.
+# ------------------------------------------------------------
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+
+# ------------------------------------------------------------
+# JavaScript and CSS outside /assets/
+#
+# If these filenames are not content-hashed, do not use immutable.
+# Browsers must revalidate them before using a cached copy.
+# ------------------------------------------------------------
+
+/*.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+/*.css
+  Cache-Control: public, max-age=0, must-revalidate
+
+
+# ------------------------------------------------------------
+# Stable-name images and media
+#
+# Use a moderate browser-cache lifetime for filenames that can be
+# replaced in place, such as /logo.svg or /og-image.png.
+# Move fingerprinted media to /assets/ instead.
+# ------------------------------------------------------------
+
+/*.avif
+  Cache-Control: public, max-age=604800
+
+/*.webp
+  Cache-Control: public, max-age=604800
+
+/*.png
+  Cache-Control: public, max-age=604800
+
+/*.jpg
+  Cache-Control: public, max-age=604800
+
+/*.jpeg
+  Cache-Control: public, max-age=604800
+
+/*.gif
+  Cache-Control: public, max-age=604800
+
+/*.svg
+  Cache-Control: public, max-age=604800
+
+/*.mp4
+  Cache-Control: public, max-age=604800
+  Accept-Ranges: bytes
+
+/*.webm
+  Cache-Control: public, max-age=604800
+  Accept-Ranges: bytes
+
+/*.ogv
+  Cache-Control: public, max-age=604800
+  Accept-Ranges: bytes
+
+/*.mov
+  Cache-Control: public, max-age=604800
+  Accept-Ranges: bytes
+
+/*.mpeg
+  Cache-Control: public, max-age=604800
+  Accept-Ranges: bytes
+
+/*.mpg
+  Cache-Control: public, max-age=604800
+  Accept-Ranges: bytes
+
+
+# ------------------------------------------------------------
+# Fonts
+#
+# Cross-origin access is often needed because font requests can be
+# made from CSS, a separate asset domain, or embedded contexts.
+# Keep font files versioned whenever possible.
+# ------------------------------------------------------------
+
+/*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+/*.woff
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+
+# ------------------------------------------------------------
+# Site metadata and icons
+#
+# These commonly retain stable filenames but may change during
+# releases, so avoid one-year immutable caching.
+# ------------------------------------------------------------
+
+/favicon.ico
+  Cache-Control: public, max-age=86400
+
+/site.webmanifest
+  Cache-Control: public, max-age=86400
+
+/*.webmanifest
+  Cache-Control: public, max-age=86400
+
+/manifest.json
+  Cache-Control: public, max-age=86400
+
+/robots.txt
+  Cache-Control: public, max-age=3600
+
+/sitemap.xml
+  Cache-Control: public, max-age=3600
+
+
+# ------------------------------------------------------------
+# Public JSON and caption files
+#
+# Keep API-like/static JSON easy to update. If any JSON file is
+# fingerprinted and shipped under /assets/, the /assets/* rule wins.
+# ------------------------------------------------------------
+
+/*.json
+  Cache-Control: public, max-age=3600
+
+/*.vtt
+  Cache-Control: public, max-age=604800
+
+
+# ------------------------------------------------------------
+# HTML entry points
+#
+# This covers direct static HTML files. For client-side SPA routes,
+# configure the redirect/rewrite separately on the selected host.
+# ------------------------------------------------------------
+
+/index.html
+  Cache-Control: no-cache
+
+/*.html
+  Cache-Control: no-cache
