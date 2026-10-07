@@ -127,6 +127,23 @@ jobs:
             --store-dir "$PNPM_STORE_DIR" \
             2>&1 | tee artifacts/ci/install.log
 
+      - name: Prepare Aerealith Core Python dependencies
+        if: steps.install.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -f apps/aerealith-core/pyproject.toml ]]; then
+            if ! command -v uv >/dev/null 2>&1; then
+              python3 -m venv "$RUNNER_TEMP/aerealith-core-tooling"
+              "$RUNNER_TEMP/aerealith-core-tooling/bin/python" -m pip install 'uv==0.12.17'
+              export PATH="$RUNNER_TEMP/aerealith-core-tooling/bin:$PATH"
+              echo "$RUNNER_TEMP/aerealith-core-tooling/bin" >> "$GITHUB_PATH"
+            fi
+
+            uv sync --project apps/aerealith-core --frozen --extra pdf
+          fi
+
       - name: Validate repository licensing
         if: steps.install.outcome == 'success'
         run: pnpm license:check

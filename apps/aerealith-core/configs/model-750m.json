@@ -1,0 +1,7 @@
+{
+  "layers": 28,
+  "hidden_dim": 1536,
+  "heads": 24,
+  "kv_heads": 12,
+  "intermediate_dim": 4096
+}

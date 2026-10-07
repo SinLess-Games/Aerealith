@@ -1,0 +1,5 @@
+{
+  "batches": 20,
+  "batch_size": 1,
+  "sequence_length": 8192
+}

@@ -1,0 +1,11 @@
+{
+  "model_config": "configs/model-312m.json",
+  "train_shards": "../../data/shards",
+  "validation_shards": "../../data/eval/shards",
+  "tokenizer": "../../data/tokenizer/tokenizer.json",
+  "output": "../../data/checkpoints",
+  "steps": 1000,
+  "batch_size": 1,
+  "accumulation_steps": 8,
+  "sequence_length": 8192
+}

@@ -98,3 +98,13 @@ storybook-static/
 
 # Generator templates
 tools/generators/service/templates/
+
+# Aerealith Core environments, corpus artifacts and Python tool caches
+apps/aerealith-core/.venv/
+apps/aerealith-core/data/
+**/.mypy_cache/
+**/.pytest_cache/
+**/.ruff_cache/
+
+# Repository-root training corpus and model artifacts
+data/

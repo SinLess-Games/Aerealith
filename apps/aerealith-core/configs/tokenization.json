@@ -1,0 +1,4 @@
+{
+  "tokens_per_shard": 16777216,
+  "sequence_length": 8192
+}

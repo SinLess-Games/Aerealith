@@ -1,0 +1,180 @@
+{
+  "name": "aerealith-core",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/aerealith-core/aerealith_core",
+  "targets": {
+    "lock": {
+      "executor": "@nxlv/python:lock",
+      "options": {
+        "update": false
+      }
+    },
+    "sync": {
+      "executor": "@nxlv/python:sync",
+      "options": {}
+    },
+    "add": {
+      "executor": "@nxlv/python:add",
+      "options": {}
+    },
+    "update": {
+      "executor": "@nxlv/python:update",
+      "options": {}
+    },
+    "remove": {
+      "executor": "@nxlv/python:remove",
+      "options": {}
+    },
+    "build": {
+      "executor": "@nxlv/python:build",
+      "outputs": ["{projectRoot}/dist"],
+      "options": {
+        "outputPath": "{projectRoot}/dist",
+        "publish": false,
+        "lockedVersions": true,
+        "bundleLocalDependencies": true
+      },
+      "cache": true
+    },
+    "lint": {
+      "executor": "@nxlv/python:ruff-check",
+      "outputs": [],
+      "options": {
+        "lintFilePatterns": ["aerealith_core", "tests"]
+      },
+      "cache": true,
+      "inputs": ["default", "{projectRoot}/uv.lock"]
+    },
+    "format": {
+      "executor": "@nxlv/python:ruff-format",
+      "outputs": [],
+      "options": {
+        "filePatterns": ["aerealith_core", "tests"]
+      },
+      "cache": false
+    },
+    "test": {
+      "executor": "@nxlv/python:run-commands",
+      "outputs": [
+        "{workspaceRoot}/reports/{projectRoot}/unittests",
+        "{workspaceRoot}/coverage/{projectRoot}"
+      ],
+      "options": {
+        "command": "uv run --frozen --extra pdf pytest tests/",
+        "cwd": "{projectRoot}"
+      },
+      "cache": true
+    },
+    "install": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv sync --frozen --extra pdf",
+        "cwd": "apps/aerealith-core"
+      },
+      "cache": false
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --frozen mypy aerealith_core",
+        "cwd": "apps/aerealith-core"
+      },
+      "cache": true
+    },
+    "format-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --frozen ruff format --check aerealith_core tests",
+        "cwd": "apps/aerealith-core"
+      },
+      "cache": true
+    },
+    "ingest": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --frozen aerealith-core ingest",
+        "cwd": "apps/aerealith-core"
+      },
+      "cache": false
+    },
+    "tokenize": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --frozen aerealith-core tokenize",
+        "cwd": "apps/aerealith-core"
+      },
+      "cache": false
+    },
+    "inspect": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --frozen aerealith-core inspect",
+        "cwd": "apps/aerealith-core"
+      },
+      "cache": false
+    },
+    "stats": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --frozen aerealith-core stats",
+        "cwd": "apps/aerealith-core"
+      },
+      "cache": false
+    },
+    "train": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --frozen aerealith-core train",
+        "cwd": "apps/aerealith-core"
+      },
+      "cache": false
+    },
+    "evaluate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --frozen aerealith-core evaluate",
+        "cwd": "apps/aerealith-core"
+      },
+      "cache": false
+    },
+    "generate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --frozen aerealith-core generate",
+        "cwd": "apps/aerealith-core"
+      },
+      "cache": false
+    },
+    "tokenizer-train": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --frozen aerealith-core tokenizer train",
+        "cwd": "apps/aerealith-core"
+      },
+      "cache": false
+    },
+    "tokenizer-inspect": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --frozen aerealith-core tokenizer inspect",
+        "cwd": "apps/aerealith-core"
+      },
+      "cache": false
+    },
+    "smoke": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --frozen --extra pdf python -m aerealith_core.smoke",
+        "cwd": "apps/aerealith-core"
+      },
+      "cache": false
+    }
+  },
+  "tags": [],
+  "release": {
+    "version": {
+      "versionActions": "@nxlv/python/release/version-actions"
+    }
+  }
+}

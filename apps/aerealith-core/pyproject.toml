@@ -1,0 +1,52 @@
+[project]
+name = "aerealith-core"
+version = "0.1.0"
+description = "Aerealith decoder-only language model and resumable corpus pipeline"
+requires-python = ">=3.11,<3.14"
+readme = "README.md"
+license = "AGPL-3.0-only"
+dependencies = [
+  "torch==2.8.0", "numpy==2.3.3", "tokenizers==0.22.1",
+  "PyYAML==6.0.3", "defusedxml==0.7.1", "ijson==3.4.0.post0",
+]
+
+[project.optional-dependencies]
+pdf = ["pypdf==6.1.1"]
+
+[project.scripts]
+aerealith-core = "aerealith_core.cli:main"
+
+[dependency-groups]
+dev = ["ruff==0.13.3", "mypy==1.18.2", "pytest==8.4.2", "pytest-cov==7.0.0", "types-PyYAML==6.0.12.20250915"]
+
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["aerealith_core"]
+
+[tool.pytest.ini_options]
+addopts = "--cov=aerealith_core --cov-report=term-missing"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "B", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+check_untyped_defs = true
+ignore_missing_imports = true
+
+# CPU wheels keep local development small; GPU users select a CUDA index explicitly.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }

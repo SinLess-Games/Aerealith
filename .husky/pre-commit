@@ -1,3 +1,4 @@
 #!/usr/bin/env sh
 
-pnpm lint-staged
+# Run the local CLI without pnpm downloading a platform-specific executable.
+node node_modules/lint-staged/bin/lint-staged.js

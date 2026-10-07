@@ -165,3 +165,16 @@ Desktop.ini
 .agents/
 .claude/
 .gemini/
+
+# Aerealith Core external corpus and model artifacts
+/apps/aerealith-core/data/
+/apps/aerealith-core/dist/
+**/__pycache__/
+**/.mypy_cache/
+**/.pytest_cache/
+**/.ruff_cache/
+
+/apps/aerealith-core/.coverage*
+
+# Repository-root training corpus and model artifacts
+/data/

@@ -91,6 +91,7 @@ const policyPaths = [
 
 const ignoredDirectories = new Set([
   '.git',
+  '.venv',
   '.nx',
   '.wrangler',
   'coverage',

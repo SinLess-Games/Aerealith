@@ -4,7 +4,8 @@ set -eu
 
 message_file="$1"
 
-pnpm exec commitlint --edit "$message_file"
+# Run the local CLI without pnpm downloading a platform-specific executable.
+node node_modules/@commitlint/cli/cli.js --edit "$message_file"
 
 branch="$(git branch --show-current 2>/dev/null || true)"
 

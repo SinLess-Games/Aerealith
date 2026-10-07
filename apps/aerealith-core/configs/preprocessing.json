@@ -1,0 +1,7 @@
+{
+  "min_chars": 20,
+  "max_document_bytes": 8388608,
+  "unicode_form": "NFKC",
+  "deduplicate": true,
+  "workers": 1
+}
