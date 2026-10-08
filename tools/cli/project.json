@@ -1,0 +1,25 @@
+{
+  "name": "cli",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "tools/cli/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/tools/cli",
+        "main": "tools/cli/src/index.ts",
+        "tsConfig": "tools/cli/tsconfig.lib.json",
+        "assets": ["tools/cli/*.md"]
+      }
+    },
+    "test": {
+      "executor": "@nx/vitest:test",
+      "options": {
+        "configFile": "tools/cli/vitest.config.mts"
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@aerealith-ai/cli",
+  "version": "0.0.1",
+  "license": "AGPL-3.0-only",
+  "private": true,
+  "type": "commonjs",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "bin": {
+    "aerealith": "./src/bin.js",
+    "aer": "./src/bin.js"
+  },
+  "dependencies": {
+    "clipanion": "^4.0.0-rc.4",
+    "tslib": "^2.3.0"
+  }
+}

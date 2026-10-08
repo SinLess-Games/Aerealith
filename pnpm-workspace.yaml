@@ -2,6 +2,7 @@ packages:
   - apps/services/*
   - libs/*
   - tools/generators/*
+  - tools/cli
 autoInstallPeers: true
 resolvePeersFromWorkspaceRoot: true
 dedupePeerDependents: true
