@@ -15,4 +15,4 @@ export function createCli(): Cli {
 }
 
 export { specs } from './lib/commands.js';
-export { runSteps, splitDryRun, findRepoRoot } from './lib/run.js';
+export { findRepoRoot, runSteps, splitDryRun } from './lib/run.js';
