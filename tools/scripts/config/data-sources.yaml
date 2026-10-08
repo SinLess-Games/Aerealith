@@ -1,0 +1,440 @@
+# Aerealith Core curated starter catalog.
+# Review each source's current license, redistribution and model-training terms before use.
+# Downloader should honor enabled, license and licenseUrl fields.
+# Files are sorted by extension by the downloader, not by category.
+sources:
+  - id: gutenberg-pride-prejudice
+    url: https://www.gutenberg.org/ebooks/1342.txt.utf-8
+    filename: gutenberg-pride-and-prejudice.txt
+    category: literature
+    license: Public domain in the US; Gutenberg trademark/terms may apply
+    licenseUrl: https://www.gutenberg.org/policy/permission.html
+    enabled: true
+  - id: rfc-9110
+    url: https://www.rfc-editor.org/rfc/rfc9110.txt
+    filename: rfc-9110-http-semantics.txt
+    category: technical
+    license: IETF Trust Legal Provisions; review derivative-work restrictions
+    licenseUrl: https://trustee.ietf.org/documents/trust-legal-provisions/
+    enabled: true
+  - id: pep-8
+    url: https://raw.githubusercontent.com/python/peps/main/peps/pep-0008.rst
+    filename: python-pep-0008.rst
+    category: programming
+    license: PEP licensing terms; verify per document
+    licenseUrl: https://peps.python.org/pep-0001/
+    enabled: true
+  - id: typescript-readme
+    url: https://raw.githubusercontent.com/microsoft/TypeScript/main/README.md
+    filename: typescript-readme.md
+    category: programming
+    license: Apache-2.0 repository; verify source
+    licenseUrl: https://github.com/microsoft/TypeScript/blob/main/LICENSE.txt
+    enabled: true
+  - id: json-schema-test
+    url: https://raw.githubusercontent.com/json-schema-org/JSON-Schema-Test-Suite/main/tests/draft7/type.json
+    filename: json-schema-type-tests.json
+    category: structured
+    license: MIT repository; verify source
+    licenseUrl: https://github.com/json-schema-org/JSON-Schema-Test-Suite/blob/main/LICENSE
+    enabled: true
+  - id: gutenberg-frankenstein
+    url: https://www.gutenberg.org/ebooks/84.txt.utf-8
+    filename: gutenberg-frankenstein.txt
+    category: literature
+    license: Public domain in the US; Gutenberg terms
+    licenseUrl: https://www.gutenberg.org/policy/permission.html
+    enabled: true
+  - id: gutenberg-sherlock
+    url: https://www.gutenberg.org/ebooks/1661.txt.utf-8
+    filename: gutenberg-sherlock-holmes.txt
+    category: literature
+    license: Public domain in the US; Gutenberg terms
+    licenseUrl: https://www.gutenberg.org/policy/permission.html
+    enabled: true
+  - id: gutenberg-moby-dick
+    url: https://www.gutenberg.org/ebooks/2701.txt.utf-8
+    filename: gutenberg-moby-dick.txt
+    category: literature
+    license: Public domain in the US; Gutenberg terms
+    licenseUrl: https://www.gutenberg.org/policy/permission.html
+    enabled: true
+  - id: gutenberg-wonderland
+    url: https://www.gutenberg.org/ebooks/11.txt.utf-8
+    filename: gutenberg-alice-wonderland.txt
+    category: literature
+    license: Public domain in the US; Gutenberg terms
+    licenseUrl: https://www.gutenberg.org/policy/permission.html
+    enabled: true
+  - id: gutenberg-dracula
+    url: https://www.gutenberg.org/ebooks/345.txt.utf-8
+    filename: gutenberg-dracula.txt
+    category: literature
+    license: Public domain in the US; Gutenberg terms
+    licenseUrl: https://www.gutenberg.org/policy/permission.html
+    enabled: true
+  - id: rfc-9111
+    url: https://www.rfc-editor.org/rfc/rfc9111.txt
+    filename: rfc-9111-http-caching.txt
+    category: technical
+    license: IETF Trust Legal Provisions
+    licenseUrl: https://trustee.ietf.org/documents/trust-legal-provisions/
+    enabled: true
+  - id: rfc-9112
+    url: https://www.rfc-editor.org/rfc/rfc9112.txt
+    filename: rfc-9112-http11.txt
+    category: technical
+    license: IETF Trust Legal Provisions
+    licenseUrl: https://trustee.ietf.org/documents/trust-legal-provisions/
+    enabled: true
+  - id: rfc-8446
+    url: https://www.rfc-editor.org/rfc/rfc8446.txt
+    filename: rfc-8446-tls13.txt
+    category: technical
+    license: IETF Trust Legal Provisions
+    licenseUrl: https://trustee.ietf.org/documents/trust-legal-provisions/
+    enabled: true
+  - id: rfc-8259
+    url: https://www.rfc-editor.org/rfc/rfc8259.txt
+    filename: rfc-8259-json.txt
+    category: technical
+    license: IETF Trust Legal Provisions
+    licenseUrl: https://trustee.ietf.org/documents/trust-legal-provisions/
+    enabled: true
+  - id: rfc-6455
+    url: https://www.rfc-editor.org/rfc/rfc6455.txt
+    filename: rfc-6455-websocket.txt
+    category: technical
+    license: IETF Trust Legal Provisions
+    licenseUrl: https://trustee.ietf.org/documents/trust-legal-provisions/
+    enabled: true
+  - id: rfc-7540
+    url: https://www.rfc-editor.org/rfc/rfc7540.txt
+    filename: rfc-7540-http2.txt
+    category: technical
+    license: IETF Trust Legal Provisions
+    licenseUrl: https://trustee.ietf.org/documents/trust-legal-provisions/
+    enabled: true
+  - id: rfc-3986
+    url: https://www.rfc-editor.org/rfc/rfc3986.txt
+    filename: rfc-3986-uri.txt
+    category: technical
+    license: IETF Trust Legal Provisions
+    licenseUrl: https://trustee.ietf.org/documents/trust-legal-provisions/
+    enabled: true
+  - id: rfc-3339
+    url: https://www.rfc-editor.org/rfc/rfc3339.txt
+    filename: rfc-3339-datetime.txt
+    category: technical
+    license: IETF Trust Legal Provisions
+    licenseUrl: https://trustee.ietf.org/documents/trust-legal-provisions/
+    enabled: true
+  - id: pep-20
+    url: https://raw.githubusercontent.com/python/peps/main/peps/pep-0020.rst
+    filename: python-pep-0020.rst
+    category: programming
+    license: PEP licensing terms
+    licenseUrl: https://peps.python.org/pep-0001/
+    enabled: true
+  - id: pep-257
+    url: https://raw.githubusercontent.com/python/peps/main/peps/pep-0257.rst
+    filename: python-pep-0257.rst
+    category: programming
+    license: PEP licensing terms
+    licenseUrl: https://peps.python.org/pep-0001/
+    enabled: true
+  - id: pep-484
+    url: https://raw.githubusercontent.com/python/peps/main/peps/pep-0484.rst
+    filename: python-pep-0484.rst
+    category: programming
+    license: PEP licensing terms
+    licenseUrl: https://peps.python.org/pep-0001/
+    enabled: true
+  - id: pep-621
+    url: https://raw.githubusercontent.com/python/peps/main/peps/pep-0621.rst
+    filename: python-pep-0621.rst
+    category: programming
+    license: PEP licensing terms
+    licenseUrl: https://peps.python.org/pep-0001/
+    enabled: true
+  - id: pep-695
+    url: https://raw.githubusercontent.com/python/peps/main/peps/pep-0695.rst
+    filename: python-pep-0695.rst
+    category: programming
+    license: PEP licensing terms
+    licenseUrl: https://peps.python.org/pep-0001/
+    enabled: true
+  - id: node-readme
+    url: https://raw.githubusercontent.com/nodejs/node/main/README.md
+    filename: nodejs-readme.md
+    category: programming
+    license: MIT repository; verify file
+    licenseUrl: https://github.com/nodejs/node/blob/main/LICENSE
+    enabled: true
+  - id: react-readme
+    url: https://raw.githubusercontent.com/facebook/react/main/README.md
+    filename: react-readme.md
+    category: programming
+    license: MIT repository; verify file
+    licenseUrl: https://github.com/facebook/react/blob/main/LICENSE
+    enabled: true
+  - id: rust-readme
+    url: https://raw.githubusercontent.com/rust-lang/rust/master/README.md
+    filename: rust-readme.md
+    category: programming
+    license: MIT OR Apache-2.0 repository; verify file
+    licenseUrl: https://github.com/rust-lang/rust/blob/master/COPYRIGHT
+    enabled: true
+  - id: go-readme
+    url: https://raw.githubusercontent.com/golang/go/master/README.md
+    filename: go-readme.md
+    category: programming
+    license: BSD-3-Clause repository; verify file
+    licenseUrl: https://github.com/golang/go/blob/master/LICENSE
+    enabled: true
+  - id: pytorch-readme
+    url: https://raw.githubusercontent.com/pytorch/pytorch/main/README.md
+    filename: pytorch-readme.md
+    category: machine-learning
+    license: BSD-style repository; verify file
+    licenseUrl: https://github.com/pytorch/pytorch/blob/main/LICENSE
+    enabled: true
+  - id: transformers-readme
+    url: https://raw.githubusercontent.com/huggingface/transformers/main/README.md
+    filename: transformers-readme.md
+    category: machine-learning
+    license: Apache-2.0 repository; verify file
+    licenseUrl: https://github.com/huggingface/transformers/blob/main/LICENSE
+    enabled: true
+  - id: numpy-readme
+    url: https://raw.githubusercontent.com/numpy/numpy/main/README.md
+    filename: numpy-readme.md
+    category: machine-learning
+    license: BSD-3-Clause repository; verify file
+    licenseUrl: https://github.com/numpy/numpy/blob/main/LICENSE.txt
+    enabled: true
+  - id: pandas-readme
+    url: https://raw.githubusercontent.com/pandas-dev/pandas/main/README.md
+    filename: pandas-readme.md
+    category: machine-learning
+    license: BSD-3-Clause repository; verify file
+    licenseUrl: https://github.com/pandas-dev/pandas/blob/main/LICENSE
+    enabled: true
+  - id: fastapi-readme
+    url: https://raw.githubusercontent.com/fastapi/fastapi/master/README.md
+    filename: fastapi-readme.md
+    category: programming
+    license: MIT repository; verify file
+    licenseUrl: https://github.com/fastapi/fastapi/blob/master/LICENSE
+    enabled: true
+  - id: flask-readme
+    url: https://raw.githubusercontent.com/pallets/flask/main/README.md
+    filename: flask-readme.md
+    category: programming
+    license: BSD-3-Clause repository; verify file
+    licenseUrl: https://github.com/pallets/flask/blob/main/LICENSE.txt
+    enabled: true
+  - id: kubernetes-readme
+    url: https://raw.githubusercontent.com/kubernetes/kubernetes/master/README.md
+    filename: kubernetes-readme.md
+    category: infrastructure
+    license: Apache-2.0 repository; verify file
+    licenseUrl: https://github.com/kubernetes/kubernetes/blob/master/LICENSE
+    enabled: true
+  - id: prometheus-readme
+    url: https://raw.githubusercontent.com/prometheus/prometheus/main/README.md
+    filename: prometheus-readme.md
+    category: observability
+    license: Apache-2.0 repository; verify file
+    licenseUrl: https://github.com/prometheus/prometheus/blob/main/LICENSE
+    enabled: true
+  - id: opentelemetry-spec-readme
+    url: https://raw.githubusercontent.com/open-telemetry/opentelemetry-specification/main/README.md
+    filename: opentelemetry-readme.md
+    category: observability
+    license: Apache-2.0 repository; verify file
+    licenseUrl: https://github.com/open-telemetry/opentelemetry-specification/blob/main/LICENSE
+    enabled: true
+  - id: json-schema-meta-draft7
+    url: https://json-schema.org/draft-07/schema
+    filename: json-schema-draft7.json
+    category: structured
+    license: Review JSON Schema site terms
+    licenseUrl: https://json-schema.org/
+    enabled: true
+  - id: github-linguist-languages
+    url: https://raw.githubusercontent.com/github-linguist/linguist/main/lib/linguist/languages.yml
+    filename: github-linguist-languages.yaml
+    category: structured
+    license: MIT repository; verify file
+    licenseUrl: https://github.com/github-linguist/linguist/blob/main/LICENSE
+    enabled: true
+  - id: github-linguist-vendored
+    url: https://raw.githubusercontent.com/github-linguist/linguist/main/lib/linguist/vendor.yml
+    filename: github-linguist-vendored.yaml
+    category: structured
+    license: MIT repository; verify file
+    licenseUrl: https://github.com/github-linguist/linguist/blob/main/LICENSE
+    enabled: true
+  - id: json-schema-draft2020-tests
+    url: https://raw.githubusercontent.com/json-schema-org/JSON-Schema-Test-Suite/main/tests/draft2020-12/type.json
+    filename: json-schema-2020-type-tests.json
+    category: structured
+    license: MIT repository; verify file
+    licenseUrl: https://github.com/json-schema-org/JSON-Schema-Test-Suite/blob/main/LICENSE
+    enabled: true
+  - id: json-schema-draft7-required
+    url: https://raw.githubusercontent.com/json-schema-org/JSON-Schema-Test-Suite/main/tests/draft7/required.json
+    filename: json-schema-required-tests.json
+    category: structured
+    license: MIT repository; verify file
+    licenseUrl: https://github.com/json-schema-org/JSON-Schema-Test-Suite/blob/main/LICENSE
+    enabled: true
+  - id: sqlite-chinook-schema
+    url: https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_Sqlite.sql
+    filename: chinook-sqlite.sql
+    category: structured
+    license: Review repository license and dataset rights
+    licenseUrl: https://github.com/lerocha/chinook-database
+    enabled: true
+  - id: vega-cars
+    url: https://raw.githubusercontent.com/vega/vega-datasets/main/data/cars.json
+    filename: vega-cars.json
+    category: structured
+    license: Review dataset-specific provenance and rights
+    licenseUrl: https://github.com/vega/vega-datasets
+    enabled: true
+  - id: vega-stocks
+    url: https://raw.githubusercontent.com/vega/vega-datasets/main/data/stocks.csv
+    filename: vega-stocks.csv
+    category: structured
+    license: Review dataset-specific provenance and rights
+    licenseUrl: https://github.com/vega/vega-datasets
+    enabled: true
+  - id: vega-seattle-weather
+    url: https://raw.githubusercontent.com/vega/vega-datasets/main/data/seattle-weather.csv
+    filename: vega-seattle-weather.csv
+    category: structured
+    license: Review dataset-specific provenance and rights
+    licenseUrl: https://github.com/vega/vega-datasets
+    enabled: true
+  - id: vega-movies
+    url: https://raw.githubusercontent.com/vega/vega-datasets/main/data/movies.json
+    filename: vega-movies.json
+    category: structured
+    license: Review dataset-specific provenance and rights
+    licenseUrl: https://github.com/vega/vega-datasets
+    enabled: true
+
+  # Large-scale training datasets
+  # Sizes are approximate and can change.
+  # Hugging Face URLs may redirect to CDN-hosted files.
+  # Review licenses and dataset terms before training.
+
+  - id: fineweb-edu-sample-10bt
+    url: https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu/resolve/main/sample/10BT/000_00000.parquet
+    filename: fineweb-edu-10bt-00000.parquet
+    category: web-educational
+    license: ODC-By 1.0; underlying web content may have separate rights
+    licenseUrl: https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu
+    notes: Large educational web-text shard; verify current repository paths
+    enabled: true
+
+  - id: fineweb-edu-sample-100bt
+    url: https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu/resolve/main/sample/100BT/000_00000.parquet
+    filename: fineweb-edu-100bt-00000.parquet
+    category: web-educational
+    license: ODC-By 1.0; underlying web content may have separate rights
+    licenseUrl: https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu
+    notes: Larger FineWeb-Edu sample; inspect file listing before enabling
+    enabled: true
+
+  - id: fineweb-sample
+    url: https://huggingface.co/datasets/HuggingFaceFW/fineweb/resolve/main/sample/10BT/000_00000.parquet
+    filename: fineweb-sample-00000.parquet
+    category: web-general
+    license: ODC-By 1.0; underlying web content may have separate rights
+    licenseUrl: https://huggingface.co/datasets/HuggingFaceFW/fineweb
+    notes: General web text; substantial filtering and deduplication recommended
+    enabled: true
+
+  - id: slim-pajama
+    url: https://huggingface.co/datasets/cerebras/SlimPajama-627B/resolve/main/train/chunk1/example_train_0.jsonl.zst
+    filename: slim-pajama-chunk1-0.jsonl.zst
+    category: web-general
+    license: Apache-2.0 dataset listing; constituent source rights vary
+    licenseUrl: https://huggingface.co/datasets/cerebras/SlimPajama-627B
+    notes: Large compressed language-model training corpus; verify path
+    enabled: true
+
+  - id: redpajama-v2
+    url: https://huggingface.co/datasets/togethercomputer/RedPajama-Data-V2/resolve/main/sample/documents/2023-06/0000/en_head.json.gz
+    filename: redpajama-v2-en-head.json.gz
+    category: web-general
+    license: Review RedPajama V2 dataset and source licensing
+    licenseUrl: https://github.com/togethercomputer/RedPajama-Data
+    notes: Publisher-hosted English head sample shard; not the complete RedPajama V2 corpus
+    enabled: true
+
+  - id: the-stack-dedup
+    url: https://huggingface.co/datasets/bigcode/the-stack-dedup/resolve/main/data/python/data-00000-of-00144.parquet
+    filename: the-stack-python.parquet
+    category: programming
+    license: Multiple permissive source-code licenses; attribution obligations vary
+    licenseUrl: https://huggingface.co/datasets/bigcode/the-stack-dedup
+    notes: Large code corpus; verify access, paths, and opt-out requirements
+    enabled: true
+
+  - id: stack-v2
+    url: https://huggingface.co/datasets/bigcode/the-stack-v2/resolve/main/data/Python/train-00000-of-00009.parquet
+    filename: the-stack-v2.parquet
+    category: programming
+    license: Multiple source-code licenses and dataset access restrictions
+    licenseUrl: https://huggingface.co/datasets/bigcode/the-stack-v2
+    notes: First Python metadata shard; gated access; Stack V2 requires separate content retrieval
+    enabled: true
+
+  - id: arxiv-metadata
+    url: https://huggingface.co/datasets/ccdv/arxiv-summarization/resolve/main/document/train-00000-of-00015.parquet
+    filename: arxiv-summarization.parquet
+    category: scientific
+    license: Research paper copyright and redistribution terms vary
+    licenseUrl: https://huggingface.co/datasets/ccdv/arxiv-summarization
+    notes: First document training shard (1 of 15); not arXiv metadata
+    enabled: true
+
+  - id: openwebmath
+    url: https://huggingface.co/datasets/open-web-math/open-web-math/resolve/main/data/train-00000-of-00114-5a023365406cb9c4.parquet
+    filename: openwebmath.parquet
+    category: mathematics
+    license: Review dataset license and underlying web-source rights
+    licenseUrl: https://huggingface.co/datasets/open-web-math/open-web-math
+    notes: Mathematics-focused web text; verify file listing
+    enabled: true
+
+  - id: wikipedia-en-dump
+    url: https://dumps.wikimedia.your.org/enwiki/latest/enwiki-latest-pages-articles-multistream.xml.bz2
+    filename: wikipedia-en-pages.xml.bz2
+    category: encyclopedia
+    license: CC BY-SA 4.0 and GFDL; attribution and share-alike obligations apply
+    licenseUrl: https://en.wikipedia.org/wiki/Wikipedia:Copyrights
+    notes: Wikimedia mirror; very large XML dump; requires streaming decompression and extraction
+    enabled: true
+
+  - id: wikidata-truthy
+    url: https://dumps.wikimedia.your.org/wikidatawiki/entities/latest-truthy.nt.bz2
+    filename: wikidata-truthy.nt.bz2
+    category: knowledge-graph
+    license: CC0 1.0 for Wikidata structured data
+    licenseUrl: https://www.wikidata.org/wiki/Wikidata:Licensing
+    notes: Wikimedia mirror; extremely large RDF knowledge graph; requires RDF parser and decompression
+    enabled: true
+
+  - id: pubmed-baseline
+    url: https://ftp.ncbi.nlm.nih.gov/pubmed/baseline/pubmed26n0001.xml.gz
+    filename: pubmed-baseline-0001.xml.gz
+    category: biomedical
+    license: NLM/PubMed terms; article-level rights may vary
+    licenseUrl: https://www.nlm.nih.gov/databases/download/terms_and_conditions.html
+    notes: Biomedical abstracts and metadata; one file from a much larger collection
+    enabled: true

@@ -61,7 +61,7 @@
         "{workspaceRoot}/coverage/{projectRoot}"
       ],
       "options": {
-        "command": "uv run --frozen --extra pdf pytest tests/",
+        "command": "uv run --frozen --extra pdf --extra raw pytest tests/",
         "cwd": "{projectRoot}"
       },
       "cache": true
@@ -69,7 +69,7 @@
     "install": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "uv sync --frozen --extra pdf",
+        "command": "uv sync --frozen --extra pdf --extra raw",
         "cwd": "apps/aerealith-core"
       },
       "cache": false

@@ -18,5 +18,9 @@ def discover(root: Path) -> Iterator[Path]:
         )
         for name in sorted(files):
             path = Path(directory) / name
-            if not path.is_symlink() and not name.startswith("."):
+            if (
+                not path.is_symlink()
+                and not name.startswith(".")
+                and not name.endswith((".part", ".part.json"))
+            ):
                 yield path

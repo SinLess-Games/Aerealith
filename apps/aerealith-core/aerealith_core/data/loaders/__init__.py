@@ -6,6 +6,7 @@
 from .base import Loader
 from .html import load_html
 from .pdf import load_pdf
+from .raw import load_compressed, load_parquet
 from .structured import load_csv, load_json, load_jsonl, load_xml, load_yaml
 from .text import load_text
 
@@ -60,6 +61,11 @@ REGISTRY.update(
         ".html": load_html,
         ".htm": load_html,
         ".pdf": load_pdf,
+        ".parquet": load_parquet,
+        ".gz": load_compressed,
+        ".bz2": load_compressed,
+        ".zst": load_compressed,
+        ".nt": load_text,
     }
 )
 

@@ -7,6 +7,11 @@ This project was generated with `@nxlv/python:uv-project` 23.0.0.
 ## Installation and Nx commands
 
 Use the repository's Node 26.5.0 and pnpm 11.13.1, plus uv and Python 3.12.
+On NixOS, enter `nix-shell` from the repository root first. The supplied
+`shell.nix` selects native Python 3.12 and supplies the C++/zlib libraries needed
+by PyTorch wheels. It uses your installed Node and pnpm; pnpm's automatic binary
+download is disabled in this shell. Nixpkgs comes from your configured channel.
+
 From the repository root:
 
 ```sh
@@ -291,8 +296,10 @@ Datadog dependency in this Python project and existing Pyroscope is untouched.
 - Run `install` before Python targets; a frozen lock mismatch requires intentional
   relocking with `uv lock`. The initial dependency installation needs network access.
 - NixOS cannot launch generic downloaded ELF binaries by default. Use a Nix Python
-  3.12/3.13 environment with compatible C++/zlib libraries or a normal Linux container.
-  Do not copy the temporary validation interpreter paths into deployment settings.
+  environment with `nix-shell` before running Python targets. PyPI executables such
+  as Ruff may additionally require nix-ld or a normal Linux container.
+- If Nx reports a missing internal module while constructing the project graph
+  after a dependency install, run `pnpm exec nx reset` and retry the target.
 - CUDA availability requires CUDA wheels and compatible drivers. CPU FP32 is the
   development fallback; reduce model/context sizes for smoke tests.
 - A vocabulary mismatch requires editing model configuration after inspecting the

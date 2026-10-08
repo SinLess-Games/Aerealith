@@ -2,5 +2,73 @@
   "name": "@aerealith-ai/source",
   "$schema": "./node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "targets": {}
+  "targets": {
+    "download-data": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm exec tsx tools/scripts/download-data.ts",
+        "cwd": "{workspaceRoot}",
+        "forwardAllArgs": true
+      },
+      "cache": false,
+      "metadata": {
+        "description": "Download and organize training datasets for Aerealith Core by file type"
+      }
+    },
+    "download-data-test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm exec tsx --test tools/scripts/download-data.test.ts",
+        "cwd": "{workspaceRoot}"
+      },
+      "cache": false
+    },
+    "process-raw-data": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm exec tsx tools/scripts/process-raw-data.ts",
+        "cwd": "{workspaceRoot}",
+        "forwardAllArgs": true
+      },
+      "cache": false
+    },
+    "process-raw-data-test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "pnpm exec tsx --test tools/scripts/process-raw-data.test.ts",
+          "uv run --project apps/aerealith-core --frozen --extra raw --extra pdf pytest apps/aerealith-core/tests/test_raw_loaders.py -o addopts="
+        ],
+        "parallel": false,
+        "cwd": "{workspaceRoot}"
+      },
+      "cache": false
+    },
+    "pipeline": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bash tools/scripts/pipeline.sh",
+        "cwd": "{workspaceRoot}",
+        "forwardAllArgs": true
+      },
+      "cache": false
+    },
+    "pipeline-config": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/aerealith-core --frozen --extra raw --extra pdf python tools/scripts/pipeline-config.py",
+        "cwd": "{workspaceRoot}",
+        "forwardAllArgs": true
+      },
+      "cache": false
+    },
+    "pipeline-test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bash tools/scripts/pipeline-test.sh",
+        "cwd": "{workspaceRoot}"
+      },
+      "cache": false
+    }
+  }
 }

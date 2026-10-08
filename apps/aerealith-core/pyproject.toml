@@ -12,6 +12,7 @@ dependencies = [
 
 [project.optional-dependencies]
 pdf = ["pypdf==6.1.1"]
+raw = ["pyarrow==21.0.0", "zstandard==0.25.0"]
 
 [project.scripts]
 aerealith-core = "aerealith_core.cli:main"
