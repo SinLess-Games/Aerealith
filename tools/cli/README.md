@@ -31,3 +31,9 @@ commands without running them.
 - Deploy: `deploy frontend`
 
 Commands are defined in `src/lib/commands.ts`.
+
+`pnpm aer data pipeline` removes failing publisher sources from the download
+catalog and continues with remaining data. Removed entries are archived in
+`data/manifests/removed-sources.jsonl`. Use `--require-all-downloads` to keep failed
+entries and stop instead. `pnpm aer data pipeline --skip-download` uses existing
+downloads and continues through training and evaluation.

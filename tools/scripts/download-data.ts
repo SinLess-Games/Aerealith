@@ -11,7 +11,7 @@ import {
   stat,
   writeFile,
 } from 'node:fs/promises';
-import { basename, extname, join, resolve } from 'node:path';
+import { basename, dirname, extname, join, resolve } from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { pathToFileURL } from 'node:url';
@@ -191,6 +191,68 @@ async function fetchWithTimeout(
     clearTimeout(timer);
   }
 }
+export async function removeCatalogSource(
+  path: string,
+  id: string,
+  archive: string,
+): Promise<void> {
+  const original = await readFile(path, 'utf8');
+  const sources = await catalog(path);
+  const removed = sources.find((source) => source.id === id);
+  if (!removed) return;
+  let replacement: string;
+  if (path.endsWith('.json')) {
+    const parsed = JSON.parse(original);
+    const remaining = sources.filter((source) => source.id !== id);
+    replacement =
+      JSON.stringify(
+        Array.isArray(parsed) ? remaining : { ...parsed, sources: remaining },
+        null,
+        2,
+      ) + '\n';
+  } else {
+    const blocks = original.split(/(?=^ {2}- \w+:)/m);
+    replacement = blocks
+      .filter(
+        (block) =>
+          !block.startsWith('  - ') ||
+          (parseYaml('sources:\n' + block)[0] as Source).id !== id,
+      )
+      .join('');
+  }
+  await mkdir(dirname(archive), { recursive: true });
+  await appendFile(
+    archive,
+    JSON.stringify({ removedAt: new Date().toISOString(), source: removed }) +
+      '\n',
+  );
+  const temporary = `${path}.${process.pid}.tmp`;
+  try {
+    await writeFile(temporary, replacement);
+    if ((await readFile(path, 'utf8')) !== original)
+      throw Error('Catalog changed while pruning; retry to preserve edits');
+    await rename(temporary, path);
+  } finally {
+    await rm(temporary, { force: true });
+  }
+}
+
+export function isSourceFailure(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  return (
+    typeof (error as Error & { status?: number }).status === 'number' ||
+    ['AbortError', 'TimeoutError'].includes(error.name) ||
+    /fetch failed|terminated|Stream stalled|checksum mismatch|SHA-256 mismatch|Incomplete response|HTTP 416/i.test(
+      error.message,
+    )
+  );
+}
+
+export function isAccessDenied(error: unknown): boolean {
+  const status = (error as { status?: number } | null)?.status;
+  return status === 401 || status === 403;
+}
+
 export async function download(
   source: Source,
   target: string,
@@ -248,7 +310,7 @@ export async function download(
           `HTTP ${response.status} ${response.status === 401 ? '(check dataset access / HF_TOKEN)' : ''}`,
         );
         if (retryable(response.status)) throw e;
-        throw Object.assign(e, { permanent: true });
+        throw Object.assign(e, { permanent: true, status: response.status });
       }
       const append = size > 0 && response.status === 206;
       if (size && !append)
@@ -354,7 +416,7 @@ export async function download(
 async function main() {
   if (has('--help')) {
     console.log(
-      '--list --check --all --id ID --category NAME --include-disabled --dry-run --accept-licenses --catalog PATH --root PATH --max-mb N --timeout-ms N --retries N',
+      '--list --check --keep-failed --skip-unavailable --all --id ID --category NAME --include-disabled --dry-run --accept-licenses --catalog PATH --root PATH --max-mb N --timeout-ms N --retries N',
     );
     return;
   }
@@ -375,9 +437,10 @@ async function main() {
       process.env.AEREALITH_DATA_ROOT ?? join(process.cwd(), 'data'),
     ),
   );
-  const sources = await catalog(
-    resolve(opt('--catalog', 'tools/scripts/config/data-sources.yaml')),
+  const catalogPath = resolve(
+    opt('--catalog', 'tools/scripts/config/data-sources.yaml'),
   );
+  const sources = await catalog(catalogPath);
   if (has('--list')) {
     for (const s of sources)
       console.log(
@@ -417,6 +480,8 @@ async function main() {
     manifest = join(root, 'manifests', 'downloads.jsonl');
   if (!dry && !check) await mkdir(join(root, 'manifests'), { recursive: true });
   let failures = 0;
+  const unavailable: string[] = [];
+  const removed: string[] = [];
   for (const s of selected) {
     const target = join(root, 'raw', ext(s.filename), s.filename);
     console.log(
@@ -438,8 +503,11 @@ async function main() {
           'HEAD',
         );
         if (!response.ok)
-          throw Error(
-            `HTTP ${response.status}${[401, 403].includes(response.status) ? ' — access denied; check publisher access and HF_TOKEN' : ''}`,
+          throw Object.assign(
+            Error(
+              `HTTP ${response.status}${[401, 403].includes(response.status) ? ' — access denied; check publisher access and HF_TOKEN' : ''}`,
+            ),
+            { status: response.status },
           );
         const length = response.headers.get('content-length');
         console.log(`  available: ${length ?? 'unknown'} bytes`);
@@ -450,6 +518,34 @@ async function main() {
       await mkdir(join(root, 'raw', ext(s.filename)), { recursive: true });
       await download(s, target, maxBytes, timeoutMs, retries, manifest);
     } catch (e) {
+      if (!check && !has('--keep-failed') && isSourceFailure(e)) {
+        // A completed file with a checksum failure must not reach processing.
+        if ((await stat(target).catch(() => null))?.isFile()) {
+          const quarantine = join(root, 'quarantine', s.id);
+          await mkdir(quarantine, { recursive: true });
+          await rename(
+            target,
+            join(quarantine, `${Date.now()}-${basename(target)}`),
+          );
+        }
+        await removeCatalogSource(
+          catalogPath,
+          s.id,
+          join(root, 'manifests', 'removed-sources.jsonl'),
+        );
+        removed.push(s.id);
+        console.warn(
+          `  REMOVED ${s.id} from catalog: ${String(e)}; continuing`,
+        );
+        continue;
+      }
+      if (has('--skip-unavailable') && isAccessDenied(e)) {
+        unavailable.push(s.id);
+        console.warn(
+          `  UNAVAILABLE ${s.id}: ${String(e)}; continuing with accessible sources`,
+        );
+        continue;
+      }
       failures++;
       console.error(
         `  FAILED ${s.id}: ${String(e)}${(e as Error & { cause?: Error })?.cause ? `; cause: ${String((e as Error & { cause?: Error }).cause)}` : ''}`,
@@ -457,9 +553,30 @@ async function main() {
     }
   }
   console.log(
-    `Finished: ${selected.length - failures}/${selected.length} successful or skipped; ${failures} failed`,
+    `Finished: ${selected.length - failures - unavailable.length - removed.length}/${selected.length} successful or existing; ${unavailable.length} unavailable; ${removed.length} removed; ${failures} failed`,
   );
-  if (failures) process.exitCode = 1;
+  if (!dry && !check) {
+    const report = join(root, 'manifests', 'download-report.json');
+    await writeFile(
+      `${report}.tmp`,
+      JSON.stringify(
+        {
+          completedAt: new Date().toISOString(),
+          selected: selected.length,
+          successful:
+            selected.length - failures - unavailable.length - removed.length,
+          removed,
+          unavailable,
+          failures,
+        },
+        null,
+        2,
+      ) + '\n',
+    );
+    await rename(`${report}.tmp`, report);
+  }
+  if (failures || unavailable.length + removed.length === selected.length)
+    process.exitCode = 1;
 }
 if (
   process.argv[1] &&

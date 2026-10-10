@@ -88,12 +88,21 @@ async function main() {
   const child = spawn('uv', command, {
     cwd: join(workspace, 'apps/aerealith-core'),
     stdio: 'inherit',
+    env: { ...process.env, PYTHONUNBUFFERED: '1' },
   });
   for (const signal of ['SIGINT', 'SIGTERM'] as const)
     process.once(signal, () => child.kill(signal));
   await new Promise<void>((done, reject) => {
     child.once('error', reject);
     child.once('exit', (code, signal) => {
+      if (signal)
+        console.error(
+          `Processing terminated by ${signal}; incomplete sources will restart on resume.`,
+        );
+      else if (code !== 0)
+        console.error(
+          `Processing exited with code ${code}; inspect the preceding error and processed/report.json if present.`,
+        );
       process.exitCode = code ?? (signal ? 1 : 0);
       done();
     });

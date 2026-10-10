@@ -60,6 +60,37 @@ def test_xml_entities_rejected(tmp_path):
         list(load_compressed(path, 100))
 
 
+def test_rdf_blocks_preserve_triples_with_bounded_record_count(tmp_path):
+    path = tmp_path / "wikidata.nt.bz2"
+    content = "".join(f'<subject{i}> <predicate> "value{i}" .\n' for i in range(5000))
+    path.write_bytes(bz2.compress(content.encode()))
+    records = list(load_compressed(path, 65536))
+    assert "".join(records) == content
+    assert 1 < len(records) < 10
+    assert all(len(record.encode()) <= 65536 for record in records)
+
+
+def test_progress_watch_stops_its_background_worker(monkeypatch):
+    import threading
+
+    from aerealith_core.data import pipeline
+
+    observed = threading.Event()
+    events = []
+
+    def record_event(name, **metrics):
+        events.append(name)
+        if name == "ingest_heartbeat":
+            observed.set()
+
+    monkeypatch.setattr(pipeline, "event", record_event)
+    with pipeline.progress_watch(interval=0.01) as state:
+        state["phase"] = "reading_records"
+        assert observed.wait(1)
+    assert events[0] == "ingest_started"
+    assert "ingest_heartbeat" in events
+
+
 def test_parquet_pipeline_resume_and_pending_downloads(tmp_path):
     raw = tmp_path / "raw"
     raw.mkdir()

@@ -21,7 +21,17 @@ configuration and 1,000 optimizer steps from the core training settings.
 Use `--skip-download` for existing downloads, `--root PATH` for an independent run,
 or `--training-config PATH`, `--model-config PATH`, and `--tokenizer-config PATH`
 for custom training. `--dry-run` prints the commands without doing work.
-Downloads and processing failures stop the pipeline. `--allow-download-failures`
+The downloader removes failed sources from the catalog after broken links,
+exhausted network retries, checksum failures, or publisher access denials. Removed
+entries are archived in `data/manifests/removed-sources.jsonl`. Completed files
+with checksum failures are moved to `data/quarantine` so they cannot be processed.
+The pipeline
+continues with the remaining data. Local disk/permission errors and configured
+size-limit errors remain fatal. `--require-all-downloads` keeps failed entries and
+stops the pipeline; direct downloads accept `--keep-failed` for the same policy.
+Preflight `--check` and `--dry-run` do not change the catalog. The download summary
+is saved to `data/manifests/download-report.json`. Processing failures remain fatal.
+`--allow-download-failures`
 explicitly permits proceeding with available downloads; it does not suppress
 processing failures. Existing tokenizer/shards are reused and training resumes
 the latest checkpoint. Run only one pipeline per data root. Changed processed

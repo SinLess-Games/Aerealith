@@ -358,15 +358,6 @@ sources:
     notes: General web text; substantial filtering and deduplication recommended
     enabled: true
 
-  - id: slim-pajama
-    url: https://huggingface.co/datasets/cerebras/SlimPajama-627B/resolve/main/train/chunk1/example_train_0.jsonl.zst
-    filename: slim-pajama-chunk1-0.jsonl.zst
-    category: web-general
-    license: Apache-2.0 dataset listing; constituent source rights vary
-    licenseUrl: https://huggingface.co/datasets/cerebras/SlimPajama-627B
-    notes: Large compressed language-model training corpus; verify path
-    enabled: true
-
   - id: redpajama-v2
     url: https://huggingface.co/datasets/togethercomputer/RedPajama-Data-V2/resolve/main/sample/documents/2023-06/0000/en_head.json.gz
     filename: redpajama-v2-en-head.json.gz
@@ -374,24 +365,6 @@ sources:
     license: Review RedPajama V2 dataset and source licensing
     licenseUrl: https://github.com/togethercomputer/RedPajama-Data
     notes: Publisher-hosted English head sample shard; not the complete RedPajama V2 corpus
-    enabled: true
-
-  - id: the-stack-dedup
-    url: https://huggingface.co/datasets/bigcode/the-stack-dedup/resolve/main/data/python/data-00000-of-00144.parquet
-    filename: the-stack-python.parquet
-    category: programming
-    license: Multiple permissive source-code licenses; attribution obligations vary
-    licenseUrl: https://huggingface.co/datasets/bigcode/the-stack-dedup
-    notes: Large code corpus; verify access, paths, and opt-out requirements
-    enabled: true
-
-  - id: stack-v2
-    url: https://huggingface.co/datasets/bigcode/the-stack-v2/resolve/main/data/Python/train-00000-of-00009.parquet
-    filename: the-stack-v2.parquet
-    category: programming
-    license: Multiple source-code licenses and dataset access restrictions
-    licenseUrl: https://huggingface.co/datasets/bigcode/the-stack-v2
-    notes: First Python metadata shard; gated access; Stack V2 requires separate content retrieval
     enabled: true
 
   - id: arxiv-metadata

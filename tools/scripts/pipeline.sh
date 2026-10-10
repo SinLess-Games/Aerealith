@@ -12,6 +12,7 @@ model_config=""
 prompt="Once upon a time"
 skip_download=false
 allow_download_failures=false
+require_all_downloads=false
 dry_run=false
 while (($#)); do
   case "$1" in
@@ -25,6 +26,7 @@ while (($#)); do
         --prompt) prompt="$2";;
       esac
       shift 2;;
+    --require-all-downloads) require_all_downloads=true; shift;;
     --skip-download|--skip-download=true) skip_download=true; shift;;
     --allow-download-failures|--allow-download-failures=true) allow_download_failures=true; shift;;
     --dry-run|--dry-run=true) dry_run=true; shift;;
@@ -38,6 +40,7 @@ Download -> process -> train/eval split -> tokenizer -> shards -> train -> evalu
   --tokenizer-config PATH    Tokenizer training settings
   --prompt TEXT              Generation prompt
   --skip-download            Use existing raw downloads
+  --require-all-downloads    Stop if a source returns HTTP 401/403
   --allow-download-failures  Continue with available downloads
   --dry-run                  Print commands without running or writing files
 Completed stages are reused; training resumes latest.pt.
@@ -71,7 +74,9 @@ if ! "$dry_run"; then
 fi
 nx aerealith-core:install
 if ! "$skip_download"; then
-  if ! nx @aerealith-ai/source:download-data -- --all --include-disabled --accept-licenses --root "$data_root" --max-mb 102400 --timeout-ms 300000 --retries 6; then
+  download_options=()
+  if "$require_all_downloads"; then download_options+=(--keep-failed); fi
+  if ! nx @aerealith-ai/source:download-data -- "${download_options[@]}" --all --include-disabled --accept-licenses --root "$data_root" --max-mb 102400 --timeout-ms 300000 --retries 6; then
     if ! "$allow_download_failures"; then
       echo "Downloads failed. Fix access or use --allow-download-failures." >&2
       exit 1

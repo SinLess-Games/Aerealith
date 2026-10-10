@@ -100,6 +100,9 @@ def load_compressed(path: Path, max_bytes: int) -> Iterator[str]:
                 yield from xml_records(decoded, max_bytes)
             else:
                 with io.BufferedReader(decoded) as stream:
+                    parts: list[str] = []
+                    block_bytes = 0
+                    block_limit = min(max_bytes, 65536)
                     while line := stream.readline(max_bytes + 1):
                         if len(line) > max_bytes:
                             raise ValueError(
@@ -110,5 +113,12 @@ def load_compressed(path: Path, max_bytes: int) -> Iterator[str]:
                         if name.endswith((".json", ".jsonl", ".ndjson")):
                             yield corpus_text(json.loads(line), max_bytes)
                         else:
-                            # Wikidata N-Triples remain inert structured text.
-                            yield validate_text(line.decode("utf-8"), max_bytes)
+                            # Batch RDF triples to avoid a dedup/index row per triple.
+                            if parts and block_bytes + len(line) > block_limit:
+                                yield validate_text("".join(parts), max_bytes)
+                                parts = []
+                                block_bytes = 0
+                            parts.append(line.decode("utf-8"))
+                            block_bytes += len(line)
+                    if parts:
+                        yield validate_text("".join(parts), max_bytes)

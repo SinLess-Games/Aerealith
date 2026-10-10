@@ -6,11 +6,14 @@
 import hashlib
 import json
 import sqlite3
+import threading
 import time
 from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from dataclasses import asdict
 from pathlib import Path
+from typing import Any
 
 from ..config import PreprocessConfig
 from ..io import atomic_json, atomic_path, checksum, output_lock
@@ -20,6 +23,33 @@ from .loaders import REGISTRY, extension_for
 from .quality import acceptable, normalize
 
 PIPELINE_VERSION = "1"
+
+
+@contextmanager
+def progress_watch(interval: float = 5.0):
+    """Report long hashing, parsing, and commit phases without touching SQLite."""
+    state: dict[str, Any] = {
+        "phase": "opening_manifest",
+        "records_read": 0,
+        "text_bytes": 0,
+    }
+    stopped = threading.Event()
+    started = time.monotonic()
+
+    def report():
+        while not stopped.wait(interval):
+            event(
+                "ingest_heartbeat", **state.copy(), seconds=time.monotonic() - started
+            )
+
+    worker = threading.Thread(target=report, daemon=True)
+    event("ingest_started")
+    worker.start()
+    try:
+        yield state
+    finally:
+        stopped.set()
+        worker.join()
 
 
 def source_identity(path: Path, root: Path) -> str:
@@ -38,10 +68,12 @@ def ingest(
     root, output = root.resolve(), output.resolve()
     if root == output or root in output.parents or output in root.parents:
         raise ValueError("Input and output directories must not overlap")
-    with output_lock(output):
+    with output_lock(output), progress_watch() as progress:
         db = sqlite3.connect(output / "manifest.sqlite")
         db.execute("PRAGMA journal_mode=WAL")
         db.execute("PRAGMA synchronous=FULL")
+        # SQLite recovers committed state itself; reclaim WAL space from prior runs.
+        db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
         db.execute(
             "CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY, config TEXT)"
         )
@@ -83,6 +115,11 @@ def ingest(
         def fingerprints() -> Iterator[tuple[Path, str | None]]:
             def fingerprint(path: Path):
                 try:
+                    progress.update(
+                        phase="hashing_input",
+                        source=source_identity(path, root),
+                        source_bytes=path.stat().st_size,
+                    )
                     return path, checksum(path)
                 except OSError:
                     return path, None
@@ -147,6 +184,13 @@ def ingest(
                 )
                 db.commit()
                 records = rejected = duplicates = 0
+                progress.update(
+                    phase="reading_records",
+                    source=source_id,
+                    source_bytes=stat.st_size,
+                    records_read=0,
+                    text_bytes=0,
+                )
                 try:
                     if fingerprint is None:
                         raise OSError("Source unreadable")
@@ -158,6 +202,8 @@ def ingest(
                             for index, raw in enumerate(
                                 REGISTRY[suffix](path, config.max_document_bytes)
                             ):
+                                progress["records_read"] = index + 1
+                                progress["text_bytes"] += len(raw.encode("utf-8"))
                                 text = normalize(raw, config)
                                 if not acceptable(text, config):
                                     rejected += 1
@@ -185,6 +231,7 @@ def ingest(
                                 )
                                 records += 1
                         # Validate streaming JSON before publishing, including an empty valid shard.
+                        progress["phase"] = "validating_output"
                         with temporary.open() as stream:
                             for line in stream:
                                 json.loads(line)
@@ -194,11 +241,14 @@ def ingest(
                             stat.st_mtime_ns,
                         ):
                             raise ValueError("Source mutated during parsing")
+                        progress["phase"] = "hashing_output"
                         digest = checksum(temporary)
+                        progress["phase"] = "publishing_output"
                     db.execute(
                         "UPDATE sources SET status='complete',records=?,rejected=?,duplicates=?,checksum=?,completed=? WHERE id=?",
                         (records, rejected, duplicates, digest, time.time(), source_id),
                     )
+                    progress["phase"] = "committing_manifest"
                     db.commit()
                 except Exception as exc:
                     db.rollback()
