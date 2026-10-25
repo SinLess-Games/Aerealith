@@ -18,6 +18,6 @@
     "@aerealith-ai/observability": "workspace:*",
     "@hono/node-server": "2.0.10",
     "hono": "4.13.8",
-    "zod": "4.4.3"
+    "zod": "4.6.7"
   }
 }
