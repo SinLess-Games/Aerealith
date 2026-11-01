@@ -33,7 +33,7 @@ overrides:
   nanoid@3.3.16: 3.3.18
   react-router@7.18.1: 7.18.2
   sharp@0.34.5: 0.35.2
-  undici@7.28.0: 7.29.0
+  undici@7.28.0: 8.12.3
 minimumReleaseAgeExclude:
   - '@cloudflare/workerd-darwin-64@1.20260730.1'
   - '@cloudflare/workerd-darwin-arm64@1.20260730.1'
