@@ -2,7 +2,7 @@ name: aerealith-content-translation
 
 services:
   libretranslate:
-    image: libretranslate/libretranslate:latest@sha256:4a48d5fd9ed482b61fa28803e4438603caf4cab92685e659cb4811178b2039dc
+    image: libretranslate/libretranslate:latest@sha256:cf85439147da3cf73fb525a303cfeb884946a9bc633083143bd771d6c6efb007
     container_name: aerealith-libretranslate
     restart: unless-stopped
     entrypoint:
