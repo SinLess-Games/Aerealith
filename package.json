@@ -132,7 +132,7 @@
     "@fontsource-variable/sora": "5.2.8",
     "@grafana/faro-react": "2.8.2",
     "@grafana/faro-web-sdk": "2.8.2",
-    "@hono/node-server": "2.0.10",
+    "@hono/node-server": "2.1.5",
     "@hugeicons/core-free-icons": "4.2.2",
     "@hugeicons/react": "1.1.9",
     "@marsidev/react-turnstile": "^1.5.4",
