@@ -389,7 +389,7 @@ jobs:
           path: ${{ env.COVERAGE_DIRECTORY }}
 
       - name: Upload coverage to GitHub Code Quality
-        uses: actions/upload-code-coverage@abb5995db9e0199b0e2bb9dbd136fce4cb1ec4d3 # v1.3.0
+        uses: actions/upload-code-coverage@2b21a77928be8d5168c2b9581a67f2adbebacc52 # v1.4.4
         with:
           file: ${{ env.COBERTURA_REPORT }}
           language: TypeScript
