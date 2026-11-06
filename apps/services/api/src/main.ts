@@ -4,7 +4,7 @@ import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
 import { z } from 'zod';
 
-import { videosRouter } from './ cdn/videos';
+import { videosRouter } from './cdn/videos';
 import { LazyWaitlistApplication } from './waitlist/lazy-waitlist-application';
 import type { WaitlistApplication } from './waitlist/waitlist-application.service';
 

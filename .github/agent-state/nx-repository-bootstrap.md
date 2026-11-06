@@ -955,7 +955,7 @@ Next exact action: Inspect frontend router (apps/frontend/src/app/router.tsx) fo
 
 ### Version requirements from package.json
 
-- Node.js requirement: 26.5.0
+- Node.js requirement: 26.13.0
 - pnpm version requirement: 11.13.1 (from engines field in root package.json)
 - Nx CLI version for plugins (@nx/* major versions): >= 23.x
 

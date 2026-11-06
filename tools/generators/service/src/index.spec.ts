@@ -37,7 +37,7 @@ describe('serviceGenerator', () => {
       readRequired(tree, 'apps/services/billing-api/package.json'),
     );
 
-    expect(generatedPackage.dependencies.hono).toBe('4.13.8');
+    expect(generatedPackage.dependencies.hono).toBe('4.13.16');
 
     const project = JSON.parse(
       readRequired(tree, 'apps/services/billing-api/project.json'),

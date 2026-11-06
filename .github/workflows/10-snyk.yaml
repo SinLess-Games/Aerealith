@@ -67,7 +67,7 @@ defaults:
 env:
   CI: 'true'
   FORCE_COLOR: '1'
-  NODE_VERSION: '26.5.0'
+  NODE_VERSION: '26.13.0'
   PNPM_VERSION: '11.13.1'
   SNYK_VERSION: latest
   SNYK_SEVERITY_THRESHOLD: high

@@ -5,15 +5,23 @@ import { createAuthServiceApp } from './create-auth-service-app';
 
 const app = createAuthServiceApp();
 
-const allowedOrigins = [
-  // Production
+const productionOrigins = [
   'https://aerealith.com',
   'https://www.aerealith.com',
+] as const;
 
-  // Local development
+const developmentOrigins = [
   'http://localhost:4200',
   'http://127.0.0.1:4200',
 ] as const;
+
+function allowedOrigins(): readonly string[] {
+  if (process.env['NODE_ENV'] === 'production') {
+    return productionOrigins;
+  }
+
+  return [...productionOrigins, ...developmentOrigins];
+}
 
 /**
  * Security headers should apply to every response from the auth service.
@@ -31,7 +39,7 @@ app.use(
   '*',
   cors({
     origin: (origin) => {
-      if (allowedOrigins.includes(origin as (typeof allowedOrigins)[number])) {
+      if (allowedOrigins().includes(origin)) {
         return origin;
       }
 

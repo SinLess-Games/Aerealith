@@ -7,7 +7,7 @@ Owner: SinLess Games LLC
 Last Updated: 2026-07-23
 Security Classification: Internal Engineering
 Primary Prefix: `AEREALITH_`
-Primary Runtime: Unresolved (`package.json`: 26.5.0; `.node-version`: 25.9.0)
+Primary Runtime: Node.js `26.13.0` (`package.json` and `.node-version`)
 Configuration Validation: Zod
 Deployment Targets: Cloudflare Workers, Node.js, Docker, Kubernetes, and self-hosted environments
 
@@ -1152,8 +1152,8 @@ Good:
 
 ```ts
 export interface AIServiceConfig {
-  readonly enabled: boolean
-  readonly provider: AIProviderName
+  readonly enabled: boolean;
+  readonly provider: AIProviderName;
 }
 
 export class AIService {
@@ -1173,9 +1173,9 @@ Example:
 
 ```ts
 export interface WorkerEnvironment {
-  readonly AEREALITH_ENVIRONMENT: string
-  readonly AEREALITH_DATABASE_URL: string
-  readonly AEREALITH_AUTH_SECRET: string
+  readonly AEREALITH_ENVIRONMENT: string;
+  readonly AEREALITH_DATABASE_URL: string;
+  readonly AEREALITH_AUTH_SECRET: string;
 }
 ```
 
@@ -1185,7 +1185,7 @@ Bindings must still be parsed through the same configuration schema.
 
 ```ts
 export function loadWorkerConfig(environment: WorkerEnvironment): WorkerConfig {
-  return WorkerConfigSchema.parse(environment)
+  return WorkerConfigSchema.parse(environment);
 }
 ```
 
@@ -1196,7 +1196,7 @@ export function loadWorkerConfig(environment: WorkerEnvironment): WorkerConfig {
 Node.js runtimes may read:
 
 ```ts
-process.env
+process.env;
 ```
 
 only in the composition root or configuration module.
@@ -1204,10 +1204,8 @@ only in the composition root or configuration module.
 Example:
 
 ```ts
-export function loadDiscordRuntimeConfig(
-  environment: NodeJS.ProcessEnv,
-): DiscordRuntimeConfig {
-  return DiscordRuntimeConfigSchema.parse(environment)
+export function loadDiscordRuntimeConfig(environment: NodeJS.ProcessEnv): DiscordRuntimeConfig {
+  return DiscordRuntimeConfigSchema.parse(environment);
 }
 ```
 
@@ -1222,15 +1220,9 @@ Every deployable should have a runtime schema.
 Example:
 
 ```ts
-import { z } from 'zod'
+import { z } from 'zod';
 
-const EnvironmentSchema = z.enum([
-  'local',
-  'test',
-  'preview',
-  'staging',
-  'production',
-])
+const EnvironmentSchema = z.enum(['local', 'test', 'preview', 'staging', 'production']);
 
 export const ApiConfigSchema = z.object({
   environment: EnvironmentSchema,
@@ -1245,9 +1237,9 @@ export const ApiConfigSchema = z.object({
     enabled: z.boolean(),
     logLevel: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']),
   }),
-})
+});
 
-export type ApiConfig = z.infer<typeof ApiConfigSchema>
+export type ApiConfig = z.infer<typeof ApiConfigSchema>;
 ```
 
 ---
@@ -1260,26 +1252,20 @@ A raw schema may parse environment values into typed configuration.
 
 ```ts
 const RawApiEnvironmentSchema = z.object({
-  AEREALITH_ENVIRONMENT: z.enum([
-    'local',
-    'test',
-    'preview',
-    'staging',
-    'production',
-  ]),
+  AEREALITH_ENVIRONMENT: z.enum(['local', 'test', 'preview', 'staging', 'production']),
   AEREALITH_SERVICE_NAME: z.string().trim().min(1),
   AEREALITH_PORT: z.string().optional(),
   AEREALITH_DATABASE_URL: z.string().trim().min(1),
   AEREALITH_DATABASE_DIALECT: z.enum(['postgresql', 'cockroachdb']),
   AEREALITH_OBSERVABILITY_ENABLED: z.enum(['true', 'false']).optional(),
-})
+});
 ```
 
 Then map into the application configuration.
 
 ```ts
 export function loadApiConfig(environment: NodeJS.ProcessEnv): ApiConfig {
-  const raw = RawApiEnvironmentSchema.parse(environment)
+  const raw = RawApiEnvironmentSchema.parse(environment);
 
   return ApiConfigSchema.parse({
     environment: raw.AEREALITH_ENVIRONMENT,
@@ -1294,7 +1280,7 @@ export function loadApiConfig(environment: NodeJS.ProcessEnv): ApiConfig {
       enabled: raw.AEREALITH_OBSERVABILITY_ENABLED !== 'false',
       logLevel: 'info',
     },
-  })
+  });
 }
 ```
 
@@ -1326,9 +1312,7 @@ unless the parser explicitly supports them.
 Example:
 
 ```ts
-export const EnvironmentBooleanSchema = z
-  .enum(['true', 'false'])
-  .transform((value) => value === 'true')
+export const EnvironmentBooleanSchema = z.enum(['true', 'false']).transform((value) => value === 'true');
 ```
 
 Invalid:
@@ -1361,22 +1345,16 @@ Example helper:
 ```ts
 export function parseInteger(value: string, variableName: string): number {
   if (!/^-?\d+$/.test(value)) {
-    throw new ConfigurationError(
-      `${variableName} must be an integer.`,
-      'CONFIG_INTEGER_INVALID',
-    )
+    throw new ConfigurationError(`${variableName} must be an integer.`, 'CONFIG_INTEGER_INVALID');
   }
 
-  const parsed = Number(value)
+  const parsed = Number(value);
 
   if (!Number.isSafeInteger(parsed)) {
-    throw new ConfigurationError(
-      `${variableName} is outside the safe integer range.`,
-      'CONFIG_INTEGER_OUT_OF_RANGE',
-    )
+    throw new ConfigurationError(`${variableName} is outside the safe integer range.`, 'CONFIG_INTEGER_OUT_OF_RANGE');
   }
 
-  return parsed
+  return parsed;
 }
 ```
 
@@ -1536,7 +1514,7 @@ Example:
 
 ```ts
 export interface DiscordCredentialReference {
-  readonly secretReference: string
+  readonly secretReference: string;
 }
 ```
 
@@ -1631,7 +1609,7 @@ export const DiscordConfigSchema = z
   })
   .superRefine((value, context) => {
     if (!value.enabled) {
-      return
+      return;
     }
 
     if (!value.applicationId) {
@@ -1639,7 +1617,7 @@ export const DiscordConfigSchema = z
         code: z.ZodIssueCode.custom,
         path: ['applicationId'],
         message: 'Discord application ID is required when Discord is enabled.',
-      })
+      });
     }
 
     if (!value.botToken) {
@@ -1647,9 +1625,9 @@ export const DiscordConfigSchema = z
         code: z.ZodIssueCode.custom,
         path: ['botToken'],
         message: 'Discord bot token is required when Discord is enabled.',
-      })
+      });
     }
-  })
+  });
 ```
 
 ---
@@ -1694,14 +1672,11 @@ Example:
 ```ts
 function validateProductionConfig(config: ApiConfig): void {
   if (config.environment !== 'production') {
-    return
+    return;
   }
 
   if (!config.auth.cookieSecure) {
-    throw new ConfigurationError(
-      'Secure authentication cookies are required in production.',
-      'CONFIG_PRODUCTION_COOKIE_INSECURE',
-    )
+    throw new ConfigurationError('Secure authentication cookies are required in production.', 'CONFIG_PRODUCTION_COOKIE_INSECURE');
   }
 }
 ```
@@ -1770,11 +1745,11 @@ Validated configuration should be treated as immutable.
 
 ```ts
 export interface ApiConfig {
-  readonly environment: AerealithEnvironment
-  readonly serviceName: string
-  readonly database: DatabaseConfig
-  readonly auth: AuthConfig
-  readonly observability: ObservabilityConfig
+  readonly environment: AerealithEnvironment;
+  readonly serviceName: string;
+  readonly database: DatabaseConfig;
+  readonly auth: AuthConfig;
+  readonly observability: ObservabilityConfig;
 }
 ```
 
@@ -2704,7 +2679,7 @@ Preferred:
 const config: WorkflowConfig = {
   maximumAttempts: 3,
   stepTimeoutMs: 5_000,
-}
+};
 ```
 
 Use environment loading tests specifically for:
@@ -2727,18 +2702,18 @@ Tests that modify environment variables must restore them.
 
 ```ts
 describe('loadApiConfig', () => {
-  const originalEnvironment = process.env
+  const originalEnvironment = process.env;
 
   beforeEach(() => {
     process.env = {
       ...originalEnvironment,
-    }
-  })
+    };
+  });
 
   afterEach(() => {
-    process.env = originalEnvironment
-  })
-})
+    process.env = originalEnvironment;
+  });
+});
 ```
 
 A stronger helper may provide isolated environment maps without mutating the global process environment.
@@ -3031,13 +3006,12 @@ Node-specific file loading belongs in a Node adapter.
 
 ```ts
 export interface DiscordConfig {
-  readonly enabled: boolean
-  readonly mode:
-    'disabled' | 'fake' | 'recorded' | 'live-development' | 'live-production'
-  readonly applicationId?: string
-  readonly publicKey?: string
-  readonly botToken?: SecretValue
-  readonly allowedServerIds: ReadonlySet<string>
+  readonly enabled: boolean;
+  readonly mode: 'disabled' | 'fake' | 'recorded' | 'live-development' | 'live-production';
+  readonly applicationId?: string;
+  readonly publicKey?: string;
+  readonly botToken?: SecretValue;
+  readonly allowedServerIds: ReadonlySet<string>;
 }
 ```
 
@@ -3049,16 +3023,16 @@ Raw environment strings should not be passed through application layers.
 
 ```ts
 export interface SecretValue {
-  readonly redacted: '[REDACTED]'
+  readonly redacted: '[REDACTED]';
 
-  reveal(): string
+  reveal(): string;
 }
 
 export function createSecretValue(value: string): SecretValue {
   return {
     redacted: '[REDACTED]',
     reveal: () => value,
-  }
+  };
 }
 ```
 
@@ -3074,10 +3048,10 @@ Frontend configuration should use a separate type.
 
 ```ts
 export interface PublicFrontendConfig {
-  readonly environment: 'local' | 'preview' | 'staging' | 'production'
-  readonly apiBaseUrl: string
-  readonly supportUrl?: string
-  readonly buildVersion: string
+  readonly environment: 'local' | 'preview' | 'staging' | 'production';
+  readonly apiBaseUrl: string;
+  readonly supportUrl?: string;
+  readonly buildVersion: string;
 }
 ```
 
@@ -3281,7 +3255,7 @@ const OptionalTrimmedStringSchema = z
   .string()
   .trim()
   .transform((value) => (value.length === 0 ? undefined : value))
-  .optional()
+  .optional();
 ```
 
 ---
@@ -3528,7 +3502,7 @@ Bad:
 ```ts
 spawn(command, args, {
   env: process.env,
-})
+});
 ```
 
 Preferred:
@@ -3539,7 +3513,7 @@ spawn(command, args, {
     PATH: process.env.PATH,
     AEREALITH_ENVIRONMENT: config.environment,
   },
-})
+});
 ```
 
 Do not expose unrelated secrets to child processes.
@@ -3574,7 +3548,7 @@ Do not log the entire environment.
 Avoid:
 
 ```ts
-logger.debug('Environment', process.env)
+logger.debug('Environment', process.env);
 ```
 
 Safe configuration summaries must be allowlisted and redacted.
@@ -4178,38 +4152,26 @@ keeping deprecated variables forever
 
 ```ts
 export const RawWorkerEnvironmentSchema = z.object({
-  AEREALITH_ENVIRONMENT: z.enum([
-    'local',
-    'test',
-    'preview',
-    'staging',
-    'production',
-  ]),
+  AEREALITH_ENVIRONMENT: z.enum(['local', 'test', 'preview', 'staging', 'production']),
   AEREALITH_SERVICE_NAME: z.string().trim().min(1),
   AEREALITH_WORKER_CONCURRENCY: z.string().default('10'),
   AEREALITH_DATABASE_URL: z.string().trim().min(1),
-})
+});
 
 export interface WorkerConfig {
-  readonly environment: AerealithEnvironment
-  readonly serviceName: string
-  readonly concurrency: number
-  readonly databaseUrl: SecretValue
+  readonly environment: AerealithEnvironment;
+  readonly serviceName: string;
+  readonly concurrency: number;
+  readonly databaseUrl: SecretValue;
 }
 
 export function loadWorkerConfig(environment: NodeJS.ProcessEnv): WorkerConfig {
-  const raw = RawWorkerEnvironmentSchema.parse(environment)
+  const raw = RawWorkerEnvironmentSchema.parse(environment);
 
-  const concurrency = parseInteger(
-    raw.AEREALITH_WORKER_CONCURRENCY,
-    'AEREALITH_WORKER_CONCURRENCY',
-  )
+  const concurrency = parseInteger(raw.AEREALITH_WORKER_CONCURRENCY, 'AEREALITH_WORKER_CONCURRENCY');
 
   if (concurrency < 1 || concurrency > 100) {
-    throw new ConfigurationError(
-      'AEREALITH_WORKER_CONCURRENCY must be between 1 and 100.',
-      'CONFIG_INTEGER_OUT_OF_RANGE',
-    )
+    throw new ConfigurationError('AEREALITH_WORKER_CONCURRENCY must be between 1 and 100.', 'CONFIG_INTEGER_OUT_OF_RANGE');
   }
 
   return Object.freeze({
@@ -4217,7 +4179,7 @@ export function loadWorkerConfig(environment: NodeJS.ProcessEnv): WorkerConfig {
     serviceName: raw.AEREALITH_SERVICE_NAME,
     concurrency,
     databaseUrl: createSecretValue(raw.AEREALITH_DATABASE_URL),
-  })
+  });
 }
 ```
 
@@ -4238,17 +4200,17 @@ no direct feature access to process.env
 
 ```ts
 export async function runWorkflow(): Promise<void> {
-  const retries = Number(process.env.RETRIES ?? 999)
+  const retries = Number(process.env.RETRIES ?? 999);
 
-  const providerKey = process.env.OPENAI_KEY
+  const providerKey = process.env.OPENAI_KEY;
 
-  console.log(process.env)
+  console.log(process.env);
 
   if (process.env.DISABLE_SECURITY !== 'true') {
     // ...
   }
 
-  await executeWithProvider(providerKey!, retries)
+  await executeWithProvider(providerKey!, retries);
 }
 ```
 

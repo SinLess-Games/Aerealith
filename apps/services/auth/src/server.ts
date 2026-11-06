@@ -7,16 +7,14 @@ import {
   startNodeObservability,
 } from '@aerealith-ai/observability';
 
-const DEFAULT_ALLOWED_ORIGINS = [
-  // Production
+const PRODUCTION_ORIGINS = [
   'https://aerealith.com',
   'https://www.aerealith.com',
+] as const;
 
-  // Local development
+const DEVELOPMENT_ORIGINS = [
   'http://localhost:4200', // NOSONAR -- loopback-only development origin
   'http://127.0.0.1:4200', // NOSONAR -- loopback-only development origin
-
-  // Local Aerealith/SinLess development domain
   'http://local.sinlessgames.com', // NOSONAR -- local development DNS only
   'https://local.sinlessgames.com',
 ] as const;
@@ -32,7 +30,10 @@ async function main(): Promise<void> {
 
   const environment = process.env['NODE_ENV'] ?? 'development';
 
-  const allowedOrigins = getAllowedOrigins(process.env['AUTH_ALLOWED_ORIGINS']);
+  const allowedOrigins = getAllowedOrigins(
+    process.env['AUTH_ALLOWED_ORIGINS'],
+    environment,
+  );
 
   /*
    * Normalize the configured value before importing the auth application.
@@ -331,12 +332,22 @@ function parsePort(value: string | undefined): number {
 /**
  * Build the trusted-origin allowlist.
  *
+ * Development origins are included only when NODE_ENV is not production.
  * Additional origins can be configured using:
  *
  * AUTH_ALLOWED_ORIGINS=https://preview.example.com,http://localhost:4300
  */
-function getAllowedOrigins(configuredOrigins: string | undefined): string[] {
-  const origins = new Set<string>(DEFAULT_ALLOWED_ORIGINS);
+function getAllowedOrigins(
+  configuredOrigins: string | undefined,
+  environment: string,
+): string[] {
+  const origins = new Set<string>(PRODUCTION_ORIGINS);
+
+  if (environment !== 'production') {
+    for (const origin of DEVELOPMENT_ORIGINS) {
+      origins.add(origin);
+    }
+  }
 
   if (!configuredOrigins) {
     return [...origins];
