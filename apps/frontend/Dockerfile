@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1.7@sha256:a57df69d0ea827fb7266491f2813635de6f17269be881f696fbfdf2d83dda33e
 
-ARG NODE_VERSION=26.5.0
+ARG NODE_VERSION=26.13.0
 ARG PNPM_VERSION=11.13.1
-ARG NGINX_VERSION=1.30.4
+ARG NGINX_VERSION=1.30.6
 
 
 # =============================================================================

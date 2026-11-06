@@ -122,9 +122,7 @@ alone means installed, not implemented.
 Node.js is the primary runtime for application services, repository tooling,
 scripts, and local development.
 
-> **Configuration conflict:** `package.json` requires Node.js `26.5.0`, while
-> `.node-version` pins `25.9.0`. The repository does not currently provide one
-> consistent runtime pin.
+`package.json` and `.node-version` both pin Node.js `26.13.0`.
 
 Requirements:
 

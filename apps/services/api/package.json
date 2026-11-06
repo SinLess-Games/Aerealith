@@ -5,7 +5,7 @@
   "license": "AGPL-3.0-only",
   "type": "commonjs",
   "engines": {
-    "node": "26.5.0",
+    "node": "26.13.0",
     "pnpm": "11.13.1"
   },
   "main": "./dist/server.js",
@@ -16,8 +16,8 @@
     "@aerealith-ai/core": "workspace:*",
     "@aerealith-ai/db": "workspace:*",
     "@aerealith-ai/observability": "workspace:*",
-    "@hono/node-server": "2.0.10",
-    "hono": "4.13.8",
-    "zod": "4.4.3"
+    "@hono/node-server": "2.1.6",
+    "hono": "4.13.16",
+    "zod": "4.6.7"
   }
 }

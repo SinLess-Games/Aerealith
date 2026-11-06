@@ -47,7 +47,7 @@ defaults:
 env:
   CI: 'true'
   NX_DAEMON: 'false'
-  NODE_VERSION: '26.5.0'
+  NODE_VERSION: '26.13.0'
   PNPM_VERSION: '11.13.1'
   COVERAGE_DIRECTORY: coverage/code-quality
   COBERTURA_REPORT: coverage/code-quality/cobertura.xml

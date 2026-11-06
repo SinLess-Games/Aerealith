@@ -40,7 +40,7 @@ env:
   CI: true
   FORCE_COLOR: 1
   NX_DAEMON: false
-  NODE_VERSION: 26.5.0
+  NODE_VERSION: 26.13.0
   PNPM_VERSION: 11.13.1
   CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
