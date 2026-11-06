@@ -40,12 +40,12 @@ on:
 
   schedule:
     # Weekly full-repository quality scan every Sunday at 04:00 UTC.
-    - cron: "0 4 * * 0"
+    - cron: '0 4 * * 0'
 
   workflow_dispatch:
     inputs:
       validate_all_codebase:
-        description: "Validate the entire repository instead of only changed files."
+        description: 'Validate the entire repository instead of only changed files.'
         required: false
         default: true
         type: boolean
@@ -69,11 +69,11 @@ defaults:
     shell: bash
 
 env:
-  CI: "true"
-  FORCE_COLOR: "1"
-  NX_DAEMON: "false"
-  NODE_VERSION: "26.5.0"
-  PNPM_VERSION: "11.13.1"
+  CI: 'true'
+  FORCE_COLOR: '1'
+  NX_DAEMON: 'false'
+  NODE_VERSION: '26.13.0'
+  PNPM_VERSION: '11.13.1'
 
 jobs:
   quality:
@@ -94,11 +94,11 @@ jobs:
       APPLY_FIXES: none
 
       # Prevent stale report files from a prior run from appearing in artifacts.
-      CLEAR_REPORT_FOLDER: "true"
+      CLEAR_REPORT_FOLDER: 'true'
 
       # Better visibility in logs and generated reports.
-      SHOW_ELAPSED_TIME: "true"
-      SHOW_SKIPPED_LINTERS: "true"
+      SHOW_ELAPSED_TIME: 'true'
+      SHOW_SKIPPED_LINTERS: 'true'
 
     steps:
       - name: Check out repository

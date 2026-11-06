@@ -236,6 +236,43 @@ describe('auth service', () => {
     expect(cleared).toContain('Secure');
   });
 
+  it('honors X-Forwarded-Proto only when AUTH_TRUST_PROXY=true', async () => {
+    const previous = process.env['AUTH_TRUST_PROXY'];
+    const login = () => ({
+      method: 'POST' as const,
+      headers: {
+        'content-type': 'application/json',
+        'x-forwarded-proto': 'https',
+      },
+      body: JSON.stringify({
+        usernameOrEmail: 'ada',
+        password: 'SecurePassword1',
+      }),
+    });
+
+    try {
+      delete process.env['AUTH_TRUST_PROXY'];
+      const untrusted = await app.request(
+        'http://auth.aerealith.test/api/V1/auth/login',
+        login(),
+      );
+      expect(untrusted.headers.get('set-cookie')).not.toContain('Secure');
+
+      process.env['AUTH_TRUST_PROXY'] = 'true';
+      const trusted = await app.request(
+        'http://auth.aerealith.test/api/V1/auth/login',
+        login(),
+      );
+      expect(trusted.headers.get('set-cookie')).toContain('Secure');
+    } finally {
+      if (previous === undefined) {
+        delete process.env['AUTH_TRUST_PROXY'];
+      } else {
+        process.env['AUTH_TRUST_PROXY'] = previous;
+      }
+    }
+  });
+
   it('exposes the current user through both auth and user HTTP routes', async () => {
     for (const path of ['/api/V1/auth/me', '/api/V1/users/me']) {
       const response = await app.request(path, {

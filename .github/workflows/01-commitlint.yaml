@@ -38,7 +38,7 @@ defaults:
 
 env:
   CI: true
-  NODE_VERSION: 26.5.0
+  NODE_VERSION: 26.13.0
   PNPM_VERSION: 11.13.1
 
 jobs:

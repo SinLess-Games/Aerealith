@@ -56,4 +56,14 @@ describe('api service', () => {
     });
     expect(waitlist.join).not.toHaveBeenCalled();
   });
+
+  it('reports video storage as unavailable when the R2 binding is missing', async () => {
+    const testApp = createApiServiceApp();
+    const response = await testApp.request('/api/V1/cdn/videos/intro.mp4');
+
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toEqual({
+      error: 'Video storage is not configured',
+    });
+  });
 });

@@ -21,7 +21,7 @@ Also consult the applicable standards for
 
 ## Setup and Local Development
 
-Install Git, Node.js `26.5.0`, and pnpm `11.13.1`, as pinned in
+Install Git, Node.js `26.13.0`, and pnpm `11.13.1`, as pinned in
 `package.json`, then install the committed dependency graph:
 
 ```bash

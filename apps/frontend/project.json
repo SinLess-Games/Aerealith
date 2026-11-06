@@ -17,7 +17,7 @@
       "outputs": ["{workspaceRoot}/dist/apps/frontend"],
       "options": {
         "cwd": "apps/frontend",
-        "command": "vite build && npx tsx ../../tools/scripts/sitemap-generator.ts ../../dist/apps/frontend"
+        "command": "vite build && pnpm exec tsx ../../tools/scripts/sitemap-generator.ts ../../dist/apps/frontend"
       }
     },
     "generate-docs": {

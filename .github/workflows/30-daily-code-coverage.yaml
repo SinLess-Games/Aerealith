@@ -8,7 +8,7 @@ name: 30 · Daily Code Coverage
 on:
   schedule:
     # Daily at 09:00 UTC (03:00 MDT / 02:00 MST in America/Boise).
-    - cron: "0 9 * * *"
+    - cron: '0 9 * * *'
 
   workflow_dispatch:
 
@@ -24,12 +24,12 @@ defaults:
     shell: bash
 
 env:
-  CI: "true"
-  FORCE_COLOR: "1"
+  CI: 'true'
+  FORCE_COLOR: '1'
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  HUSKY: "0"
-  NODE_VERSION: "26.5.0"
-  PNPM_VERSION: "11.13.1"
+  HUSKY: '0'
+  NODE_VERSION: '26.13.0'
+  PNPM_VERSION: '11.13.1'
 
 jobs:
   coverage:

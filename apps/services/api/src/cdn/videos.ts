@@ -1,8 +1,12 @@
 import { Hono } from 'hono';
 
 type Bindings = {
-  AEREALITH_AI: R2Bucket;
+  AEREALITH_AI?: R2Bucket;
 };
+
+function videoBucket(env: Bindings | undefined): R2Bucket | undefined {
+  return env?.AEREALITH_AI;
+}
 
 export const videosRouter = new Hono<{
   Bindings: Bindings;
@@ -142,7 +146,11 @@ videosRouter.get('/:videoId', async (c) => {
     );
   }
 
-  const bucket = c.env.AEREALITH_AI;
+  const bucket = videoBucket(c.env);
+  if (!bucket) {
+    return c.json({ error: 'Video storage is not configured' }, 503);
+  }
+
   const key = getVideoKey(videoId);
 
   try {
@@ -271,10 +279,15 @@ videosRouter.on('HEAD', '/:videoId', async (c) => {
     });
   }
 
+  const bucket = videoBucket(c.env);
+  if (!bucket) {
+    return new Response(null, { status: 503 });
+  }
+
   const key = getVideoKey(videoId);
 
   try {
-    const object = await c.env.AEREALITH_AI.head(key);
+    const object = await bucket.head(key);
 
     if (!object) {
       return new Response(null, {

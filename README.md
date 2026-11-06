@@ -50,8 +50,8 @@
       alt="TypeScript strict mode"
     />
     <img
-      src="https://img.shields.io/badge/Node.js-26.5.0-339933?style=for-the-badge&amp;logo=nodedotjs&amp;logoColor=white"
-      alt="Node.js 26.5.0"
+      src="https://img.shields.io/badge/Node.js-26.13.0-339933?style=for-the-badge&amp;logo=nodedotjs&amp;logoColor=white"
+      alt="Node.js 26.13.0"
     />
     <img
       src="https://img.shields.io/badge/pnpm-11.13.1-F69220?style=for-the-badge&amp;logo=pnpm&amp;logoColor=white"
@@ -189,7 +189,7 @@ Planned services and libraries are intentionally excluded from this tree.
 
 ### Requirements
 
-- **Node.js 26.5.0**
+- **Node.js 26.13.0**
 - **pnpm 11.13.1**
 - **Git**
 - Optional: Docker for container-focused development and security scanning
