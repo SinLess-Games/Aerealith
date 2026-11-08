@@ -47,7 +47,7 @@
     "@axe-core/playwright": "4.12.1",
     "@babel/core": "8.0.1",
     "@babel/preset-react": "8.0.1",
-    "@cloudflare/vite-plugin": "1.44.0",
+    "@cloudflare/vite-plugin": "1.67.0",
     "@cloudflare/vitest-pool-workers": "0.18.4",
     "@cloudflare/workers-types": "5.20260712.1",
     "@codecov/vite-plugin": "2.0.1",
