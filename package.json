@@ -68,7 +68,7 @@
     "@nx/web": "23.1.1",
     "@nx/workspace": "23.1.1",
     "@nxlv/python": "23.0.0",
-    "@playwright/test": "1.61.1",
+    "@playwright/test": "1.64.1",
     "@swc-node/register": "1.11.1",
     "@swc/cli": "0.8.1",
     "@swc/core": "1.15.43",
