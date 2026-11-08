@@ -18,7 +18,7 @@ allowBuilds:
   unrs-resolver: true
   workerd: true
 overrides:
-  hono: 4.13.8
+  hono: 4.13.16
   proxy-addr: 2.0.8
   smol-toml: 1.8.0
   '@opentelemetry/core': 2.9.0
