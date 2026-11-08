@@ -65,6 +65,8 @@ overrides:
   baseline-browser-mapping@2.10.43: 2.11.35
   postcss@8.5.19: 8.5.32
   postcss-selector-parser@7.1.4: 7.1.7
+  nx@23.1.1: 23.2.1
+  vite@8.1.4: 8.1.6
 minimumReleaseAgeExclude:
   - '@cloudflare/workerd-darwin-64@1.20260730.1'
   - '@cloudflare/workerd-darwin-arm64@1.20260730.1'
