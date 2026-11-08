@@ -45,7 +45,7 @@
   "devDependencies": {
     "@alwaysmeticulous/recorder-plugin": "2.293.0",
     "@axe-core/playwright": "4.12.1",
-    "@babel/core": "8.0.1",
+    "@babel/core": "8.1.0",
     "@babel/preset-react": "8.0.1",
     "@cloudflare/vite-plugin": "1.44.0",
     "@cloudflare/vitest-pool-workers": "0.18.4",
