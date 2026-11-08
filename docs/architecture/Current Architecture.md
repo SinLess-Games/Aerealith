@@ -89,7 +89,7 @@ docs/
 
 | Tool                       | Role                                                        |
 | -------------------------- | ----------------------------------------------------------- |
-| Node.js `26.5.0`           | Repository-pinned JavaScript and TypeScript runtime.        |
+| Node.js `26.13.0`          | Repository-pinned JavaScript and TypeScript runtime.        |
 | pnpm `11.13.1`             | Package and workspace manager.                              |
 | Nx                         | Project graph, task orchestration, caching, and generators. |
 | TypeScript                 | Primary application language.                               |

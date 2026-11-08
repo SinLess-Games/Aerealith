@@ -38,29 +38,29 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: "Release tag to create, for example v0.1.0."
+        description: 'Release tag to create, for example v0.1.0.'
         required: true
         type: string
 
       target_ref:
-        description: "Branch, tag, or commit SHA to release."
+        description: 'Branch, tag, or commit SHA to release.'
         required: true
-        default: "master"
+        default: 'master'
         type: string
 
       release_title:
-        description: "Optional release title. Defaults to Aerealith <release-tag>."
+        description: 'Optional release title. Defaults to Aerealith <release-tag>.'
         required: false
         type: string
 
       prerelease:
-        description: "Mark this release as a prerelease."
+        description: 'Mark this release as a prerelease.'
         required: true
         default: false
         type: boolean
 
       draft:
-        description: "Create the release as a draft instead of publishing it immediately."
+        description: 'Create the release as a draft instead of publishing it immediately.'
         required: true
         default: false
         type: boolean
@@ -77,19 +77,19 @@ defaults:
     shell: bash
 
 env:
-  CI: "true"
-  FORCE_COLOR: "1"
-  HUSKY: "0"
+  CI: 'true'
+  FORCE_COLOR: '1'
+  HUSKY: '0'
 
-  NODE_VERSION: "26.5.0"
-  PNPM_VERSION: "11.13.1"
+  NODE_VERSION: '26.13.0'
+  PNPM_VERSION: '11.13.1'
 
-  CHANGELOG_TEMPLATE_PATH: ".github/templates/CHANGELOG.template.md"
+  CHANGELOG_TEMPLATE_PATH: '.github/templates/CHANGELOG.template.md'
 
-  COPILOT_MODEL: "openai/gpt-4.1"
-  GEMINI_MODEL: "gemini-3.5-flash"
+  COPILOT_MODEL: 'openai/gpt-4.1'
+  GEMINI_MODEL: 'gemini-3.5-flash'
 
-  MAX_AI_FACTS_CHARACTERS: "60000"
+  MAX_AI_FACTS_CHARACTERS: '60000'
 
 jobs:
   release:

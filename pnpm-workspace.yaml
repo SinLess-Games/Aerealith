@@ -18,22 +18,55 @@ allowBuilds:
   unrs-resolver: true
   workerd: true
 overrides:
-  hono: 4.13.8
+  # Keep each security override on the same major line. A global pin would
+  # replace brace-expansion 1.x/2.x/3.x with 5.x and break those callers.
+  hono: 4.13.16
   proxy-addr: 2.0.8
-  smol-toml: 1.8.0
+  smol-toml: 1.9.1
   '@opentelemetry/core': 2.9.0
   '@esbuild-kit/core-utils>esbuild': 0.28.1
-  axios: 1.18.1
-  brace-expansion: 5.0.9
-  fast-uri@3.1.3: 3.1.5
-  js-yaml@3.15.0: 3.15.1
-  js-yaml@4.3.0: 4.3.1
-  js-yaml@5.2.0: 5.2.2
-  js-yaml@5.2.1: 5.2.2
+  axios: 1.21.0
+  'brace-expansion@>=1.0.0 <2.0.0': 1.1.21
+  'brace-expansion@>=2.0.0 <3.0.0': 2.1.7
+  'brace-expansion@>=3.0.0 <4.0.0': 3.0.9
+  'brace-expansion@>=5.0.0 <6.0.0': 5.0.12
+  'fast-uri@>=3.0.0 <4.0.0': 3.1.9
+  'js-yaml@>=3.0.0 <4.0.0': 3.15.2
+  'js-yaml@>=4.0.0 <5.0.0': 4.3.2
+  'js-yaml@>=5.0.0 <6.0.0': 5.5.0
   nanoid@3.3.16: 3.3.18
   react-router@7.18.1: 7.18.2
-  sharp@0.34.5: 0.35.2
-  undici@7.28.0: 7.29.0
+  'sharp@>=0.34.5 <0.35.5': 0.35.5
+  'undici@>=6.0.0 <7.0.0': 6.29.1
+  'undici@>=7.0.0 <8.0.0': 7.30.2
+  'dompurify@>=3.0.0 <4.0.0': 3.4.17
+  '@fastify/busboy@>=3.0.0 <4.0.0': 3.2.5
+  '@grpc/grpc-js@>=1.14.0 <1.15.0': 1.14.7
+  'body-parser@>=1.20.0 <1.21.0': 1.20.9
+  'qs@>=6.0.0 <7.0.0': 6.17.1
+  'follow-redirects@>=1.0.0 <2.0.0': 1.16.2
+  vitest@4.1.10: 4.1.12
+  '@vitest/mocker@4.1.10': 4.1.12
+  '@vitest/coverage-v8@4.1.10': 4.1.12
+  '@vitest/ui@4.1.10': 4.1.12
+  '@vitest/runner@4.1.10': 4.1.12
+  '@vitest/snapshot@4.1.10': 4.1.12
+  '@vitest/expect@4.1.10': 4.1.12
+  '@vitest/spy@4.1.10': 4.1.12
+  '@vitest/utils@4.1.10': 4.1.12
+  '@vitest/pretty-format@4.1.10': 4.1.12
+  '@xhmikosr/decompress@11.1.3': 11.1.4
+  piscina@4.9.3: 4.9.4
+  browserslist@4.28.6: 4.28.9
+  markdown-it@14.2.0: 14.3.3
+  source-map-js@1.2.1: 1.2.2
+  svgo@3.3.4: 3.3.5
+  systeminformation@5.33.1: 5.33.19
+  baseline-browser-mapping@2.10.43: 2.11.35
+  postcss@8.5.19: 8.5.32
+  postcss-selector-parser@7.1.4: 7.1.7
+  nx@23.1.1: 23.2.1
+  vite@8.1.4: 8.1.6
 minimumReleaseAgeExclude:
   - '@cloudflare/workerd-darwin-64@1.20260730.1'
   - '@cloudflare/workerd-darwin-arm64@1.20260730.1'
@@ -43,3 +76,5 @@ minimumReleaseAgeExclude:
   - miniflare@4.20260730.0
   - workerd@1.20260730.1
   - wrangler@4.116.0
+  - '@fastify/busboy@3.2.5'
+  - undici@7.30.2
