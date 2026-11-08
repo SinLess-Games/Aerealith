@@ -93,7 +93,7 @@ jobs:
       - name: Upload frontend assets and run Meticulous tests (attempt 1)
         id: meticulous_attempt_1
         continue-on-error: true
-        uses: alwaysmeticulous/report-diffs-action/upload-assets@b3c2a025ca3fc594f73c9ebac4a151a7175c1153 # v1.73.0
+        uses: alwaysmeticulous/report-diffs-action/upload-assets@76cecd4e18954874be6e01016efcda212491a83a # v1.81.0
         with:
           api-token: ${{ secrets.METICULOUS_API_TOKEN }}
           github-token: ${{ github.token }}
@@ -113,7 +113,7 @@ jobs:
 
       - name: Upload frontend assets and run Meticulous tests (attempt 2)
         if: steps.meticulous_attempt_1.outcome == 'failure'
-        uses: alwaysmeticulous/report-diffs-action/upload-assets@b3c2a025ca3fc594f73c9ebac4a151a7175c1153 # v1.73.0
+        uses: alwaysmeticulous/report-diffs-action/upload-assets@76cecd4e18954874be6e01016efcda212491a83a # v1.81.0
         with:
           api-token: ${{ secrets.METICULOUS_API_TOKEN }}
           github-token: ${{ github.token }}
